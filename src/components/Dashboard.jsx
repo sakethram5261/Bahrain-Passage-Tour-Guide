@@ -350,7 +350,7 @@ export default function Dashboard() {
   const hoursAngle = (systemTime.getHours() % 12) * 30 + systemTime.getMinutes() * 0.5
 
   return (
-    <div className="min-h-screen wood-desk-backdrop py-6 px-4 md:px-8 flex flex-col items-center justify-center font-sans relative select-none">
+    <div className="min-h-screen wood-desk-backdrop py-6 px-4 md:px-8 flex flex-col items-center justify-start font-sans relative select-none">
       
       {/* 1. TACTILE DESKTOP PROPS (Floats around the journal book only on desktop) */}
       {/* Quill Pen in Ink bottle */}
@@ -592,7 +592,7 @@ export default function Dashboard() {
         </div>
 
         {/* The Open physical book ledger double page grid */}
-        <div className="relative w-full grid grid-cols-1 md:grid-cols-2 rounded-[28px] overflow-visible journal-open-book bg-[#FAF9F6] shadow-2xl min-h-[580px] md:min-h-[640px]">
+        <div className="relative w-full grid grid-cols-1 md:grid-cols-2 rounded-[28px] overflow-visible journal-open-book bg-[#FAF9F6] shadow-2xl">
           
           {/* Mobile-only horizontal tab bar */}
           <div className="flex md:hidden justify-around bg-[#FCFBF8] border-b border-red-500/10 py-3 rounded-t-[24px] px-2 w-full select-none z-40">
@@ -641,7 +641,7 @@ export default function Dashboard() {
           </div>
 
           {/* LEFT PAGE - Chronicle Text, Narrators and Textarea Reflections */}
-          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-start gap-5 overflow-y-auto antique-scrollbar relative">
+          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-start gap-5 relative">
             <div className="animate-fadeIn space-y-5 text-left">
               
               {activeLeaf === 'chronicles' && (
@@ -955,7 +955,7 @@ export default function Dashboard() {
           </div>
 
           {/* RIGHT PAGE - Polaroid Photos, Keepsake drawer cabinet, Maps, and dynamic Itinerary check-lists */}
-          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-start gap-5 items-center overflow-y-auto antique-scrollbar relative">
+          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-start gap-5 items-center relative">
             <div className="animate-fadeIn w-full flex flex-col items-center justify-center flex-1">
               
               {activeLeaf === 'chronicles' && (

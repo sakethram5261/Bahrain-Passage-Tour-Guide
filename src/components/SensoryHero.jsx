@@ -437,7 +437,7 @@ export default function SensoryHero() {
         /* The Inner Interactive Logbook Calibrator double-page book layout */
         <div 
           ref={contentRef}
-          className="relative w-full max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[560px] md:min-h-[620px]"
+          className="relative w-full max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl"
         >
           {/* Absolute Gold Brass corner caps around the book ledger */}
           <div className="book-corner-clip top-left" />
@@ -459,7 +459,7 @@ export default function SensoryHero() {
           </div>
 
           {/* LEFT PAGE - Clickable Parameter Deck & Guide Scroll */}
-          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-between overflow-y-auto antique-scrollbar relative text-left select-none">
+          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-start relative text-left select-none">
             <div className="flex-1 flex flex-col space-y-4">
               
               {/* Header Calibration */}
@@ -595,7 +595,7 @@ export default function SensoryHero() {
           </div>
 
           {/* RIGHT PAGE - Curated Spots discovered in real-time */}
-          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-between overflow-y-auto antique-scrollbar relative text-left">
+          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-start relative text-left">
             <div className="flex-1 flex flex-col h-full justify-between">
               
               {/* Header spots parsing */}
