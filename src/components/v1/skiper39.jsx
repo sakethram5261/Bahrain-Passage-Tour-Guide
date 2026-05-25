@@ -53,10 +53,10 @@ export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 7, col
     // Spawn walking travellers
     const spawnWalkers = (width) => {
       const walkers = []
-      const walkerCount = Math.max(10, Math.min(25, Math.floor(width / 60)))
+      const walkerCount = Math.max(18, Math.min(48, Math.floor(width / 32)))
       
       for (let i = 0; i < walkerCount; i++) {
-        const scale = 0.22 + Math.random() * 0.16 // Bounded scale to fit bottom screen margin
+        const scale = 0.35 + Math.random() * 0.10 // Bounded scale to fit bottom screen margin
         const direction = Math.random() > 0.5 ? 1 : -1
         walkers.push({
           x: Math.random() * (width + 200) - 100,
@@ -95,8 +95,8 @@ export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 7, col
         const sx = walker.col * spriteWidth
         const sy = walker.row * spriteHeight
         const dx = walker.x
-        // Draw resting on bottom of canvas
-        const dy = rect.height - (spriteHeight * walker.scale) - bob
+        // Draw resting on bottom of canvas with 16px downward offset to touch screen bottom perfectly
+        const dy = rect.height - (spriteHeight * walker.scale) - bob + 16
 
         ctx.drawImage(
           img,
@@ -137,7 +137,7 @@ export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 7, col
 
 export const Skiper39 = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-20 bg-[#D11A38] z-[45] select-none shadow-[0_-8px_25px_rgba(209,26,56,0.12)] flex flex-col justify-end pointer-events-none hidden sm:block">
+    <div className="fixed bottom-0 left-0 right-0 h-[140px] bg-[#D11A38] z-[45] select-none shadow-[0_-8px_30px_rgba(209,26,56,0.15)] flex flex-col justify-end pointer-events-none hidden sm:block">
       {/* The Serrated teeth pointing up into the cream page */}
       <div className="absolute top-[-9px] left-0 right-0 h-[10px] overflow-hidden">
         <svg viewBox="0 0 100 10" preserveAspectRatio="none" className="w-full h-full text-[#D11A38] fill-current" style={{ display: 'block' }}>
@@ -145,7 +145,7 @@ export const Skiper39 = () => {
         </svg>
       </div>
       {/* Peeps walking inside the red banner */}
-      <div className="h-24 absolute bottom-0 left-0 right-0 overflow-hidden">
+      <div className="h-[140px] absolute bottom-0 left-0 right-0 overflow-hidden">
         <CrowdCanvas src="/images/peeps/all-peeps.png" rows={7} cols={15} />
       </div>
     </div>
