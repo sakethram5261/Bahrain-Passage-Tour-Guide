@@ -71,20 +71,9 @@ export default function Dashboard() {
 
   const hasKeepsake = (spotId) => collectedKeepsakes && collectedKeepsakes.includes(spotId)
 
-  // Satisfying 3D physical book page flip animation triggering context updates exactly at 90-degree apex
+  // Instant page content updates (disabled buggy 3D page flip rotation overlay as requested)
   const triggerPageTurnAnimation = (updateFn, direction = 'right') => {
-    playBookPageFlip()
-    setFlippingLeaf(direction)
-    
-    // Apex of Y-axis 90-degree fold is hit at exactly 360ms
-    setTimeout(() => {
-      updateFn()
-    }, 360)
-    
-    // Complete remaining rotation down back to 0 degrees at 720ms
-    setTimeout(() => {
-      setFlippingLeaf(null)
-    }, 720)
+    updateFn();
   }
 
   const handleNextStep = () => {
@@ -526,7 +515,7 @@ export default function Dashboard() {
       <div className="w-full max-w-6xl journal-binder-wrapper relative flex items-center justify-center">
         
         {/* Protruding Leather Index Tabs extending from the Right Side of the book */}
-        <div className="absolute top-16 -right-[46px] flex flex-col gap-3 z-40">
+        <div className="absolute top-16 -right-[46px] hidden md:flex flex-col gap-3 z-40">
           {[
             { id: 'chronicles', label: 'Chronicle', emoji: '📖' },
             { id: 'cartography', label: 'Map Log', emoji: '🗺️' },
@@ -555,6 +544,32 @@ export default function Dashboard() {
         {/* The Open physical book ledger double page grid */}
         <div className="relative w-full grid grid-cols-1 md:grid-cols-2 rounded-[28px] overflow-visible journal-open-book bg-[#FAF9F6] shadow-2xl min-h-[580px] md:min-h-[640px]">
           
+          {/* Mobile-only horizontal tab bar */}
+          <div className="flex md:hidden justify-around bg-[#FCFBF8] border-b border-red-500/10 py-3 rounded-t-[24px] px-2 w-full select-none z-40">
+            {[
+              { id: 'chronicles', label: 'Chronicle', emoji: '📖' },
+              { id: 'cartography', label: 'Map Log', emoji: '🗺️' },
+              { id: 'keepsakes', label: 'Keepsakes', emoji: '🪙' },
+              { id: 'lexicon', label: 'Lexicon', emoji: '📜' }
+            ].map(tab => {
+              const active = activeLeaf === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleLeafSwitch(tab.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold tracking-tight transition-all active:scale-95 cursor-pointer ${
+                    active 
+                      ? 'bg-bahrain-red text-white shadow-sm font-extrabold' 
+                      : 'bg-transparent text-bronze-charcoal hover:bg-red-500/5'
+                  }`}
+                >
+                  <span className="text-xs leading-none">{tab.emoji}</span>
+                  <span>{tab.label}</span>
+                </button>
+              )
+            })}
+          </div>
+          
           {/* 3D Flipping Page Leaf Overlay */}
           {flippingLeaf && (
             <div className="flipping-leaf-container">
@@ -562,16 +577,18 @@ export default function Dashboard() {
             </div>
           )}
           
-          {/* Vertical Seam Down the exact middle of the book */}
-          <div className="journal-center-spine pointer-events-none" />
+           {/* Vertical Seam Down the exact middle of the book */}
+          <div className="journal-center-spine pointer-events-none hidden md:block" />
 
           {/* Metallic 3D Spiral Binder Rings */}
-          {Array.from({ length: 8 }).map((_, idx) => (
-            <div key={idx} className="absolute pointer-events-none" style={{ top: `${8 + idx * 11.5}%`, left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
-              <div className="binder-ring-shadow" style={{ top: '2px' }} />
-              <div className="binder-ring" />
-            </div>
-          ))}
+          <div className="hidden md:block">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <div key={idx} className="absolute pointer-events-none" style={{ top: `${8 + idx * 11.5}%`, left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
+                <div className="binder-ring-shadow" style={{ top: '2px' }} />
+                <div className="binder-ring" />
+              </div>
+            ))}
+          </div>
 
           {/* LEFT PAGE - Chronicle Text, Narrators and Textarea Reflections */}
           <div className="journal-page-left p-6 md:p-9 flex flex-col justify-between h-[520px] md:h-[608px] max-h-[520px] md:max-h-[608px] overflow-y-auto antique-scrollbar relative">

@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 
-export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 15, cols = 7 }) => {
+export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 7, cols = 15 }) => {
   const canvasRef = useRef(null)
   const [imageLoaded, setImageLoaded] = useState(false)
   const imgRef = useRef(null)
@@ -146,7 +146,7 @@ export const Skiper39 = () => {
       </div>
       {/* Peeps walking inside the red banner */}
       <div className="h-24 absolute bottom-0 left-0 right-0 overflow-hidden">
-        <CrowdCanvas src="/images/peeps/all-peeps.png" rows={15} cols={7} />
+        <CrowdCanvas src="/images/peeps/all-peeps.png" rows={7} cols={15} />
       </div>
     </div>
   )

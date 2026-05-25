@@ -397,15 +397,17 @@ export default function SensoryHero() {
           <div className="book-corner-clip bottom-right" />
 
           {/* Vertical Seam Down the exact middle of the book */}
-          <div className="journal-center-spine pointer-events-none" />
+          <div className="journal-center-spine pointer-events-none hidden md:block" />
 
           {/* Metallic 3D Spiral Binder Rings */}
-          {Array.from({ length: 7 }).map((_, idx) => (
-            <div key={idx} className="absolute pointer-events-none" style={{ top: `${9 + idx * 13.5}%`, left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
-              <div className="binder-ring-shadow" style={{ top: '2px' }} />
-              <div className="binder-ring" />
-            </div>
-          ))}
+          <div className="hidden md:block">
+            {Array.from({ length: 7 }).map((_, idx) => (
+              <div key={idx} className="absolute pointer-events-none" style={{ top: `${9 + idx * 13.5}%`, left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
+                <div className="binder-ring-shadow" style={{ top: '2px' }} />
+                <div className="binder-ring" />
+              </div>
+            ))}
+          </div>
 
           {/* LEFT PAGE - Clickable Parameter Deck & Guide Scroll */}
           <div className="journal-page-left p-6 md:p-8 flex flex-col justify-between h-[500px] md:h-[588px] max-h-[500px] md:max-h-[588px] overflow-y-auto antique-scrollbar relative text-left select-none">
