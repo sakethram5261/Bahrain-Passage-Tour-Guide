@@ -344,6 +344,16 @@
     inset 0 0 40px rgba(139, 90, 43, 0.04);
   position: relative;
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Fill most of the viewport height on mobile */
+  height: calc(100dvh - 180px);
+  min-height: 540px;
+}
+
+.journal-page-left,
+.journal-page-right {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 @media (min-width: 768px) {
@@ -351,6 +361,8 @@
     border-width: 16px;
     outline-width: 2.2px;
     outline-offset: -16px;
+    height: calc(100dvh - 220px);
+    min-height: 600px;
   }
 }
 
