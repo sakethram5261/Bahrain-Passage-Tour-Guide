@@ -338,7 +338,7 @@ export default function Dashboard() {
   const hoursAngle = (systemTime.getHours() % 12) * 30 + systemTime.getMinutes() * 0.5
 
   return (
-    <div className="min-h-screen wood-desk-backdrop pt-10 pb-24 md:pb-28 px-4 md:px-8 flex flex-col items-center justify-center font-sans relative select-none">
+    <div className="min-h-screen wood-desk-backdrop pt-10 pb-24 md:pb-28 px-4 md:px-8 flex flex-col items-center justify-start font-sans relative select-none">
       
       {/* 1. TACTILE DESKTOP PROPS (Floats around the journal book only on desktop) */}
       {/* Quill Pen in Ink bottle */}

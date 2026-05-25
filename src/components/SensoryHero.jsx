@@ -191,7 +191,7 @@ export default function SensoryHero() {
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center wood-desk-backdrop overflow-y-auto px-4 py-8"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-start wood-desk-backdrop overflow-y-auto px-4 pt-8 pb-16 md:pt-12 md:pb-20"
     >
       {/* 1. TACTILE DESKTOP PROPS (Floats around the journal book only on desktop) */}
       {coverOpened && (
