@@ -457,79 +457,107 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      {/* Decorative Vintage Study Desktop Header */}
-      <header className="w-full max-w-6xl flex flex-col sm:flex-row justify-between sm:items-center pb-4 border-b border-red-500/10 mb-8 gap-4 z-10 select-none text-bronze-charcoal">
-        <div className="flex flex-col text-left">
-          <span className="font-sans text-[8px] tracking-[0.3em] text-bahrain-red uppercase font-extrabold">
-            The Wayfarer's Chronicle
-          </span>
-          <h1 className="font-serif text-3xl font-semibold mt-0.5 tracking-tight">
-            Bahrain <span className="italic font-normal text-bahrain-red">Passage</span>
-          </h1>
+      {/* Dashboard Header */}
+      <header className="w-full max-w-6xl z-10 select-none mb-6">
+        {/* Top red banner strip — Bahrain flag motif */}
+        <div
+          className="w-full rounded-2xl overflow-hidden mb-1"
+          style={{
+            background: '#D11A38',
+            boxShadow: '0 4px 20px rgba(209,26,56,0.25)',
+          }}
+        >
+          {/* Serrated bottom edge */}
+          <div className="flex flex-col sm:flex-row items-center justify-between px-5 py-3 gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col">
+                <span className="font-sans text-[8px] tracking-[0.35em] uppercase font-bold text-white/60">
+                  مملكة البحرين · Your Local
+                </span>
+                <h1 className="font-serif text-2xl font-semibold text-white leading-tight">
+                  Bahrain <span className="italic font-light">Passage</span>
+                </h1>
+              </div>
+            </div>
+
+            {/* XP + Rank pill */}
+            <button
+              onClick={() => setShowPassportCard(true)}
+              className="flex items-center gap-3 cursor-pointer group"
+              title="View your Explorer Passport"
+            >
+              <div
+                className="flex items-center gap-2.5 px-4 py-2 rounded-xl transition-all duration-200 group-hover:scale-105"
+                style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  backdropFilter: 'blur(4px)',
+                }}
+              >
+                <div className="flex flex-col items-end">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono font-bold text-white text-sm">{xp.toLocaleString()}</span>
+                    <span className="font-sans text-[9px] text-white/60 uppercase tracking-wide">XP</span>
+                  </div>
+                  <span className="font-sans text-[9px] font-bold text-white/80 uppercase tracking-widest">{rank.label}</span>
+                </div>
+                {nextRank && (
+                  <div className="w-16 flex flex-col gap-1">
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${rankProgress}%`, background: '#fff' }}
+                      />
+                    </div>
+                    <span className="font-sans text-[8px] text-white/50">→ {nextRank.label}</span>
+                  </div>
+                )}
+                <span className="text-white/50 text-xs group-hover:text-white transition-colors">↗</span>
+              </div>
+            </button>
+          </div>
+
+          {/* Serrated white bottom edge */}
+          <div style={{ lineHeight: 0 }}>
+            <svg viewBox="0 0 1200 12" preserveAspectRatio="none" style={{ width: '100%', height: '12px', display: 'block' }}>
+              <path d="M0,0 L50,10 L100,0 L150,10 L200,0 L250,10 L300,0 L350,10 L400,0 L450,10 L500,0 L550,10 L600,0 L650,10 L700,0 L750,10 L800,0 L850,10 L900,0 L950,10 L1000,0 L1050,10 L1100,0 L1150,10 L1200,0 L1200,12 L0,12 Z" fill="#FAF9F6" />
+            </svg>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-xs font-serif italic text-bronze-charcoal/70">
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-bahrain-red animate-pulse" />
-            <span className="font-sans text-[9px] tracking-widest uppercase font-bold text-bronze-charcoal">
-              {tier === 'Wandering' ? 'Wandering Explorer' : 'Exquisite Curator'}
+        {/* Sub-bar with stats + controls */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-1 py-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-bahrain-red animate-pulse" />
+              <span className="font-sans text-[9px] tracking-widest uppercase font-bold text-bronze-charcoal">
+                {tier === 'Wandering' ? 'Budget Explorer' : tier === 'Curated' ? 'Curated Local' : 'Luxury Curator'}
+              </span>
+            </div>
+            <span className="w-1 h-1 rounded-full bg-red-500/20" />
+            <span className="font-sans text-[9px] tracking-wider uppercase font-semibold text-bronze-charcoal/60">
+              {completedDays.length}/{duration} days sealed · {collectedKeepsakes.length} keepsakes
             </span>
           </div>
 
-          <span className="w-1 h-1 rounded-full bg-red-500/20" />
-
-          <span className="font-sans text-[9px] tracking-wider uppercase font-semibold text-bronze-charcoal/60">
-            Stamps: {completedDays.length} / {duration}
-          </span>
-
-          <span className="w-1 h-1 rounded-full bg-red-500/20" />
-
-          {/* Brass Sound Controls console */}
-          <div className="flex items-center gap-2 bg-red-500/5 px-3 py-1 rounded-xl border border-red-500/10 shadow-sm">
-            <button
-              onClick={() => setSoundMuted(!soundMuted)}
-              className="text-xs focus:outline-none hover:scale-110 transition-transform active:scale-95 cursor-pointer"
-              title={soundMuted ? "Unmute Sounds" : "Mute Sounds"}
-            >
-              {soundMuted ? '🔇' : '🔊'}
-            </button>
-            <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-red-500/5 px-3 py-1.5 rounded-xl border border-red-500/10">
+              <button onClick={() => setSoundMuted(!soundMuted)} className="text-xs focus:outline-none hover:scale-110 transition-transform cursor-pointer">
+                {soundMuted ? '🔇' : '🔊'}
+              </button>
               <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={soundVolume}
-                onChange={(e) => {
-                  setSoundVolume(parseFloat(e.target.value))
-                  if (soundMuted) setSoundMuted(false)
-                }}
-                className="w-14 h-1 rounded-lg bg-red-500/10 appearance-none cursor-pointer accent-bahrain-red brass-slider"
+                type="range" min="0" max="1" step="0.05" value={soundVolume}
+                onChange={(e) => { setSoundVolume(parseFloat(e.target.value)); if (soundMuted) setSoundMuted(false) }}
+                className="w-14 h-1 rounded-lg appearance-none cursor-pointer accent-bahrain-red brass-slider"
               />
-              <span className="font-mono text-[7px] text-bahrain-red font-bold w-4 text-right">
-                {Math.round(soundVolume * 100)}%
-              </span>
             </div>
+            <button
+              onClick={resetChronicle}
+              className="px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/8 text-bahrain-red text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer"
+            >
+              Reset
+            </button>
           </div>
-
-          <span className="w-1 h-1 rounded-full bg-red-500/20" />
-
-          <button
-            onClick={() => setShowPassportCard(true)}
-            className="px-3 py-1.5 rounded-lg border border-red-500/30 hover:bg-red-500/10 text-bahrain-red text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer flex items-center gap-1.5"
-            title="View your Explorer Passport"
-          >
-            <span>{xp}</span>
-            <span className="opacity-60">XP ·</span>
-            <span>{rank.label}</span>
-          </button>
-
-          <button
-            onClick={resetChronicle}
-            className="px-3 py-1.5 rounded-lg border border-red-500/30 hover:bg-red-500/10 text-bahrain-red text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer"
-          >
-            Realign Ledger
-          </button>
         </div>
       </header>
 

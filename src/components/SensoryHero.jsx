@@ -309,79 +309,128 @@ export default function SensoryHero() {
 
       {/* 2. MAIN WORKSPACE CONTENT GRID */}
       {!coverOpened ? (
-        /* Majestic Antique Hardcover Book Cover (Page 0) */
-        <div 
+        /* Book Cover */
+        <div
           ref={contentRef}
-          className="relative w-full max-w-xl aspect-[3/4] bg-[#FAF9F6] shadow-2xl border-[12px] border-[#2A2321] rounded-3xl overflow-hidden flex flex-col justify-between p-8 md:p-12 text-center select-none"
+          className="relative w-full max-w-sm md:max-w-md select-none"
           style={{
-            boxShadow: '0 25px 60px -15px rgba(0,0,0,0.85), inset 0 0 40px rgba(139,90,43,0.05)',
             transformStyle: 'preserve-3d',
-            perspective: '1000px'
+            perspective: '1000px',
           }}
         >
-          {/* Heavy Brass corner caps around the book cover */}
-          <div className="book-corner-clip top-left" />
-          <div className="book-corner-clip top-right" />
-          <div className="book-corner-clip bottom-left" />
-          <div className="book-corner-clip bottom-right" />
+          {/* Outer book border */}
+          <div
+            className="relative rounded-3xl overflow-hidden flex flex-col"
+            style={{
+              border: '14px solid #1A1210',
+              boxShadow: '0 40px 80px -20px rgba(0,0,0,0.9), 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,175,55,0.3)',
+              outline: '2px solid rgba(212,175,55,0.35)',
+              outlineOffset: '-14px',
+            }}
+          >
+            {/* Brass corner clips */}
+            <div className="book-corner-clip top-left" />
+            <div className="book-corner-clip top-right" />
+            <div className="book-corner-clip bottom-left" />
+            <div className="book-corner-clip bottom-right" />
 
-          <div className="absolute top-0 bottom-0 left-0 w-6 border-r border-dashed border-red-500/25 bg-gradient-to-r from-[#2A2321] to-[#3D3330] shadow-inner opacity-95 shrink-0 pointer-events-none z-20" />
-          <div className="absolute top-0 bottom-0 left-[26px] w-0.5 bg-red-500/10 pointer-events-none z-20" />
+            {/* Book spine shadow */}
+            <div className="absolute top-0 bottom-0 left-0 w-5 bg-gradient-to-r from-black/30 to-transparent pointer-events-none z-20" />
 
-          <div className="absolute top-6 right-6 w-24 h-24 rounded-full border border-amber-600/10 shadow-[inset_0_0_8px_rgba(139,90,43,0.03)] filter blur-[0.2px] pointer-events-none" />
-          <div className="absolute bottom-12 left-10 w-2 h-2 rounded-full bg-bahrain-red/10 filter blur-[0.2px] pointer-events-none" />
-
-          <div className="flex flex-col items-center mt-4 pl-4 select-none">
-            <span className="font-sans text-[8px] tracking-[0.35em] text-bahrain-red uppercase font-bold select-none mb-1">
-              The Wayfarer's Chronicle
-            </span>
-            <span className="font-sans text-[6px] tracking-[0.2em] text-bronze-muted/60 uppercase font-bold select-none">
-              Kingdom of Bahrain • Volume I
-            </span>
-          </div>
-
-          <div className="my-auto pl-4 flex flex-col items-center">
-            <svg viewBox="0 0 100 100" className="w-20 h-20 text-bahrain-red/15 mb-4" fill="none" stroke="currentColor" strokeWidth="0.75">
-              <circle cx="50" cy="50" r="42" strokeDasharray="3,4" />
-              <circle cx="50" cy="50" r="16" />
-              <path d="M 50,2 L 50,98 M 2,50 L 98,50" />
-              <path d="M 50,50 L 46,20 L 50,5 L 54,20 Z" fill="rgba(209,26,56,0.05)" />
-              <path d="M 50,50 L 80,46 L 95,50 L 80,54 Z" fill="rgba(209,26,56,0.02)" />
-              <path d="M 50,50 L 46,80 L 50,95 L 54,80 Z" fill="rgba(209,26,56,0.02)" />
-              <path d="M 50,50 L 20,46 L 5,50 L 20,54 Z" fill="rgba(209,26,56,0.02)" />
-              <circle cx="50" cy="50" r="3" fill="currentColor" />
-            </svg>
-
-            <h1 className="font-serif text-3xl md:text-4xl text-bronze-charcoal font-semibold tracking-tight uppercase">
-              Bahrain <span className="italic font-normal text-bahrain-red block mt-1 text-2xl lowercase">Passage</span>
-            </h1>
-            
-            <div className="w-12 h-0.5 bg-red-500/10 my-3" />
-            
-            <p className="font-serif text-[10px] italic text-bronze-muted max-w-xs leading-relaxed">
-              "Tucked between ancient Dilmun mounds and warm coastal waves, the Kingdom preserves five millennia of legends. Open this ledger to carve your custom passage."
-            </p>
-          </div>
-
-          <div className="mb-4 pl-4">
-            <button
-              onClick={() => {
-                playTypewriterClick(1.5)
-                gsap.to(contentRef.current, {
-                  rotateY: -90,
-                  opacity: 0,
-                  scale: 0.95,
-                  duration: 0.65,
-                  ease: 'power3.inOut',
-                  onComplete: () => {
-                    setCoverOpened(true)
-                  }
-                })
-              }}
-              className="px-8 py-3 rounded-xl bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-xs uppercase tracking-widest font-extrabold transition-all shadow-md hover:shadow-lg cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+            {/* TOP RED BANNER — Bahrain flag inspired */}
+            <div
+              className="relative flex flex-col items-center justify-center py-8 px-8 text-center overflow-hidden"
+              style={{ background: '#D11A38' }}
             >
-              Open Wayfarer's Album
-            </button>
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.1) 0%, transparent 70%)' }}
+              />
+              {/* Decorative compass */}
+              <svg viewBox="0 0 100 100" className="absolute right-4 top-3 w-20 h-20 opacity-10" fill="none" stroke="white" strokeWidth="0.7">
+                <circle cx="50" cy="50" r="42" strokeDasharray="3,4" />
+                <circle cx="50" cy="50" r="18" />
+                <path d="M 50,2 L 50,98 M 2,50 L 98,50" />
+                <path d="M 50,50 L 46,20 L 50,5 L 54,20 Z" fill="rgba(255,255,255,0.12)" />
+                <circle cx="50" cy="50" r="3" fill="white" />
+              </svg>
+
+              <p className="relative z-10 font-sans text-[8px] tracking-[0.4em] uppercase font-bold text-white/60 mb-2">
+                مملكة البحرين · Kingdom of Bahrain
+              </p>
+              <h1 className="relative z-10 font-serif text-4xl md:text-5xl font-semibold text-white leading-none">
+                Bahrain
+              </h1>
+              <p className="relative z-10 font-serif text-xl italic font-light text-white/80 mt-1">
+                Passage
+              </p>
+            </div>
+
+            {/* Serrated white edge — Bahrain flag zigzag */}
+            <div style={{ background: '#D11A38', lineHeight: 0 }}>
+              <svg viewBox="0 0 400 20" preserveAspectRatio="none" style={{ width: '100%', height: '20px', display: 'block' }}>
+                <path d="M0,0 L25,16 L50,0 L75,16 L100,0 L125,16 L150,0 L175,16 L200,0 L225,16 L250,0 L275,16 L300,0 L325,16 L350,0 L375,16 L400,0 L400,20 L0,20 Z" fill="#FAF9F6" />
+              </svg>
+            </div>
+
+            {/* WHITE BOTTOM SECTION */}
+            <div
+              className="flex flex-col items-center justify-between px-8 py-8 gap-6 flex-1"
+              style={{ background: '#FAF9F6' }}
+            >
+              {/* Description */}
+              <div className="text-center space-y-3">
+                <div className="flex items-center justify-center gap-3">
+                  <div className="h-px flex-1" style={{ background: 'rgba(209,26,56,0.2)' }} />
+                  <svg viewBox="0 0 24 24" className="w-4 h-4 opacity-30" fill="none" stroke="#D11A38" strokeWidth="1.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 2 L12 22 M2 12 L22 12" />
+                  </svg>
+                  <div className="h-px flex-1" style={{ background: 'rgba(209,26,56,0.2)' }} />
+                </div>
+
+                <p className="font-serif text-sm italic leading-relaxed" style={{ color: '#5C5451' }}>
+                  "Your personal local. Not a tour guide — a resident who knows every hidden alley, secret sandbank, and best karak spot in the Kingdom."
+                </p>
+
+                <div className="flex justify-center gap-4 text-[9px] font-sans font-bold uppercase tracking-widest" style={{ color: 'rgba(92,84,81,0.45)' }}>
+                  <span>18 Local Spots</span>
+                  <span style={{ color: 'rgba(209,26,56,0.3)' }}>·</span>
+                  <span>AI-Planned</span>
+                  <span style={{ color: 'rgba(209,26,56,0.3)' }}>·</span>
+                  <span>Gamified</span>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <button
+                onClick={() => {
+                  playTypewriterClick(1.5)
+                  gsap.to(contentRef.current, {
+                    rotateY: -90,
+                    opacity: 0,
+                    scale: 0.96,
+                    duration: 0.6,
+                    ease: 'power3.inOut',
+                    onComplete: () => setCoverOpened(true),
+                  })
+                }}
+                className="w-full py-4 rounded-2xl font-sans text-sm uppercase tracking-widest font-extrabold transition-all cursor-pointer active:scale-95"
+                style={{
+                  background: '#D11A38',
+                  color: '#fff',
+                  boxShadow: '0 8px 24px rgba(209,26,56,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
+                }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 12px 32px rgba(209,26,56,0.5), inset 0 1px 0 rgba(255,255,255,0.15)'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 8px 24px rgba(209,26,56,0.4), inset 0 1px 0 rgba(255,255,255,0.15)'}
+              >
+                Open My Ledger →
+              </button>
+
+              <p className="font-sans text-[8px] tracking-widest uppercase font-bold" style={{ color: 'rgba(92,84,81,0.3)' }}>
+                Bahrain Passage · Volume I · 2026
+              </p>
+            </div>
           </div>
         </div>
       ) : (
