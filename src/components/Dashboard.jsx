@@ -338,7 +338,7 @@ export default function Dashboard() {
   const hoursAngle = (systemTime.getHours() % 12) * 30 + systemTime.getMinutes() * 0.5
 
   return (
-    <div className="min-h-screen wood-desk-backdrop pt-10 pb-24 md:pb-28 px-4 md:px-8 flex flex-col items-center justify-start font-sans relative select-none">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden wood-desk-backdrop pt-6 pb-20 lg:py-6 px-4 md:px-8 flex flex-col items-center justify-start lg:justify-between font-sans relative select-none">
       
       {/* 1. TACTILE DESKTOP PROPS (Floats around the journal book only on desktop) */}
       {/* Quill Pen in Ink bottle */}
@@ -542,7 +542,7 @@ export default function Dashboard() {
         </div>
 
         {/* The Open physical book ledger double page grid */}
-        <div className="relative w-full grid grid-cols-1 md:grid-cols-2 rounded-[28px] overflow-visible journal-open-book bg-[#FAF9F6] shadow-2xl min-h-[580px] md:min-h-[640px]">
+        <div className="relative w-full grid grid-cols-1 md:grid-cols-2 rounded-[28px] overflow-visible journal-open-book bg-[#FAF9F6] shadow-2xl min-h-[560px] md:min-h-[600px] lg:h-[72vh] lg:min-h-[520px] lg:max-h-[640px]">
           
           {/* Mobile-only horizontal tab bar */}
           <div className="flex md:hidden justify-around bg-[#FCFBF8] border-b border-red-500/10 py-3 rounded-t-[24px] px-2 w-full select-none z-40">
@@ -591,7 +591,7 @@ export default function Dashboard() {
           </div>
 
           {/* LEFT PAGE - Chronicle Text, Narrators and Textarea Reflections */}
-          <div className="journal-page-left p-6 md:p-9 flex flex-col justify-between h-[520px] md:h-[608px] max-h-[520px] md:max-h-[608px] overflow-y-auto antique-scrollbar relative">
+          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-between h-[500px] md:h-[560px] lg:h-full max-h-[500px] md:max-h-[560px] lg:max-h-none overflow-y-auto antique-scrollbar relative">
             <div className="animate-fadeIn space-y-5 text-left">
               
               {activeLeaf === 'chronicles' && (
@@ -905,7 +905,7 @@ export default function Dashboard() {
           </div>
 
           {/* RIGHT PAGE - Polaroid Photos, Keepsake drawer cabinet, Maps, and dynamic Itinerary check-lists */}
-          <div className="journal-page-right p-6 md:p-9 flex flex-col justify-between items-center h-[520px] md:h-[608px] max-h-[520px] md:max-h-[608px] overflow-y-auto antique-scrollbar relative">
+          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-between items-center h-[500px] md:h-[560px] lg:h-full max-h-[500px] md:max-h-[560px] lg:max-h-none overflow-y-auto antique-scrollbar relative">
             <div className="animate-fadeIn w-full flex flex-col items-center justify-center flex-1">
               
               {activeLeaf === 'chronicles' && (

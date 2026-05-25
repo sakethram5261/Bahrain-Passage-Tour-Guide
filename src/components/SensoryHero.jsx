@@ -191,7 +191,7 @@ export default function SensoryHero() {
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-start wood-desk-backdrop overflow-y-auto px-4 pt-8 pb-16 md:pt-12 md:pb-20"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-start lg:justify-between wood-desk-backdrop overflow-y-auto lg:overflow-hidden px-4 pt-8 pb-16 md:pt-12 md:pb-20 lg:py-6"
     >
       {/* 1. TACTILE DESKTOP PROPS (Floats around the journal book only on desktop) */}
       {coverOpened && (
@@ -388,7 +388,7 @@ export default function SensoryHero() {
         /* The Inner Interactive Logbook Calibrator double-page book layout */
         <div 
           ref={contentRef}
-          className="relative w-full max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[560px] md:min-h-[620px]"
+          className="relative w-full max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[520px] md:min-h-[580px] lg:h-[70vh] lg:min-h-[520px] lg:max-h-[620px]"
         >
           {/* Absolute Gold Brass corner caps around the book ledger */}
           <div className="book-corner-clip top-left" />
@@ -410,7 +410,7 @@ export default function SensoryHero() {
           </div>
 
           {/* LEFT PAGE - Clickable Parameter Deck & Guide Scroll */}
-          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-between h-[500px] md:h-[588px] max-h-[500px] md:max-h-[588px] overflow-y-auto antique-scrollbar relative text-left select-none">
+          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-between h-[480px] md:h-[540px] lg:h-full max-h-[480px] md:max-h-[540px] lg:max-h-none overflow-y-auto antique-scrollbar relative text-left select-none">
             <div className="flex-1 flex flex-col space-y-4">
               
               {/* Header Calibration */}
@@ -537,7 +537,7 @@ export default function SensoryHero() {
           </div>
 
           {/* RIGHT PAGE - Curated Spots discovered in real-time */}
-          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-between h-[500px] md:h-[588px] max-h-[500px] md:max-h-[588px] overflow-y-auto antique-scrollbar relative text-left">
+          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-between h-[480px] md:h-[540px] lg:h-full max-h-[480px] md:max-h-[540px] lg:max-h-none overflow-y-auto antique-scrollbar relative text-left">
             <div className="flex-1 flex flex-col h-full justify-between">
               
               {/* Header spots parsing */}
