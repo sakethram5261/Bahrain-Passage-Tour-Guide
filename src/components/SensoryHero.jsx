@@ -459,8 +459,8 @@ export default function SensoryHero() {
           </div>
 
           {/* LEFT PAGE - Clickable Parameter Deck & Guide Scroll */}
-          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-start relative text-left select-none">
-            <div className="flex-1 flex flex-col space-y-4">
+          <div className="journal-page-left p-6 md:p-8 flex flex-col relative text-left select-none">
+            <div className="flex flex-col space-y-4">
               
               {/* Header Calibration */}
               <div className="pb-2 border-b border-red-500/10">
@@ -579,7 +579,7 @@ export default function SensoryHero() {
             </div>
 
             {/* Imprint Unlock Wax Seal Button */}
-            <div className="pt-3 border-t border-red-500/10 flex flex-col space-y-1 mt-auto select-none">
+            <div className="pt-3 border-t border-red-500/10 flex flex-col space-y-1 mt-5 select-none">
               <button
                 onClick={handleGenerateChronicle}
                 disabled={loadingAI}
@@ -595,8 +595,8 @@ export default function SensoryHero() {
           </div>
 
           {/* RIGHT PAGE - Curated Spots discovered in real-time */}
-          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-start relative text-left">
-            <div className="flex-1 flex flex-col h-full justify-between">
+          <div className="journal-page-right p-6 md:p-8 flex flex-col relative text-left">
+            <div className="flex flex-col gap-3">
               
               {/* Header spots parsing */}
               <div className="pb-2 border-b border-red-500/10 flex justify-between items-center mb-3">

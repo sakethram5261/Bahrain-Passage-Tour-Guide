@@ -955,13 +955,13 @@ export default function Dashboard() {
           </div>
 
           {/* RIGHT PAGE - Polaroid Photos, Keepsake drawer cabinet, Maps, and dynamic Itinerary check-lists */}
-          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-start gap-5 items-center relative">
-            <div className="animate-fadeIn w-full flex flex-col items-center justify-center flex-1">
+          <div className="journal-page-right p-6 md:p-8 flex flex-col gap-5 items-center relative">
+            <div className="animate-fadeIn w-full flex flex-col items-center">
               
               {activeLeaf === 'chronicles' && (
                 isSealStep ? (
                   /* Custom Sealing Modal Frame */
-                  <div className="w-full flex flex-col items-center justify-center text-center p-6 bg-white border border-dashed border-red-500/25 max-w-[310px] shadow-sm rounded-2xl animate-scaleIn relative overflow-hidden select-none my-auto">
+                  <div className="w-full flex flex-col items-center justify-center text-center p-6 bg-white border border-dashed border-red-500/25 max-w-[310px] shadow-sm rounded-2xl animate-scaleIn relative overflow-hidden select-none mt-4">
                     
                     {stamping && (
                       <div className="absolute inset-0 z-40 bg-white/80 flex items-center justify-center pointer-events-none">
@@ -1022,7 +1022,7 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   activeSpot && (
-                    <div className="flex flex-col items-center justify-between w-full space-y-6 flex-1 py-2">
+                    <div className="flex flex-col items-center w-full space-y-6 py-2">
                       
                       {/* Polaroid Photo Frame */}
                       <div className="relative bg-white p-3.5 pb-10 shadow-xl border border-red-500/5 rotate-[-1.5deg] hover:rotate-[1deg] transition-all duration-700 w-full max-w-[240px] shrink-0">
@@ -1136,7 +1136,7 @@ export default function Dashboard() {
               )}
 
               {activeLeaf === 'cartography' && (
-                <div className="flex flex-col items-center justify-center p-6 text-center max-w-[270px] aged-paper-gradient border border-dashed border-red-500/25 rounded-2xl shadow-sm my-auto">
+                <div className="flex flex-col items-center justify-center p-6 text-center max-w-[270px] aged-paper-gradient border border-dashed border-red-500/25 rounded-2xl shadow-sm mt-4">
                   <span className="text-4xl mb-3 animate-pulse">🗺️</span>
                   <span className="font-sans text-[7.5px] tracking-[0.25em] text-bahrain-red uppercase font-extrabold block mb-1">
                     Cartography Log
@@ -1209,7 +1209,7 @@ export default function Dashboard() {
               )}
 
               {activeLeaf === 'lexicon' && (
-                <div className="flex flex-col items-center justify-center p-6 text-center max-w-[270px]">
+                <div className="flex flex-col items-center p-6 text-center max-w-[270px]">
                   {/* Embossed Compass Rose decoration */}
                   <svg viewBox="0 0 100 100" className="w-36 h-36 text-bahrain-red/10 mb-4 stroke-current" fill="none" strokeWidth="0.5">
                     <circle cx="50" cy="50" r="42" strokeDasharray="3,4" />
