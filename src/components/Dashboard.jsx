@@ -592,7 +592,7 @@ export default function Dashboard() {
 
           {/* LEFT PAGE - Chronicle Text, Narrators and Textarea Reflections */}
           <div className="journal-page-left p-6 md:p-8 flex flex-col justify-between overflow-y-auto antique-scrollbar relative">
-            <div className="animate-fadeIn space-y-5 text-left flex-1 flex flex-col">
+            <div className="animate-fadeIn space-y-5 text-left">
               
               {activeLeaf === 'chronicles' && (
                 <>
