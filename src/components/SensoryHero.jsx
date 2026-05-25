@@ -448,8 +448,8 @@ export default function SensoryHero() {
           {/* Vertical Seam Down the exact middle of the book */}
           <div className="journal-center-spine pointer-events-none hidden md:block" />
 
-          {/* Metallic 3D Spiral Binder Rings */}
-          <div className="hidden md:block">
+          {/* Metallic 3D Spiral Binder Rings - absolute so it doesn't consume a grid cell */}
+          <div className="hidden md:block absolute inset-0 pointer-events-none" style={{ zIndex: 30 }}>
             {Array.from({ length: 7 }).map((_, idx) => (
               <div key={idx} className="absolute pointer-events-none" style={{ top: `${9 + idx * 13.5}%`, left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
                 <div className="binder-ring-shadow" style={{ top: '2px' }} />
