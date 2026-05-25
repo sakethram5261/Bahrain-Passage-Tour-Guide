@@ -344,15 +344,16 @@
     inset 0 0 40px rgba(139, 90, 43, 0.04);
   position: relative;
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  /* On mobile: let height be driven by content, with a sensible min */
-  min-height: 540px;
+  /* Height grows with content — page scrolls, not the book */
+  height: auto;
+  min-height: unset;
 }
 
 .journal-page-left,
 .journal-page-right {
-  /* On mobile (1-col grid) each page flows naturally */
-  overflow-y: auto;
-  min-height: 400px;
+  height: auto;
+  min-height: 0;
+  overflow-y: visible;
 }
 
 @media (min-width: 768px) {
@@ -361,15 +362,14 @@
     border-width: 16px;
     outline-width: 2.2px;
     outline-offset: -16px;
-    height: calc(100dvh - 220px);
-    min-height: 600px;
   }
 
   .journal-page-left,
   .journal-page-right {
-    /* In 2-col layout the book has a fixed height, so pages must fill it */
+    /* In 2-col layout pages fill the fixed-height book */
     height: 100%;
     min-height: 0;
+    overflow-y: auto;
   }
 }
 
@@ -1007,6 +1007,47 @@
 
 .skiper-cards-carousel .swiper-pagination {
   bottom: -4px !important;
+}
+
+/* XP rank flash animation */
+@keyframes xpPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+.xp-pop {
+  animation: xpPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Mood selector entrance */
+@keyframes moodCardIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mood-card-enter {
+  animation: moodCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Passport card enter */
+@keyframes passportIn {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.passport-enter {
+  animation: passportIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Rank badge pulse */
+@keyframes rankPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(209,26,56,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(209,26,56,0); }
+}
+
+.rank-badge-pulse {
+  animation: rankPulse 2s ease-in-out infinite;
 }
 
 
