@@ -1,13 +1,13 @@
 import { VibeProvider } from './context/VibeProvider'
 import { useVibe } from './hooks/useVibe'
-import SensoryHero from './components/SensoryHero'
+import OnboardingQuestionnaire from './components/OnboardingQuestionnaire'
 import Dashboard from './components/Dashboard'
 
 function MainContent() {
   const { aligned } = useVibe()
   return (
     <>
-      {!aligned ? <SensoryHero /> : <Dashboard />}
+      {!aligned ? <OnboardingQuestionnaire /> : <Dashboard />}
     </>
   )
 }

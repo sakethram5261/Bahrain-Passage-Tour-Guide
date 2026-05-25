@@ -338,7 +338,7 @@ export default function Dashboard() {
   const hoursAngle = (systemTime.getHours() % 12) * 30 + systemTime.getMinutes() * 0.5
 
   return (
-    <div className="min-h-screen wood-desk-backdrop py-6 px-4 md:px-8 flex flex-col items-center justify-center font-sans relative select-none">
+    <div className="min-h-screen wood-desk-backdrop py-4 sm:py-6 px-3 sm:px-4 md:px-8 flex flex-col items-center justify-center font-sans relative select-none">
       
       {/* 1. TACTILE DESKTOP PROPS (Floats around the journal book only on desktop) */}
       {/* Quill Pen in Ink bottle */}
@@ -446,34 +446,34 @@ export default function Dashboard() {
       </div>
 
       {/* Decorative Vintage Study Desktop Header */}
-      <header className="w-full max-w-6xl flex flex-col sm:flex-row justify-between sm:items-center pb-4 border-b border-red-500/10 mb-8 gap-4 z-10 select-none text-bronze-charcoal">
+      <header className="w-full max-w-6xl flex flex-col sm:flex-row justify-between sm:items-center pb-3 sm:pb-4 border-b border-red-500/10 mb-4 sm:mb-8 gap-3 sm:gap-4 z-10 select-none text-bronze-charcoal">
         <div className="flex flex-col text-left">
-          <span className="font-sans text-[8px] tracking-[0.3em] text-bahrain-red uppercase font-extrabold">
-            The Wayfarer's Chronicle
+          <span className="font-sans text-[7px] sm:text-[8px] tracking-[0.2em] sm:tracking-[0.3em] text-bahrain-red uppercase font-extrabold">
+            The Wayfarer&apos;s Chronicle
           </span>
-          <h1 className="font-serif text-3xl font-semibold mt-0.5 tracking-tight">
+          <h1 className="font-serif text-2xl sm:text-3xl font-semibold mt-0.5 tracking-tight">
             Bahrain <span className="italic font-normal text-bahrain-red">Passage</span>
           </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-xs font-serif italic text-bronze-charcoal/70">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 sm:gap-4 text-[10px] sm:text-xs font-serif italic text-bronze-charcoal/70">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="w-1.5 h-1.5 rounded-full bg-bahrain-red animate-pulse" />
-            <span className="font-sans text-[9px] tracking-widest uppercase font-bold text-bronze-charcoal">
-              {tier === 'Wandering' ? 'Wandering Explorer' : 'Exquisite Curator'}
+            <span className="font-sans text-[8px] sm:text-[9px] tracking-widest uppercase font-bold text-bronze-charcoal truncate">
+              {tier === 'Wandering' ? 'Wandering' : 'Exquisite'}
             </span>
           </div>
 
-          <span className="w-1 h-1 rounded-full bg-red-500/20" />
+          <span className="hidden sm:block w-1 h-1 rounded-full bg-red-500/20" />
 
-          <span className="font-sans text-[9px] tracking-wider uppercase font-semibold text-bronze-charcoal/60">
-            Stamps: {completedDays.length} / {duration}
+          <span className="font-sans text-[8px] sm:text-[9px] tracking-wider uppercase font-semibold text-bronze-charcoal/60">
+            Stamps: {completedDays.length}/{duration}
           </span>
 
-          <span className="w-1 h-1 rounded-full bg-red-500/20" />
+          <span className="hidden sm:block w-1 h-1 rounded-full bg-red-500/20" />
 
           {/* Brass Sound Controls console */}
-          <div className="flex items-center gap-2 bg-red-500/5 px-3 py-1 rounded-xl border border-red-500/10 shadow-sm">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-red-500/5 px-2 sm:px-3 py-1 rounded-lg sm:rounded-xl border border-red-500/10 shadow-sm w-full sm:w-auto">
             <button
               onClick={() => setSoundMuted(!soundMuted)}
               className="text-xs focus:outline-none hover:scale-110 transition-transform active:scale-95 cursor-pointer"
@@ -481,7 +481,7 @@ export default function Dashboard() {
             >
               {soundMuted ? '🔇' : '🔊'}
             </button>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 flex-1 sm:flex-initial">
               <input
                 type="range"
                 min="0"
@@ -492,21 +492,19 @@ export default function Dashboard() {
                   setSoundVolume(parseFloat(e.target.value))
                   if (soundMuted) setSoundMuted(false)
                 }}
-                className="w-14 h-1 rounded-lg bg-red-500/10 appearance-none cursor-pointer accent-bahrain-red brass-slider"
+                className="w-12 sm:w-14 h-1 rounded-lg bg-red-500/10 appearance-none cursor-pointer accent-bahrain-red brass-slider"
               />
-              <span className="font-mono text-[7px] text-bahrain-red font-bold w-4 text-right">
+              <span className="font-mono text-[7px] text-bahrain-red font-bold w-5 text-right">
                 {Math.round(soundVolume * 100)}%
               </span>
             </div>
           </div>
 
-          <span className="w-1 h-1 rounded-full bg-red-500/20" />
-
           <button
             onClick={resetChronicle}
-            className="px-3 py-1.5 rounded-lg border border-red-500/30 hover:bg-red-500/10 text-bahrain-red text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer"
+            className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-red-500/30 hover:bg-red-500/10 text-bahrain-red text-[7px] sm:text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer whitespace-nowrap"
           >
-            Realign Ledger
+            Realign
           </button>
         </div>
       </header>
