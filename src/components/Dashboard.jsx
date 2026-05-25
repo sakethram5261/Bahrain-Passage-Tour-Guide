@@ -3,6 +3,7 @@ import { useVibe } from '../hooks/useVibe'
 import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
 import WayfarerLens from './WayfarerLens'
 import WayfarerMap from './WayfarerMap'
+import { Carousel_002 } from './v1/skiper48'
 
 export function getGuideThoughts(spot, guideId) {
   if (!spot) return "Select a landmark below to begin our journey..."
@@ -456,7 +457,7 @@ export default function Dashboard() {
       </div>
 
       {/* Decorative Vintage Study Desktop Header */}
-      <header className="w-full max-w-6xl flex flex-col sm:flex-row justify-between sm:items-center pb-4 border-b border-white/10 mb-8 gap-4 z-10 select-none text-white/90">
+      <header className="w-full max-w-6xl flex flex-col sm:flex-row justify-between sm:items-center pb-4 border-b border-red-500/10 mb-8 gap-4 z-10 select-none text-bronze-charcoal">
         <div className="flex flex-col text-left">
           <span className="font-sans text-[8px] tracking-[0.3em] text-bahrain-red uppercase font-extrabold">
             The Wayfarer's Chronicle
@@ -466,24 +467,24 @@ export default function Dashboard() {
           </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-xs font-serif italic text-white/70">
+        <div className="flex flex-wrap items-center gap-4 text-xs font-serif italic text-bronze-charcoal/70">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-bahrain-red animate-pulse" />
-            <span className="font-sans text-[9px] tracking-widest uppercase font-bold text-white">
+            <span className="font-sans text-[9px] tracking-widest uppercase font-bold text-bronze-charcoal">
               {tier === 'Wandering' ? 'Wandering Explorer' : 'Exquisite Curator'}
             </span>
           </div>
 
-          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <span className="w-1 h-1 rounded-full bg-red-500/20" />
 
-          <span className="font-sans text-[9px] tracking-wider uppercase font-semibold text-white/60">
+          <span className="font-sans text-[9px] tracking-wider uppercase font-semibold text-bronze-charcoal/60">
             Stamps: {completedDays.length} / {duration}
           </span>
 
-          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <span className="w-1 h-1 rounded-full bg-red-500/20" />
 
           {/* Brass Sound Controls console */}
-          <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-xl border border-white/10 shadow-sm">
+          <div className="flex items-center gap-2 bg-red-500/5 px-3 py-1 rounded-xl border border-red-500/10 shadow-sm">
             <button
               onClick={() => setSoundMuted(!soundMuted)}
               className="text-xs focus:outline-none hover:scale-110 transition-transform active:scale-95 cursor-pointer"
@@ -502,7 +503,7 @@ export default function Dashboard() {
                   setSoundVolume(parseFloat(e.target.value))
                   if (soundMuted) setSoundMuted(false)
                 }}
-                className="w-14 h-1 rounded-lg bg-white/10 appearance-none cursor-pointer accent-bahrain-red brass-slider"
+                className="w-14 h-1 rounded-lg bg-red-500/10 appearance-none cursor-pointer accent-bahrain-red brass-slider"
               />
               <span className="font-mono text-[7px] text-bahrain-red font-bold w-4 text-right">
                 {Math.round(soundVolume * 100)}%
@@ -510,7 +511,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <span className="w-1 h-1 rounded-full bg-red-500/20" />
 
           <button
             onClick={resetChronicle}
@@ -765,34 +766,29 @@ export default function Dashboard() {
                     })}
                   </div>
 
-                  {/* CAPTURED ALBUM SNAPSHOTS POSTCARDS GALLERY WITH BLACK PHOTO CORNERS */}
+                  {/* CAPTURED ALBUM SNAPSHOTS POSTCARDS GALLERY WITH 3D CARD SWIPE CAROUSEL */}
                   <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold block mt-4 border-t border-red-500/10 pt-4">
                     📷 Captured Album Snapshots
                   </span>
-                  <div className="grid grid-cols-3 gap-2.5 mt-2">
-                    {locations.map(spot => {
-                      const photo = capturedPhotos[spot.id]
-                      return (
-                        <div key={spot.id} className="relative aspect-[4/3] bg-[#EAE5D7] border border-[#a19688] rounded-sm overflow-hidden p-0.5 shadow-md">
-                          {photo ? (
-                            <>
-                              {/* Heavy tactile photo corners in passport style */}
-                              <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-black z-20" />
-                              <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-black z-20" />
-                              <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-black z-20" />
-                              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-black z-20" />
-                              <img src={photo} alt={spot.name} className="w-full h-full object-cover relative z-10 animate-fadeIn" />
-                            </>
-                          ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center text-[#9c8e88]/60 text-[8px] font-serif text-center font-bold p-1 select-none">
-                              <span className="text-sm">📸</span>
-                              <span className="scale-90 opacity-60 mt-0.5 truncate max-w-full px-1">{spot.name.split(' ')[0]}</span>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
+                  <Carousel_002 
+                    images={spotsCatalog
+                      .map(spot => {
+                        const photo = capturedPhotos[spot.id]
+                        if (photo) {
+                          return {
+                            src: photo,
+                            alt: spot.name
+                          }
+                        }
+                        return null
+                      })
+                      .filter(Boolean)} 
+                    showPagination={true}
+                    showNavigation={true}
+                    loop={true}
+                    autoplay={true}
+                    spaceBetween={40}
+                  />
                 </div>
               )}
 
@@ -954,11 +950,21 @@ export default function Dashboard() {
                         )}
 
                         <div className="w-full h-44 overflow-hidden relative border border-red-500/5 bg-bahrain-dark flex items-center justify-center rounded-sm">
-                          {/* Vintage poster background under photo */}
-                          <div className="absolute inset-0 flex flex-col items-center justify-center p-3 bg-gradient-to-b from-bahrain-dark to-bahrain-dark/95 border border-amber-500/10 text-center select-none z-0">
-                            <span className="font-serif text-[28px] text-amber-500/5 font-extrabold uppercase absolute tracking-widest pointer-events-none">BAHRAIN</span>
-                            <span className="font-serif text-[10px] text-pearl-bg/85 font-medium italic tracking-wider px-2 z-10 truncate max-w-full">{activeSpot.name}</span>
-                            <span className="font-serif text-[9px] text-amber-500/80 mt-0.5 z-10 font-bold">{activeSpot.arabic}</span>
+                           {/* Vintage Airmail Postcard Background under photo */}
+                          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-[#FCFBF8] border-8 border-double border-bahrain-red/20 text-center select-none z-0 relative">
+                            {/* Airmail red & white diagonal striped border */}
+                            <div className="absolute inset-0 border-4 border-transparent" style={{
+                              backgroundImage: 'repeating-linear-gradient(45deg, #D11A38, #D11A38 8px, #FFFFFF 8px, #FFFFFF 16px, #4B85C4 16px, #4B85C4 24px, #FFFFFF 24px, #FFFFFF 32px)',
+                              opacity: 0.15,
+                              pointerEvents: 'none'
+                            }} />
+                            <div className="z-10 flex flex-col items-center space-y-1">
+                              <span className="text-3xl animate-pulse">📮</span>
+                              <span className="font-serif text-[10px] text-bahrain-red font-bold tracking-wider uppercase">BAHRAIN POST</span>
+                              <span className="font-serif text-[11px] text-bronze-charcoal/80 font-medium italic mt-0.5 max-w-[160px] truncate">{activeSpot.name}</span>
+                              <span className="font-serif text-[10px] text-bahrain-red/90 font-bold mt-0.5">{activeSpot.arabic}</span>
+                              <span className="font-sans text-[7px] text-bronze-muted/60 uppercase tracking-widest font-semibold mt-1">Official Chronicle Card</span>
+                            </div>
                           </div>
                           
                           <img
@@ -1144,7 +1150,7 @@ export default function Dashboard() {
       </div>
 
       {/* Retro Footnote */}
-      <footer className="wood-desk-footer w-full max-w-6xl pt-6 pb-2 mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left select-none text-white/40 z-10">
+      <footer className="wood-desk-footer w-full max-w-6xl pt-6 pb-2 mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left select-none text-bronze-charcoal/50 z-10">
         <span className="font-sans text-[8px] tracking-wider uppercase font-semibold">
           Bahrain Tourism & Wayfarer Chronicle © 2026
         </span>

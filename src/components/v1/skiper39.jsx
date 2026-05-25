@@ -137,8 +137,17 @@ export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 15, co
 
 export const Skiper39 = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-28 pointer-events-none z-[45] overflow-hidden select-none">
-      <CrowdCanvas src="/images/peeps/all-peeps.png" rows={15} cols={7} />
+    <div className="fixed bottom-0 left-0 right-0 h-10 bg-[#D11A38] z-[45] select-none shadow-[0_-8px_25px_rgba(209,26,56,0.12)] flex flex-col justify-end pointer-events-none hidden sm:block">
+      {/* The Serrated teeth pointing up into the cream page */}
+      <div className="absolute top-[-9px] left-0 right-0 h-[10px] overflow-hidden">
+        <svg viewBox="0 0 100 10" preserveAspectRatio="none" className="w-full h-full text-[#D11A38] fill-current" style={{ display: 'block' }}>
+          <polygon points="0,10 2.5,0 5,10 7.5,0 10,10 12.5,0 15,10 17.5,0 20,10 22.5,0 25,10 27.5,0 30,10 32.5,0 35,10 37.5,0 40,10 42.5,0 45,10 47.5,0 50,10 52.5,0 55,10 57.5,0 60,10 62.5,0 65,10 67.5,0 70,10 72.5,0 75,10 77.5,0 80,10 82.5,0 85,10 87.5,0 90,10 92.5,0 95,10 97.5,0 100,10" />
+        </svg>
+      </div>
+      {/* Peeps walking inside the red banner */}
+      <div className="h-24 absolute bottom-0 left-0 right-0 overflow-hidden">
+        <CrowdCanvas src="/images/peeps/all-peeps.png" rows={15} cols={7} />
+      </div>
     </div>
   )
 }

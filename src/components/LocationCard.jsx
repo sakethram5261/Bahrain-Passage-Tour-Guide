@@ -68,20 +68,21 @@ export default function LocationCard({ spot, onScan }) {
 
             <div className="w-full h-64 md:h-[240px] overflow-hidden relative border border-red-500/5 bg-bahrain-dark flex items-center justify-center rounded-sm">
               
-              {/* Vintage Travel Poster Background (Reveals if image fails or is slow to load) */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-bahrain-dark to-bahrain-dark/95 border border-amber-500/10 text-center select-none z-0">
-                <span className="font-serif text-[40px] text-amber-500/5 font-extrabold uppercase absolute tracking-widest pointer-events-none">
-                  BAHRAIN
-                </span>
-                <span className="font-serif text-xs text-pearl-bg/85 font-medium italic tracking-wider px-2 z-10 truncate max-w-full">
-                  {spot.name}
-                </span>
-                <span className="font-serif text-xs text-amber-500/80 mt-1 z-10 font-bold">
-                  {spot.arabic}
-                </span>
-                <span className="font-sans text-[6px] text-pearl-bg/35 tracking-[0.25em] uppercase mt-3 z-10 font-semibold">
-                  Wayfarer Logbook
-                </span>
+              {/* Vintage Airmail Postcard Background (Reveals if image fails or is slow to load) */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-[#FCFBF8] border-8 border-double border-bahrain-red/20 text-center select-none z-0 relative">
+                {/* Airmail red & white diagonal striped border */}
+                <div className="absolute inset-0 border-4 border-transparent" style={{
+                  backgroundImage: 'repeating-linear-gradient(45deg, #D11A38, #D11A38 8px, #FFFFFF 8px, #FFFFFF 16px, #4B85C4 16px, #4B85C4 24px, #FFFFFF 24px, #FFFFFF 32px)',
+                  opacity: 0.15,
+                  pointerEvents: 'none'
+                }} />
+                <div className="z-10 flex flex-col items-center space-y-1">
+                  <span className="text-3xl animate-pulse">📮</span>
+                  <span className="font-serif text-[10px] text-bahrain-red font-bold tracking-wider uppercase">BAHRAIN POST</span>
+                  <span className="font-serif text-[11px] text-bronze-charcoal/80 font-medium italic mt-0.5 max-w-[180px] truncate">{spot.name}</span>
+                  <span className="font-serif text-[10px] text-bahrain-red/90 font-bold mt-0.5">{spot.arabic}</span>
+                  <span className="font-sans text-[7px] text-bronze-muted/60 uppercase tracking-widest font-semibold mt-1">Official Chronicle Card</span>
+                </div>
               </div>
 
               {/* The actual photo (lays on top and hides if broken) */}

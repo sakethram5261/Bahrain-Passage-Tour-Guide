@@ -318,14 +318,14 @@
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Masterpiece Physical Travel Journal Binder Styling */
+/* Masterpiece Red & White Travel Journal Backdrop */
 .wood-desk-backdrop {
-  background-color: #17110f;
+  background-color: #FAF9F6; /* Creamy white */
   background-image: 
-    radial-gradient(circle at 50% 30%, rgba(53, 38, 33, 0.35) 0%, transparent 80%),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.005) 0px, rgba(255,255,255,0.005) 1px, transparent 1px, transparent 4px),
-    repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 12px);
-  box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+    radial-gradient(circle at 50% 30%, rgba(209, 26, 56, 0.05) 0%, transparent 80%),
+    repeating-linear-gradient(90deg, rgba(209, 26, 56, 0.015) 0px, rgba(209, 26, 56, 0.015) 1px, transparent 1px, transparent 24px),
+    repeating-linear-gradient(0deg, rgba(209, 26, 56, 0.015) 0px, rgba(209, 26, 56, 0.015) 1px, transparent 1px, transparent 24px);
+  box-shadow: inset 0 0 100px rgba(209, 26, 56, 0.03);
 }
 
 .journal-binder-wrapper {
@@ -918,6 +918,63 @@
   pointer-events: none;
   z-index: 5;
 }
+
+/* Swiper Custom Premium Overrides */
+.skiper-cards-carousel .swiper-button-next,
+.skiper-cards-carousel .swiper-button-prev {
+  color: #D11A38 !important;
+  width: 28px !important;
+  height: 28px !important;
+  background: rgba(250, 249, 246, 0.95);
+  border: 1px solid rgba(209, 26, 56, 0.15);
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: all 0.2s ease-in-out;
+  top: 50% !important;
+  transform: translateY(-50%);
+}
+
+.skiper-cards-carousel .swiper-button-next:after,
+.skiper-cards-carousel .swiper-button-prev:after {
+  font-size: 11px !important;
+  font-weight: bold;
+}
+
+.skiper-cards-carousel .swiper-button-next:hover,
+.skiper-cards-carousel .swiper-button-prev:hover {
+  background: #D11A38;
+  color: #ffffff !important;
+  border-color: #D11A38;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.skiper-cards-carousel .swiper-button-prev {
+  left: -14px !important;
+}
+
+.skiper-cards-carousel .swiper-button-next {
+  right: -14px !important;
+}
+
+.skiper-cards-carousel .swiper-pagination-bullet {
+  background: #9c8e88 !important;
+  opacity: 0.4;
+  width: 6px;
+  height: 6px;
+  transition: all 0.2s ease;
+}
+
+.skiper-cards-carousel .swiper-pagination-bullet-active {
+  background: #D11A38 !important;
+  opacity: 1 !important;
+  width: 14px;
+  border-radius: 4px;
+}
+
+.skiper-cards-carousel .swiper-pagination {
+  bottom: -4px !important;
+}
+
 
 
 
