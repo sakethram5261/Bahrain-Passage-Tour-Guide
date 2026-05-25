@@ -3,6 +3,8 @@ import { useVibe } from '../hooks/useVibe'
 import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
 import WayfarerLens from './WayfarerLens'
 import WayfarerMap from './WayfarerMap'
+import PassportCard from './PassportCard'
+import { getRank, getNextRank } from '../context/VibeProvider'
 import { Carousel_002 } from './v1/skiper48'
 
 export function getGuideThoughts(spot, guideId) {
@@ -43,8 +45,16 @@ export default function Dashboard() {
     setCurrentSpotIndex,
     capturedPhotos,
     journalReflections,
-    saveJournalReflection
+    saveJournalReflection,
+    xp,
+    markSpotVisited,
+    showPassportCard,
+    setShowPassportCard,
   } = useVibe()
+
+  const rank = getRank(xp)
+  const nextRank = getNextRank(xp)
+  const rankProgress = nextRank ? Math.round(((xp - rank.minXP) / (nextRank.minXP - rank.minXP)) * 100) : 100
   
   const { locations, loading } = useItinerary(selectedMoods, tier, duration, aiItinerary)
   const [activeScanSpot, setActiveScanSpot] = useState(null)
@@ -79,7 +89,9 @@ export default function Dashboard() {
   const handleNextStep = () => {
     if (currentSpotIndex < totalSteps - 1) {
       triggerPageTurnAnimation(() => {
-        setCurrentSpotIndex(currentSpotIndex + 1)
+        const nextIdx = currentSpotIndex + 1
+        setCurrentSpotIndex(nextIdx)
+        if (activeSpots[nextIdx]) markSpotVisited(activeSpots[nextIdx].id)
       }, 'right')
     }
   }
@@ -501,6 +513,16 @@ export default function Dashboard() {
           </div>
 
           <span className="w-1 h-1 rounded-full bg-red-500/20" />
+
+          <button
+            onClick={() => setShowPassportCard(true)}
+            className="px-3 py-1.5 rounded-lg border border-red-500/30 hover:bg-red-500/10 text-bahrain-red text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer flex items-center gap-1.5"
+            title="View your Explorer Passport"
+          >
+            <span>{xp}</span>
+            <span className="opacity-60">XP ·</span>
+            <span>{rank.label}</span>
+          </button>
 
           <button
             onClick={resetChronicle}
@@ -1205,6 +1227,10 @@ export default function Dashboard() {
           spot={activeScanSpot} 
           onClose={() => setActiveScanSpot(null)} 
         />
+      )}
+
+      {showPassportCard && (
+        <PassportCard onClose={() => setShowPassportCard(false)} />
       )}
     </div>
   )

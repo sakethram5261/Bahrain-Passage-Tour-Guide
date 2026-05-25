@@ -416,11 +416,20 @@ export default function SensoryHero() {
               {/* Header Calibration */}
               <div className="pb-2 border-b border-red-500/10">
                 <span className="font-sans text-[8px] tracking-[0.35em] text-bahrain-red uppercase font-bold block mb-1">
-                  Chronicle Volume Calibrator
+                  Local Planning — Finalise Your Trip
                 </span>
                 <h3 className="font-serif text-xl text-bronze-charcoal font-bold tracking-tight">
-                  Passage <span className="italic text-bahrain-red">Parameters</span>
+                  Trip <span className="italic text-bahrain-red">Setup</span>
                 </h3>
+                {selectedMoods.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {selectedMoods.map(m => (
+                      <span key={m} className="text-[9px] px-2 py-0.5 rounded-full font-bold font-sans bg-red-500/10 text-bahrain-red border border-red-500/15 capitalize">
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* TACTILE CLICKABLE PARAMETERS DECK */}
@@ -527,10 +536,10 @@ export default function SensoryHero() {
                 disabled={loadingAI}
                 className="w-full py-3 rounded-xl bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-[10.5px] uppercase tracking-widest font-extrabold transition-all shadow-md cursor-pointer active:scale-98 flex items-center justify-center gap-2"
               >
-                Open Travel Ledger 📖
+                {loadingAI ? 'Your local is planning...' : 'Build My Bahrain 📖'}
               </button>
               <span className="font-serif text-[8.5px] text-bronze-muted/40 italic text-center block">
-                * Note: Mapped elements are pre-selected in state. Click parameters to realign coordinate logs.
+                AI plans your itinerary in seconds. Adjust budget & duration above.
               </span>
             </div>
 
@@ -543,16 +552,15 @@ export default function SensoryHero() {
               {/* Header spots parsing */}
               <div className="pb-2 border-b border-red-500/10 flex justify-between items-center mb-3">
                 <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
-                  Wayfarer Guide Planner
+                  Your Local's Draft Plan
                 </span>
                 <span className="font-mono text-[7px] text-bronze-muted/40 font-bold">
-                  Planner Draft • Day 1 to {duration}
+                  Preview · Day 1 to {duration}
                 </span>
               </div>
 
-              {/* Dynamical Discovered Spots List Grid */}
               <p className="font-sans text-[11.5px] text-bronze-muted font-bold leading-relaxed mb-3">
-                Your guides are preparing the optimal route down history. Here is the custom itinerary drafted in your journal:
+                Based on your vibes, your local is lining up the best spots — only places a resident would take you:
               </p>
 
               <div className="flex-1 overflow-y-auto antique-scrollbar space-y-2 max-h-[360px] pr-1 py-1">
