@@ -410,7 +410,7 @@ export default function SensoryHero() {
           </div>
 
           {/* LEFT PAGE - Clickable Parameter Deck & Guide Scroll */}
-          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-between h-[480px] md:h-[540px] lg:h-full max-h-[480px] md:max-h-[540px] lg:max-h-none overflow-y-auto antique-scrollbar relative text-left select-none">
+          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-between overflow-y-auto antique-scrollbar relative text-left select-none">
             <div className="flex-1 flex flex-col space-y-4">
               
               {/* Header Calibration */}
@@ -537,7 +537,7 @@ export default function SensoryHero() {
           </div>
 
           {/* RIGHT PAGE - Curated Spots discovered in real-time */}
-          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-between h-[480px] md:h-[540px] lg:h-full max-h-[480px] md:max-h-[540px] lg:max-h-none overflow-y-auto antique-scrollbar relative text-left">
+          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-between overflow-y-auto antique-scrollbar relative text-left">
             <div className="flex-1 flex flex-col h-full justify-between">
               
               {/* Header spots parsing */}

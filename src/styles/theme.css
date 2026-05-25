@@ -440,7 +440,6 @@
   background-image: radial-gradient(circle at 100% 50%, rgba(139, 90, 43, 0.015) 0%, transparent 100%);
   border-radius: 24px 0 0 24px;
   position: relative;
-  overflow: hidden;
 }
 
 .journal-page-right {
@@ -448,7 +447,6 @@
   background-image: radial-gradient(circle at 0% 50%, rgba(139, 90, 43, 0.015) 0%, transparent 100%);
   border-radius: 0 24px 24px 0;
   position: relative;
-  overflow: hidden;
 }
 
 /* Subtle page seam shadow */

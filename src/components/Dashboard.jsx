@@ -591,7 +591,7 @@ export default function Dashboard() {
           </div>
 
           {/* LEFT PAGE - Chronicle Text, Narrators and Textarea Reflections */}
-          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-between h-[500px] md:h-[560px] lg:h-full max-h-[500px] md:max-h-[560px] lg:max-h-none overflow-y-auto antique-scrollbar relative">
+          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-between overflow-y-auto antique-scrollbar relative">
             <div className="animate-fadeIn space-y-5 text-left">
               
               {activeLeaf === 'chronicles' && (
@@ -905,7 +905,7 @@ export default function Dashboard() {
           </div>
 
           {/* RIGHT PAGE - Polaroid Photos, Keepsake drawer cabinet, Maps, and dynamic Itinerary check-lists */}
-          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-between items-center h-[500px] md:h-[560px] lg:h-full max-h-[500px] md:max-h-[560px] lg:max-h-none overflow-y-auto antique-scrollbar relative">
+          <div className="journal-page-right p-6 md:p-8 flex flex-col justify-between items-center overflow-y-auto antique-scrollbar relative">
             <div className="animate-fadeIn w-full flex flex-col items-center justify-center flex-1">
               
               {activeLeaf === 'chronicles' && (
