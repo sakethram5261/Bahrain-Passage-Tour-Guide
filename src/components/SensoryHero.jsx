@@ -516,40 +516,16 @@ export default function SensoryHero() {
 
               </div>
 
-              {/* NEAT HANDWRITTEN GUIDE TRAVEL NOTE SCROLL */}
-              <div className="flex-1 flex flex-col min-h-[120px] space-y-1.5 mt-2">
-                <span className="font-sans text-[8px] tracking-widest text-bahrain-red uppercase font-bold flex items-center gap-1">
-                  ✍️ Tour Guide Notes & Search Log
-                </span>
-                
-                <div className="flex-1 p-4 rounded-xl border border-amber-600/20 bg-[#FAF9F6] shadow-sm text-bronze-charcoal font-serif italic text-[11px] leading-relaxed overflow-y-auto max-h-[160px] antique-scrollbar relative space-y-1 font-bold">
-                  {terminalLogs.map((log, idx) => {
-                    const isSuccess = log.includes('unroll your ledger') || log.includes('coordinates secured')
-                    return (
-                      <div 
-                        key={idx} 
-                        className={`transition-all duration-300 ${
-                          isSuccess ? 'text-bahrain-red font-extrabold not-italic' : 'text-bronze-charcoal'
-                        }`}
-                      >
-                        • {log}
-                      </div>
-                    )
-                  })}
-                  <div ref={logsEndRef} />
-                </div>
-              </div>
-
             </div>
 
             {/* Imprint Unlock Wax Seal Button */}
-            <div className="pt-3 border-t border-red-500/10 flex flex-col space-y-1 mt-4 select-none">
+            <div className="pt-3 border-t border-red-500/10 flex flex-col space-y-1 mt-auto select-none">
               <button
                 onClick={handleGenerateChronicle}
                 disabled={loadingAI}
                 className="w-full py-3 rounded-xl bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-[10.5px] uppercase tracking-widest font-extrabold transition-all shadow-md cursor-pointer active:scale-98 flex items-center justify-center gap-2"
               >
-                {loadingAI ? 'Imprinting Custom Passport...' : 'Imprint Seal & Open Ledger 📖'}
+                Open Travel Ledger 📖
               </button>
               <span className="font-serif text-[8.5px] text-bronze-muted/40 italic text-center block">
                 * Note: Mapped elements are pre-selected in state. Click parameters to realign coordinate logs.

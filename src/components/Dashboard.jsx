@@ -771,18 +771,38 @@ export default function Dashboard() {
                     📷 Captured Album Snapshots
                   </span>
                   <Carousel_002 
-                    images={spotsCatalog
-                      .map(spot => {
-                        const photo = capturedPhotos[spot.id]
-                        if (photo) {
-                          return {
-                            src: photo,
-                            alt: spot.name
+                    images={(() => {
+                      const userSnaps = spotsCatalog
+                        .map(spot => {
+                          const photo = capturedPhotos[spot.id]
+                          if (photo) {
+                            return {
+                              src: photo,
+                              alt: spot.name
+                            }
                           }
+                          return null
+                        })
+                        .filter(Boolean);
+                      
+                      if (userSnaps.length > 0) return userSnaps;
+
+                      // Elegant curated showcase travel snaps so the carousel works immediately!
+                      return [
+                        { 
+                          src: 'https://images.unsplash.com/photo-1629814406259-2187f8a70a8d?q=80&w=600&auto=format&fit=crop', 
+                          alt: 'Showcase Snap: Bab Al Bahrain' 
+                        },
+                        { 
+                          src: 'https://images.unsplash.com/photo-1596422846543-75c6fc18a523?q=80&w=600&auto=format&fit=crop', 
+                          alt: 'Showcase Snap: Al Fateh Grand Mosque' 
+                        },
+                        { 
+                          src: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=600&auto=format&fit=crop', 
+                          alt: 'Showcase Snap: Qal\'at al-Bahrain (Bahrain Fort)' 
                         }
-                        return null
-                      })
-                      .filter(Boolean)} 
+                      ];
+                    })()}
                     showPagination={true}
                     showNavigation={true}
                     loop={true}

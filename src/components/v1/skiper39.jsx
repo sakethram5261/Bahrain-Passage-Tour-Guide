@@ -137,7 +137,7 @@ export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 15, co
 
 export const Skiper39 = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-10 bg-[#D11A38] z-[45] select-none shadow-[0_-8px_25px_rgba(209,26,56,0.12)] flex flex-col justify-end pointer-events-none hidden sm:block">
+    <div className="fixed bottom-0 left-0 right-0 h-20 bg-[#D11A38] z-[45] select-none shadow-[0_-8px_25px_rgba(209,26,56,0.12)] flex flex-col justify-end pointer-events-none hidden sm:block">
       {/* The Serrated teeth pointing up into the cream page */}
       <div className="absolute top-[-9px] left-0 right-0 h-[10px] overflow-hidden">
         <svg viewBox="0 0 100 10" preserveAspectRatio="none" className="w-full h-full text-[#D11A38] fill-current" style={{ display: 'block' }}>
