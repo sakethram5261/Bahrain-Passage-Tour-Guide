@@ -312,7 +312,7 @@ export default function SensoryHero() {
         /* Majestic Antique Hardcover Book Cover (Page 0) */
         <div 
           ref={contentRef}
-          className="relative w-full max-w-md aspect-[3/4] bg-[#FAF9F6] shadow-2xl border-[12px] border-[#2A2321] rounded-3xl overflow-hidden flex flex-col justify-between p-8 md:p-10 text-center select-none"
+          className="relative w-full max-w-xl aspect-[3/4] bg-[#FAF9F6] shadow-2xl border-[12px] border-[#2A2321] rounded-3xl overflow-hidden flex flex-col justify-between p-8 md:p-12 text-center select-none"
           style={{
             boxShadow: '0 25px 60px -15px rgba(0,0,0,0.85), inset 0 0 40px rgba(139,90,43,0.05)',
             transformStyle: 'preserve-3d',
