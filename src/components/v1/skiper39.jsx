@@ -50,32 +50,36 @@ export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 7, col
     const spriteWidth = img.width / cols
     const spriteHeight = img.height / rows
 
-    // Spawn walking travellers
-    const spawnWalkers = (width) => {
+    // Spawn walking travellers with higher density
+    const spawnWalkers = (width, height) => {
       const walkers = []
-      const walkerCount = Math.max(18, Math.min(48, Math.floor(width / 32)))
+      // Dense crowd populated dynamically based on screen width
+      const walkerCount = Math.max(40, Math.min(115, Math.floor(width / 14)))
       
       for (let i = 0; i < walkerCount; i++) {
-        const scale = 0.35 + Math.random() * 0.10 // Bounded scale to fit bottom screen margin
+        // Auto-scale dynamically based on canvas height to perfectly fit the banner (75% to 92% of banner height)
+        const targetDrawnHeight = height * (0.75 + Math.random() * 0.17)
+        const scale = targetDrawnHeight / spriteHeight
         const direction = Math.random() > 0.5 ? 1 : -1
+        
         walkers.push({
-          x: Math.random() * (width + 200) - 100,
+          x: Math.random() * (width + 240) - 120,
           y: 0,
           scale,
-          speed: 0.35 + Math.random() * 0.65,
+          speed: 0.14 + Math.random() * 0.36, // Smooth strolling speeds
           direction,
           row: Math.floor(Math.random() * rows),
           col: Math.floor(Math.random() * cols),
           bobOffset: Math.random() * Math.PI * 2,
-          bobSpeed: 0.015 + Math.random() * 0.02,
-          bobHeight: 3.5 + Math.random() * 4
+          bobSpeed: 0.01 + Math.random() * 0.012,
+          bobHeight: (1.8 + Math.random() * 2.2) * scale // Proportional bobbing to prevent frantic vibrating
         })
       }
       walkersRef.current = walkers
     }
 
     const rect = canvas.getBoundingClientRect()
-    spawnWalkers(rect.width)
+    spawnWalkers(rect.width, rect.height)
 
     // Canvas render loop
     const render = () => {
@@ -84,7 +88,10 @@ export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 7, col
 
       const walkers = walkersRef.current
 
-      walkers.forEach(walker => {
+      // Sort walkers by scale so larger ones (foreground) are drawn on top of smaller ones (background) for premium 2.5D depth
+      const sortedWalkers = [...walkers].sort((a, b) => a.scale - b.scale)
+
+      sortedWalkers.forEach(walker => {
         // Translate walker coordinates
         walker.x += walker.speed * walker.direction
 
@@ -95,8 +102,11 @@ export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 7, col
         const sx = walker.col * spriteWidth
         const sy = walker.row * spriteHeight
         const dx = walker.x
-        // Draw resting on bottom of canvas with 16px downward offset to touch screen bottom perfectly
-        const dy = rect.height - (spriteHeight * walker.scale) - bob + 16
+        
+        // Draw resting on bottom of canvas. 
+        // Proportional offset (+18% of drawn scale height) accounts for transparent padding at the bottom of the sprite cell,
+        // placing feet perfectly flush on the bottom edge.
+        const dy = rect.height - (spriteHeight * walker.scale) - bob + (spriteHeight * walker.scale) * 0.18
 
         ctx.drawImage(
           img,
@@ -137,15 +147,15 @@ export const CrowdCanvas = ({ src = '/images/peeps/all-peeps.png', rows = 7, col
 
 export const Skiper39 = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-[140px] bg-[#D11A38] z-[45] select-none shadow-[0_-8px_30px_rgba(209,26,56,0.15)] flex flex-col justify-end pointer-events-none hidden sm:block">
+    <div className="fixed bottom-0 left-0 right-0 h-[48px] sm:h-[64px] bg-[#D11A38] z-[45] select-none shadow-[0_-6px_20px_rgba(209,26,56,0.18)] flex flex-col justify-end pointer-events-none">
       {/* The Serrated teeth pointing up into the cream page */}
-      <div className="absolute top-[-9px] left-0 right-0 h-[10px] overflow-hidden">
+      <div className="absolute top-[-7px] sm:top-[-9px] left-0 right-0 h-[8px] sm:h-[10px] overflow-hidden">
         <svg viewBox="0 0 100 10" preserveAspectRatio="none" className="w-full h-full text-[#D11A38] fill-current" style={{ display: 'block' }}>
           <polygon points="0,10 2.5,0 5,10 7.5,0 10,10 12.5,0 15,10 17.5,0 20,10 22.5,0 25,10 27.5,0 30,10 32.5,0 35,10 37.5,0 40,10 42.5,0 45,10 47.5,0 50,10 52.5,0 55,10 57.5,0 60,10 62.5,0 65,10 67.5,0 70,10 72.5,0 75,10 77.5,0 80,10 82.5,0 85,10 87.5,0 90,10 92.5,0 95,10 97.5,0 100,10" />
         </svg>
       </div>
       {/* Peeps walking inside the red banner */}
-      <div className="h-[140px] absolute bottom-0 left-0 right-0 overflow-hidden">
+      <div className="h-[48px] sm:h-[64px] absolute bottom-0 left-0 right-0 overflow-hidden">
         <CrowdCanvas src="/images/peeps/all-peeps.png" rows={7} cols={15} />
       </div>
     </div>
