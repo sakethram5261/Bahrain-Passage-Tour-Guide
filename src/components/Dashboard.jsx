@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useVibe } from '../hooks/useVibe'
 import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
 import WayfarerLens from './WayfarerLens'
@@ -6,6 +6,118 @@ import WayfarerMap from './WayfarerMap'
 import PassportCard from './PassportCard'
 import { getRank, getNextRank } from '../context/VibeProvider'
 import { Carousel_002 } from './v1/skiper48'
+
+// Complete Bahrain-themed local riddles dictionary mapping to the 18 spots
+const RIDDLES = {
+  'qal-at-al-bahrain': {
+    question: "Which empire's legendary seals were discovered in the archaeological strata here?",
+    options: ["Dilmun Empire", "Roman Empire", "Byzantine Empire"],
+    correct: 0,
+    insider: "Dilmun clay seals carved with bulls and celestial marks were used by merchants 4,000 years ago to secure cargo bound for ancient Mesopotamia!"
+  },
+  'muharraq-souq': {
+    question: "What signature botanical spices give Bahraini Halwa its warm, legendary aroma?",
+    options: ["Saffron & Cardamom", "Ginger & Cinnamon", "Clove & Star Anise"],
+    correct: 0,
+    insider: "Generational copper-pot halwa makers cook date syrup and almonds with cardamom and highly precious saffron threads to produce that authentic scarlet glow."
+  },
+  'pearling-path': {
+    question: "How did historical Bahraini pearl divers block their ears/noses during oyster dives?",
+    options: ["Beeswax & horn-clips", "Sea-sponges & olive oil", "Fine linen & clay plugs"],
+    correct: 0,
+    insider: "Divers plugged their ears with natural beeswax and clamped their noses with 'Fattah' noseclips carved from sheep horn to withstand the deep seafloor pressure."
+  },
+  'block-338': {
+    question: "Block 338 is celebrated today as Manama's creative core. What defines its bohemian layout?",
+    options: ["Vibrant street murals & art", "Date palm gardens", "Ancient brick-kilns"],
+    correct: 0,
+    insider: "Walking behind the main lanes reveals hidden alleyways packed with glowing street murals, local printshops, and contemporary art courtyards!"
+  },
+  'jarada-island': {
+    question: "What oceanographic mystery makes a speedboat voyage to Jarada Island unique?",
+    options: ["It completely vanishes under tide", "It features deep sea moats", "It is covered in green palm woods"],
+    correct: 0,
+    insider: "Jarada is an ephemeral sandbar that completely vanishes under the turquoise sea waves twice a day, leaving only marine shells and birds."
+  },
+  'tree-of-life': {
+    question: "How old is this solitary green canopy growing without any apparent water source in the desert?",
+    options: ["Over 400 years old", "Around 50 years old", "Nearly 10,000 years old"],
+    correct: 0,
+    insider: "Botanists believe the tree's roots descend over 50 meters deep to reach subterranean fresh water aquifers, letting it defy the hyper-saline Sakhir sands."
+  },
+  'haji-cafe': {
+    question: "Established in 1950 inside Manama Souq, what legendary policy makes dining at Haji's unique?",
+    options: ["There is no printed menu", "It is inside a military fort", "Servings are done by robots"],
+    correct: 0,
+    insider: "There is no menu! You sit on the rustic wooden benches and the cooks simply serve you whatever local dishes are boiling fresh in the kitchen pots."
+  },
+  'aali-pottery': {
+    question: "What generational method do potting masters in A'ali still use to shape their red clay jars?",
+    options: ["Foot-kick pottery wheels", "Modern CNC routers", "Liquid silicon molding"],
+    correct: 0,
+    insider: "Generational potters spin clay harvested from local Sakhir marshes using kick-wheels that mimic designs seen on ancient Dilmun tablets."
+  },
+  'arad-fort': {
+    question: "Arad Fort stands guard over the Muharraq coast. What is its highly unique structural layout?",
+    options: ["Strictly square military shape", "Circular star-pattern moat", "Octagonal limestone tower"],
+    correct: 0,
+    insider: "Arad was built in a compact square shape in the 15th century, with heavy cylindrical corner towers to defend sea channels from all angles."
+  },
+  'national-museum': {
+    question: "Which ancient Mesopotamian epic inscribed on clay tablets is preserved inside the galleries here?",
+    options: ["The Epic of Gilgamesh", "The Odyssey", "The Hammurabi Codex"],
+    correct: 0,
+    insider: "The Epic of Gilgamesh describes Dilmun (ancient Bahrain) as a paradise land of pure fresh waters where the hero sought the secret to eternal life!"
+  },
+  'al-dar-islands': {
+    question: "Which local marine wildlife are shallow sea-kayak trips around Sitra shores most famous for?",
+    options: ["Starfish & blue swimming crabs", "Hammerhead shark packs", "Sub-tropical sea penguins"],
+    correct: 0,
+    insider: "Kayaking near the seagrass beds reveals millions of small blue swimming crabs, native clams, and orange starfish in crystal warm waters."
+  },
+  'reef-island': {
+    question: "Reef Island promenade sits on Manama's northern shore. What view does it showcase at night?",
+    options: ["Skyscraper neon lights & marina", "Ancient volcanic dunes", "Deep pearl oyster diving fleets"],
+    correct: 0,
+    insider: "The pedestrian sea promenade provides the absolute best breeze point to watch the capital's skyscraper neon lights catch the sea ripples."
+  },
+  'riffa-fort': {
+    question: "Perched on a cliff edge, which valley wind system cools Riffa Fort's winds?",
+    options: ["Haniniya Valley breeze", "Euphrates Delta trade winds", "Nile Basin thermal draft"],
+    correct: 0,
+    insider: "The Haniniya Valley breeze rushes up the limestone cliffs at twilight, creating a natural desert cooling draft across the fort courtyards."
+  },
+  'barbar-temple': {
+    question: "The ancient Barbar Temple ruins are dedicated to Enki. Who was this Dilmun deity?",
+    options: ["God of Wisdom & Fresh Waters", "God of Sandstorms & War", "God of Crimson Fire & Gold"],
+    correct: 0,
+    insider: "Ancient Sumerians believed Bahrain was a sacred sanctuary because freshwater springs bubbled up through the sea, ruled by the god of sweet waters!"
+  },
+  'al-jasra-house': {
+    question: "What organic, traditional building materials were used to construct Al Jasra House in 1907?",
+    options: ["Sea coral stones & palm trunks", "Red kiln bricks & concrete", "Volcanic limestone & slate"],
+    correct: 0,
+    insider: "Traditional craftsmen stacked sea coral chunks bound by mud, using palm leaf fibers and robust palm trunks to construct naturally ventilated walls."
+  },
+  'khalaf-house': {
+    question: "Khalaf House stands as a monument in Muharraq. What trade fortunes were historically weighed here?",
+    options: ["Natural sea oyster pearls", "Aromatic spice shipments", "Red clay pottery cargoes"],
+    correct: 0,
+    insider: "This grand merchant home served as the royal salon where pearl divers brought rare Basra pearls to be weighed against brass weights for fortunes."
+  },
+  'manama-souq': {
+    question: "What does the name of the iconic stone archway 'Bab Al Bahrain' translate to?",
+    options: ["Gateway of Bahrain", "Citadel of Bahrain", "Springs of Bahrain"],
+    correct: 0,
+    insider: "Built in 1949, Bab Al Bahrain ('Gateway of Bahrain') marked the exact point where sea waters originally met the historic customs square."
+  },
+  'al-areen': {
+    question: "Which majestic, long-horned white desert animal is Al Areen Park famous for preserving?",
+    options: ["The Arabian Oryx", "The Sahara Cheetah", "The Persian Antelope"],
+    correct: 0,
+    insider: "The beautiful white Arabian Oryx was saved from extinction in the 1970s through local Sakhir desert breeding programs, now numbering in the hundreds."
+  }
+}
 
 export function getGuideThoughts(spot, guideId) {
   if (!spot) return "Select a landmark below to begin our journey..."
@@ -50,6 +162,8 @@ export default function Dashboard() {
     markSpotVisited,
     showPassportCard,
     setShowPassportCard,
+    solvedRiddles,
+    solveRiddle,
   } = useVibe()
 
   const rank = getRank(xp)
@@ -61,6 +175,11 @@ export default function Dashboard() {
   const [selectedKeepsake, setSelectedKeepsake] = useState(null)
   const [stamping, setStamping] = useState(false)
   const [flippingLeaf, setFlippingLeaf] = useState(null)
+  
+  // Rank Celebration Modal States
+  const prevRankIdRef = useRef(null)
+  const [showRankUpModal, setShowRankUpModal] = useState(false)
+  const [unlockedRankInfo, setUnlockedRankInfo] = useState(null)
 
   // Real-time ticking system clock state for the physical pocket watch hands
   const [systemTime, setSystemTime] = useState(new Date())
@@ -71,6 +190,83 @@ export default function Dashboard() {
     }, 1000)
     return () => clearInterval(clockTimer)
   }, [])
+
+  const handleAnswerRiddle = (selectedIdx) => {
+    const riddle = RIDDLES[activeSpot.id]
+    if (!riddle) return
+    
+    if (selectedIdx === riddle.correct) {
+      // Play a beautiful correct harp/strum sound
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext
+        if (AudioContext && !soundMuted) {
+          const audioCtx = new AudioContext()
+          const playString = (freq, delay, dur) => {
+            const osc = audioCtx.createOscillator()
+            const gain = audioCtx.createGain()
+            osc.type = 'triangle'
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay)
+            gain.gain.setValueAtTime(0, audioCtx.currentTime + delay)
+            gain.gain.linearRampToValueAtTime(0.12 * soundVolume, audioCtx.currentTime + delay + 0.02)
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + delay + dur - 0.02)
+            osc.connect(gain)
+            gain.connect(audioCtx.destination)
+            osc.start(audioCtx.currentTime + delay)
+            osc.stop(audioCtx.currentTime + delay + dur)
+          }
+          playString(329.63, 0.0, 0.4) // E4
+          playString(392.00, 0.08, 0.4) // G4
+          playString(523.25, 0.16, 0.8) // C5
+        }
+      } catch (_) {}
+      
+      solveRiddle(activeSpot.id)
+    } else {
+      // Wrong answer - play a minor click and toast/alert
+      playTypewriterClick()
+      alert("Ah, that is not quite right. Consult the storyteller deciphers above for hints, wayfarer!")
+    }
+  }
+
+  // Detect Rank Ups on XP shifts and trigger a stunning celebration
+  useEffect(() => {
+    if (prevRankIdRef.current === null) {
+      prevRankIdRef.current = rank.id
+      return
+    }
+    
+    if (rank.id !== prevRankIdRef.current) {
+      setUnlockedRankInfo(rank)
+      setShowRankUpModal(true)
+      
+      // Play brass trumpet chord sound
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext
+        if (AudioContext && !soundMuted) {
+          const audioCtx = new AudioContext()
+          const playNote = (freq, delay, dur) => {
+            const osc = audioCtx.createOscillator()
+            const gain = audioCtx.createGain()
+            osc.type = 'triangle'
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay)
+            gain.gain.setValueAtTime(0, audioCtx.currentTime + delay)
+            gain.gain.linearRampToValueAtTime(0.2 * soundVolume, audioCtx.currentTime + delay + 0.05)
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + delay + dur - 0.05)
+            osc.connect(gain)
+            gain.connect(audioCtx.destination)
+            osc.start(audioCtx.currentTime + delay)
+            osc.stop(audioCtx.currentTime + delay + dur)
+          }
+          playNote(261.63, 0.0, 0.6) // C4
+          playNote(329.63, 0.1, 0.6) // E4
+          playNote(392.00, 0.2, 0.6) // G4
+          playNote(523.25, 0.3, 1.2) // C5
+        }
+      } catch (_) {}
+      
+      prevRankIdRef.current = rank.id
+    }
+  }, [xp, rank, soundMuted, soundVolume])
 
   const activeSpots = locations.filter(s => s.day === currentDayTab)
   const hasSpots = activeSpots.length > 0
@@ -446,14 +642,14 @@ export default function Dashboard() {
       {/* Leather-bound Bahrain Passage Visa Passport */}
       <div className="hidden lg:block desktop-prop-passport">
         <svg viewBox="0 0 120 180" className="w-full h-auto">
-          <rect x="5" y="5" width="110" height="170" rx="8" fill="#5F161B" stroke="#8C1D24" strokeWidth="1" />
-          <rect x="9" y="9" width="102" height="162" rx="5" fill="none" stroke="#D4AF37" strokeWidth="0.5" strokeDasharray="3,3" />
-          <circle cx="60" cy="72" r="16" fill="none" stroke="#D4AF37" strokeWidth="0.75" />
-          <path d="M 50,72 Q 60,82 70,72 Q 60,62 50,72 Z M 55,72 Q 60,77 65,72" fill="none" stroke="#D4AF37" strokeWidth="0.5" />
-          <path d="M 60,56 L 60,88 M 44,72 L 76,72" stroke="#D4AF37" strokeWidth="0.5" opacity="0.6" />
-          <text x="60" y="32" fill="#D4AF37" fontSize="5.5" fontFamily="sans-serif" fontWeight="bold" letterSpacing="1.2" textAnchor="middle">KINGDOM OF BAHRAIN</text>
-          <text x="60" y="146" fill="#D4AF37" fontSize="8" fontFamily="serif" letterSpacing="2" textAnchor="middle">PASSPORT</text>
-          <text x="60" y="156" fill="#D4AF37" fontSize="4" fontFamily="sans-serif" letterSpacing="1" textAnchor="middle" opacity="0.65">ENTRY VISA ACTIVATE</text>
+          <rect x="5" y="5" width="110" height="170" rx="8" fill="#D11A38" stroke="#B0102A" strokeWidth="1.5" />
+          <rect x="9" y="9" width="102" height="162" rx="5" fill="none" stroke="#FAF9F6" strokeWidth="0.75" strokeDasharray="3,3" />
+          <circle cx="60" cy="72" r="16" fill="none" stroke="#FAF9F6" strokeWidth="0.75" />
+          <path d="M 50,72 Q 60,82 70,72 Q 60,62 50,72 Z M 55,72 Q 60,77 65,72" fill="none" stroke="#FAF9F6" strokeWidth="0.5" />
+          <path d="M 60,56 L 60,88 M 44,72 L 76,72" stroke="#FAF9F6" strokeWidth="0.5" opacity="0.6" />
+          <text x="60" y="32" fill="#FAF9F6" fontSize="5.5" fontFamily="sans-serif" fontWeight="bold" letterSpacing="1.2" textAnchor="middle">KINGDOM OF BAHRAIN</text>
+          <text x="60" y="146" fill="#FAF9F6" fontSize="8" fontFamily="serif" letterSpacing="2" textAnchor="middle">PASSPORT</text>
+          <text x="60" y="156" fill="#FAF9F6" fontSize="4" fontFamily="sans-serif" letterSpacing="1" textAnchor="middle" opacity="0.65">ENTRY VISA ACTIVATE</text>
         </svg>
       </div>
 
@@ -743,9 +939,6 @@ export default function Dashboard() {
                           <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
                             ✍️ Wayfarer Reflexes Log
                           </span>
-                          <span className="font-serif text-[7px] text-bronze-muted/55 italic font-medium select-none">
-                            Lined page
-                          </span>
                         </div>
                         <textarea
                           value={journalReflections[activeSpot.id] || ''}
@@ -758,6 +951,51 @@ export default function Dashboard() {
                           className="w-full text-xs font-serif text-bronze-charcoal placeholder-bronze-muted/30 ruled-lines-container border-none focus:outline-none resize-none focus:ring-0 leading-6 bg-transparent"
                         />
                       </div>
+
+                      {/* Local Riddle Quest Card */}
+                      {RIDDLES[activeSpot.id] && (
+                        <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70">
+                          <div className="flex justify-between items-center mb-2 select-none">
+                            <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
+                              🧭 Local Riddle Quest
+                            </span>
+                            {solvedRiddles[activeSpot.id] ? (
+                              <span className="text-[8px] bg-green-100 text-green-800 font-extrabold px-1.5 py-0.5 rounded-full">
+                                ✓ Solved (+25 XP)
+                              </span>
+                            ) : (
+                              <span className="text-[8px] bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">
+                                Unsolved (+25 XP)
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="font-serif text-[10.5px] text-bronze-charcoal leading-relaxed font-bold mb-3">
+                            "{RIDDLES[activeSpot.id].question}"
+                          </p>
+
+                          {solvedRiddles[activeSpot.id] ? (
+                            <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/10 space-y-1">
+                              <p className="font-sans text-[8px] uppercase tracking-wider text-green-700 font-extrabold select-none">Insider Discovery Reveal:</p>
+                              <p className="font-serif text-[9.5px] text-bronze-charcoal leading-relaxed italic font-semibold">
+                                {RIDDLES[activeSpot.id].insider}
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {RIDDLES[activeSpot.id].options.map((opt, oIdx) => (
+                                <button
+                                  key={oIdx}
+                                  onClick={() => handleAnswerRiddle(oIdx)}
+                                  className="w-full p-2 text-left rounded-lg border border-red-500/10 hover:border-bahrain-red bg-white hover:bg-red-500/5 text-[9px] font-sans font-bold text-bronze-charcoal transition-all cursor-pointer active:scale-99"
+                                >
+                                  {opt}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-12">
@@ -1259,6 +1497,65 @@ export default function Dashboard() {
 
       {showPassportCard && (
         <PassportCard onClose={() => setShowPassportCard(false)} />
+      )}
+
+      {/* Royal Bahrain Rank Up Celebration Modal */}
+      {showRankUpModal && unlockedRankInfo && (
+        <div
+          className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-[#1a0a0c]/85 backdrop-blur-md animate-fadeIn"
+          onClick={() => setShowRankUpModal(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-[32px] overflow-hidden p-6 text-center stitch-border relative select-none animate-scaleIn"
+            style={{
+              background: 'linear-gradient(135deg, #D11A38 0%, #A81028 100%)',
+              boxShadow: '0 30px 80px rgba(209, 26, 56, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+              border: '4px solid #FAF9F6'
+            }}
+          >
+            {/* White dashed boundary */}
+            <div className="absolute inset-2 border border-dashed border-white/20 rounded-[24px] pointer-events-none" />
+
+            <div className="relative z-10 space-y-4">
+              <span className="font-sans text-[8px] tracking-[0.3em] text-[#FAF9F6]/80 uppercase font-extrabold block">
+                ✦ Explorer Rank Advanced ✦
+              </span>
+
+              {/* Large Crimson/White physical border stamp */}
+              <div 
+                className="w-24 h-24 mx-auto rounded-full bg-[#FAF9F6] border-4 border-double border-bahrain-red flex items-center justify-center text-4xl shadow-md"
+                style={{ animation: 'stampSlam 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
+              >
+                {unlockedRankInfo.id === 'wanderer' && '🧭'}
+                {unlockedRankInfo.id === 'nomad' && '🏕️'}
+                {unlockedRankInfo.id === 'merchant' && '⛵'}
+                {unlockedRankInfo.id === 'chronicler' && '📖'}
+                {unlockedRankInfo.id === 'pearldiver' && '🦪'}
+                {unlockedRankInfo.id === 'dilmun' && '💎'}
+              </div>
+
+              <h2 className="font-serif text-3xl font-bold text-white tracking-wide leading-none mt-2">
+                {unlockedRankInfo.label}
+              </h2>
+              <h3 className="font-serif text-base text-[#FAF9F6] font-bold italic mt-0.5">
+                ({unlockedRankInfo.arabic})
+              </h3>
+
+              <p className="font-sans text-[11px] text-white/95 leading-relaxed font-semibold max-w-[280px] mx-auto pt-1">
+                You have advanced in the Bahrain Passage! Keep documenting your steps, capturing snaps with the Lens, and solving native riddles to unlock ancient pearling lore.
+              </p>
+
+              <div className="pt-3">
+                <button
+                  onClick={() => setShowRankUpModal(false)}
+                  className="px-8 py-3 rounded-xl bg-white text-bahrain-red hover:bg-[#FAF9F6] font-sans text-[9px] uppercase tracking-widest font-extrabold shadow-md cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-pulse"
+                >
+                  Continue Passage
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

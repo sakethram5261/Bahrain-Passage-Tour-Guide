@@ -48,7 +48,6 @@ export function VibeProvider({ children }) {
 
   const [activeGuide, setActiveGuide] = useState('jafar')
   const [collectedKeepsakes, setCollectedKeepsakes] = useState([])
-
   const [journalReflections, setJournalReflections] = useState({})
   const [soundVolume, setSoundVolume] = useState(0.5)
   const [soundMuted, setSoundMuted] = useState(false)
@@ -57,6 +56,9 @@ export function VibeProvider({ children }) {
   const [xp, setXp] = useState(0)
   const [xpLog, setXpLog] = useState([])
   const [showPassportCard, setShowPassportCard] = useState(false)
+  
+  // Riddle solving persistence for the gamified tour guide
+  const [solvedRiddles, setSolvedRiddles] = useState({})
 
   const aligned = step === 5
 
@@ -108,6 +110,13 @@ export function VibeProvider({ children }) {
     awardXP(25, 'Spot explored')
   }, [awardXP])
 
+  const solveRiddle = (spotId) => {
+    if (!solvedRiddles[spotId]) {
+      setSolvedRiddles(prev => ({ ...prev, [spotId]: true }))
+      awardXP(25, 'Riddle solved')
+    }
+  }
+
   const resetChronicle = () => {
     setUnlockedDays([1])
     setCompletedDays([])
@@ -123,6 +132,7 @@ export function VibeProvider({ children }) {
     setXpLog([])
     setShowPassportCard(false)
     setSelectedMoods([])
+    setSolvedRiddles({})
     setStep(1)
   }
 
@@ -175,6 +185,8 @@ export function VibeProvider({ children }) {
       markSpotVisited,
       showPassportCard,
       setShowPassportCard,
+      solvedRiddles,
+      solveRiddle,
     }}>
       {children}
     </VibeContext.Provider>
