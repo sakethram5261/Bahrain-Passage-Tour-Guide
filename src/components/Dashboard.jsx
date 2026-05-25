@@ -573,7 +573,7 @@ export default function Dashboard() {
           ))}
 
           {/* LEFT PAGE - Chronicle Text, Narrators and Textarea Reflections */}
-          <div className="journal-page-left p-6 md:p-9 flex flex-col justify-between h-full max-h-[640px] overflow-y-auto antique-scrollbar relative">
+          <div className="journal-page-left p-6 md:p-9 flex flex-col justify-between h-[520px] md:h-[608px] max-h-[520px] md:max-h-[608px] overflow-y-auto antique-scrollbar relative">
             <div className="animate-fadeIn space-y-5 text-left">
               
               {activeLeaf === 'chronicles' && (
@@ -581,7 +581,7 @@ export default function Dashboard() {
                   {/* Chapter Select tactile buttons */}
                   <div className="flex justify-between items-center select-none pb-2 border-b border-red-500/10">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-serif text-[10px] text-bronze-muted/60 italic font-bold">Ledger Chapters:</span>
+                      <span className="font-serif text-[10px] text-bronze-charcoal font-bold">Ledger Chapters:</span>
                       {Array.from({ length: duration }, (_, idx) => {
                         const d = idx + 1
                         const active = currentDayTab === d
@@ -593,7 +593,7 @@ export default function Dashboard() {
                             onClick={() => handleDaySwitch(d)}
                             className={`w-7 h-7 rounded-full flex items-center justify-center font-serif text-[10px] font-extrabold transition-all relative ${
                               !unlocked
-                                ? 'bg-pearl-border/20 text-bronze-muted/20 opacity-30 cursor-not-allowed'
+                                ? 'bg-red-500/5 text-bronze-charcoal/40 border border-dashed border-red-500/15 cursor-not-allowed'
                                 : active
                                   ? 'bg-bahrain-red text-white border border-amber-500/30 scale-105 shadow-sm font-bold'
                                   : 'bg-white border border-red-500/10 text-bronze-charcoal hover:border-red-500/35 hover:scale-102 cursor-pointer shadow-sm'
@@ -604,7 +604,7 @@ export default function Dashboard() {
                         )
                       })}
                     </div>
-                    <span className="font-serif text-[10px] italic text-bronze-muted font-bold">
+                    <span className="font-serif text-[10px] italic text-bahrain-red font-bold">
                       {romanNumerals[currentDayTab]}
                     </span>
                   </div>
@@ -872,7 +872,7 @@ export default function Dashboard() {
           </div>
 
           {/* RIGHT PAGE - Polaroid Photos, Keepsake drawer cabinet, Maps, and dynamic Itinerary check-lists */}
-          <div className="journal-page-right p-6 md:p-9 flex flex-col justify-between items-center h-full max-h-[640px] overflow-y-auto antique-scrollbar relative">
+          <div className="journal-page-right p-6 md:p-9 flex flex-col justify-between items-center h-[520px] md:h-[608px] max-h-[520px] md:max-h-[608px] overflow-y-auto antique-scrollbar relative">
             <div className="animate-fadeIn w-full flex flex-col items-center justify-center flex-1">
               
               {activeLeaf === 'chronicles' && (
