@@ -191,7 +191,7 @@ export default function SensoryHero() {
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-start lg:justify-between wood-desk-backdrop overflow-y-auto lg:overflow-hidden px-4 pt-8 pb-16 md:pt-12 md:pb-20 lg:py-6"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-start wood-desk-backdrop overflow-y-auto px-4 pt-8 pb-16 md:pt-12 md:pb-20"
     >
       {/* 1. TACTILE DESKTOP PROPS (Floats around the journal book only on desktop) */}
       {coverOpened && (
@@ -388,7 +388,7 @@ export default function SensoryHero() {
         /* The Inner Interactive Logbook Calibrator double-page book layout */
         <div 
           ref={contentRef}
-          className="relative w-full max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[520px] md:min-h-[580px] lg:h-[70vh] lg:min-h-[520px] lg:max-h-[620px]"
+          className="relative w-full max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[560px] md:min-h-[620px]"
         >
           {/* Absolute Gold Brass corner caps around the book ledger */}
           <div className="book-corner-clip top-left" />
