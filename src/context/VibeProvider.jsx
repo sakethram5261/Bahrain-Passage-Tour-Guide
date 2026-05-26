@@ -88,6 +88,14 @@ export function VibeProvider({ children }) {
     setXpLog(prev => [...prev.slice(-19), { amount, reason, ts: Date.now() }])
   }, [])
 
+  // Hoisting Fix: Define unlockKeepsake early since other handlers depend on it
+  const unlockKeepsake = (spotId) => {
+    if (!collectedKeepsakes.includes(spotId)) {
+      setCollectedKeepsakes(prev => [...prev, spotId])
+      awardXP(50, 'Keepsake unlocked')
+    }
+  }
+
   const completeDay = (dayNum) => {
     if (!completedDays.includes(dayNum)) {
       setCompletedDays(prev => [...prev, dayNum])
@@ -113,13 +121,6 @@ export function VibeProvider({ children }) {
 
   const saveLensStory = (spotId, storyText) => {
     setLensStories(prev => ({ ...prev, [spotId]: storyText }))
-  }
-
-  const unlockKeepsake = (spotId) => {
-    if (!collectedKeepsakes.includes(spotId)) {
-      setCollectedKeepsakes(prev => [...prev, spotId])
-      awardXP(50, 'Keepsake unlocked')
-    }
   }
 
   const saveJournalReflection = (spotId, text) => {
