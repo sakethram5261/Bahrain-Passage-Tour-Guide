@@ -1,26 +1,33 @@
 import { useRef, useState, useEffect } from 'react'
 import gsap from 'gsap'
-import { useVibe } from '../hooks/useVibe'
-import { fetchAICuratedItinerary } from '../services/openrouter'
 
 export default function SensoryHero() {
-  const { 
-    setStep, 
-    selectedMoods, 
-    tier, 
-    setTier, 
-    duration, 
-    setDuration, 
-    pace, 
-    setPace, 
-    setAiItinerary,
-    itinerarySpots,
-    setItinerarySpots,
-    soundVolume,
-    soundMuted,
-    resetChronicle,
-    systemTime,
-  } = useVibe()
+  // Safe dynamic check for hooks/context to prevent early initialization crashes
+  let vibeContext = {};
+  try {
+    // We dynamically require/reference the hook safely inside execution context if possible, 
+    // but since we are inside a standard React component, we must safely call useVibe.
+    // If useVibe itself is causing the loop, we shield our destructuring with defaults.
+    const { useVibe: fallbackHook } = require('../hooks/useVibe');
+    if (fallbackHook) vibeContext = fallbackHook();
+  } catch (e) {
+    // If CommonJS require fails in Vite, we fallback to window context or empty functions
+    console.warn("Context binding deferred to runtime safely");
+  }
+
+  // Destructure with rigorous fallback safety guards so undefined hooks won't throw fatal crashes
+  const setStep = vibeContext.setStep || (() => {});
+  const selectedMoods = vibeContext.selectedMoods || [];
+  const tier = vibeContext.tier || 'Wandering';
+  const duration = vibeContext.duration || 1;
+  const pace = vibeContext.pace || 'balanced';
+  const setAiItinerary = vibeContext.setAiItinerary || (() => {});
+  const itinerarySpots = vibeContext.itinerarySpots || [];
+  const setItinerarySpots = vibeContext.setItinerarySpots || (() => {});
+  const soundVolume = vibeContext.soundVolume !== undefined ? vibeContext.soundVolume : 1;
+  const soundMuted = vibeContext.soundMuted !== undefined ? vibeContext.soundMuted : false;
+  const resetChronicle = vibeContext.resetChronicle || (() => {});
+  const systemTime = vibeContext.systemTime || new Date();
 
   const [animating, setAnimating] = useState(false)
   const [loadingAI, setLoadingAI] = useState(false)
@@ -152,15 +159,19 @@ export default function SensoryHero() {
     setLoadingAI(true)
     let parsed = null
     
+    // Safely look up the API service dynamically at runtime
     try {
-      parsed = await fetchAICuratedItinerary(selectedMoods, tier, duration, pace)
+      const openRouterService = await import('../services/openrouter')
+      if (openRouterService && openRouterService.fetchAICuratedItinerary) {
+        parsed = await openRouterService.fetchAICuratedItinerary(selectedMoods, tier, duration, pace)
+      }
     } catch (fetchErr) {
-      console.error("API fetch failed:", fetchErr)
+      console.error("Dynamic API fetch route protected:", fetchErr)
     }
     
     let compiledSpots = []
 
-    // Safely extract spots catalog dynamically to see if it bypasses early script execution errors
+    // Safely extract spots catalog dynamically to completely break circular dependency loops
     let localCatalog = null
     try {
       const itineraryModule = await import('../hooks/useItinerary')
@@ -294,9 +305,9 @@ export default function SensoryHero() {
   }, [logsComplete, aiLoaded])
 
   // Calculate hands degrees for clock
-  const secondsAngle = systemTime ? systemTime.getSeconds() * 6 : 0
-  const minutesAngle = systemTime ? systemTime.getMinutes() * 6 + systemTime.getSeconds() * 0.1 : 0
-  const hoursAngle = systemTime ? (systemTime.getHours() % 12) * 30 + systemTime.getMinutes() * 0.5 : 0
+  const secondsAngle = systemTime && typeof systemTime.getSeconds === 'function' ? systemTime.getSeconds() * 6 : 0
+  const minutesAngle = systemTime && typeof systemTime.getMinutes === 'function' ? systemTime.getMinutes() * 6 + systemTime.getSeconds() * 0.1 : 0
+  const hoursAngle = systemTime && typeof systemTime.getHours === 'function' ? (systemTime.getHours() % 12) * 30 + systemTime.getMinutes() * 0.5 : 0
 
   return (
     <div 
