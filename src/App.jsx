@@ -4,11 +4,14 @@ import { useVibe } from './hooks/useVibe'
 import SensoryHero from './components/SensoryHero'
 import Dashboard from './components/Dashboard'
 import MoodSelector from './components/MoodSelector'
+import WelcomeIntro from './components/WelcomeIntro'
 
 function MainContent() {
   const { aligned, selectedMoods } = useVibe()
   const [moodsConfirmed, setMoodsConfirmed] = useState(false)
+  const [introComplete, setIntroComplete] = useState(false)
 
+  if (!introComplete) return <WelcomeIntro onComplete={() => setIntroComplete(true)} />
   if (aligned) return <Dashboard />
   if (!moodsConfirmed || selectedMoods.length === 0) {
     return <MoodSelector onConfirm={() => setMoodsConfirmed(true)} />
