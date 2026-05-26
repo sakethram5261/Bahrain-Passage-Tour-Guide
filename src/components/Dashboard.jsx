@@ -4,8 +4,32 @@ import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
 import WayfarerLens from './WayfarerLens'
 import WayfarerMap from './WayfarerMap'
 import PassportCard from './PassportCard'
-import { getRank, getNextRank } from '../context/VibeProvider'
 import { Carousel_002 } from './v1/skiper48'
+
+// 🛡️ MOVED FROM VIBE PROVIDER TO BREAK THE CIRCULAR CRASH LOOP 🛡️
+const RANKS = [
+  { id: 'wanderer', label: 'Wanderer', arabic: 'مسافر', minXP: 0, color: '#5C5451' },
+  { id: 'nomad', label: 'Nomad', arabic: 'بدوي', minXP: 75, color: '#aa7c11' },
+  { id: 'merchant', label: 'Merchant', arabic: 'تاجر', minXP: 250, color: '#c07b2a' },
+  { id: 'chronicler', label: 'Chronicler', arabic: 'مؤرخ', minXP: 600, color: '#D11A38' },
+  { id: 'pearldiver', label: 'Pearl Diver', arabic: 'غواص لؤلؤ', minXP: 1200, color: '#2563eb' },
+  { id: 'dilmun', label: 'Dilmun Pearl', arabic: 'لؤلؤة دلمون', minXP: 2200, color: '#7c3aed' },
+]
+
+function getRank(xp) {
+  let rank = RANKS[0]
+  for (const r of RANKS) {
+    if (xp >= r.minXP) rank = r
+  }
+  return rank
+}
+
+function getNextRank(xp) {
+  for (const r of RANKS) {
+    if (xp < r.minXP) return r
+  }
+  return null
+}
 
 // Complete Bahrain-themed local riddles dictionary mapping to the 18 spots
 const RIDDLES = {
@@ -205,9 +229,9 @@ export default function Dashboard() {
   const [showSouqShop, setShowSouqShop] = useState(false)
   const [shopAlert, setShopAlert] = useState(null)
   const [isMapOpen, setIsMapOpen] = useState(false)
-  const [riddleError, setRiddleError] = useState(null) // Issue 3: replaces window.alert()
+  const [riddleError, setRiddleError] = useState(null)
 
-  // Local textarea state to prevent per-keystroke context re-renders (Issue 8)
+  // Local textarea state to prevent per-keystroke context re-renders
   const [localReflection, setLocalReflection] = useState('')
   const reflectionDebounceRef = useRef(null)
   const reflectionSpotRef = useRef(null)
@@ -224,7 +248,6 @@ export default function Dashboard() {
     if (goldFils >= item.cost) {
       const success = spendFils(item.cost)
       if (success) {
-        // Apply rewards
         if (item.id === 'riddle-hint') {
           awardXP(30, 'Bought map clue scroll')
           setShopAlert({ success: true, text: `📜 Hint Purchased! Clue: "Seek Jarada Sandbank or Bahrain Fort map coordinates!"` })
@@ -247,8 +270,7 @@ export default function Dashboard() {
             saveLensStory(lockedSpot.id, "Purchased directly from Jafar's wooden merchant counter inside the historical Manama Souq bazar.")
             setShopAlert({ success: true, text: `🛍️ Grab-bag opened! Unlocked keepsake relic: ${lockedSpot.keepsakeName} ${lockedSpot.keepsakeEmoji}!` })
           } else {
-            // Already unlocked all
-            setGoldFils(prev => prev + item.cost) // Refund
+            setGoldFils(prev => prev + item.cost) 
             setShopAlert({ success: false, text: `❌ Cabinet already complete! All keepsakes are fully unlocked!` })
           }
         }
@@ -264,7 +286,6 @@ export default function Dashboard() {
     if (!riddle) return
     
     if (selectedIdx === riddle.correct) {
-      // Play a beautiful correct harp/strum sound
       try {
         const AudioContext = window.AudioContext || window.webkitAudioContext
         if (AudioContext && !soundMuted) {
@@ -282,22 +303,20 @@ export default function Dashboard() {
             osc.start(audioCtx.currentTime + delay)
             osc.stop(audioCtx.currentTime + delay + dur)
           }
-          playString(329.63, 0.0, 0.4) // E4
-          playString(392.00, 0.08, 0.4) // G4
-          playString(523.25, 0.16, 0.8) // C5
+          playString(329.63, 0.0, 0.4) 
+          playString(392.00, 0.08, 0.4) 
+          playString(523.25, 0.16, 0.8) 
         }
       } catch (_) {}
       
       solveRiddle(activeSpot.id)
     } else {
-      // Wrong answer — inline error banner (Issue 3: no more window.alert)
       playTypewriterClick()
       setRiddleError("Ah, that is not quite right. Consult the storyteller deciphers above for hints, wayfarer!")
       setTimeout(() => setRiddleError(null), 3000)
     }
   }
 
-  // Sync local textarea content when the spot changes (Issue 8)
   useEffect(() => {
     if (activeSpot?.id !== reflectionSpotRef.current) {
       reflectionSpotRef.current = activeSpot?.id
@@ -305,7 +324,6 @@ export default function Dashboard() {
     }
   }, [activeSpot?.id, journalReflections])
 
-  // Detect Rank Ups on XP shifts and trigger a stunning celebration
   useEffect(() => {
     if (prevRankIdRef.current === null) {
       prevRankIdRef.current = rank.id
@@ -316,7 +334,6 @@ export default function Dashboard() {
       setUnlockedRankInfo(rank)
       setShowRankUpModal(true)
       
-      // Play brass trumpet chord sound
       try {
         const AudioContext = window.AudioContext || window.webkitAudioContext
         if (AudioContext && !soundMuted) {
@@ -334,10 +351,10 @@ export default function Dashboard() {
             osc.start(audioCtx.currentTime + delay)
             osc.stop(audioCtx.currentTime + delay + dur)
           }
-          playNote(261.63, 0.0, 0.6) // C4
-          playNote(329.63, 0.1, 0.6) // E4
-          playNote(392.00, 0.2, 0.6) // G4
-          playNote(523.25, 0.3, 1.2) // C5
+          playNote(261.63, 0.0, 0.6) 
+          playNote(329.63, 0.1, 0.6) 
+          playNote(392.00, 0.2, 0.6) 
+          playNote(523.25, 0.3, 1.2) 
         }
       } catch (_) {}
       
@@ -354,7 +371,6 @@ export default function Dashboard() {
 
   const hasKeepsake = (spotId) => collectedKeepsakes && collectedKeepsakes.includes(spotId)
 
-  // Instant page content updates (disabled buggy 3D page flip rotation overlay as requested)
   const triggerPageTurnAnimation = (updateFn, direction = 'right') => {
     updateFn();
   }
@@ -377,6 +393,17 @@ export default function Dashboard() {
     }
   }
 
+  // 🛡️ HOISTING FIX: Safely ordered before initialization 🛡️
+  const getLeafOrder = (leafId) => {
+    switch (leafId) {
+      case 'chronicles': return 1
+      case 'cartography': return 2
+      case 'keepsakes': return 3
+      case 'lexicon': return 4
+      default: return 1
+    }
+  }
+
   const handleLeafSwitch = (leafId) => {
     if (activeLeaf === leafId) return
     const direction = getLeafOrder(leafId) > getLeafOrder(activeLeaf) ? 'right' : 'left'
@@ -392,16 +419,6 @@ export default function Dashboard() {
       setCurrentDayTab(dayNum)
       setCurrentSpotIndex(0)
     }, direction)
-  }
-
-  const getLeafOrder = (leafId) => {
-    switch (leafId) {
-      case 'chronicles': return 1
-      case 'cartography': return 2
-      case 'keepsakes': return 3
-      case 'lexicon': return 4
-      default: return 1
-    }
   }
 
   const playBookPageFlip = () => {
@@ -526,8 +543,8 @@ export default function Dashboard() {
         osc.stop(audioCtx.currentTime + delayTime + 1.3)
       }
       
-      playString(146.83 + freqOffset, 0.0, 0.22) // D3
-      playString(220.00 + freqOffset * 1.5, 0.04, 0.16) // A3
+      playString(146.83 + freqOffset, 0.0, 0.22) 
+      playString(220.00 + freqOffset * 1.5, 0.04, 0.16) 
     } catch (e) {}
   }
 
@@ -617,7 +634,6 @@ export default function Dashboard() {
     10: 'Page X'
   }
 
-  // Calculate hands degrees for clock
   const secondsAngle = systemTime.getSeconds() * 6
   const minutesAngle = systemTime.getMinutes() * 6 + systemTime.getSeconds() * 0.1
   const hoursAngle = (systemTime.getHours() % 12) * 30 + systemTime.getMinutes() * 0.5
@@ -625,8 +641,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen wood-desk-backdrop py-6 px-4 md:px-8 flex flex-col items-center justify-start md:justify-center font-sans relative select-none">
       
-      {/* 1. TACTILE DESKTOP PROPS (Floats around the journal book only on desktop) */}
-      {/* Quill Pen in Ink bottle */}
+      {/* 1. TACTILE DESKTOP PROPS */}
       <div className="hidden lg:block desktop-prop-quill">
         <svg viewBox="0 0 120 180" className="w-full h-auto">
           <defs>
@@ -647,7 +662,6 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      {/* Steaming Karak Tea Cup on brass plate */}
       <div className="hidden lg:block desktop-prop-tea" title="Generational Cardamom Karak Tea">
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ellipse cx="50" cy="72" rx="42" ry="12" fill="none" stroke="#d4af37" strokeWidth="1.8" />
@@ -663,7 +677,6 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      {/* Ticking Brass Pocket Watch displaying user actual system time */}
       <div className="hidden lg:block desktop-prop-watch" title="Nautical chronometer watch (synced to local time)">
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <circle cx="50" cy="50" r="46" fill="none" stroke="#d4af37" strokeWidth="4" />
@@ -682,41 +695,13 @@ export default function Dashboard() {
               transform={`rotate(${i * 30} 50 50)`}
             />
           ))}
-          <line
-            x1="50"
-            y1="50"
-            x2="50"
-            y2="30"
-            stroke="#1A1412"
-            strokeWidth="2.8"
-            strokeLinecap="round"
-            transform={`rotate(${hoursAngle} 50 50)`}
-          />
-          <line
-            x1="50"
-            y1="50"
-            x2="50"
-            y2="20"
-            stroke="#3D3330"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            transform={`rotate(${minutesAngle} 50 50)`}
-          />
-          <line
-            x1="50"
-            y1="55"
-            x2="50"
-            y2="18"
-            stroke="#C1122F"
-            strokeWidth="0.8"
-            strokeLinecap="round"
-            transform={`rotate(${secondsAngle} 50 50)`}
-          />
+          <line x1="50" y1="50" x2="50" y2="30" stroke="#1A1412" strokeWidth="2.8" strokeLinecap="round" transform={`rotate(${hoursAngle} 50 50)`} />
+          <line x1="50" y1="50" x2="50" y2="20" stroke="#3D3330" strokeWidth="1.8" strokeLinecap="round" transform={`rotate(${minutesAngle} 50 50)`} />
+          <line x1="50" y1="55" x2="50" y2="18" stroke="#C1122F" strokeWidth="0.8" strokeLinecap="round" transform={`rotate(${secondsAngle} 50 50)`} />
           <circle cx="50" cy="50" r="3.2" fill="#d4af37" stroke="#1A1412" strokeWidth="0.8" />
         </svg>
       </div>
 
-      {/* Leather-bound Bahrain Passage Visa Passport */}
       <div className="hidden lg:block desktop-prop-passport">
         <svg viewBox="0 0 120 180" className="w-full h-auto">
           <rect x="5" y="5" width="110" height="170" rx="8" fill="#D11A38" stroke="#B0102A" strokeWidth="1.5" />
@@ -732,15 +717,7 @@ export default function Dashboard() {
 
       {/* Dashboard Header */}
       <header className="w-full max-w-6xl z-10 select-none mb-6">
-        {/* Top red banner strip — Bahrain flag motif */}
-        <div
-          className="w-full rounded-2xl overflow-hidden mb-1"
-          style={{
-            background: '#D11A38',
-            boxShadow: '0 4px 20px rgba(209,26,56,0.25)',
-          }}
-        >
-          {/* Serrated bottom edge */}
+        <div className="w-full rounded-2xl overflow-hidden mb-1" style={{ background: '#D11A38', boxShadow: '0 4px 20px rgba(209,26,56,0.25)' }}>
           <div className="flex flex-col sm:flex-row items-center justify-between px-5 py-3 gap-3">
             <div className="flex items-center gap-3">
               <div className="flex flex-col">
@@ -753,7 +730,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* XP + Rank pill */}
             <button
               onClick={() => setShowPassportCard(true)}
               className="flex items-center gap-3 cursor-pointer group"
@@ -761,11 +737,7 @@ export default function Dashboard() {
             >
               <div
                 className="flex items-center gap-2.5 px-4 py-2 rounded-xl transition-all duration-200 group-hover:scale-105"
-                style={{
-                  background: 'rgba(255,255,255,0.15)',
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  backdropFilter: 'blur(4px)',
-                }}
+                style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)' }}
               >
                 <div className="flex flex-col items-end">
                   <div className="flex items-center gap-1.5">
@@ -777,10 +749,7 @@ export default function Dashboard() {
                 {nextRank && (
                   <div className="w-16 flex flex-col gap-1">
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${rankProgress}%`, background: '#fff' }}
-                      />
+                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${rankProgress}%`, background: '#fff' }} />
                     </div>
                     <span className="font-sans text-[8px] text-white/50">→ {nextRank.label}</span>
                   </div>
@@ -790,7 +759,6 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {/* Serrated white bottom edge */}
           <div style={{ lineHeight: 0 }}>
             <svg viewBox="0 0 1200 12" preserveAspectRatio="none" style={{ width: '100%', height: '12px', display: 'block' }}>
               <path d="M0,0 L50,10 L100,0 L150,10 L200,0 L250,10 L300,0 L350,10 L400,0 L450,10 L500,0 L550,10 L600,0 L650,10 L700,0 L750,10 L800,0 L850,10 L900,0 L950,10 L1000,0 L1050,10 L1100,0 L1150,10 L1200,0 L1200,12 L0,12 Z" fill="#FAF9F6" />
@@ -798,7 +766,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Sub-bar with stats + controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 px-1 py-2">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-1.5">
@@ -843,7 +810,6 @@ export default function Dashboard() {
       {/* Outer 3D Binder Journal Container */}
       <div className="w-full max-w-6xl journal-binder-wrapper pr-12 lg:pr-0 relative flex items-center justify-center">
         
-        {/* Protruding Leather Index Tabs extending from the Right Side of the book */}
         <div className="absolute top-16 -right-[46px] hidden md:flex flex-col gap-3 z-40">
           {[
             { id: 'chronicles', label: 'Chronicle', emoji: '📖' },
@@ -870,10 +836,8 @@ export default function Dashboard() {
           })}
         </div>
 
-        {/* The Open physical book ledger double page grid */}
         <div className="relative w-full grid grid-cols-1 md:grid-cols-2 rounded-[28px] overflow-visible journal-open-book bg-[#FAF9F6] shadow-2xl">
           
-          {/* Mobile-only horizontal tab bar */}
           <div className="flex md:hidden justify-around bg-[#FCFBF8] border-b border-red-500/10 py-3 rounded-t-[24px] px-2 w-full select-none z-40">
             {[
               { id: 'chronicles', label: 'Chronicle', emoji: '📖' },
@@ -899,17 +863,14 @@ export default function Dashboard() {
             })}
           </div>
           
-          {/* 3D Flipping Page Leaf Overlay */}
           {flippingLeaf && (
             <div className="flipping-leaf-container">
               <div className={`flipping-leaf flip-${flippingLeaf}`} />
             </div>
           )}
           
-           {/* Vertical Seam Down the exact middle of the book */}
           <div className="journal-center-spine pointer-events-none hidden md:block" />
 
-          {/* Metallic 3D Spiral Binder Rings - absolute so it doesn't consume a grid cell */}
           <div className="hidden md:block absolute inset-0 pointer-events-none" style={{ zIndex: 30 }}>
             {Array.from({ length: 8 }).map((_, idx) => (
               <div key={idx} className="absolute pointer-events-none" style={{ top: `${8 + idx * 11.5}%`, left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
@@ -919,13 +880,11 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* LEFT PAGE - Chronicle Text, Narrators and Textarea Reflections */}
           <div className="journal-page-left p-6 md:p-8 flex flex-col justify-start gap-5 relative">
             <div className="animate-fadeIn space-y-5 text-left">
               
               {activeLeaf === 'chronicles' && (
                 <>
-                  {/* Chapter Select tactile buttons */}
                   <div className="flex justify-between items-center select-none pb-2 border-b border-red-500/10 w-full overflow-hidden">
                     <div 
                       className="flex items-center gap-1.5 overflow-x-auto py-1 flex-1 mr-3"
@@ -933,7 +892,6 @@ export default function Dashboard() {
                         scrollbarWidth: 'none', 
                         msOverflowStyle: 'none',
                         WebkitOverflowScrolling: 'touch',
-                        // Mask fade at the right edge to show scrollability
                         maskImage: 'linear-gradient(to right, black 88%, transparent 100%)',
                         WebkitMaskImage: 'linear-gradient(to right, black 88%, transparent 100%)'
                       }}
@@ -967,7 +925,6 @@ export default function Dashboard() {
                     </span>
                   </div>
 
-                  {/* Narrator companion clipped note */}
                   <div className="relative p-4 bg-[#FCFBF8] border border-dashed border-red-500/25 rounded-2xl shadow-sm my-2 aged-paper-gradient">
                     <div className="paper-clip-asset" />
                     <span className="font-sans text-[7px] tracking-[0.25em] text-bahrain-red uppercase font-extrabold block pl-14">
@@ -993,7 +950,6 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Title & description */}
                   {activeSpot ? (
                     <div className="space-y-3.5">
                       <div className="flex justify-between items-start border-b border-red-500/5 pb-1">
@@ -1027,7 +983,6 @@ export default function Dashboard() {
                         </p>
                       </div>
 
-                      {/* Lined Notebook Paper reflections */}
                       <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white">
                         <div className="flex justify-between items-center mb-1.5">
                           <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
@@ -1040,7 +995,6 @@ export default function Dashboard() {
                             const val = e.target.value
                             setLocalReflection(val)
                             playTypewriterClick()
-                            // Debounce context write — prevents full Dashboard re-render on every keystroke (Issue 8)
                             if (reflectionDebounceRef.current) clearTimeout(reflectionDebounceRef.current)
                             reflectionDebounceRef.current = setTimeout(() => {
                               saveJournalReflection(activeSpot.id, val)
@@ -1052,7 +1006,6 @@ export default function Dashboard() {
                         />
                       </div>
 
-                      {/* Local Riddle Quest Card */}
                       {RIDDLES[activeSpot.id] && (
                         <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70">
                           <div className="flex justify-between items-center mb-2 select-none">
@@ -1092,7 +1045,6 @@ export default function Dashboard() {
                                   {opt}
                                 </button>
                               ))}
-                              {/* Inline wrong-answer error banner — replaces window.alert() (Issue 3) */}
                               {riddleError && (
                                 <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-sans text-[9px] font-bold animate-scaleIn select-none">
                                   ❌ {riddleError}
@@ -1154,7 +1106,6 @@ export default function Dashboard() {
                       </div>
                     ))}
                   </div>
-                  {/* Fictional flavor weather disclaimer footnote (Issue 25) */}
                   <span className="font-sans text-[7px] text-bronze-muted/40 italic block mt-2">
                     * Fictional meteorological records provided for thematic regional flavor and historical tourism context.
                   </span>
@@ -1196,7 +1147,6 @@ export default function Dashboard() {
                     })}
                   </div>
 
-                  {/* CAPTURED ALBUM SNAPSHOTS POSTCARDS GALLERY WITH 3D CARD SWIPE CAROUSEL */}
                   <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold block mt-4 border-t border-red-500/10 pt-4">
                     📷 Captured Album Snapshots
                   </span>
@@ -1217,7 +1167,6 @@ export default function Dashboard() {
                       
                       if (userSnaps.length > 0) return userSnaps;
 
-                      // Elegant curated showcase travel snaps so the carousel works immediately!
                       return [
                         { 
                           src: 'https://images.unsplash.com/photo-1629814406259-2187f8a70a8d?q=80&w=600&auto=format&fit=crop', 
@@ -1278,7 +1227,6 @@ export default function Dashboard() {
 
             </div>
 
-            {/* Turn Page Step Navigation at the bottom of the Left Page */}
             {activeLeaf === 'chronicles' && hasSpots && (
               <div className="flex justify-between items-center pt-4 border-t border-red-500/10 mt-6 select-none">
                 <span className="font-sans text-[9px] tracking-wider uppercase text-bronze-muted/60 font-bold">
@@ -1321,13 +1269,11 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* RIGHT PAGE - Polaroid Photos, Keepsake drawer cabinet, Maps, and dynamic Itinerary check-lists */}
           <div className="journal-page-right p-6 md:p-8 flex flex-col gap-5 items-center relative">
             <div className="animate-fadeIn w-full flex flex-col items-center">
               
               {activeLeaf === 'chronicles' && (
                 isSealStep ? (
-                  /* Custom Sealing Modal Frame */
                   <div className="w-full flex flex-col items-center justify-center text-center p-6 bg-white border border-dashed border-red-500/25 max-w-[310px] shadow-sm rounded-2xl animate-scaleIn relative overflow-hidden select-none mt-4">
                     
                     {stamping && (
@@ -1391,12 +1337,9 @@ export default function Dashboard() {
                   activeSpot && (
                     <div className="flex flex-col items-center w-full space-y-6 py-2">
                       
-                      {/* Polaroid Photo Frame */}
                       <div className="relative bg-white p-3.5 pb-10 shadow-xl border border-red-500/5 rotate-[-1.5deg] hover:rotate-[1deg] transition-all duration-700 w-full max-w-[240px] shrink-0">
-                        {/* Taped top effect */}
                         <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-28 h-6 bg-white/40 backdrop-blur-[1px] border border-white/20 shadow-sm rotate-[-3deg] z-10 pointer-events-none" />
                         
-                        {/* Keepsake sticker */}
                         {hasKeepsake(activeSpot.id) && (
                           <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-amber-500/10 border-2 border-dashed border-amber-600/40 flex items-center justify-center rotate-12 text-amber-600 shadow-sm z-30 font-serif font-extrabold text-[12px] pointer-events-none select-none">
                             ★
@@ -1404,9 +1347,7 @@ export default function Dashboard() {
                         )}
 
                         <div className="w-full h-44 overflow-hidden relative border border-red-500/5 bg-bahrain-dark flex items-center justify-center rounded-sm">
-                           {/* Vintage Airmail Postcard Background under photo */}
                           <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-[#FCFBF8] border-8 border-double border-bahrain-red/20 text-center select-none z-0 relative">
-                            {/* Airmail red & white diagonal striped border */}
                             <div className="absolute inset-0 border-4 border-transparent" style={{
                               backgroundImage: 'repeating-linear-gradient(45deg, #D11A38, #D11A38 8px, #FFFFFF 8px, #FFFFFF 16px, #4B85C4 16px, #4B85C4 24px, #FFFFFF 24px, #FFFFFF 32px)',
                               opacity: 0.15,
@@ -1443,7 +1384,6 @@ export default function Dashboard() {
                         </div>
                       </div>
 
-                      {/* Tactile Polaroid capture shutter button */}
                       <button
                         onClick={() => setActiveScanSpot(activeSpot)}
                         className={`px-6 py-2 rounded-xl text-[9px] tracking-widest uppercase font-bold transition-all cursor-pointer shadow-md ${
@@ -1455,7 +1395,6 @@ export default function Dashboard() {
                         {capturedPhotos[activeSpot.id] ? '📷 Re-Focus & Re-Shoot' : '📷 Capture Lens Stamp'}
                       </button>
 
-                      {/* Desktop space fill: Beautiful handwritten Day Itinerary checklist card */}
                       <div className="w-full max-w-[320px] p-4.5 rounded-2xl border border-amber-600/35 bg-[#FCFBF8] shadow-sm text-left select-none relative overflow-hidden stitch-border shrink-0 my-2">
                         <div className="paper-clip-asset" style={{ right: '20px', left: 'auto' }} />
                         <span className="font-sans text-[7.5px] tracking-widest text-bahrain-red uppercase font-extrabold block mb-2">
@@ -1525,7 +1464,6 @@ export default function Dashboard() {
 
               {activeLeaf === 'keepsakes' && (
                 <div className="w-full max-w-[350px] flex flex-col items-center space-y-4">
-                  {/* Explorer Wallet Balance Header */}
                   <div className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-600/25">
                     <span className="font-sans text-[8px] tracking-wider text-amber-700 font-extrabold flex items-center gap-1 uppercase">
                       🪙 Travel Stipend
@@ -1535,7 +1473,6 @@ export default function Dashboard() {
                     </span>
                   </div>
 
-                  {/* Souq launcher banner */}
                   <button 
                     onClick={() => { setShowSouqShop(true); setShopAlert(null); }}
                     className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-sans font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer shadow-lg shadow-amber-600/15 border border-amber-600/20 active:scale-98"
@@ -1543,7 +1480,6 @@ export default function Dashboard() {
                     🏪 Enter Jafar's Souq Shop
                   </button>
 
-                  {/* Light Wooden/Teak Lined Cabinet Grid (Issue 12: no clashing dark velvet) */}
                   <div className="w-full p-5 rounded-2xl bg-amber-500/5 border border-amber-600/20 shadow-sm animate-fadeIn">
                     <span className="font-sans text-[7.5px] tracking-[0.2em] text-amber-800 uppercase font-extrabold block mb-3 text-center">
                       Teak Keepsake Cabinet
@@ -1576,7 +1512,6 @@ export default function Dashboard() {
                     </p>
                   )}
 
-                  {/* Resident Guilds Relationship Reputation Dashboard (Issue 12: light parchment look) */}
                   <div className="w-full p-4 rounded-2xl bg-amber-500/5 border border-amber-600/15 space-y-2 animate-fadeIn">
                     <span className="font-sans text-[7.5px] tracking-[0.2em] text-amber-700 uppercase font-extrabold block">
                       Resident Guild Reputation
@@ -1603,7 +1538,6 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Keepsake Detail Handwritten card */}
                   {selectedKeepsake && (
                     <div className="p-4 rounded-xl bg-white border border-amber-600/40 text-left relative animate-scaleIn w-full shadow-sm">
                       <button 
@@ -1672,7 +1606,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Retro Footnote */}
       <footer className="wood-desk-footer w-full max-w-6xl pt-6 pb-2 mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left select-none text-bronze-charcoal/50 z-10">
         <span className="font-sans text-[8px] tracking-wider uppercase font-semibold">
           Bahrain Tourism & Wayfarer Chronicle © 2026
@@ -1689,7 +1622,6 @@ export default function Dashboard() {
       {showSouqShop && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#1A1412]/80 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-md bg-[#2d1b11] border-4 border-double border-amber-600/40 rounded-3xl p-6 text-left shadow-[0_24px_50px_rgba(0,0,0,0.65)] text-white relative animate-scaleIn select-none">
-            {/* Dashed frame overlay */}
             <div className="absolute inset-1.5 border border-dashed border-amber-600/20 rounded-[22px] pointer-events-none" />
 
             <div className="relative z-10 space-y-4">
@@ -1710,14 +1642,12 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* Shop Alerts feedback banner */}
               {shopAlert && (
                 <div className={`p-2.5 rounded-xl border text-[9.5px] leading-relaxed font-bold font-sans ${shopAlert.success ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 animate-fadeIn' : 'bg-rose-500/15 border-rose-500/30 text-rose-300 animate-fadeIn'}`}>
                   {shopAlert.text}
                 </div>
               )}
 
-              {/* Wallet display */}
               <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-amber-600/15 border border-amber-600/30">
                 <span className="font-sans text-[8px] tracking-wider text-amber-300 font-extrabold uppercase flex items-center gap-1">
                   🪙 Your Travel Stipend
@@ -1731,7 +1661,6 @@ export default function Dashboard() {
                 "Marhaban traveler! Spend your golden Fils stipend on spice guild halwa, falcon hoods, or pearl hunt clue scrolls to enhance your reputation with Manama residents."
               </p>
 
-              {/* Shop Items list */}
               <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1 antique-scrollbar">
                 {shopItems.map(item => (
                   <div 
@@ -1768,7 +1697,6 @@ export default function Dashboard() {
         <PassportCard onClose={() => setShowPassportCard(false)} />
       )}
 
-      {/* Royal Bahrain Rank Up Celebration Modal */}
       {showRankUpModal && unlockedRankInfo && (
         <div
           className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-[#1a0a0c]/85 backdrop-blur-md animate-fadeIn"
@@ -1782,7 +1710,6 @@ export default function Dashboard() {
               border: '4px solid #FAF9F6'
             }}
           >
-            {/* White dashed boundary */}
             <div className="absolute inset-2 border border-dashed border-white/20 rounded-[24px] pointer-events-none" />
 
             <div className="relative z-10 space-y-4">
@@ -1790,7 +1717,6 @@ export default function Dashboard() {
                 ✦ Explorer Rank Advanced ✦
               </span>
 
-              {/* Large Crimson/White physical border stamp */}
               <div 
                 className="w-24 h-24 mx-auto rounded-full bg-[#FAF9F6] border-4 border-double border-bahrain-red flex items-center justify-center text-4xl shadow-md"
                 style={{ animation: 'stampSlam 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
