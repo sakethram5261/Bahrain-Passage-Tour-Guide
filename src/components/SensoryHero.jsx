@@ -83,6 +83,13 @@ export default function SensoryHero() {
     setImageError(false)
   }, [carouselIndex])
 
+  // Bulletproof safety check to prevent carouselIndex out of bounds
+  useEffect(() => {
+    if (itinerarySpots.length > 0 && (carouselIndex >= itinerarySpots.length || carouselIndex < 0)) {
+      setCarouselIndex(0)
+    }
+  }, [itinerarySpots, carouselIndex])
+
 
   // Real-time ticking system clock state for the physical pocket watch hand rotations
   const [systemTime, setSystemTime] = useState(new Date())
@@ -412,7 +419,17 @@ export default function SensoryHero() {
               </div>
             ) : (
               (() => {
-                const activeSpot = itinerarySpots[carouselIndex]
+                const activeSpot = itinerarySpots[carouselIndex] || itinerarySpots[0]
+                if (!activeSpot) {
+                  return (
+                    <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 min-h-[420px]" style={{ background: '#FAF8F5' }}>
+                      <span className="text-4xl animate-bounce">📭</span>
+                      <button onClick={() => resetChronicle()} className="px-5 py-2 rounded-xl border border-red-500/25 bg-white font-sans text-[10px] uppercase tracking-widest font-black text-bahrain-red cursor-pointer">
+                        🔄 Reset Settings
+                      </button>
+                    </div>
+                  )
+                }
                 return (
                   <>
                     <div className="relative h-52 overflow-hidden bg-zinc-950 flex items-center justify-center shrink-0">
