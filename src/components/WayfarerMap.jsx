@@ -8,7 +8,29 @@ const MAX_LAT = 26.28
 const MIN_LON = 50.42
 const MAX_LON = 50.80
 
-export default function WayfarerMap({ locations }) {
+// Comprehensive poetic clues for all 18 landmark spots
+const SPOT_CLUES = {
+  'qal-at-al-bahrain': 'The grand stone fortress standing watch over the northern deeps, where strata marks 4,000 harvests of empires. Four millennia beneath your boots.',
+  'muharraq-souq': 'A maze of traditional alleyways breathing spices, saffron, and Bahraini halwa under generational merchant arches.',
+  'pearling-path': 'Walk the UNESCO shoreline where bare-chested divers once plunged to 20 meters with nothing but a wooden nose clip and a prayer.',
+  'block-338': 'The bohemian arts neighborhood packed with local murals, neon glass, and string-lit dining alleys of modern Manama.',
+  'jarada-island': 'Where the ocean retreats, a sandbar appears, white as fresh milk and dry for only a few hours. Safe only at low tide.',
+  'tree-of-life': 'A lone green canopy standing 400 years in the barren desert with no visible water source for miles. A botanical miracle in parched sands.',
+  'haji-cafe': "Tucked in a narrow alley, since 1950 they bring you whatever is cooking — no menu, no fuss, just warm bread and cardamom karak.",
+  'aali-pottery': "Bahrain's ancient craft village where potters still throw clay by hand on wheels spinning since the Dilmun era.",
+  'arad-fort': 'A 16th-century Portuguese-era watchtower surrounded by a sea moat, guarding the strait between two islands.',
+  'national-museum': 'The Kingdom\'s grand archaeological archive — from Dilmun burial mounds to pearl-diving maritime relics spanning 6,000 years.',
+  'al-dar-islands': 'A cluster of white coral islands reachable only by dhow, where the reef glows turquoise and flamingos wade the shallows.',
+  'reef-island': 'The glamorous reclaimed waterfront where glass towers and neon reflections shimmer across the night marina.',
+  'riffa-fort': 'Perched above the Hunanaiyah valley, this walled palace-fortress was where Al Khalifa rulers summered in regal isolation.',
+  'barbar-temple': 'Ancient 3-tiered Dilmun temple complex buried under Bahraini soil for 4,000 years, dedicated to freshwater god Enki.',
+  'al-jasra-house': 'A traditional coral-stone dwelling from 1907, birthplace of a Bahraini amir, preserved in the village of Al Jasra.',
+  'khalaf-house': 'The most ornate wind-tower house in the Gulf — a merchant trader\'s mansion decorated with carved gypsum lattice screens.',
+  'manama-souq': 'The oldest continuous market in the Gulf, where gold, frankincense, and spice traders have bartered since the 1800s.',
+  'al-areen': 'A protected desert wildlife sanctuary sheltering rare Arabian Oryx, desert gazelle, and native flora in the Sakhir dunes.',
+}
+
+export default function WayfarerMap({ locations, onClose }) {
   const { 
     currentDayTab, 
     currentSpotIndex, 
@@ -19,23 +41,25 @@ export default function WayfarerMap({ locations }) {
     setGoldFils,
     awardXP,
     passportStamps,
-    setPassportStamps
+    setPassportStamps,
+    pearlsCollected,
+    setPearlsCollected,
   } = useVibe()
   const [hoveredSpot, setHoveredSpot] = useState(null)
   
-  // Dilmun Pearl Hunt Riddle States
-  const [pearlsCollected, setPearlsCollected] = useState([])
+  // Dilmun Pearl Hunt Local UI States (non-persistent visual feedback)
   const [pearlChestAnim, setPearlChestAnim] = useState(null)
   const [showClueScroll, setShowClueScroll] = useState(false)
   const [pearlAlert, setPearlAlert] = useState(null)
 
-  const RIDDLE_ANSWERS = {
-    1: { spotId: 'jarada-island', clue: 'Where the ocean retreats, a sandbar appears, white as fresh milk and dry for few hours. Safe only at low tide, seek my shimmering shell.' },
-    2: { spotId: 'sakhir-desert', clue: 'Where falcon wings soar near the ancient graves of the desert sand, and generator towers rise under the Sakhir midday sun.' },
-    3: { spotId: 'qal-at-al-bahrain', clue: 'The grand stone fortresses standing watch over the northern deeps, where Strata marks 4,000 harvests of empires.' },
-    4: { spotId: 'muharraq-souq', clue: 'A maze of traditional alleyways breathing spices, saffron, and Bahraini halwa under Generational merchant arches.' },
-    5: { spotId: 'block-338', clue: 'The bohemian arts neighborhood packed with local murals, neon glass, and string-lit dining alleys.' }
-  }
+  // Dynamically pick current riddle from spots the user actually has on their itinerary for this day
+  const activeSpots = locations.filter(s => s.day === currentDayTab)
+  const riddleCandidates = activeSpots.filter(s => SPOT_CLUES[s.id])
+  // Use a stable index based on day so clue doesn't change on re-render, but varies per day
+  const riddleSpot = riddleCandidates.length > 0 
+    ? riddleCandidates[currentDayTab % riddleCandidates.length] 
+    : null
+  const currentClue = riddleSpot ? SPOT_CLUES[riddleSpot.id] : 'Seek the most ancient landmark on your day\'s itinerary — the pearl waits in the oldest stone.'
 
   // Map coordinates to SVG coordinate system (width: 550, height: 360)
   const mapWidth = 550
@@ -55,21 +79,22 @@ export default function WayfarerMap({ locations }) {
     }
   }
 
-  // Active spots for the selected day tab
-  const activeSpots = locations.filter(s => s.day === currentDayTab)
-
   const handleSpotClick = (spotId) => {
     const idx = activeSpots.findIndex(s => s.id === spotId)
     if (idx !== -1) {
       setCurrentSpotIndex(idx)
-      setActiveLeaf('chronicles') 
+      if (onClose) onClose()
+      else setActiveLeaf('chronicles')
     }
   }
 
   const handleMapNodeClick = (spot) => {
-    const currentRiddle = RIDDLE_ANSWERS[currentDayTab] || RIDDLE_ANSWERS[1]
+    if (!riddleSpot) {
+      handleSpotClick(spot.id)
+      return
+    }
     
-    if (spot.id === currentRiddle.spotId) {
+    if (spot.id === riddleSpot.id) {
       if (pearlsCollected.includes(spot.id)) {
         setPearlAlert({ success: true, text: "✨ You already unlocked the Shimmering Pearl chest for these coordinates!" })
         return
@@ -116,11 +141,11 @@ export default function WayfarerMap({ locations }) {
         setPearlChestAnim(null)
       }, 3500)
     } else {
-      // Normal spot click, but if clue open let them know it is wrong coordinates
+      // Normal spot click
       handleSpotClick(spot.id)
       setPearlAlert({ 
         success: false, 
-        text: `📍 Checked coordinates for ${spot.name}. Keep looking for the riddle's ancient landmark!` 
+        text: `📍 Checked coordinates for ${spot.name}. Keep searching for the ancient landmark!` 
       })
     }
   }
@@ -371,10 +396,22 @@ export default function WayfarerMap({ locations }) {
                     key={spot.id}
                     transform={`translate(${coords.x}, ${coords.y})`}
                     className="cursor-pointer"
+                    style={{ cursor: 'pointer' }}
+                    role="button"
                     onClick={() => handleMapNodeClick(spot)}
                     onMouseEnter={() => setHoveredSpot(spot)}
                     onMouseLeave={() => setHoveredSpot(null)}
                   >
+                    {/* Invisible large hitbox for reliable mobile/Safari touch — MUST be first child */}
+                    <circle
+                      cx="0"
+                      cy="0"
+                      r="22"
+                      fill="transparent"
+                      stroke="none"
+                      style={{ pointerEvents: 'all' }}
+                    />
+
                     {isActiveDaySpot && (
                       <circle
                         cx="0"
@@ -391,8 +428,11 @@ export default function WayfarerMap({ locations }) {
                         cx="0"
                         cy="0"
                         r="26"
-                        className="fill-none stroke-amber-500 stroke-[2px] stroke-dashed animate-spin"
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="2"
                         strokeDasharray="4,6"
+                        className="animate-spin"
                       />
                     )}
 
@@ -423,35 +463,18 @@ export default function WayfarerMap({ locations }) {
                         fill="white"
                         className="font-sans text-[8px] font-extrabold"
                         stroke="none"
+                        style={{ pointerEvents: 'none' }}
                       >
                         {activeIndex + 1}
                       </text>
                     )}
 
                     {hasPearl && (
-                      <text
-                        x="0"
-                        y="2.8"
-                        textAnchor="middle"
-                        fill="white"
-                        className="font-serif text-[8.5px] font-bold"
-                        stroke="none"
-                      >
-                        💎
-                      </text>
+                      <text x="0" y="2.8" textAnchor="middle" fill="white" className="font-serif text-[8.5px] font-bold" stroke="none" style={{ pointerEvents: 'none' }}>💎</text>
                     )}
 
                     {!hasPearl && scanned && (
-                      <text
-                        x="0"
-                        y="2.8"
-                        textAnchor="middle"
-                        fill="white"
-                        className="font-serif text-[8.5px] font-bold"
-                        stroke="none"
-                      >
-                        ★
-                      </text>
+                      <text x="0" y="2.8" textAnchor="middle" fill="white" className="font-serif text-[8.5px] font-bold" stroke="none" style={{ pointerEvents: 'none' }}>★</text>
                     )}
                   </g>
                 )
@@ -499,7 +522,7 @@ export default function WayfarerMap({ locations }) {
                     </button>
                   </div>
                   <p className="font-serif text-[10px] italic text-bronze-charcoal leading-relaxed mt-2 font-semibold">
-                    "{RIDDLE_ANSWERS[currentDayTab]?.clue || RIDDLE_ANSWERS[1].clue}"
+                    "{currentClue}"
                   </p>
                   <span className="font-sans text-[7px] text-amber-600/60 uppercase block mt-2 text-right">
                     Click correct coordinate pin to unlock Pearl

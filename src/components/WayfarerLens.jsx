@@ -61,11 +61,14 @@ export default function WayfarerLens({ spot, onClose }) {
     }
   }, [])
 
-  useEffect(() => {
-    if (permission === 'granted' && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current
+  // Callback ref: attaches stream to video element as soon as it mounts into DOM.
+  // Avoids the invalid useEffect dependency on videoRef.current.
+  const videoCallbackRef = (element) => {
+    videoRef.current = element
+    if (element && streamRef.current) {
+      element.srcObject = streamRef.current
     }
-  }, [permission, videoRef.current])
+  }
 
   useGSAP(() => {
     if (captured) return
@@ -317,7 +320,7 @@ export default function WayfarerLens({ spot, onClose }) {
                 <div className="absolute inset-0 z-0">
                   {permission === 'granted' ? (
                     <video 
-                      ref={videoRef}
+                      ref={videoCallbackRef}
                       autoPlay 
                       playsInline 
                       muted 

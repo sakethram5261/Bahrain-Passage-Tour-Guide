@@ -173,13 +173,23 @@ export default function Dashboard() {
     awardReputation,
     awardXP,
     unlockKeepsake,
-    saveLensStory
+    saveLensStory,
+    systemTime,
+    setStep,
   } = useVibe()
 
   const rank = getRank(xp)
   const nextRank = getNextRank(xp)
   const rankProgress = nextRank ? Math.round(((xp - rank.minXP) / (nextRank.minXP - rank.minXP)) * 100) : 100
   
+  const todayDateStr = (() => {
+    const d = new Date()
+    const dd = String(d.getDate()).padStart(2, '0')
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const yyyy = d.getFullYear()
+    return `${dd}.${mm}.${yyyy}`
+  })()
+
   const { locations, loading } = useItinerary(selectedMoods, tier, duration, aiItinerary)
   const [activeScanSpot, setActiveScanSpot] = useState(null)
   const [selectedKeepsake, setSelectedKeepsake] = useState(null)
@@ -191,12 +201,16 @@ export default function Dashboard() {
   const [showRankUpModal, setShowRankUpModal] = useState(false)
   const [unlockedRankInfo, setUnlockedRankInfo] = useState(null)
 
-  // Premium Gamification States
+  // Premium Gamification States (pearlsCollected is now global in VibeProvider)
   const [showSouqShop, setShowSouqShop] = useState(false)
-  const [pearlQuestActive, setPearlQuestActive] = useState(true)
-  const [pearlsCollected, setPearlsCollected] = useState([]) // Array of spotIds where pearl was found
-  const [pearlChestAnim, setPearlChestAnim] = useState(null) // spotId currently showing chest sparkle
   const [shopAlert, setShopAlert] = useState(null)
+  const [isMapOpen, setIsMapOpen] = useState(false)
+  const [riddleError, setRiddleError] = useState(null) // Issue 3: replaces window.alert()
+
+  // Local textarea state to prevent per-keystroke context re-renders (Issue 8)
+  const [localReflection, setLocalReflection] = useState('')
+  const reflectionDebounceRef = useRef(null)
+  const reflectionSpotRef = useRef(null)
 
   const shopItems = [
     { id: 'riddle-hint', name: 'Riddle Scroll Clue', desc: 'Poetic guidance for active Dilmun Pearl coordinate riddles.', cost: 150, emoji: '📜' },
@@ -245,6 +259,7 @@ export default function Dashboard() {
   }
 
   const handleAnswerRiddle = (selectedIdx) => {
+    if (!activeSpot) return
     const riddle = RIDDLES[activeSpot.id]
     if (!riddle) return
     
@@ -275,11 +290,20 @@ export default function Dashboard() {
       
       solveRiddle(activeSpot.id)
     } else {
-      // Wrong answer - play a minor click and toast/alert
+      // Wrong answer — inline error banner (Issue 3: no more window.alert)
       playTypewriterClick()
-      alert("Ah, that is not quite right. Consult the storyteller deciphers above for hints, wayfarer!")
+      setRiddleError("Ah, that is not quite right. Consult the storyteller deciphers above for hints, wayfarer!")
+      setTimeout(() => setRiddleError(null), 3000)
     }
   }
+
+  // Sync local textarea content when the spot changes (Issue 8)
+  useEffect(() => {
+    if (activeSpot?.id !== reflectionSpotRef.current) {
+      reflectionSpotRef.current = activeSpot?.id
+      setLocalReflection(journalReflections[activeSpot?.id] || '')
+    }
+  }, [activeSpot?.id, journalReflections])
 
   // Detect Rank Ups on XP shifts and trigger a stunning celebration
   useEffect(() => {
@@ -801,6 +825,12 @@ export default function Dashboard() {
               />
             </div>
             <button
+              onClick={() => setStep(1)}
+              className="px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/8 text-bahrain-red text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer mr-1"
+            >
+              ← Edit Trip
+            </button>
+            <button
               onClick={resetChronicle}
               className="px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/8 text-bahrain-red text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer"
             >
@@ -811,7 +841,7 @@ export default function Dashboard() {
       </header>
 
       {/* Outer 3D Binder Journal Container */}
-      <div className="w-full max-w-6xl journal-binder-wrapper relative flex items-center justify-center">
+      <div className="w-full max-w-6xl journal-binder-wrapper pr-12 lg:pr-0 relative flex items-center justify-center">
         
         {/* Protruding Leather Index Tabs extending from the Right Side of the book */}
         <div className="absolute top-16 -right-[46px] hidden md:flex flex-col gap-3 z-40">
@@ -918,6 +948,7 @@ export default function Dashboard() {
                             key={d}
                             disabled={!unlocked}
                             onClick={() => handleDaySwitch(d)}
+                            title={unlocked ? `View Day ${d} Chronicles` : `Locked Chapter: Complete prior daily ledger seals in Chronicles to unlock!`}
                             className={`w-7 h-7 rounded-full flex items-center justify-center font-serif text-[10px] font-extrabold transition-all relative shrink-0 ${
                               !unlocked
                                 ? 'bg-red-500/5 text-bronze-charcoal/40 border border-dashed border-red-500/15 cursor-not-allowed'
@@ -926,7 +957,7 @@ export default function Dashboard() {
                                   : 'bg-white border border-red-500/10 text-bronze-charcoal hover:border-red-500/35 hover:scale-102 cursor-pointer shadow-sm'
                             }`}
                           >
-                            {d}
+                            {unlocked ? d : '🔒'}
                           </button>
                         )
                       })}
@@ -1004,12 +1035,18 @@ export default function Dashboard() {
                           </span>
                         </div>
                         <textarea
-                          value={journalReflections[activeSpot.id] || ''}
+                          value={localReflection}
                           onChange={(e) => {
-                            saveJournalReflection(activeSpot.id, e.target.value)
+                            const val = e.target.value
+                            setLocalReflection(val)
                             playTypewriterClick()
+                            // Debounce context write — prevents full Dashboard re-render on every keystroke (Issue 8)
+                            if (reflectionDebounceRef.current) clearTimeout(reflectionDebounceRef.current)
+                            reflectionDebounceRef.current = setTimeout(() => {
+                              saveJournalReflection(activeSpot.id, val)
+                            }, 400)
                           }}
-                          placeholder="Type your physical journal thoughts here... (typewriter key feedback active)"
+                          placeholder="Write your thoughts here..."
                           rows="2.5"
                           className="w-full text-xs font-serif text-bronze-charcoal placeholder-bronze-muted/30 ruled-lines-container border-none focus:outline-none resize-none focus:ring-0 leading-6 bg-transparent"
                         />
@@ -1024,11 +1061,11 @@ export default function Dashboard() {
                             </span>
                             {solvedRiddles[activeSpot.id] ? (
                               <span className="text-[8px] bg-green-100 text-green-800 font-extrabold px-1.5 py-0.5 rounded-full">
-                                ✓ Solved (+25 XP)
+                                ✓ Solved (+35 XP)
                               </span>
                             ) : (
                               <span className="text-[8px] bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">
-                                Unsolved (+25 XP)
+                                Unsolved (+35 XP)
                               </span>
                             )}
                           </div>
@@ -1055,6 +1092,12 @@ export default function Dashboard() {
                                   {opt}
                                 </button>
                               ))}
+                              {/* Inline wrong-answer error banner — replaces window.alert() (Issue 3) */}
+                              {riddleError && (
+                                <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-sans text-[9px] font-bold animate-scaleIn select-none">
+                                  ❌ {riddleError}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1070,6 +1113,27 @@ export default function Dashboard() {
                 </>
               )}
 
+              {activeLeaf === 'chronicles' && !hasSpots && (
+                <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 min-h-[300px]">
+                  <span className="text-4xl animate-bounce">🏜️</span>
+                  <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-black">
+                    Itinerary Disrupted
+                  </span>
+                  <h3 className="font-serif text-xl font-bold text-bronze-charcoal">
+                    No Landmarks Found
+                  </h3>
+                  <p className="font-sans text-[11px] text-bronze-muted leading-relaxed font-semibold max-w-[240px]">
+                    The sands have shifted! We could not construct a custom itinerary with your selected vibes.
+                  </p>
+                  <button
+                    onClick={() => setStep(1)}
+                    className="px-6 py-2.5 rounded-full bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-[8px] uppercase tracking-widest font-extrabold transition-all shadow-md cursor-pointer mt-2"
+                  >
+                    Adjust Vibe Settings
+                  </button>
+                </div>
+              )}
+
               {activeLeaf === 'cartography' && (
                 <div className="space-y-4">
                   <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
@@ -1079,23 +1143,21 @@ export default function Dashboard() {
                     Wayfarer's Almanac
                   </h3>
                   <p className="font-sans text-[11px] text-bronze-muted leading-relaxed font-semibold">
-                    Atmospheric readings and tide charts from the Sitra harbors, Jarada disappearing sandbanks, and the Sakhir desert sand hills.
+                    Atmospheric readings and tide charts from Sitra harbors, Jarada disappearing sandbanks, and Sakhir desert dunes.
                   </p>
                   <div className="space-y-3 mt-4">
                     {almanac.metrics.map((m, idx) => (
                       <div key={idx} className="p-3.5 rounded-xl border border-red-500/5 bg-white shadow-sm flex flex-col justify-between stitch-border">
-                        <span className="font-sans text-[8px] uppercase tracking-wider text-bronze-muted/60 font-bold">
-                          {m.label}
-                        </span>
-                        <span className="font-serif text-base font-extrabold text-bahrain-red mt-1">
-                          {m.value}
-                        </span>
-                        <span className="font-sans text-[8px] text-bronze-muted/50 font-semibold mt-1">
-                          {m.desc}
-                        </span>
+                        <span className="font-sans text-[8px] uppercase tracking-wider text-bronze-muted/60 font-bold">{m.label}</span>
+                        <span className="font-serif text-base font-extrabold text-bahrain-red mt-1">{m.value}</span>
+                        <span className="font-sans text-[8px] text-bronze-muted/50 font-semibold mt-1">{m.desc}</span>
                       </div>
                     ))}
                   </div>
+                  {/* Fictional flavor weather disclaimer footnote (Issue 25) */}
+                  <span className="font-sans text-[7px] text-bronze-muted/40 italic block mt-2">
+                    * Fictional meteorological records provided for thematic regional flavor and historical tourism context.
+                  </span>
                 </div>
               )}
 
@@ -1220,7 +1282,11 @@ export default function Dashboard() {
             {activeLeaf === 'chronicles' && hasSpots && (
               <div className="flex justify-between items-center pt-4 border-t border-red-500/10 mt-6 select-none">
                 <span className="font-sans text-[9px] tracking-wider uppercase text-bronze-muted/60 font-bold">
-                  Page {currentSpotIndex + 1} of {totalSteps}
+                  {currentSpotIndex < activeSpots.length ? (
+                    `Page ${currentSpotIndex + 1} of ${activeSpots.length}`
+                  ) : (
+                    "Seal Ledger Chapter"
+                  )}
                 </span>
 
                 <div className="flex items-center gap-1">
@@ -1367,7 +1433,7 @@ export default function Dashboard() {
                           <div className="postmark-stamp scale-75 -bottom-2 -right-3">
                             <span className="font-serif text-[6px] tracking-widest text-bahrain-red block uppercase font-extrabold">Sealed</span>
                             <span className="font-serif text-[5px] text-bahrain-red/60 uppercase block font-bold mt-0.5">MANAMA</span>
-                            <span className="font-mono text-[4px] text-bahrain-red/80 block uppercase font-bold mt-0.5">25.05.2026</span>
+                            <span className="font-mono text-[4px] text-bahrain-red/80 block uppercase font-bold mt-0.5">{todayDateStr}</span>
                           </div>
                         )}
 
@@ -1423,7 +1489,7 @@ export default function Dashboard() {
                                   </span>
                                 </div>
                                 <span className="font-mono text-[7px] text-bronze-muted/40 tracking-wider">
-                                  {spot.coords.split(',')[0]}
+                                  {spot.coords}
                                 </span>
                               </button>
                             )
@@ -1437,14 +1503,23 @@ export default function Dashboard() {
               )}
 
               {activeLeaf === 'cartography' && (
-                <div className="flex flex-col items-center justify-center p-6 text-center max-w-[270px] aged-paper-gradient border border-dashed border-red-500/25 rounded-2xl shadow-sm mt-4">
-                  <span className="text-4xl mb-3 animate-pulse">🗺️</span>
-                  <span className="font-sans text-[7.5px] tracking-[0.25em] text-bahrain-red uppercase font-extrabold block mb-1">
-                    Cartography Log
-                  </span>
-                  <p className="font-serif text-[11px] italic text-bronze-muted leading-relaxed font-bold">
-                    "The grand geographical chart is unrolled across your wooden desk. Roll it up when finished to resume your ledger."
+                <div className="flex flex-col items-center justify-center p-6 text-center max-w-[280px] aged-paper-gradient border border-dashed border-amber-600/20 rounded-2xl shadow-sm mt-4 space-y-4">
+                  <span className="text-5xl mb-1 animate-pulse">🗺️</span>
+                  <div className="space-y-1">
+                    <span className="font-sans text-[7.5px] tracking-[0.25em] text-bahrain-red uppercase font-black block">
+                      Geographical Chart
+                    </span>
+                    <h5 className="font-serif text-xs font-bold text-bronze-charcoal">Bahrain Archipelago Map</h5>
+                  </div>
+                  <p className="font-serif text-[10px] italic text-bronze-muted leading-relaxed">
+                    Unroll the grand parchment chart to trace your live itinerary route, locate active daily checkpoints, and hunt for hidden Dilmun Pearl coordinates.
                   </p>
+                  <button
+                    onClick={() => setIsMapOpen(true)}
+                    className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-sans font-black text-[9px] uppercase tracking-widest transition-all cursor-pointer shadow-md shadow-amber-600/15 border border-amber-600/20 active:scale-98 flex items-center justify-center gap-1.5"
+                  >
+                    🧭 Open Wayfarer Map
+                  </button>
                 </div>
               )}
 
@@ -1452,184 +1527,142 @@ export default function Dashboard() {
                 <div className="w-full max-w-[350px] flex flex-col items-center space-y-4">
                   {/* Explorer Wallet Balance Header */}
                   <div className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-600/25">
-                    <span className="font-sans text-[8px] uppercase tracking-wider text-amber-700 font-extrabold flex items-center gap-1">
+                    <span className="font-sans text-[8px] tracking-wider text-amber-700 font-extrabold flex items-center gap-1 uppercase">
                       🪙 Travel Stipend
                     </span>
                     <span className="font-mono text-xs font-black text-amber-800">
-                      {goldFils} Fils
+                      {goldFils.toLocaleString()} Fils
                     </span>
                   </div>
 
-                  {showSouqShop ? (
-                    /* High-Fidelity Jafar's Souq Shop counter */
-                    <div className="w-full bg-[#201008] border border-amber-600/35 rounded-2xl p-4 text-left shadow-[0_12px_24px_rgba(0,0,0,0.55)] relative animate-scaleIn select-none">
-                      <div className="flex justify-between items-center pb-2 border-b border-amber-600/20 mb-3">
-                        <div className="flex flex-col">
-                          <span className="font-sans text-[7px] tracking-[0.2em] text-amber-500 uppercase font-extrabold">
-                            Manama Kiosk
-                          </span>
-                          <h5 className="font-serif text-[12px] font-bold text-white mt-0.5">
-                            Jafar's Souq Shop
-                          </h5>
-                        </div>
-                        <button 
-                          onClick={() => { setShowSouqShop(false); setShopAlert(null); }}
-                          className="px-2 py-1 rounded bg-amber-600/20 hover:bg-amber-600/30 text-amber-500 hover:text-amber-400 text-[8.5px] font-sans font-bold cursor-pointer transition-all"
-                        >
-                          ✕ Exit Souq
-                        </button>
-                      </div>
+                  {/* Souq launcher banner */}
+                  <button 
+                    onClick={() => { setShowSouqShop(true); setShopAlert(null); }}
+                    className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-sans font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer shadow-lg shadow-amber-600/15 border border-amber-600/20 active:scale-98"
+                  >
+                    🏪 Enter Jafar's Souq Shop
+                  </button>
 
-                      {/* Shop Alerts feedback banner */}
-                      {shopAlert && (
-                        <div className={`p-2.5 rounded-xl border mb-3 text-[9.5px] leading-relaxed font-bold font-sans ${shopAlert.success ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300'}`}>
-                          {shopAlert.text}
-                        </div>
-                      )}
-
-                      <p className="font-serif text-[9.5px] italic text-amber-200/70 mb-3 leading-relaxed">
-                        "Marhaban traveler! Spend your shiny golden Fils travel stipend on local trade, secret coordinate scrolls, or local reputations."
-                      </p>
-
-                      {/* Shop Items list */}
-                      <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                        {shopItems.map(item => (
-                          <div 
-                            key={item.id} 
-                            className="p-2 rounded-xl bg-black/40 border border-amber-600/10 flex items-center justify-between gap-2.5 hover:border-amber-600/30 transition-all"
+                  {/* Light Wooden/Teak Lined Cabinet Grid (Issue 12: no clashing dark velvet) */}
+                  <div className="w-full p-5 rounded-2xl bg-amber-500/5 border border-amber-600/20 shadow-sm animate-fadeIn">
+                    <span className="font-sans text-[7.5px] tracking-[0.2em] text-amber-800 uppercase font-extrabold block mb-3 text-center">
+                      Teak Keepsake Cabinet
+                    </span>
+                    <div className="grid grid-cols-4 gap-2.5 relative z-10">
+                      {spotsCatalog.map(spot => {
+                        const unlocked = collectedKeepsakes.includes(spot.id)
+                        return (
+                          <button
+                            key={spot.id}
+                            disabled={!unlocked}
+                            onClick={() => setSelectedKeepsake(spot)}
+                            title={unlocked ? `Souvenir: ${spot.keepsakeDesc}` : 'Souvenir Locked — Capture snap using Lens at location to unlock!'}
+                            className={`aspect-square rounded-full flex items-center justify-center transition-all duration-300 relative border ${
+                              unlocked
+                                ? 'brass-coin-frame cursor-pointer hover:scale-105 active:scale-95'
+                                : 'bg-amber-600/5 border-dashed border-amber-600/15 opacity-30 cursor-not-allowed'
+                            }`}
                           >
-                            <span className="text-xl shrink-0 p-1 bg-amber-600/10 rounded-lg">{item.emoji}</span>
-                            <div className="flex-1 min-w-0">
-                              <h6 className="font-serif text-[10px] font-bold text-white leading-none">{item.name}</h6>
-                              <p className="font-sans text-[8px] text-amber-200/50 mt-0.5 truncate leading-none">{item.desc}</p>
-                            </div>
-                            <button 
-                              onClick={() => handleBuyItem(item)}
-                              className="px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-sans font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-amber-600/10 shrink-0"
-                            >
-                              {item.cost} Fils
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    /* Keepsake grid and Souq launcher */
-                    <div className="w-full flex flex-col items-center space-y-4">
-                      {/* Souq launcher banner */}
-                      <button 
-                        onClick={() => setShowSouqShop(true)}
-                        className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-sans font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer shadow-lg shadow-amber-600/15 border border-amber-600/20 active:scale-98"
-                      >
-                        🏪 Enter Jafar's Souq Shop
-                      </button>
-
-                      {/* Velvet Lined Drawer cabinet grid */}
-                      <div className="velvet-drawer p-5 rounded-2xl shadow-xl w-full">
-                        <span className="font-sans text-[7px] tracking-[0.2em] text-white/50 uppercase font-extrabold block mb-3 text-center">
-                          Velvet Relics Cabinet
-                        </span>
-                        <div className="grid grid-cols-4 gap-2.5 relative z-10">
-                          {spotsCatalog.map(spot => {
-                            const unlocked = collectedKeepsakes.includes(spot.id)
-                            return (
-                              <button
-                                key={spot.id}
-                                disabled={!unlocked}
-                                onClick={() => setSelectedKeepsake(spot)}
-                                className={`aspect-square rounded-full flex items-center justify-center transition-all duration-300 relative border ${
-                                  unlocked
-                                    ? 'brass-coin-frame cursor-pointer hover:scale-105 active:scale-95'
-                                    : 'bg-black/40 border-transparent opacity-20 cursor-not-allowed'
-                                }`}
-                              >
-                                <span className="text-base">{unlocked ? spot.keepsakeEmoji : '🔒'}</span>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-
-                      {collectedKeepsakes.length === 0 && (
-                        <p className="font-serif text-[10px] italic text-white/50 text-center leading-relaxed">
-                          Cabinet empty. Focus Capture Lens at chronicle spots to unlock traditional souvenirs!
-                        </p>
-                      )}
-
-                      {/* Resident Guilds Relationship Reputation Dashboard */}
-                      <div className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                        <span className="font-sans text-[7.5px] tracking-[0.2em] text-amber-500 uppercase font-extrabold block">
-                          Resident Guild Reputation
-                        </span>
-                        <div className="space-y-1.5">
-                          {[
-                            { name: 'Jafar (Spice Merchant)', rep: characterRep.jafar || 10, color: 'bg-rose-500' },
-                            { name: 'Seyadi (Pearl Diver)', rep: characterRep.seyadi || 10, color: 'bg-blue-500' },
-                            { name: 'Faisal (Falconer)', rep: characterRep.faisal || 10, color: 'bg-amber-500' },
-                          ].map(resident => (
-                            <div key={resident.name} className="space-y-0.5">
-                              <div className="flex justify-between items-center text-[7.5px] font-bold text-white/70">
-                                <span>{resident.name}</span>
-                                <span>{resident.rep}%</span>
-                              </div>
-                              <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-                                <div 
-                                  className={`h-full rounded-full transition-all duration-500 ${resident.color}`}
-                                  style={{ width: `${resident.rep}%` }}
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Keepsake Detail Handwritten card */}
-                      {selectedKeepsake && (
-                        <div className="p-4 rounded-xl bg-white border border-amber-600/40 text-left relative animate-scaleIn w-full">
-                          <button 
-                            onClick={() => setSelectedKeepsake(null)}
-                            className="absolute top-2 right-2 text-[9px] text-bronze-muted/60 hover:text-bahrain-red cursor-pointer"
-                          >
-                            ✕ Close
+                            <span className="text-base">{unlocked ? spot.keepsakeEmoji : '🔒'}</span>
                           </button>
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-2xl p-1.5 rounded-lg bg-[#FAF9F6] border border-amber-600/20 shadow-sm">
-                              {selectedKeepsake.keepsakeEmoji}
-                            </span>
-                            <div>
-                              <span className="font-sans text-[7px] tracking-wider text-bahrain-red uppercase font-bold block">{selectedKeepsake.period}</span>
-                              <h5 className="font-serif text-[11px] font-bold text-bronze-charcoal leading-none mt-0.5">{selectedKeepsake.keepsakeName}</h5>
-                            </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {collectedKeepsakes.length === 0 && (
+                    <p className="font-serif text-[10px] italic text-bronze-muted/80 text-center leading-relaxed font-semibold">
+                      Cabinet empty. Focus Capture Lens at chronicle spots to unlock traditional souvenirs!
+                    </p>
+                  )}
+
+                  {/* Resident Guilds Relationship Reputation Dashboard (Issue 12: light parchment look) */}
+                  <div className="w-full p-4 rounded-2xl bg-amber-500/5 border border-amber-600/15 space-y-2 animate-fadeIn">
+                    <span className="font-sans text-[7.5px] tracking-[0.2em] text-amber-700 uppercase font-extrabold block">
+                      Resident Guild Reputation
+                    </span>
+                    <div className="space-y-2.5">
+                      {[
+                        { name: 'Jafar (Spice Merchant)', rep: characterRep.jafar || 10, color: 'bg-[#A80D27]' },
+                        { name: 'Seyadi (Pearl Diver)', rep: characterRep.seyadi || 10, color: 'bg-amber-600' },
+                        { name: 'Faisal (Falconer)', rep: characterRep.faisal || 10, color: 'bg-emerald-700' },
+                      ].map(resident => (
+                        <div key={resident.name} className="space-y-1">
+                          <div className="flex justify-between items-center text-[7.5px] font-extrabold text-bronze-charcoal uppercase">
+                            <span>{resident.name}</span>
+                            <span>{resident.rep}%</span>
                           </div>
-                          <p className="font-serif text-[9.5px] italic text-bronze-charcoal leading-relaxed border-t border-red-500/5 pt-2 font-semibold">
-                            {selectedKeepsake.keepsakeDesc}
-                          </p>
+                          <div className="h-1.5 rounded-full bg-amber-600/10 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-500 ${resident.color}`}
+                              style={{ width: `${resident.rep}%` }}
+                            />
+                          </div>
                         </div>
-                      )}
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Keepsake Detail Handwritten card */}
+                  {selectedKeepsake && (
+                    <div className="p-4 rounded-xl bg-white border border-amber-600/40 text-left relative animate-scaleIn w-full shadow-sm">
+                      <button 
+                        onClick={() => setSelectedKeepsake(null)}
+                        className="absolute top-2 right-2 text-[9px] text-bronze-muted/60 hover:text-bahrain-red cursor-pointer font-bold"
+                      >
+                        ✕ Close
+                      </button>
+                      <div className="flex items-center gap-2 mb-2 pb-1 border-b border-amber-600/10">
+                        <span className="text-xl">{selectedKeepsake.keepsakeEmoji}</span>
+                        <div>
+                          <h6 className="font-serif text-[11px] font-black text-bronze-charcoal leading-none">{selectedKeepsake.keepsakeId.replace(/-/g, ' ').toUpperCase()}</h6>
+                          <span className="font-sans text-[6.5px] text-amber-700 font-extrabold tracking-wider uppercase">{selectedKeepsake.name}</span>
+                        </div>
+                      </div>
+                      <p className="font-serif text-[9.5px] leading-relaxed italic text-bronze-charcoal font-semibold">
+                        "{selectedKeepsake.keepsakeDesc}"
+                      </p>
                     </div>
                   )}
                 </div>
               )}
 
               {activeLeaf === 'lexicon' && (
-                <div className="flex flex-col items-center p-6 text-center max-w-[270px]">
-                  {/* Embossed Compass Rose decoration */}
-                  <svg viewBox="0 0 100 100" className="w-36 h-36 text-bahrain-red/10 mb-4 stroke-current" fill="none" strokeWidth="0.5">
-                    <circle cx="50" cy="50" r="42" strokeDasharray="3,4" />
-                    <circle cx="50" cy="50" r="18" />
-                    <path d="M 50,2 L 50,98 M 2,50 L 98,50" />
-                    <path d="M 50,50 L 46,20 L 50,5 L 54,20 Z" fill="rgba(209,26,56,0.03)" />
-                    <path d="M 50,50 L 80,46 L 95,50 L 80,54 Z" fill="rgba(209,26,56,0.01)" />
-                    <path d="M 50,50 L 46,80 L 50,95 L 54,80 Z" fill="rgba(209,26,56,0.01)" />
-                    <path d="M 50,50 L 20,46 L 5,50 L 20,54 Z" fill="rgba(209,26,56,0.01)" />
-                    <circle cx="50" cy="50" r="3" className="fill-current" />
-                  </svg>
-                  <span className="font-sans text-[7px] tracking-[0.25em] text-bahrain-red uppercase font-extrabold block mb-1">
-                    Bilingual Keys
-                  </span>
-                  <p className="font-serif text-[11px] italic text-bronze-muted leading-relaxed">
-                    "Language is the key to local hospitality. Practice these traditional greetings in Old Manama Souqs."
-                  </p>
+                <div className="w-full max-w-[320px] flex flex-col items-center space-y-4 text-left animate-fadeIn">
+                  <div className="w-full p-4 rounded-2xl bg-amber-500/5 border border-amber-600/15 space-y-3">
+                    <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-black block">
+                      🗣️ Pronunciation Masterclass
+                    </span>
+                    <div className="space-y-2">
+                      <div className="pb-2 border-b border-amber-600/10">
+                        <p className="font-serif text-[11px] font-bold text-bronze-charcoal">The Arabic "Kh" (خ)</p>
+                        <p className="font-sans text-[9px] text-bronze-muted leading-relaxed">
+                          Pronounced like a soft, raspy scratch at the back of the throat (similar to the Scottish "loch" or Spanish "j"). Try saying <span className="italic font-bold">"Khubz"</span> (bread).
+                        </p>
+                      </div>
+                      <div className="pb-2 border-b border-amber-600/10">
+                        <p className="font-serif text-[11px] font-bold text-bronze-charcoal">The Cardinal G (ق / G)</p>
+                        <p className="font-sans text-[9px] text-bronze-muted leading-relaxed">
+                          In Gulf dialect, the standard "q" (qaf) is universally softened to a hard "g" sound as in "gold". E.g., <span className="italic font-bold">"Qal'at"</span> is pronounced <span className="italic font-bold">"Gal-at"</span>.
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-serif text-[11px] font-bold text-bronze-charcoal">Double Vowels (aa / ee)</p>
+                        <p className="font-sans text-[9px] text-bronze-muted leading-relaxed">
+                          Elongate the sound slightly, like drawing out a sigh. E.g., <span className="italic font-bold">"Hala"</span> is quick, while <span className="italic font-bold">"Habeebee"</span> flows.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full p-4 rounded-2xl bg-amber-600/5 border border-dashed border-amber-600/25 space-y-2">
+                    <span className="font-sans text-[8px] tracking-[0.25em] text-amber-700 uppercase font-black block">
+                      📝 Wayfarer Practice Prompts
+                    </span>
+                    <p className="font-serif text-[10px] italic text-bronze-charcoal/80 leading-relaxed font-semibold">
+                      "Stand before Master Jafar, raise your hand, look him in the eye and say: 'Salam Alaykum, ya sadiqee!' (Peace be upon you, my friend!)"
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -1649,8 +1682,79 @@ export default function Dashboard() {
         </span>
       </footer>
 
-      {activeLeaf === 'cartography' && (
-        <WayfarerMap locations={locations} />
+      {isMapOpen && locations && locations.length > 0 && (
+        <WayfarerMap locations={locations} onClose={() => setIsMapOpen(false)} />
+      )}
+
+      {showSouqShop && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#1A1412]/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-[#2d1b11] border-4 border-double border-amber-600/40 rounded-3xl p-6 text-left shadow-[0_24px_50px_rgba(0,0,0,0.65)] text-white relative animate-scaleIn select-none">
+            {/* Dashed frame overlay */}
+            <div className="absolute inset-1.5 border border-dashed border-amber-600/20 rounded-[22px] pointer-events-none" />
+
+            <div className="relative z-10 space-y-4">
+              <div className="flex justify-between items-center pb-2.5 border-b border-amber-600/20">
+                <div className="flex flex-col">
+                  <span className="font-sans text-[8px] tracking-[0.2em] text-amber-500 uppercase font-black">
+                    Manama Heritage Kiosk
+                  </span>
+                  <h3 className="font-serif text-xl font-bold text-white mt-0.5 flex items-center gap-1.5">
+                    🏪 Master Jafar's Souq Shop
+                  </h3>
+                </div>
+                <button 
+                  onClick={() => { setShowSouqShop(false); setShopAlert(null); }}
+                  className="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-500 hover:text-amber-400 text-[9px] font-sans font-extrabold cursor-pointer transition-all border border-amber-600/10"
+                >
+                  ✕ Exit Shop
+                </button>
+              </div>
+
+              {/* Shop Alerts feedback banner */}
+              {shopAlert && (
+                <div className={`p-2.5 rounded-xl border text-[9.5px] leading-relaxed font-bold font-sans ${shopAlert.success ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 animate-fadeIn' : 'bg-rose-500/15 border-rose-500/30 text-rose-300 animate-fadeIn'}`}>
+                  {shopAlert.text}
+                </div>
+              )}
+
+              {/* Wallet display */}
+              <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-amber-600/15 border border-amber-600/30">
+                <span className="font-sans text-[8px] tracking-wider text-amber-300 font-extrabold uppercase flex items-center gap-1">
+                  🪙 Your Travel Stipend
+                </span>
+                <span className="font-mono text-sm font-black text-amber-400">
+                  {goldFils.toLocaleString()} Fils
+                </span>
+              </div>
+
+              <p className="font-serif text-[10px] italic text-amber-200/80 leading-relaxed">
+                "Marhaban traveler! Spend your golden Fils stipend on spice guild halwa, falcon hoods, or pearl hunt clue scrolls to enhance your reputation with Manama residents."
+              </p>
+
+              {/* Shop Items list */}
+              <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1 antique-scrollbar">
+                {shopItems.map(item => (
+                  <div 
+                    key={item.id} 
+                    className="p-2.5 rounded-xl bg-black/30 border border-amber-600/10 flex items-center justify-between gap-3 hover:border-amber-600/30 transition-all"
+                  >
+                    <span className="text-2xl shrink-0 p-1.5 bg-amber-600/10 rounded-xl">{item.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <h6 className="font-serif text-[11px] font-bold text-white leading-none">{item.name}</h6>
+                      <p className="font-sans text-[8px] text-amber-200/50 mt-1 leading-normal">{item.desc}</p>
+                    </div>
+                    <button 
+                      onClick={() => handleBuyItem(item)}
+                      className="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-sans font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-amber-600/10 shrink-0"
+                    >
+                      {item.cost.toLocaleString()} Fils
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {activeScanSpot && (

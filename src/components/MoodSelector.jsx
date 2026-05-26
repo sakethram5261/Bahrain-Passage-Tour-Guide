@@ -145,7 +145,6 @@ export default function MoodSelector({ onConfirm }) {
                     : '0 2px 12px rgba(42,35,33,0.06), 0 1px 3px rgba(0,0,0,0.04)',
                   transform: active ? 'scale(1.02) translateY(-2px)' : 'scale(1)',
                   transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-                  opacity: 0,
                 }}
               >
                 {/* Hover effect for inactive */}
@@ -289,7 +288,7 @@ export default function MoodSelector({ onConfirm }) {
           >
             {noneSelected
               ? 'Pick at least one vibe'
-              : `Build my ${duration > 1 ? `${duration}-day ` : ''}Bahrain →`}
+              : 'Build my Bahrain Passage →'}
           </button>
         </div>
 

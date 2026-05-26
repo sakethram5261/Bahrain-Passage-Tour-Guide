@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { VibeContext } from './VibeContext'
 
 const RANKS = [
@@ -66,11 +66,22 @@ export function VibeProvider({ children }) {
   const [characterRep, setCharacterRep] = useState({ jafar: 10, seyadi: 10, faisal: 10 }) // Base rep values
   const [passportStamps, setPassportStamps] = useState([]) // Unlocked visual ink stamps
 
+  // Pearl quest progress — global so it persists across tab switches
+  const [pearlsCollected, setPearlsCollected] = useState([])
+
+  // Single shared system clock — avoids duplicate setInterval in SensoryHero + Dashboard
+  const [systemTime, setSystemTime] = useState(new Date())
+
   const aligned = step === 5
 
   useEffect(() => {
     setCurrentSpotIndex(0)
   }, [currentDayTab])
+
+  useEffect(() => {
+    const clockTimer = setInterval(() => setSystemTime(new Date()), 1000)
+    return () => clearInterval(clockTimer)
+  }, [])
 
   const awardXP = useCallback((amount, reason) => {
     setXp(prev => prev + amount)
@@ -173,6 +184,7 @@ export function VibeProvider({ children }) {
     setGoldFils(1200)
     setCharacterRep({ jafar: 10, seyadi: 10, faisal: 10 })
     setPassportStamps([])
+    setPearlsCollected([])
     setStep(1)
   }
 
@@ -237,6 +249,9 @@ export function VibeProvider({ children }) {
       setPassportStamps,
       spendFils,
       awardReputation,
+      pearlsCollected,
+      setPearlsCollected,
+      systemTime,
     }}>
       {children}
     </VibeContext.Provider>

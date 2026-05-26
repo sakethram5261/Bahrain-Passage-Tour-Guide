@@ -19,7 +19,8 @@ export default function SensoryHero() {
     setItinerarySpots,
     soundVolume,
     soundMuted,
-    resetChronicle
+    resetChronicle,
+    systemTime,
   } = useVibe()
 
   const [animating, setAnimating] = useState(false)
@@ -32,6 +33,7 @@ export default function SensoryHero() {
   const [logsComplete, setLogsComplete] = useState(false)
   const [aiLoaded, setAiLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
+  const [sealing, setSealing] = useState(false) // Issue 13: loading state for seal button
 
   // Swipe gesture tracking references
   const touchStartX = useRef(0)
@@ -90,21 +92,11 @@ export default function SensoryHero() {
     }
   }, [itinerarySpots, carouselIndex])
 
-
-  // Real-time ticking system clock state for the physical pocket watch hand rotations
-  const [systemTime, setSystemTime] = useState(new Date())
+  // systemTime now comes from global VibeProvider context (Issue 28: no duplicate setInterval)
 
   const containerRef = useRef(null)
   const contentRef = useRef(null)
   const logsEndRef = useRef(null)
-
-  // Update watch clock hands every second
-  useEffect(() => {
-    const clockTimer = setInterval(() => {
-      setSystemTime(new Date())
-    }, 1000)
-    return () => clearInterval(clockTimer)
-  }, [])
 
   // Synthesis of Typewriter mechanical key clicking sounds
   const playTypewriterClick = (pitchMultiplier = 1.0) => {
@@ -415,8 +407,8 @@ export default function SensoryHero() {
             onTouchEnd={handleTouchEnd}
             style={{
               boxShadow: '0 25px 55px -12px rgba(0,0,0,0.3), 0 8px 18px -6px rgba(0,0,0,0.2)',
+              touchAction: 'pan-y'
             }}
-
           >
             {itinerarySpots.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 min-h-[420px]" style={{ background: '#FAF8F5' }}>
@@ -562,7 +554,10 @@ export default function SensoryHero() {
               {/* Glowing Crimson Wax Seal Proceed Button */}
               <div className="mt-3 w-full flex justify-center">
                 <button
+                  disabled={sealing}
                   onClick={() => {
+                    if (sealing) return
+                    setSealing(true)
                     playTypewriterClick(1.6)
                     const stampSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav')
                     stampSfx.volume = 0.25 * soundVolume
@@ -576,10 +571,11 @@ export default function SensoryHero() {
                       ease: 'power3.inOut',
                       onComplete: () => {
                         setStep(5) // Transition to Dashboard
+                        setSealing(false)
                       }
                     })
                   }}
-                  className="group relative flex flex-col items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-105 active:scale-95 py-1 px-8"
+                  className={`group relative flex flex-col items-center justify-center transition-transform duration-300 py-1 px-8 ${sealing ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:scale-105 active:scale-95'}`}
                 >
                   <div className="absolute inset-0 bg-[#A80D27] rounded-full filter blur-[10px] opacity-15 group-hover:opacity-25 animate-pulse" />
                   <div 
@@ -589,9 +585,9 @@ export default function SensoryHero() {
                       letterSpacing: '0.18em'
                     }}
                   >
-                    <span className="text-xs">📜</span>
-                    Imprint Seal & Enter Ledger
-                    <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                    <span className="text-xs">{sealing ? '⏳' : '📜'}</span>
+                    {sealing ? 'Sealing Passage...' : 'Imprint Seal & Enter Ledger'}
+                    {!sealing && <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>}
                   </div>
                 </button>
               </div>
@@ -655,13 +651,21 @@ export default function SensoryHero() {
             </div>
 
             {/* Mobile-Only active compilation log card (avoids stacked columns) */}
-            <div className="md:hidden w-full max-w-[260px] bg-[#FCFBF8] border border-dashed border-[#A80D27]/18 rounded-xl p-3 shadow-inner mt-1">
-              <span className="font-sans text-[7.5px] tracking-[0.2em] text-[#A80D27] uppercase font-black block mb-1">
+            <div className="md:hidden w-full max-w-[280px] bg-[#FCFBF8] border border-dashed border-[#A80D27]/18 rounded-xl p-3 shadow-inner mt-1 max-h-[30vh] overflow-y-auto antique-scrollbar">
+              <span className="font-sans text-[7.5px] tracking-[0.2em] text-[#A80D27] uppercase font-black block mb-1 sticky top-0 bg-[#FCFBF8]">
                 ⏳ Live Curation Log
               </span>
-              <p className="font-mono text-[9.5px] leading-relaxed text-bronze-charcoal font-bold min-h-[36px] flex items-center justify-center">
-                {terminalLogs[terminalLogs.length - 1] || 'Assembling ledger...'}
-              </p>
+              <div className="space-y-1">
+                {terminalLogs.length > 0 ? terminalLogs.slice(-8).map((log, i) => (
+                  <p key={i} className="font-mono text-[9px] leading-relaxed text-bronze-charcoal font-semibold opacity-80">
+                    {log}
+                  </p>
+                )) : (
+                  <p className="font-mono text-[9.5px] leading-relaxed text-bronze-charcoal font-bold min-h-[36px] flex items-center justify-center">
+                    Assembling ledger...
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
