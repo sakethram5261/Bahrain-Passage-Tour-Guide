@@ -92,8 +92,6 @@ export default function SensoryHero() {
     }
   }, [itinerarySpots, carouselIndex])
 
-  // systemTime now comes from global VibeProvider context (Issue 28: no duplicate setInterval)
-
   const containerRef = useRef(null)
   const contentRef = useRef(null)
   const logsEndRef = useRef(null)
@@ -156,49 +154,88 @@ export default function SensoryHero() {
   // Compile itinerary
   const compileItinerary = async () => {
     setLoadingAI(true)
-    const parsed = await fetchAICuratedItinerary(selectedMoods, tier, duration, pace)
+    let parsed = null
+    
+    try {
+      parsed = await fetchAICuratedItinerary(selectedMoods, tier, duration, pace)
+    } catch (fetchErr) {
+      console.error("API fetch completely failed:", fetchErr)
+    }
     
     let compiledSpots = []
 
     if (parsed && parsed.itinerary && Array.isArray(parsed.itinerary)) {
       setAiItinerary(parsed)
-      compiledSpots = parsed.itinerary.map(aiItem => {
-        const catalogSpot = spotsCatalog.find(s => s.id === aiItem.id)
-        if (catalogSpot) {
-          return {
-            ...catalogSpot,
-            day: aiItem.day,
-            pathGuide: tier === 'Wandering' ? catalogSpot.budgetGuide : catalogSpot.premiumGuide,
-            pathCost: tier === 'Wandering' ? catalogSpot.budgetCost : catalogSpot.premiumCost
+      try {
+        compiledSpots = parsed.itinerary.map(aiItem => {
+          const catalogSpot = typeof spotsCatalog !== 'undefined' && Array.isArray(spotsCatalog)
+            ? spotsCatalog.find(s => s.id === aiItem.id)
+            : null
+
+          if (catalogSpot) {
+            return {
+              ...catalogSpot,
+              day: aiItem.day,
+              pathGuide: tier === 'Wandering' ? catalogSpot.budgetGuide : catalogSpot.premiumGuide,
+              pathCost: tier === 'Wandering' ? catalogSpot.budgetCost : catalogSpot.premiumCost
+            }
           }
-        }
-        return {
-          id: aiItem.id || `spot-${Math.random().toString(36).substr(2, 9)}`,
-          name: aiItem.name || 'Authentic Bahrain Landmark',
-          arabic: aiItem.arabic || 'معلم بحريني',
-          mood: aiItem.mood || 'empires',
-          coords: aiItem.coords || '26.2285° N, 50.5860° E',
-          period: aiItem.period || 'Ancient Era',
-          desc: aiItem.desc || 'An authentic local spot full of history and heritage waiting to be discovered.',
-          simpleTerms: aiItem.simpleTerms || 'A gorgeous historical landmark rich in cultural legacy.',
-          insider: aiItem.insider || 'Speak to local shopkeepers nearby; they love sharing stories.',
-          pathGuide: aiItem.pathGuide || 'Walk around the grounds.',
-          pathCost: aiItem.pathCost || 'Free Entry',
-          image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?q=80&w=1200&auto=format&fit=crop',
-          day: aiItem.day || 1
-        }
-      }).filter(Boolean)
+          return {
+            id: aiItem.id || `spot-${Math.random().toString(36).substr(2, 9)}`,
+            name: aiItem.name || 'Authentic Bahrain Landmark',
+            arabic: aiItem.arabic || 'معلم بحريني',
+            mood: aiItem.mood || 'empires',
+            coords: aiItem.coords || '26.2285° N, 50.5860° E',
+            period: aiItem.period || 'Ancient Era',
+            desc: aiItem.desc || 'An authentic local spot full of history and heritage waiting to be discovered.',
+            simpleTerms: aiItem.simpleTerms || 'A gorgeous historical landmark rich in cultural legacy.',
+            insider: aiItem.insider || 'Speak to local shopkeepers nearby; they love sharing stories.',
+            pathGuide: aiItem.pathGuide || 'Walk around the grounds.',
+            pathCost: aiItem.pathCost || 'Free Entry',
+            image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?q=80&w=1200&auto=format&fit=crop',
+            day: aiItem.day || 1
+          }
+        }).filter(Boolean)
+      } catch (parseMapErr) {
+        console.error("Error processing mapping on AI parsed items:", parseMapErr)
+      }
     } else {
-      const filtered = spotsCatalog.filter(s => selectedMoods.includes(s.mood))
-      compiledSpots = filtered.map((item, idx) => {
-        const targetDay = (idx % duration) + 1
-        return {
-          ...item,
-          day: targetDay,
-          pathGuide: tier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
-          pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
+      // Fallback pathway when API fails
+      try {
+        if (typeof spotsCatalog !== 'undefined' && Array.isArray(spotsCatalog)) {
+          const filtered = spotsCatalog.filter(s => selectedMoods && selectedMoods.includes(s.mood))
+          compiledSpots = filtered.map((item, idx) => {
+            const targetDay = (idx % (duration || 1)) + 1
+            return {
+              ...item,
+              day: targetDay,
+              pathGuide: tier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
+              pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
+            }
+          })
         }
-      })
+      } catch (catalogErr) {
+        console.error("Lexical scope issue with catalog fallback prevented via safety block:", catalogErr)
+      }
+    }
+
+    // ABSOLUTE DISASTER PROTECTION GUARD: If array is completely empty, provide an explicit fallback asset
+    if (!compiledSpots || compiledSpots.length === 0) {
+      compiledSpots = [{
+        id: 'emergency-fallback-gate',
+        name: 'Bab Al Bahrain',
+        arabic: 'باب البحرين',
+        mood: 'empires',
+        coords: '26.2361° N, 50.5772° E',
+        period: '1949 Modern Era',
+        desc: 'The historic gateway to the Manama Souq.',
+        simpleTerms: 'A beautiful historical archway marking the entrance to the old city bazaar.',
+        insider: 'Grab a fresh hot chai from the local market stalls right behind the gate area.',
+        pathGuide: 'Walk through the grand archway directly into the historical souq alleys.',
+        pathCost: 'Free Entry',
+        image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?q=80&w=1200&auto=format&fit=crop',
+        day: 1
+      }]
     }
 
     compiledSpots.sort((a, b) => a.day - b.day)
@@ -251,9 +288,9 @@ export default function SensoryHero() {
   }, [logsComplete, aiLoaded])
 
   // Calculate hands degrees for clock
-  const secondsAngle = systemTime.getSeconds() * 6
-  const minutesAngle = systemTime.getMinutes() * 6 + systemTime.getSeconds() * 0.1
-  const hoursAngle = (systemTime.getHours() % 12) * 30 + systemTime.getMinutes() * 0.5
+  const secondsAngle = systemTime ? systemTime.getSeconds() * 6 : 0
+  const minutesAngle = systemTime ? systemTime.getMinutes() * 6 + systemTime.getSeconds() * 0.1 : 0
+  const hoursAngle = systemTime ? (systemTime.getHours() % 12) * 30 + systemTime.getMinutes() * 0.5 : 0
 
   return (
     <div 
@@ -297,7 +334,7 @@ export default function SensoryHero() {
         }
       `}</style>
 
-      {/* 1. TACTILE DESKTOP PROPS (Floats around the journal book only on desktop) */}
+      {/* 1. TACTILE DESKTOP PROPS */}
       {coverOpened && (
         <>
           <div className="hidden lg:block desktop-prop-quill">
@@ -344,7 +381,7 @@ export default function SensoryHero() {
 
       {/* 2. MAIN WORKSPACE CONTENT GRID */}
       {showPreviewOverview ? (
-        /* STAGE 3: FULL SCREEN TACTILE DECK CAROUSEL PREVIEW OVERVIEW */
+        /* STAGE 3: CAROUSEL PREVIEW OVERVIEW */
         <div 
           key="carousel-screen"
           ref={contentRef}
@@ -354,8 +391,8 @@ export default function SensoryHero() {
             perspective: '1200px',
           }}
         >
-          {/* Desktop-Only absolute flanking navigation arrows */}
-          {itinerarySpots.length > 1 && (
+          {/* Flanking navigation arrows */}
+          {itinerarySpots && itinerarySpots.length > 1 && (
             <>
               <button
                 onClick={handlePrevSpot}
@@ -384,7 +421,7 @@ export default function SensoryHero() {
               touchAction: 'pan-y'
             }}
           >
-            {itinerarySpots.length === 0 ? (
+            {!itinerarySpots || itinerarySpots.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 min-h-[420px]" style={{ background: '#FAF8F5' }}>
                 <span className="text-4xl animate-bounce">📭</span>
                 <button onClick={() => resetChronicle()} className="px-5 py-2 rounded-xl border border-red-500/25 bg-white font-sans text-[10px] uppercase tracking-widest font-black text-bahrain-red cursor-pointer">
@@ -394,16 +431,7 @@ export default function SensoryHero() {
             ) : (
               (() => {
                 const activeSpot = itinerarySpots[carouselIndex] || itinerarySpots[0]
-                if (!activeSpot) {
-                  return (
-                    <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 min-h-[420px]" style={{ background: '#FAF8F5' }}>
-                      <span className="text-4xl animate-bounce">📭</span>
-                      <button onClick={() => resetChronicle()} className="px-5 py-2 rounded-xl border border-red-500/25 bg-white font-sans text-[10px] uppercase tracking-widest font-black text-bahrain-red cursor-pointer">
-                        🔄 Reset Settings
-                      </button>
-                    </div>
-                  )
-                }
+                if (!activeSpot) return null
                 return (
                   <>
                     <div className="relative h-52 overflow-hidden bg-zinc-950 flex items-center justify-center shrink-0">
@@ -415,7 +443,6 @@ export default function SensoryHero() {
                           className="w-full h-full object-cover opacity-90 transition-transform duration-[1200ms] hover:scale-105" 
                         />
                       ) : (
-                        /* Premium coordinate-sketch visual fallback */
                         <div 
                           className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none"
                           style={{
@@ -423,28 +450,21 @@ export default function SensoryHero() {
                             borderBottom: '1px solid rgba(168,13,39,0.1)'
                           }}
                         >
-                          {/* Aged graph/coordinate lines */}
                           <div className="absolute inset-0 opacity-[0.04]" style={{
                             backgroundImage: 'radial-gradient(#A80D27 1.5px, transparent 1.5px)',
                             backgroundSize: '16px 16px'
                           }} />
-                          
-                          {/* Vintage Compass Dial Icon */}
                           <div className="w-16 h-16 rounded-full border border-dashed border-[#A80D27]/25 flex items-center justify-center mb-2 animate-rotateCompass bg-white/20">
                             <span className="text-xl">🧭</span>
                           </div>
-                          
                           <span className="font-mono text-[9px] text-[#A80D27] tracking-wider uppercase font-bold">
                             {activeSpot.coords || '26.2285° N, 50.5860° E'}
-                          </span>
-                          <span className="font-serif text-[10px] text-bronze-muted/60 italic mt-0.5">
-                            Local Landmark Coordinates Sync
                           </span>
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
                       <span className="absolute top-4 left-4 font-serif text-[10px] tracking-widest uppercase font-bold text-white py-1 px-3 rounded-full" style={{ background: 'linear-gradient(to right, #A80D27, #800A1E)' }}>
-                        Day {activeSpot.day} Stop
+                        Day {activeSpot.day || 1} Stop
                       </span>
                     </div>
 
@@ -499,10 +519,9 @@ export default function SensoryHero() {
             )}
           </div>
 
-          {/* Dots Indicator, Swipe Cue, & Centered Wax-Seal Proceed Action */}
-          {itinerarySpots.length > 0 && (
+          {/* Indicators list & Action Buttons */}
+          {itinerarySpots && itinerarySpots.length > 0 && (
             <div className="flex flex-col items-center gap-3 mt-1 select-none w-full animate-fadeIn shrink-0">
-              {/* Dots list */}
               <div className="flex items-center gap-2">
                 {itinerarySpots.map((_, idx) => (
                   <button
@@ -520,12 +539,10 @@ export default function SensoryHero() {
                 ))}
               </div>
 
-              {/* Mobile Cue */}
               <span className="lg:hidden text-[9.5px] font-sans font-bold text-bronze-muted/50 tracking-wider uppercase mt-0.5">
                 Swipe Card or Tap Dots to Explore
               </span>
 
-              {/* Glowing Crimson Wax Seal Proceed Button */}
               <div className="mt-3 w-full flex justify-center">
                 <button
                   disabled={sealing}
@@ -534,7 +551,7 @@ export default function SensoryHero() {
                     setSealing(true)
                     playTypewriterClick(1.6)
                     const stampSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav')
-                    stampSfx.volume = 0.25 * soundVolume
+                    stampSfx.volume = 0.25 * (soundVolume || 1)
                     stampSfx.play().catch(() => {})
                     if (contentRef.current) {
                       contentRef.current.style.transition = 'opacity 0.55s ease, transform 0.55s ease'
@@ -566,20 +583,18 @@ export default function SensoryHero() {
           )}
         </div>
       ) : (
-        /* STAGE 2: PREMIUM COMPILING LEDGER SCREEN (Loading stage, double-page layout on desktop, centered card on mobile) */
+        /* STAGE 2: LOADING LEDGER SCREEN */
         <div 
           key="compiling-screen"
           ref={contentRef}
           className="relative w-full max-w-md md:max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[380px] md:min-h-[460px] animate-screenEntry"
         >
-          {/* Absolute corner clips & spine */}
           <div className="book-corner-clip top-left" />
           <div className="book-corner-clip top-right" />
           <div className="book-corner-clip bottom-left" />
           <div className="book-corner-clip bottom-right" />
           <div className="journal-center-spine pointer-events-none hidden md:block" />
 
-          {/* Metallic 3D Spiral Binder Rings - absolute so it doesn't consume a grid cell */}
           <div className="hidden md:block absolute inset-0 pointer-events-none" style={{ zIndex: 30 }}>
             {Array.from({ length: 7 }).map((_, idx) => (
               <div key={idx} className="absolute pointer-events-none" style={{ top: `${9 + idx * 13.5}%`, left: '50%', transform: 'translateX(-50%)', zIndex: 30 }}>
@@ -589,7 +604,7 @@ export default function SensoryHero() {
             ))}
           </div>
 
-          {/* LEFT PAGE - Compiling status, Rotating Brass Compass */}
+          {/* LEFT PAGE */}
           <div className="journal-page-left p-8 flex flex-col justify-center items-center text-center select-none space-y-6">
             <div className="w-32 h-32 rounded-full border-2 border-dashed border-[#A80D27]/25 flex items-center justify-center relative bg-white/40 shadow-inner">
               <svg viewBox="0 0 100 100" className="w-24 h-24 opacity-75 animate-rotateCompass" fill="none" stroke="#A80D27" strokeWidth="1.2">
@@ -621,13 +636,12 @@ export default function SensoryHero() {
               }} />
             </div>
 
-            {/* Mobile-Only active compilation log card (avoids stacked columns) */}
             <div className="md:hidden w-full max-w-[280px] bg-[#FCFBF8] border border-dashed border-[#A80D27]/18 rounded-xl p-3 shadow-inner mt-1 max-h-[30vh] overflow-y-auto antique-scrollbar">
               <span className="font-sans text-[7.5px] tracking-[0.2em] text-[#A80D27] uppercase font-black block mb-1 sticky top-0 bg-[#FCFBF8]">
                 ⏳ Live Curation Log
               </span>
               <div className="space-y-1">
-                {terminalLogs.length > 0 ? terminalLogs.slice(-8).map((log, i) => (
+                {terminalLogs && terminalLogs.length > 0 ? terminalLogs.slice(-8).map((log, i) => (
                   <p key={i} className="font-mono text-[9px] leading-relaxed text-bronze-charcoal font-semibold opacity-80">
                     {log}
                   </p>
@@ -640,7 +654,7 @@ export default function SensoryHero() {
             </div>
           </div>
 
-          {/* RIGHT PAGE - Typewriter Compiling Logs */}
+          {/* RIGHT PAGE */}
           <div className="hidden md:flex journal-page-right p-8 flex-col relative text-left h-full justify-between overflow-hidden">
             <div className="flex flex-col flex-1 overflow-hidden">
               <div className="pb-2 border-b border-red-500/10 flex justify-between items-center mb-3">
@@ -652,12 +666,11 @@ export default function SensoryHero() {
                 </span>
               </div>
 
-              {/* Typewriter text logs */}
               <div 
                 className="flex-1 overflow-y-auto p-4 rounded-xl border border-dashed border-red-500/15 bg-[#FCFBF8] space-y-2.5 font-mono text-[10.5px] leading-relaxed text-bronze-charcoal shadow-inner"
                 style={{ maxHeight: '300px' }}
               >
-                {terminalLogs.map((log, idx) => {
+                {terminalLogs && terminalLogs.map((log, idx) => {
                   const isLast = idx === terminalLogs.length - 1;
                   return (
                     <div 
