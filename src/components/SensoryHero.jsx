@@ -243,45 +243,12 @@ export default function SensoryHero() {
     }
   }, [terminalLogs])
 
-  // Transition to the card carousel overview smoothly once loading complete
+  // Transition to the card carousel overview cleanly when loading finishes
   useEffect(() => {
     if (logsComplete && aiLoaded) {
-      if (contentRef.current) {
-        gsap.to(contentRef.current, {
-          scale: 0.95,
-          rotateY: 25,
-          opacity: 0,
-          duration: 0.5,
-          ease: 'power3.in',
-          onComplete: () => {
-            setShowPreviewOverview(true)
-            // Wait a small tick for React to swap key DOM nodes
-            setTimeout(() => {
-              if (contentRef.current) {
-                // Clear any inline styles left over by GSAP reconciliation reuse
-                gsap.set(contentRef.current, { clearProps: 'all' })
-                gsap.fromTo(contentRef.current,
-                  { scale: 0.95, rotateY: -25, opacity: 0 },
-                  { scale: 1, rotateY: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }
-                )
-              }
-            }, 50)
-          }
-        })
-      } else {
-        setShowPreviewOverview(true)
-      }
+      setShowPreviewOverview(true)
     }
   }, [logsComplete, aiLoaded])
-
-  useEffect(() => {
-    if (coverOpened && contentRef.current && !showPreviewOverview) {
-      gsap.fromTo(contentRef.current,
-        { rotateY: 75, opacity: 0, scale: 0.95 },
-        { rotateY: 0, opacity: 1, scale: 1, duration: 0.75, ease: 'power3.out' }
-      )
-    }
-  }, [coverOpened])
 
   // Calculate hands degrees for clock
   const secondsAngle = systemTime.getSeconds() * 6
@@ -312,6 +279,10 @@ export default function SensoryHero() {
             transform: translateY(0);
           }
         }
+        @keyframes fadeInEffect {
+          from { opacity: 0; transform: scale(0.98); }
+          to { opacity: 1; transform: scale(1); }
+        }
         .animate-rotateCompass {
           animation: rotateCompass 12s linear infinite;
         }
@@ -320,6 +291,9 @@ export default function SensoryHero() {
         }
         .animate-slideUpFade {
           animation: slideUpFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-screenEntry {
+          animation: fadeInEffect 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
 
@@ -374,7 +348,7 @@ export default function SensoryHero() {
         <div 
           key="carousel-screen"
           ref={contentRef}
-          className="relative w-full max-w-md mx-auto select-none animate-fadeIn flex flex-col gap-5 justify-center"
+          className="relative w-full max-w-md mx-auto select-none animate-screenEntry flex flex-col gap-5 justify-center"
           style={{
             transformStyle: 'preserve-3d',
             perspective: '1200px',
@@ -596,7 +570,7 @@ export default function SensoryHero() {
         <div 
           key="compiling-screen"
           ref={contentRef}
-          className="relative w-full max-w-md md:max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[380px] md:min-h-[460px]"
+          className="relative w-full max-w-md md:max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[380px] md:min-h-[460px] animate-screenEntry"
         >
           {/* Absolute corner clips & spine */}
           <div className="book-corner-clip top-left" />
