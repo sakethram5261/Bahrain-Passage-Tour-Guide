@@ -35,7 +35,7 @@ export default function SensoryHero() {
 
   // Swipe gesture tracking references
   const touchStartX = useRef(0)
-  const touchEndX = useRef(0)
+  const touchStartY = useRef(0)
 
   // Carousel item switching handlers
   const handleNextSpot = () => {
@@ -50,25 +50,33 @@ export default function SensoryHero() {
     setCarouselIndex((prev) => (prev - 1 + itinerarySpots.length) % itinerarySpots.length)
   }
 
-  // Touch handlers for direct swipe interaction
+  // Touch handlers for direct swipe interaction using changedTouches for bulletproof mobile swipe behavior
   const handleTouchStart = (e) => {
-    touchStartX.current = e.targetTouches[0].clientX
-    touchEndX.current = e.targetTouches[0].clientX
+    touchStartX.current = e.changedTouches[0].clientX
+    touchStartY.current = e.changedTouches[0].clientY
   }
 
-  const handleTouchMove = (e) => {
-    touchEndX.current = e.targetTouches[0].clientX
-  }
-
-  const handleTouchEnd = () => {
-    const diffX = touchStartX.current - touchEndX.current
-    const swipeThreshold = 55 // Minimum swipe distance in pixels
-    if (diffX > swipeThreshold) {
-      handleNextSpot()
-    } else if (diffX < -swipeThreshold) {
-      handlePrevSpot()
+  const handleTouchEnd = (e) => {
+    const endX = e.changedTouches[0].clientX
+    const endY = e.changedTouches[0].clientY
+    
+    const diffX = touchStartX.current - endX
+    const diffY = touchStartY.current - endY
+    
+    const swipeThreshold = 40 // lower threshold for responsive touch feelings
+    
+    // Only trigger if horizontal movement is primary
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (Math.abs(diffX) > swipeThreshold) {
+        if (diffX > 0) {
+          handleNextSpot()
+        } else {
+          handlePrevSpot()
+        }
+      }
     }
   }
+
 
   // Reset image load errors when switching slides
   useEffect(() => {
@@ -277,7 +285,7 @@ export default function SensoryHero() {
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-start md:justify-center wood-desk-backdrop overflow-y-auto px-4 py-8 md:py-12"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center wood-desk-backdrop overflow-y-auto px-4 py-6"
     >
       <style>{`
         @keyframes rotateCompass {
@@ -446,11 +454,11 @@ export default function SensoryHero() {
           <div
             className="relative rounded-[24px] overflow-hidden flex flex-col transition-all duration-350 border border-amber-600/30 bg-[#FAF8F5] select-none"
             onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             style={{
               boxShadow: '0 25px 55px -12px rgba(0,0,0,0.3), 0 8px 18px -6px rgba(0,0,0,0.2)',
             }}
+
           >
             {itinerarySpots.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 min-h-[420px]" style={{ background: '#FAF8F5' }}>
