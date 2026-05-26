@@ -1,5 +1,95 @@
 import { useVibe } from '../hooks/useVibe'
 
+// Helper to calculate estimated home currency equivalents
+const getHomeCurrencyEquivalent = (costStr) => {
+  if (!costStr) return null
+  const lower = costStr.toLowerCase()
+  if (lower.includes('free')) return '($0.00 USD)'
+  
+  if (lower.includes('fils')) {
+    const digits = parseFloat(lower.replace(/[^0-9.]/g, ''))
+    if (!isNaN(digits)) {
+      const usdVal = (digits / 1000) * 2.65
+      return `($${usdVal.toFixed(2)} USD eq.)`
+    }
+  }
+  
+  if (lower.includes('bhd') || lower.includes('dinar')) {
+    const digits = parseFloat(lower.replace(/[^0-9.]/g, ''))
+    if (!isNaN(digits)) {
+      const usdVal = digits * 2.65
+      return `($${usdVal.toFixed(2)} USD eq.)`
+    }
+  }
+  return null
+}
+
+// Helper to determine safety and custom dress code mods
+const getTouristAlerts = (spotName, spotMood) => {
+  const alerts = []
+  const lower = spotName.toLowerCase()
+  
+  if (lower.includes('mosque') || lower.includes('temple') || lower.includes('grave') || lower.includes('burial')) {
+    alerts.push({
+      type: 'modesty',
+      icon: '🧕',
+      text: 'Modest Dress: Long pants/skirts & covered shoulders required.',
+      color: 'bg-amber-500/10 border-amber-500/20 text-amber-900'
+    })
+  }
+  
+  if (spotMood === 'empires' || spotMood === 'sea' || lower.includes('fort') || lower.includes('tree') || lower.includes('burial') || lower.includes('sandbank')) {
+    alerts.push({
+      type: 'heat',
+      icon: '☀️',
+      text: 'Midday Heat Alert: Wear sunscreen & stay hydrated. Peak sun 11am-3pm.',
+      color: 'bg-red-500/10 border-red-500/20 text-red-900'
+    })
+  }
+  
+  if (lower.includes('souq') || lower.includes('mosque') || lower.includes('cafe')) {
+    alerts.push({
+      type: 'friday',
+      icon: '🕌',
+      text: 'Friday Schedule: Traditional shops close Friday mornings for prayers.',
+      color: 'bg-blue-500/10 border-blue-500/20 text-blue-900'
+    })
+  }
+  return alerts
+}
+
+// Helper to calculate live operational status tags
+const getLiveOpeningStatus = (spotName) => {
+  const now = new Date()
+  const hours = now.getHours()
+  const day = now.getDay() // 0 = Sun, 5 = Fri
+  const lower = spotName.toLowerCase()
+  
+  if (day === 5 && hours >= 10 && hours <= 13 && (lower.includes('souq') || lower.includes('cafe'))) {
+    return {
+      open: false,
+      text: '🔴 CLOSED FOR FRIDAY PRAYERS',
+      color: 'bg-red-500/10 text-red-800 border-red-500/20'
+    }
+  }
+  
+  if (lower.includes('fort') || lower.includes('tree') || lower.includes('burial')) {
+    const isOpen = hours >= 6 && hours <= 18
+    return {
+      open: isOpen,
+      text: isOpen ? '🟢 OPEN (SUNRISE - SUNSET)' : '🔴 CLOSED (NIGHT HOURS)',
+      color: isOpen ? 'bg-green-500/10 text-green-800 border-green-500/20' : 'bg-red-500/10 text-red-800 border-red-500/20'
+    }
+  }
+  
+  const isAttractionOpen = hours >= 9 && hours <= 20
+  return {
+    open: isAttractionOpen,
+    text: isAttractionOpen ? '🟢 OPEN NOW (9 AM - 8 PM)' : '🔴 CLOSED (OPENS 9 AM)',
+    color: isAttractionOpen ? 'bg-green-500/10 text-green-800 border-green-500/20' : 'bg-red-500/10 text-red-800 border-red-500/20'
+  }
+}
+
 export default function LocationCard({ spot, onScan }) {
   const { 
     capturedPhotos, 
@@ -146,6 +236,26 @@ export default function LocationCard({ spot, onScan }) {
               <h3 className="font-serif text-2xl md:text-3xl text-bronze-charcoal font-semibold tracking-tight">
                 {spot.name}
               </h3>
+              
+              {/* Tourist Convenience Alerts */}
+              {(() => {
+                const alerts = getTouristAlerts(spot.name, spot.mood)
+                if (alerts.length === 0) return null
+                return (
+                  <div className="flex flex-col gap-1.5 mt-2 mb-3">
+                    {alerts.map((al, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-[9.5px] font-sans font-bold select-none animate-fadeIn ${al.color}`}
+                      >
+                        <span className="text-xs shrink-0">{al.icon}</span>
+                        <span>{al.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+
               <p className="font-sans text-xs text-bronze-muted leading-relaxed mt-2.5 font-medium">
                 {spot.desc}
               </p>
@@ -185,13 +295,51 @@ export default function LocationCard({ spot, onScan }) {
 
             {/* Route Guidelines */}
             <div className="p-4 rounded-2xl bg-pearl-bg border border-red-500/5">
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-sans text-[8px] tracking-widest uppercase text-bronze-muted/70 font-bold">
-                  Pathway Details
-                </span>
-                <span className="px-2.5 py-0.5 rounded-md bg-white border border-red-500/10 text-[8px] uppercase tracking-wider font-extrabold text-bahrain-red">
-                  Est. Cost: {spot.pathCost}
-                </span>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2 border-b border-red-500/5 pb-2">
+                <div className="flex flex-col text-left">
+                  <span className="font-sans text-[8px] tracking-widest uppercase text-bronze-muted/70 font-bold">
+                    Pathway Details
+                  </span>
+                  
+                  {/* Live Status Badge */}
+                  <div className="mt-1 flex items-center">
+                    {(() => {
+                      const status = getLiveOpeningStatus(spot.name)
+                      return (
+                        <span className={`px-1.5 py-0.5 rounded border text-[7.5px] uppercase tracking-wider font-black select-none ${status.color}`}>
+                          {status.text}
+                        </span>
+                      )
+                    })()}
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <div className="flex items-center gap-1.5">
+                    {/* Currency converted cost badge */}
+                    <div className="flex flex-col items-end">
+                      <span className="px-2 py-0.5 rounded-md bg-white border border-red-500/10 text-[8px] uppercase tracking-wider font-extrabold text-bahrain-red">
+                        Est. Cost: {spot.pathCost}
+                      </span>
+                      {getHomeCurrencyEquivalent(spot.pathCost) && (
+                        <span className="text-[7.5px] font-sans font-bold text-bronze-muted/50 mt-0.5">
+                          {getHomeCurrencyEquivalent(spot.pathCost)}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Google Maps Directions Deep-Link Luggage Tag */}
+                    <a 
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.name + ', Bahrain')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2 py-1 rounded bg-amber-500/10 border border-amber-600/30 text-[8px] uppercase tracking-widest font-black text-amber-800 hover:bg-amber-500/20 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                      title="Open Directions in Google Maps"
+                    >
+                      🗺️ Directions
+                    </a>
+                  </div>
+                </div>
               </div>
               <p className="font-sans text-xs text-bronze-muted leading-relaxed font-semibold">
                 {spot.pathGuide}
