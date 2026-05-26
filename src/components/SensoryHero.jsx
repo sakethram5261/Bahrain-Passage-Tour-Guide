@@ -2,7 +2,6 @@ import { useRef, useState, useEffect } from 'react'
 import gsap from 'gsap'
 import { useVibe } from '../hooks/useVibe'
 import { fetchAICuratedItinerary } from '../services/openrouter'
-import { spotsCatalog } from '../hooks/useItinerary'
 
 export default function SensoryHero() {
   const { 
@@ -33,7 +32,7 @@ export default function SensoryHero() {
   const [logsComplete, setLogsComplete] = useState(false)
   const [aiLoaded, setAiLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
-  const [sealing, setSealing] = useState(false) // Issue 13: loading state for seal button
+  const [sealing, setSealing] = useState(false) 
 
   // Swipe gesture tracking references
   const touchStartX = useRef(0)
@@ -41,13 +40,13 @@ export default function SensoryHero() {
 
   // Carousel item switching handlers
   const handleNextSpot = () => {
-    if (itinerarySpots.length === 0) return
+    if (!itinerarySpots || itinerarySpots.length === 0) return
     playTypewriterClick(1.05)
     setCarouselIndex((prev) => (prev + 1) % itinerarySpots.length)
   }
 
   const handlePrevSpot = () => {
-    if (itinerarySpots.length === 0) return
+    if (!itinerarySpots || itinerarySpots.length === 0) return
     playTypewriterClick(0.95)
     setCarouselIndex((prev) => (prev - 1 + itinerarySpots.length) % itinerarySpots.length)
   }
@@ -65,7 +64,7 @@ export default function SensoryHero() {
     const diffX = touchStartX.current - endX
     const diffY = touchStartY.current - endY
     
-    const swipeThreshold = 40 // lower threshold for responsive touch feelings
+    const swipeThreshold = 40 
     
     // Only trigger if horizontal movement is primary
     if (Math.abs(diffX) > Math.abs(diffY)) {
@@ -79,7 +78,6 @@ export default function SensoryHero() {
     }
   }
 
-
   // Reset image load errors when switching slides
   useEffect(() => {
     setImageError(false)
@@ -87,7 +85,7 @@ export default function SensoryHero() {
 
   // Bulletproof safety check to prevent carouselIndex out of bounds
   useEffect(() => {
-    if (itinerarySpots.length > 0 && (carouselIndex >= itinerarySpots.length || carouselIndex < 0)) {
+    if (itinerarySpots && itinerarySpots.length > 0 && (carouselIndex >= itinerarySpots.length || carouselIndex < 0)) {
       setCarouselIndex(0)
     }
   }, [itinerarySpots, carouselIndex])
@@ -130,7 +128,6 @@ export default function SensoryHero() {
     } catch (e) {}
   }
 
-  // Pre-compiled list of dynamic warm Tour Guide notes (Replacing AI jargon)
   const guidePhrases = [
     `Greetings wayfarer! Your local guide deck is assembling...`,
     `Merchant Jafar is curating aromatic souq spices for Day 1...`,
@@ -144,7 +141,6 @@ export default function SensoryHero() {
     `Guide alignment fully calibrated. Click below to unroll your ledger leaves!`
   ]
 
-  // Start background compilation immediately when cover is opened
   useEffect(() => {
     if (coverOpened) {
       compileItinerary()
@@ -159,17 +155,28 @@ export default function SensoryHero() {
     try {
       parsed = await fetchAICuratedItinerary(selectedMoods, tier, duration, pace)
     } catch (fetchErr) {
-      console.error("API fetch completely failed:", fetchErr)
+      console.error("API fetch failed:", fetchErr)
     }
     
     let compiledSpots = []
+
+    // Safely extract spots catalog dynamically to see if it bypasses early script execution errors
+    let localCatalog = null
+    try {
+      const itineraryModule = await import('../hooks/useItinerary')
+      if (itineraryModule && itineraryModule.spotsCatalog) {
+        localCatalog = itineraryModule.spotsCatalog
+      }
+    } catch (importErr) {
+      console.error("Dynamic catalog chunk load protected:", importErr)
+    }
 
     if (parsed && parsed.itinerary && Array.isArray(parsed.itinerary)) {
       setAiItinerary(parsed)
       try {
         compiledSpots = parsed.itinerary.map(aiItem => {
-          const catalogSpot = typeof spotsCatalog !== 'undefined' && Array.isArray(spotsCatalog)
-            ? spotsCatalog.find(s => s.id === aiItem.id)
+          const catalogSpot = localCatalog && Array.isArray(localCatalog)
+            ? localCatalog.find(s => s.id === aiItem.id)
             : null
 
           if (catalogSpot) {
@@ -197,13 +204,12 @@ export default function SensoryHero() {
           }
         }).filter(Boolean)
       } catch (parseMapErr) {
-        console.error("Error processing mapping on AI parsed items:", parseMapErr)
+        console.error("Error processing mapping on items:", parseMapErr)
       }
     } else {
-      // Fallback pathway when API fails
       try {
-        if (typeof spotsCatalog !== 'undefined' && Array.isArray(spotsCatalog)) {
-          const filtered = spotsCatalog.filter(s => selectedMoods && selectedMoods.includes(s.mood))
+        if (localCatalog && Array.isArray(localCatalog)) {
+          const filtered = localCatalog.filter(s => selectedMoods && selectedMoods.includes(s.mood))
           compiledSpots = filtered.map((item, idx) => {
             const targetDay = (idx % (duration || 1)) + 1
             return {
@@ -215,11 +221,11 @@ export default function SensoryHero() {
           })
         }
       } catch (catalogErr) {
-        console.error("Lexical scope issue with catalog fallback prevented via safety block:", catalogErr)
+        console.error("Catalog filtering error handled safely:", catalogErr)
       }
     }
 
-    // ABSOLUTE DISASTER PROTECTION GUARD: If array is completely empty, provide an explicit fallback asset
+    // EMERGENCY GUARD: Force data if arrays remain completely empty due to structural loops
     if (!compiledSpots || compiledSpots.length === 0) {
       compiledSpots = [{
         id: 'emergency-fallback-gate',
@@ -307,31 +313,17 @@ export default function SensoryHero() {
           50% { transform: scale(1.1); filter: drop-shadow(0 0 12px rgba(212,175,55,0.85)); }
         }
         @keyframes slideUpFade {
-          from {
-            opacity: 0;
-            transform: translateY(12px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         @keyframes fadeInEffect {
           from { opacity: 0; transform: scale(0.98); }
           to { opacity: 1; transform: scale(1); }
         }
-        .animate-rotateCompass {
-          animation: rotateCompass 12s linear infinite;
-        }
-        .animate-pulseGold {
-          animation: pulseGold 3s ease-in-out infinite;
-        }
-        .animate-slideUpFade {
-          animation: slideUpFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .animate-screenEntry {
-          animation: fadeInEffect 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+        .animate-rotateCompass { animation: rotateCompass 12s linear infinite; }
+        .animate-pulseGold { animation: pulseGold 3s ease-in-out infinite; }
+        .animate-slideUpFade { animation: slideUpFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-screenEntry { animation: fadeInEffect 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       `}</style>
 
       {/* 1. TACTILE DESKTOP PROPS */}
