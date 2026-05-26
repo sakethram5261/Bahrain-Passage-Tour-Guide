@@ -159,8 +159,9 @@ export default function WelcomeIntro({ onComplete }) {
 
     const items = [...SLOT_PHRASES, ARABIC_FINAL]
     const ITEM_H = 80
-    const VIEWPORT_H = 180
-    const CENTER_OFFSET = (VIEWPORT_H - ITEM_H) / 2 // 50px clearance top & bottom
+    const VIEWPORT_H = 90
+    const CENTER_OFFSET = (VIEWPORT_H - ITEM_H) / 2 // tight clearance top & bottom
+
     const track = trackRef.current
     track.innerHTML = ''
 
@@ -261,13 +262,13 @@ export default function WelcomeIntro({ onComplete }) {
         animation: 'pulseGlow 3s ease-in-out infinite',
       }}>✦ ✦ ✦</div>
 
-      {/* ── STAGE 1: SLOT SPIN VIEWPORT (180px height gives massive clearance for vertical bounces) ── */}
+      {/* ── STAGE 1: SLOT SPIN VIEWPORT (90px height keeps vertical space tight and centered) ── */}
       {phase === 'slot' && (
         <div style={{
-          height: 180, overflow: 'hidden',
+          height: 90, overflow: 'hidden',
           width: '100%', maxWidth: 700,
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
-          maskImage:        'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+          maskImage:        'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
         }}>
           <div ref={trackRef} style={{ willChange: 'transform, filter' }} />
         </div>
@@ -277,7 +278,7 @@ export default function WelcomeIntro({ onComplete }) {
       {phase === 'hold-arabic' && (
         <div style={{
           textAlign: 'center', padding: '0 2rem',
-          height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <p style={{
             fontFamily: '"Noto Sans Arabic","Geeza Pro",sans-serif',
@@ -297,7 +298,7 @@ export default function WelcomeIntro({ onComplete }) {
       {phase === 'morph' && (
         <div style={{ 
           position: 'relative', textAlign: 'center', padding: '0 2rem',
-          height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center',
           overflow: 'visible'
         }}>
           {/* Overlapping container to keep height stable */}
@@ -314,6 +315,7 @@ export default function WelcomeIntro({ onComplete }) {
               whiteSpace: 'nowrap',
               overflow: 'visible',
             }}>
+
               {ARABIC_FINAL.split('').map((c, idx) => (
                 <DissolvingLetter key={idx} char={c} delay={idx * 28} />
               ))}

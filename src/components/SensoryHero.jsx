@@ -31,6 +31,50 @@ export default function SensoryHero() {
   const [activeLogIndex, setActiveLogIndex] = useState(0)
   const [logsComplete, setLogsComplete] = useState(false)
   const [aiLoaded, setAiLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false)
+
+  // Swipe gesture tracking references
+  const touchStartX = useRef(0)
+  const touchEndX = useRef(0)
+
+  // Carousel item switching handlers
+  const handleNextSpot = () => {
+    if (itinerarySpots.length === 0) return
+    playTypewriterClick(1.05)
+    setCarouselIndex((prev) => (prev + 1) % itinerarySpots.length)
+  }
+
+  const handlePrevSpot = () => {
+    if (itinerarySpots.length === 0) return
+    playTypewriterClick(0.95)
+    setCarouselIndex((prev) => (prev - 1 + itinerarySpots.length) % itinerarySpots.length)
+  }
+
+  // Touch handlers for direct swipe interaction
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.targetTouches[0].clientX
+    touchEndX.current = e.targetTouches[0].clientX
+  }
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.targetTouches[0].clientX
+  }
+
+  const handleTouchEnd = () => {
+    const diffX = touchStartX.current - touchEndX.current
+    const swipeThreshold = 55 // Minimum swipe distance in pixels
+    if (diffX > swipeThreshold) {
+      handleNextSpot()
+    } else if (diffX < -swipeThreshold) {
+      handlePrevSpot()
+    }
+  }
+
+  // Reset image load errors when switching slides
+  useEffect(() => {
+    setImageError(false)
+  }, [carouselIndex])
+
 
   // Real-time ticking system clock state for the physical pocket watch hand rotations
   const [systemTime, setSystemTime] = useState(new Date())
@@ -322,19 +366,12 @@ export default function SensoryHero() {
           }}
         >
           <div
-            className="relative rounded-[32px] overflow-hidden flex flex-col transition-all duration-350"
+            className="relative rounded-[24px] overflow-hidden flex flex-col transition-all duration-350 border border-amber-600/30 bg-white"
             style={{
-              border: '14px solid #1E1715',
-              boxShadow: '0 35px 75px -15px rgba(0,0,0,0.85), 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.15)',
-              outline: '1.5px solid rgba(212,175,55,0.45)',
-              outlineOffset: '-14px',
+              boxShadow: '0 25px 55px -12px rgba(0,0,0,0.25), 0 8px 20px -8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.6)',
             }}
           >
-            <div className="book-corner-clip top-left" />
-            <div className="book-corner-clip top-right" />
-            <div className="book-corner-clip bottom-left" />
-            <div className="book-corner-clip bottom-right" />
-            <div className="absolute top-0 bottom-0 left-0 w-6 bg-gradient-to-r from-black/45 via-black/20 to-transparent pointer-events-none z-20" />
+
             <div
               className="relative flex flex-col items-center justify-center py-10 px-8 text-center overflow-hidden"
               style={{ 
@@ -379,25 +416,46 @@ export default function SensoryHero() {
         /* STAGE 3: FULL SCREEN TACTILE DECK CAROUSEL PREVIEW OVERVIEW */
         <div 
           ref={contentRef}
-          className="relative w-full max-w-md mx-auto select-none animate-fadeIn flex flex-col gap-6"
+          className="relative w-full max-w-md mx-auto select-none animate-fadeIn flex flex-col gap-5 justify-center"
           style={{
             transformStyle: 'preserve-3d',
             perspective: '1200px',
           }}
         >
+          {/* Desktop-Only absolute flanking navigation arrows */}
+          {itinerarySpots.length > 1 && (
+            <>
+              <button
+                onClick={handlePrevSpot}
+                className="hidden lg:flex absolute left-[-64px] top-[40%] -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white border border-[#A80D27]/18 text-[#A80D27] shadow-md hover:bg-[#FAF8F5] transition-all hover:scale-105 active:scale-95 cursor-pointer z-40 font-bold"
+                title="Previous Stop"
+              >
+                ❮
+              </button>
+              <button
+                onClick={handleNextSpot}
+                className="hidden lg:flex absolute right-[-64px] top-[40%] -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white border border-[#A80D27]/18 text-[#A80D27] shadow-md hover:bg-[#FAF8F5] transition-all hover:scale-105 active:scale-95 cursor-pointer z-40 font-bold"
+                title="Next Stop"
+              >
+                ❯
+              </button>
+            </>
+          )}
+
+          {/* Floating tactile card wrapper */}
           <div
-            className="relative rounded-[28px] overflow-hidden flex flex-col transition-all duration-350"
+            className="relative rounded-[24px] overflow-hidden flex flex-col transition-all duration-350 border border-amber-600/30 bg-[#FAF8F5] select-none"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             style={{
-              border: '14px solid #1E1715',
-              boxShadow: '0 30px 65px -12px rgba(0,0,0,0.85), 0 10px 20px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.15)',
-              outline: '1.5px solid rgba(212,175,55,0.45)',
-              outlineOffset: '-14px',
+              boxShadow: '0 25px 55px -12px rgba(0,0,0,0.3), 0 8px 18px -6px rgba(0,0,0,0.2)',
             }}
           >
             {itinerarySpots.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 min-h-[420px]" style={{ background: '#FAF8F5' }}>
                 <span className="text-4xl animate-bounce">📭</span>
-                <button onClick={() => resetChronicle()} className="px-5 py-2 rounded-xl border border-red-500/25 bg-white font-sans text-[10px] uppercase tracking-widest font-black text-bahrain-red">
+                <button onClick={() => resetChronicle()} className="px-5 py-2 rounded-xl border border-red-500/25 bg-white font-sans text-[10px] uppercase tracking-widest font-black text-bahrain-red cursor-pointer">
                   🔄 Reset Settings
                 </button>
               </div>
@@ -406,13 +464,48 @@ export default function SensoryHero() {
                 const activeSpot = itinerarySpots[carouselIndex]
                 return (
                   <>
-                    <div className="relative h-52 overflow-hidden bg-zinc-900">
-                      <img src={activeSpot.image} alt={activeSpot.name} className="w-full h-full object-cover opacity-90 transition-transform duration-[1200ms] hover:scale-105" />
+                    <div className="relative h-52 overflow-hidden bg-zinc-950 flex items-center justify-center shrink-0">
+                      {!imageError ? (
+                        <img 
+                          src={activeSpot.image} 
+                          alt={activeSpot.name} 
+                          onError={() => setImageError(true)}
+                          className="w-full h-full object-cover opacity-90 transition-transform duration-[1200ms] hover:scale-105" 
+                        />
+                      ) : (
+                        /* Premium coordinate-sketch visual fallback */
+                        <div 
+                          className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none"
+                          style={{
+                            background: 'radial-gradient(circle, #FAF8F5 0%, #EFEBE4 100%)',
+                            borderBottom: '1px solid rgba(168,13,39,0.1)'
+                          }}
+                        >
+                          {/* Aged graph/coordinate lines */}
+                          <div className="absolute inset-0 opacity-[0.04]" style={{
+                            backgroundImage: 'radial-gradient(#A80D27 1.5px, transparent 1.5px)',
+                            backgroundSize: '16px 16px'
+                          }} />
+                          
+                          {/* Vintage Compass Dial Icon */}
+                          <div className="w-16 h-16 rounded-full border border-dashed border-[#A80D27]/25 flex items-center justify-center mb-2 animate-rotateCompass bg-white/20">
+                            <span className="text-xl">🧭</span>
+                          </div>
+                          
+                          <span className="font-mono text-[9px] text-[#A80D27] tracking-wider uppercase font-bold">
+                            {activeSpot.coords || '26.2285° N, 50.5860° E'}
+                          </span>
+                          <span className="font-serif text-[10px] text-bronze-muted/60 italic mt-0.5">
+                            Local Landmark Coordinates Sync
+                          </span>
+                        </div>
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
                       <span className="absolute top-4 left-4 font-serif text-[10px] tracking-widest uppercase font-bold text-white py-1 px-3 rounded-full" style={{ background: 'linear-gradient(to right, #A80D27, #800A1E)' }}>
                         Day {activeSpot.day} Stop
                       </span>
                     </div>
+
                     <div className="p-6 pb-20 flex flex-col justify-between bg-[#FAF8F5] relative min-h-[260px] text-left">
                       <div>
                         <h4 
@@ -463,6 +556,71 @@ export default function SensoryHero() {
               })()
             )}
           </div>
+
+          {/* Dots Indicator, Swipe Cue, & Centered Wax-Seal Proceed Action */}
+          {itinerarySpots.length > 0 && (
+            <div className="flex flex-col items-center gap-3 mt-1 select-none w-full animate-fadeIn shrink-0">
+              {/* Dots list */}
+              <div className="flex items-center gap-2">
+                {itinerarySpots.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      playTypewriterClick(1.0)
+                      setCarouselIndex(idx)
+                    }}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                      idx === carouselIndex 
+                        ? 'bg-[#A80D27] scale-120 shadow-sm' 
+                        : 'bg-[#A80D27]/20 hover:bg-[#A80D27]/40'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Mobile Cue */}
+              <span className="lg:hidden text-[9.5px] font-sans font-bold text-bronze-muted/50 tracking-wider uppercase mt-0.5">
+                Swipe Card or Tap Dots to Explore
+              </span>
+
+              {/* Glowing Crimson Wax Seal Proceed Button */}
+              <div className="mt-3 w-full flex justify-center">
+                <button
+                  onClick={() => {
+                    playTypewriterClick(1.6)
+                    const stampSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav')
+                    stampSfx.volume = 0.25 * soundVolume
+                    stampSfx.play().catch(() => {})
+                    
+                    gsap.to(contentRef.current, {
+                      scale: 0.94,
+                      opacity: 0,
+                      y: 15,
+                      duration: 0.55,
+                      ease: 'power3.inOut',
+                      onComplete: () => {
+                        setStep(5) // Transition to Dashboard
+                      }
+                    })
+                  }}
+                  className="group relative flex flex-col items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-105 active:scale-95 py-1 px-8"
+                >
+                  <div className="absolute inset-0 bg-[#A80D27] rounded-full filter blur-[10px] opacity-15 group-hover:opacity-25 animate-pulse" />
+                  <div 
+                    className="relative py-3 px-8 rounded-full bg-gradient-to-b from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-[10.5px] uppercase tracking-widest font-black flex items-center gap-2 border border-red-400/20 shadow-lg"
+                    style={{
+                      boxShadow: '0 8px 24px rgba(138,10,34,0.35), inset 0 2px 2px rgba(255,255,255,0.25)',
+                      letterSpacing: '0.18em'
+                    }}
+                  >
+                    <span className="text-xs">📜</span>
+                    Imprint Seal & Enter Ledger
+                    <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         /* STAGE 2: PREMIUM COMPILING LEDGER SCREEN (Loading stage, double-page layout) */
