@@ -806,10 +806,10 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
-
-      {/* Outer 3D Binder Journal Container */}
-      <div className="w-full max-w-6xl journal-binder-wrapper pr-12 lg:pr-0 relative flex items-center justify-center">
+{/* Outer 3D Binder Journal Container - Centered and Balanced */}
+      <div className="w-full max-w-6xl px-12 relative flex items-center justify-center mx-auto">
         
+        {/* Protruding Leather Index Tabs */}
         <div className="absolute top-16 -right-[46px] hidden md:flex flex-col gap-3 z-40">
           {[
             { id: 'chronicles', label: 'Chronicle', emoji: '📖' },
@@ -822,9 +822,7 @@ export default function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => handleLeafSwitch(tab.id)}
-                className={`leather-tab-item relative px-3 py-3 flex flex-col items-center justify-center text-white ${
-                  active ? 'active' : ''
-                }`}
+                className={`leather-tab-item relative px-3 py-3 flex flex-col items-center justify-center text-white ${active ? 'active' : ''}`}
                 style={{ width: '48px', height: '68px' }}
               >
                 <span className="text-base leading-none">{tab.emoji}</span>
@@ -836,7 +834,8 @@ export default function Dashboard() {
           })}
         </div>
 
-        <div className="relative w-full grid grid-cols-1 md:grid-cols-2 rounded-[28px] overflow-visible journal-open-book bg-[#FAF9F6] shadow-2xl">
+        {/* The Open physical book ledger double page grid - Added mx-auto for centering */}
+        <div className="relative w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 rounded-[28px] overflow-visible journal-open-book bg-[#FAF9F6] shadow-2xl mx-auto">
           
           <div className="flex md:hidden justify-around bg-[#FCFBF8] border-b border-red-500/10 py-3 rounded-t-[24px] px-2 w-full select-none z-40">
             {[
@@ -851,9 +850,7 @@ export default function Dashboard() {
                   key={tab.id}
                   onClick={() => handleLeafSwitch(tab.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold tracking-tight transition-all active:scale-95 cursor-pointer ${
-                    active 
-                      ? 'bg-bahrain-red text-white shadow-sm font-extrabold' 
-                      : 'bg-transparent text-bronze-charcoal hover:bg-red-500/5'
+                    active ? 'bg-bahrain-red text-white shadow-sm font-extrabold' : 'bg-transparent text-bronze-charcoal hover:bg-red-500/5'
                   }`}
                 >
                   <span className="text-xs leading-none">{tab.emoji}</span>
@@ -868,7 +865,7 @@ export default function Dashboard() {
               <div className={`flipping-leaf flip-${flippingLeaf}`} />
             </div>
           )}
-          
+
           <div className="journal-center-spine pointer-events-none hidden md:block" />
 
           <div className="hidden md:block absolute inset-0 pointer-events-none" style={{ zIndex: 30 }}>
