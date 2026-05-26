@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useVibe } from './useVibe'
 
 export const spotsCatalog = [
   {
@@ -392,11 +393,18 @@ const categoryImages = {
 }
 
 export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durationFilter = 3, aiItinerary = null) {
+  const { itinerarySpots } = useVibe()
   const [locations, setLocations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (itinerarySpots && itinerarySpots.length > 0) {
+      setLocations(itinerarySpots)
+      setLoading(false)
+      return
+    }
+
     let active = true
     
     const delay = setTimeout(() => {
@@ -477,7 +485,7 @@ export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durat
       clearTimeout(delay)
       setLoading(true)
     }
-  }, [selectedMoods, tierFilter, durationFilter, aiItinerary])
+  }, [selectedMoods, tierFilter, durationFilter, aiItinerary, itinerarySpots])
 
   return { locations, loading, error }
 }

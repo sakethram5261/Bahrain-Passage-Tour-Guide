@@ -15,6 +15,8 @@ export default function SensoryHero() {
     pace, 
     setPace, 
     setAiItinerary,
+    itinerarySpots,
+    setItinerarySpots,
     soundVolume,
     soundMuted
   } = useVibe()
@@ -22,6 +24,8 @@ export default function SensoryHero() {
   const [animating, setAnimating] = useState(false)
   const [loadingAI, setLoadingAI] = useState(false)
   const [coverOpened, setCoverOpened] = useState(false)
+  const [showPreviewOverview, setShowPreviewOverview] = useState(false)
+  const [carouselIndex, setCarouselIndex] = useState(0)
   const [terminalLogs, setTerminalLogs] = useState([])
   const [activeLogIndex, setActiveLogIndex] = useState(0)
   const [customBudgetVal, setCustomBudgetVal] = useState('')
@@ -163,19 +167,65 @@ export default function SensoryHero() {
 
     const parsed = await fetchAICuratedItinerary(selectedMoods, tier, duration, pace)
     
-    if (parsed) {
+    let compiledSpots = []
+
+    if (parsed && parsed.itinerary && Array.isArray(parsed.itinerary)) {
       setAiItinerary(parsed)
+      compiledSpots = parsed.itinerary.map(aiItem => {
+        const catalogSpot = spotsCatalog.find(s => s.id === aiItem.id)
+        if (catalogSpot) {
+          return {
+            ...catalogSpot,
+            day: aiItem.day,
+            pathGuide: tier === 'Wandering' ? catalogSpot.budgetGuide : catalogSpot.premiumGuide,
+            pathCost: tier === 'Wandering' ? catalogSpot.budgetCost : catalogSpot.premiumCost
+          }
+        }
+        return {
+          id: aiItem.id || `spot-${Math.random().toString(36).substr(2, 9)}`,
+          name: aiItem.name || 'Authentic Bahrain Landmark',
+          arabic: aiItem.arabic || 'معلم بحريني',
+          mood: aiItem.mood || 'empires',
+          coords: aiItem.coords || '26.2285° N, 50.5860° E',
+          period: aiItem.period || 'Ancient Era',
+          desc: aiItem.desc || 'An authentic local spot full of history and heritage waiting to be discovered.',
+          simpleTerms: aiItem.simpleTerms || 'A gorgeous historical landmark rich in cultural legacy.',
+          insider: aiItem.insider || 'Speak to local shopkeepers nearby; they love sharing stories.',
+          pathGuide: aiItem.pathGuide || 'Walk around the grounds.',
+          pathCost: aiItem.pathCost || 'Free Entry',
+          image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?q=80&w=1200&auto=format&fit=crop',
+          day: aiItem.day || 1
+        }
+      }).filter(Boolean)
+    } else {
+      // Local fallback
+      const filtered = spotsCatalog.filter(s => selectedMoods.includes(s.mood))
+      compiledSpots = filtered.map((item, idx) => {
+        const targetDay = (idx % duration) + 1
+        return {
+          ...item,
+          day: targetDay,
+          pathGuide: tier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
+          pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
+        }
+      })
     }
 
-    gsap.to(containerRef.current, {
-      opacity: 0,
-      duration: 0.8,
-      onComplete: () => {
-        setStep(5)
-        setLoadingAI(false)
-        setAnimating(false)
-      }
-    })
+    compiledSpots.sort((a, b) => a.day - b.day)
+    setItinerarySpots(compiledSpots)
+    
+    // Scale and fade transition into the overview
+    setLoadingAI(false)
+    setAnimating(false)
+    
+    if (contentRef.current) {
+      gsap.fromTo(contentRef.current,
+        { scale: 0.96, rotateY: 15, opacity: 0 },
+        { scale: 1, rotateY: 0, opacity: 1, duration: 0.6, ease: 'power2.out', onComplete: () => setShowPreviewOverview(true) }
+      )
+    } else {
+      setShowPreviewOverview(true)
+    }
   }
 
   // Calculate hands degrees for clock
@@ -511,201 +561,451 @@ export default function SensoryHero() {
             ))}
           </div>
 
-          {/* LEFT PAGE - Clickable Parameter Deck & Guide Scroll */}
-          <div className="journal-page-left p-6 md:p-8 flex flex-col relative text-left select-none">
-            <div className="flex flex-col space-y-4">
-              
-              {/* Header Calibration */}
-              <div className="pb-2 border-b border-red-500/10">
-                <span className="font-sans text-[8px] tracking-[0.35em] text-bahrain-red uppercase font-bold block mb-1">
-                  Local Planning — Finalise Your Trip
-                </span>
-                <h3 className="font-serif text-xl text-bronze-charcoal font-bold tracking-tight">
-                  Trip <span className="italic text-bahrain-red">Setup</span>
-                </h3>
-                {selectedMoods.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {selectedMoods.map(m => (
-                      <span key={m} className="text-[9px] px-2 py-0.5 rounded-full font-bold font-sans bg-red-500/10 text-bahrain-red border border-red-500/15 capitalize">
-                        {m}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* TACTILE CLICKABLE PARAMETERS DECK */}
-              <div className="p-4 rounded-xl border border-red-500/10 bg-white shadow-sm space-y-4">
-                
-                {/* Stay Duration circles selection */}
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <label className="font-serif text-xs font-bold text-bronze-charcoal flex items-center gap-1.5">
-                      ⏳ Stay Duration
-                    </label>
-                    <span className="font-mono text-xs font-extrabold text-bahrain-red bg-red-500/5 px-2.5 py-0.5 rounded-lg border border-red-500/10 shadow-sm">
-                      {duration} {duration === 1 ? 'Day' : 'Days'}
+          {/* ── CONDITIONAL RENDER: PLAN OVERVIEW CAROUSEL OR DRAFT PARAMETER DECK ── */}
+          {showPreviewOverview ? (
+            <>
+              {/* LEFT PAGE - Compiling Index Ledger */}
+              <div className="journal-page-left p-6 md:p-8 flex flex-col relative text-left select-none justify-between min-h-[460px]">
+                <div className="flex flex-col space-y-4">
+                  {/* Header Overview */}
+                  <div className="pb-2 border-b border-red-500/10">
+                    <span className="font-sans text-[8px] tracking-[0.35em] text-bahrain-red uppercase font-bold block mb-1">
+                      Scrapbook Compilation
                     </span>
+                    <h3 className="font-serif text-xl text-bronze-charcoal font-bold tracking-tight">
+                      Passage <span className="italic text-bahrain-red">Index</span>
+                    </h3>
                   </div>
-                  
-                  <div className="flex flex-wrap gap-2.5 justify-center mt-2 select-none">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => (
-                      <button
-                        key={d}
-                        onClick={() => {
-                          setDuration(d)
-                          playTypewriterClick(1.0 + d * 0.06)
-                        }}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center font-serif font-extrabold text-xs transition-all border cursor-pointer ${
-                          duration === d
-                            ? 'bg-bahrain-red text-white border-bahrain-red shadow-md scale-105 font-bold'
-                            : 'bg-white border-red-500/10 text-bronze-charcoal hover:border-red-500/25'
-                        }`}
-                      >
-                        {d}
-                      </button>
-                    ))}
+
+                  <p className="font-sans text-[11px] text-bronze-muted leading-relaxed font-bold aged-paper-gradient p-3 border border-red-500/10 rounded-xl">
+                    ✍️ Wayfarer, your local guides have compiled the following stops. Review the ledger leaves on the right. You can strike out any spot that doesn't fit your mood.
+                  </p>
+
+                  {/* Summary list of remaining stops */}
+                  <div className="space-y-3 flex-1 overflow-y-auto max-h-[220px] antique-scrollbar pr-1">
+                    {itinerarySpots.length === 0 ? (
+                      <p className="font-serif text-xs italic text-bronze-muted/60 text-center py-6">
+                        No locations selected. Click Reset or add spots!
+                      </p>
+                    ) : (
+                      // Group by Day dynamically
+                      Array.from({ length: duration }, (_, idx) => {
+                        const dayNum = idx + 1
+                        const daySpots = itinerarySpots.filter(s => s.day === dayNum)
+                        if (daySpots.length === 0) return null
+
+                        return (
+                          <div key={dayNum} className="space-y-1.5 pb-2 border-b border-dashed border-red-500/5">
+                            <span className="font-serif text-[9px] font-extrabold text-bahrain-red tracking-wide uppercase">
+                              Day {dayNum} Leaves
+                            </span>
+                            <div className="space-y-1 pl-1">
+                              {daySpots.map((spot) => (
+                                <div key={spot.id} className="flex items-center gap-2 text-[10.5px] font-serif text-bronze-charcoal font-bold">
+                                  <span>{spot.keepsakeEmoji}</span>
+                                  <span className="truncate flex-1">{spot.name}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })
+                    )}
                   </div>
                 </div>
 
-                {/* Budget level selection cards */}
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <label className="font-serif text-xs font-bold text-bronze-charcoal flex items-center gap-1.5">
-                      🪙 Travel Budget Scope
-                    </label>
-                    <span className="font-sans text-[9px] tracking-wider uppercase font-extrabold text-bahrain-red bg-red-500/5 px-2 py-0.5 rounded-lg border border-red-500/10 shadow-sm">
-                      {tier === 'Wandering' ? 'Wandering Local ($)' : tier === 'Curated' ? 'Curated Passage ($$)' : 'Exquisite Luxury ($$$)'}
+                {/* Left Page Footer Stamp */}
+                <div className="pt-2 border-t border-red-500/5 select-none flex justify-between items-center font-serif text-[8.5px] italic text-bronze-muted/65">
+                  <span>* Changes synchronize in real-time</span>
+                  <span className="font-mono text-[7px] text-[#A80D27] font-bold">INDEX DECK: READY</span>
+                </div>
+              </div>
+
+              {/* RIGHT PAGE - The Custom Swipeable Cards Carousel */}
+              <div className="journal-page-right p-6 md:p-8 flex flex-col relative text-left justify-between min-h-[460px]">
+                <div className="flex flex-col gap-4 flex-1">
+                  
+                  {/* Header spots carousel */}
+                  <div className="pb-2 border-b border-red-500/10 flex justify-between items-center mb-1">
+                    <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
+                      Customize Your Passage
+                    </span>
+                    <span className="font-mono text-[8px] text-[#A80D27] font-black uppercase">
+                      Spot {itinerarySpots.length > 0 ? carouselIndex + 1 : 0} of {itinerarySpots.length}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    {[
-                      { key: 'Wandering', title: 'Wandering', coins: '🪙', subtitle: 'BUDGET LOCAL' },
-                      { key: 'Curated', title: 'Curated', coins: '🪙🪙', subtitle: 'BALANCED' },
-                      { key: 'Exquisite', title: 'Exquisite', coins: '🪙🪙🪙', subtitle: 'PREMIUM LUXURY' }
-                    ].map(b => {
-                      const active = tier === b.key
+                  {/* CAROUSEL CARD RENDER */}
+                  {itinerarySpots.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center p-6 border border-dashed border-red-500/15 rounded-2xl bg-white/50 text-center space-y-3">
+                      <span className="text-3xl">📭</span>
+                      <h4 className="font-serif text-sm font-bold text-bronze-charcoal">All Stops Removed</h4>
+                      <p className="font-sans text-[10px] text-bronze-muted/70 max-w-[200px]">
+                        You must have at least one stop to unroll your traveler ledger.
+                      </p>
+                      <button 
+                        onClick={() => resetChronicle()}
+                        className="px-4 py-1.5 rounded-xl border border-red-500/20 bg-white shadow-sm font-sans text-[9px] uppercase tracking-wider font-extrabold text-bahrain-red hover:border-red-500/40 cursor-pointer active:scale-95"
+                      >
+                        🔄 Reset Settings
+                      </button>
+                    </div>
+                  ) : (
+                    (() => {
+                      const activeSpot = itinerarySpots[carouselIndex]
                       return (
-                        <button
-                          key={b.key}
-                          onClick={() => {
-                            setTier(b.key)
-                            setCustomBudgetVal('') // Reset custom budget input when preset is clicked
-                            playTypewriterClick(b.key === 'Wandering' ? 0.9 : b.key === 'Curated' ? 1.15 : 1.4)
+                        <div 
+                          key={activeSpot.id}
+                          className="flex-1 flex flex-col justify-between p-5 rounded-2xl border-2 border-red-500/10 bg-white shadow-sm relative aged-paper-gradient animate-fadeIn select-none"
+                          style={{
+                            boxShadow: '0 6px 16px rgba(168,13,39,0.04)',
+                            minHeight: '280px'
                           }}
-                          className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                            active
-                              ? 'bg-white border-bahrain-red shadow-sm font-extrabold scale-[1.01] stitch-border'
-                              : 'bg-[#FAF9F6] border-red-500/10 text-bronze-charcoal/80 hover:border-red-500/25'
-                          }`}
                         >
-                          <span className="font-serif text-[10px] block font-bold">{b.title}</span>
-                          <span className="text-[10px] block mt-0.5">{b.coins}</span>
-                          <span className="font-sans text-[5.5px] tracking-widest text-bronze-muted/50 font-bold block mt-0.5">{b.subtitle}</span>
-                        </button>
+                          {/* Day Banner & Delete Button Row */}
+                          <div className="flex justify-between items-start">
+                            <span className="font-serif text-[9px] font-bold text-bahrain-red bg-red-500/5 px-2.5 py-0.5 rounded border border-red-500/10">
+                              Day {activeSpot.day} Stop
+                            </span>
+                            
+                            <button
+                              onClick={() => {
+                                playTypewriterClick(0.7)
+                                const remaining = itinerarySpots.filter((_, idx) => idx !== carouselIndex)
+                                setItinerarySpots(remaining)
+                                if (carouselIndex >= remaining.length && remaining.length > 0) {
+                                  setCarouselIndex(remaining.length - 1)
+                                }
+                              }}
+                              className="px-2 py-1 rounded-lg border border-[#A80D27]/10 hover:border-[#A80D27]/30 bg-red-500/5 hover:bg-red-500/10 text-[#A80D27] font-sans text-[8.5px] uppercase tracking-wider font-bold transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+                              title="Delete spot from plan"
+                            >
+                              🗑️ Delete Spot
+                            </button>
+                          </div>
+
+                          {/* Location Name & Details (Fades in beautifully) */}
+                          <div className="space-y-1.5 my-3 text-left">
+                            <h4 className="font-serif text-lg md:text-xl font-black text-bronze-charcoal tracking-tight leading-tight flex items-center gap-2">
+                              <span className="text-xl shrink-0">{activeSpot.keepsakeEmoji}</span>
+                              <span className="truncate">{activeSpot.name}</span>
+                            </h4>
+                            <div className="flex items-center gap-2">
+                              <span className="font-serif text-[10px] italic text-[#A80D27] font-bold shrink-0">{activeSpot.arabic}</span>
+                              <span className="h-px flex-1 bg-red-500/5" />
+                              <span className="font-mono text-[8px] text-bronze-muted/60 tracking-tight shrink-0">{activeSpot.period}</span>
+                            </div>
+                          </div>
+
+                          {/* The Decipher Casing (Storytelling + Insider tips) */}
+                          <div className="bg-[#FCFBF8] border border-dashed border-[#A80D27]/15 rounded-xl p-3.5 space-y-2 select-text">
+                            <div>
+                              <span className="font-sans text-[7px] tracking-[0.2em] text-[#A80D27]/80 uppercase font-black block mb-0.5">
+                                🗺️ Curated Local Guide Plan:
+                              </span>
+                              <p className="font-serif text-[10.5px] leading-relaxed text-bronze-charcoal font-semibold">
+                                {activeSpot.pathGuide}
+                              </p>
+                            </div>
+                            <div className="pt-2 border-t border-red-500/5">
+                              <span className="font-sans text-[7px] tracking-[0.2em] text-amber-600 uppercase font-black block mb-0.5">
+                                📜 Generational Insider Secret:
+                              </span>
+                              <p className="font-serif text-[10.5px] italic text-bronze-muted/90 font-medium">
+                                "{activeSpot.insider}"
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Cost estimates tag */}
+                          <div className="pt-2 border-t border-red-500/5 mt-2 flex justify-between items-center text-[9px] font-sans font-extrabold uppercase tracking-wider text-bronze-muted/50">
+                            <span>Cost Scope</span>
+                            <span className="text-[#A80D27]">{activeSpot.pathCost}</span>
+                          </div>
+                        </div>
+                      )
+                    })()
+                  )}
+
+                  {/* Carousel Nav Arrow Controls */}
+                  {itinerarySpots.length > 1 && (
+                    <div className="flex items-center justify-between px-1 select-none">
+                      <button
+                        onClick={() => {
+                          playTypewriterClick(1.1)
+                          setCarouselIndex(prev => (prev === 0 ? itinerarySpots.length - 1 : prev - 1))
+                        }}
+                        className="px-3 py-1.5 rounded-xl border border-red-500/10 hover:border-red-500/25 bg-white text-bronze-charcoal font-serif text-[9.5px] font-extrabold transition-all cursor-pointer hover:scale-102 active:scale-95"
+                      >
+                        ← Prev Leaf
+                      </button>
+
+                      {/* Navigation Dots Indicator */}
+                      <div className="flex gap-1.5">
+                        {itinerarySpots.map((_, idx) => (
+                          <span 
+                            key={idx}
+                            onClick={() => {
+                              playTypewriterClick(1.0)
+                              setCarouselIndex(idx)
+                            }}
+                            className={`w-2 h-2 rounded-full cursor-pointer transition-all duration-300 ${
+                              carouselIndex === idx 
+                                ? 'bg-bahrain-red scale-120 shadow-sm' 
+                                : 'bg-red-500/10 hover:bg-red-500/25'
+                            }`}
+                          />
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          playTypewriterClick(1.2)
+                          setCarouselIndex(prev => (prev === itinerarySpots.length - 1 ? 0 : prev + 1))
+                        }}
+                        className="px-3 py-1.5 rounded-xl border border-red-500/10 hover:border-red-500/25 bg-white text-bronze-charcoal font-serif text-[9.5px] font-extrabold transition-all cursor-pointer hover:scale-102 active:scale-95"
+                      >
+                        Next Leaf →
+                      </button>
+                    </div>
+                  )}
+
+                </div>
+
+                {/* Sealing Wax Stamp CONTINUE CTA button */}
+                {itinerarySpots.length > 0 && (
+                  <div className="pt-3 border-t border-red-500/10 flex flex-col space-y-1 relative group mt-2">
+                    <div 
+                      className="absolute inset-0 bg-[#A80D27] blur-md opacity-20 rounded-xl transition-all duration-300 group-hover:blur-lg group-hover:opacity-30" 
+                      style={{ zIndex: 0 }}
+                    />
+                    
+                    <button
+                      onClick={() => {
+                        playTypewriterClick(1.8)
+                        // Trigger final ledger door swing into Dashboard.jsx
+                        gsap.to(containerRef.current, {
+                          opacity: 0,
+                          duration: 0.8,
+                          onComplete: () => {
+                            setStep(5)
+                            setLoadingAI(false)
+                            setAnimating(false)
+                          }
+                        })
+                      }}
+                      className="w-full py-3 rounded-xl bg-bahrain-red hover:bg-[#800A1E] text-white font-sans text-[10px] uppercase tracking-widest font-black transition-all shadow-md cursor-pointer active:scale-98 relative z-10 flex items-center justify-center gap-1.5"
+                      style={{
+                        background: 'linear-gradient(to bottom, #A80D27 0%, #800A1E 100%)',
+                        boxShadow: '0 6px 15px rgba(128,10,30,0.3), inset 0 1px 0 rgba(255,255,255,0.15)',
+                        letterSpacing: '0.18em'
+                      }}
+                    >
+                      Imprint Wax Seal & Continue →
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* LEFT PAGE - Clickable Parameter Deck & Guide Scroll */}
+              <div className="journal-page-left p-6 md:p-8 flex flex-col relative text-left select-none">
+                <div className="flex flex-col space-y-4">
+                  
+                  {/* Header Calibration */}
+                  <div className="pb-2 border-b border-red-500/10">
+                    <span className="font-sans text-[8px] tracking-[0.35em] text-bahrain-red uppercase font-bold block mb-1">
+                      Local Planning — Finalise Your Trip
+                    </span>
+                    <h3 className="font-serif text-xl text-bronze-charcoal font-bold tracking-tight">
+                      Trip <span className="italic text-bahrain-red">Setup</span>
+                    </h3>
+                    {selectedMoods.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {selectedMoods.map(m => (
+                          <span key={m} className="text-[9px] px-2 py-0.5 rounded-full font-bold font-sans bg-red-500/10 text-bahrain-red border border-red-500/15 capitalize">
+                            {m}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* TACTILE CLICKABLE PARAMETERS DECK */}
+                  <div className="p-4 rounded-xl border border-red-500/10 bg-white shadow-sm space-y-4">
+                    
+                    {/* Stay Duration circles selection */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-serif text-xs font-bold text-bronze-charcoal flex items-center gap-1.5">
+                          ⏳ Stay Duration
+                        </label>
+                        <span className="font-mono text-xs font-extrabold text-bahrain-red bg-red-500/5 px-2.5 py-0.5 rounded-lg border border-red-500/10 shadow-sm">
+                          {duration} {duration === 1 ? 'Day' : 'Days'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2.5 justify-center mt-2 select-none">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => (
+                          <button
+                            key={d}
+                            onClick={() => {
+                              setDuration(d)
+                              playTypewriterClick(1.0 + d * 0.06)
+                            }}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center font-serif font-extrabold text-xs transition-all border cursor-pointer ${
+                              duration === d
+                                ? 'bg-bahrain-red text-white border-bahrain-red shadow-md scale-105 font-bold'
+                                : 'bg-white border-red-500/10 text-bronze-charcoal hover:border-red-500/25'
+                            }`}
+                          >
+                            {d}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Budget level selection cards */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="font-serif text-xs font-bold text-bronze-charcoal flex items-center gap-1.5">
+                          🪙 Travel Budget Scope
+                        </label>
+                        <span className="font-sans text-[9px] tracking-wider uppercase font-extrabold text-bahrain-red bg-red-500/5 px-2 py-0.5 rounded-lg border border-red-500/10 shadow-sm">
+                          {tier === 'Wandering' ? 'Wandering Local ($)' : tier === 'Curated' ? 'Curated Passage ($$)' : 'Exquisite Luxury ($$$)'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        {[
+                          { key: 'Wandering', title: 'Wandering', coins: '🪙', subtitle: 'BUDGET LOCAL' },
+                          { key: 'Curated', title: 'Curated', coins: '🪙🪙', subtitle: 'BALANCED' },
+                          { key: 'Exquisite', title: 'Exquisite', coins: '🪙🪙🪙', subtitle: 'PREMIUM LUXURY' }
+                        ].map(b => {
+                          const active = tier === b.key
+                          return (
+                            <button
+                              key={b.key}
+                              onClick={() => {
+                                setTier(b.key)
+                                setCustomBudgetVal('')
+                                playTypewriterClick(b.key === 'Wandering' ? 0.9 : b.key === 'Curated' ? 1.15 : 1.4)
+                              }}
+                              className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                                active
+                                  ? 'bg-white border-bahrain-red shadow-sm font-extrabold scale-[1.01] stitch-border'
+                                  : 'bg-[#FAF9F6] border-red-500/10 text-bronze-charcoal/80 hover:border-red-500/25'
+                              }`}
+                            >
+                              <span className="font-serif text-[10px] block font-bold">{b.title}</span>
+                              <span className="text-[10px] block mt-0.5">{b.coins}</span>
+                              <span className="font-sans text-[5.5px] tracking-widest text-bronze-muted/50 font-bold block mt-0.5">{b.subtitle}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+
+                      {/* Custom Daily Budget setting */}
+                      <div className="mt-3 border-t border-red-500/5 pt-3">
+                        <div className="flex justify-between items-center">
+                          <label className="font-serif text-[11px] font-bold text-bronze-charcoal flex items-center gap-1">
+                            ✍️ Set Custom Budget (BHD/Day):
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="1000"
+                            placeholder="e.g. 25"
+                            value={customBudgetVal}
+                            onChange={(e) => handleCustomBudgetChange(e.target.value)}
+                            className="w-20 text-center font-mono text-xs font-bold text-bahrain-red bg-[#FCFBF8] border border-amber-600/30 rounded-lg py-1 px-1.5 focus:outline-none focus:border-bahrain-red shadow-inner select-all"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* Imprint Unlock Wax Seal Button */}
+                <div className="pt-3 border-t border-red-500/10 flex flex-col space-y-1 mt-5 select-none">
+                  <button
+                    onClick={handleGenerateChronicle}
+                    disabled={loadingAI}
+                    className="w-full py-3 rounded-xl bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-[10.5px] uppercase tracking-widest font-extrabold transition-all shadow-md cursor-pointer active:scale-98 flex items-center justify-center gap-2"
+                  >
+                    {loadingAI ? 'Your local is planning...' : 'Build My Bahrain 📖'}
+                  </button>
+                  <span className="font-serif text-[8.5px] text-bronze-muted/40 italic text-center block">
+                    AI plans your itinerary in seconds. Adjust budget & duration above.
+                  </span>
+                </div>
+
+              </div>
+
+              {/* RIGHT PAGE - Curated Spots discovered in real-time */}
+              <div className="journal-page-right p-6 md:p-8 flex flex-col relative text-left">
+                <div className="flex flex-col gap-3">
+                  
+                  {/* Header spots parsing */}
+                  <div className="pb-2 border-b border-red-500/10 flex justify-between items-center mb-3">
+                    <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
+                      Your Local's Draft Plan
+                    </span>
+                    <span className="font-mono text-[7px] text-bronze-muted/40 font-bold">
+                      Preview · Day 1 to {duration}
+                    </span>
+                  </div>
+
+                  <p className="font-sans text-[11.5px] text-bronze-muted font-bold leading-relaxed mb-3">
+                    Based on your vibes, your local is lining up the best spots — only places a resident would take you:
+                  </p>
+
+                  <div className="flex-1 overflow-y-auto antique-scrollbar space-y-2 max-h-[360px] pr-1 py-1">
+                    {activeDiscoveredSpots.map((spot, idx) => {
+                      const dayNum = Math.floor(idx / 3) + 1
+                      if (dayNum > duration) return null
+                      return (
+                        <div 
+                          key={spot.id}
+                          className="p-3 rounded-xl border border-red-500/10 bg-white shadow-sm flex items-start gap-2.5 transition-all duration-300 transform hover:scale-[1.01] hover:border-red-500/25 relative overflow-hidden"
+                        >
+                          {/* Day capsule tag */}
+                          <span className="absolute top-2 right-2 font-serif text-[7.5px] font-bold text-bahrain-red bg-red-500/5 px-2 py-0.5 rounded border border-red-500/10">
+                            Day {dayNum} Stop
+                          </span>
+                          
+                          <span className="text-xl p-1 bg-red-500/5 rounded-lg border border-red-500/10 shrink-0">
+                            {spot.keepsakeEmoji}
+                          </span>
+                          <div className="min-w-0 flex-1 pr-16 text-left">
+                            <h5 className="font-serif text-[11px] font-bold text-bronze-charcoal leading-tight truncate">
+                              {spot.name}
+                            </h5>
+                            <p className="font-sans text-[8.5px] text-bronze-muted/65 mt-0.5 truncate font-semibold">
+                              {spot.period} • {spot.coords}
+                            </p>
+                            <p className="font-serif text-[9.5px] italic text-bahrain-red font-bold mt-1">
+                              ★ Selected Stop (Estimated: {tier === 'Wandering' ? spot.budgetCost : spot.premiumCost})
+                            </p>
+                          </div>
+                        </div>
                       )
                     })}
                   </div>
 
-                  {/* Or Custom daily budget limit input */}
-                  <div className="mt-3 border-t border-red-500/5 pt-3">
-                    <div className="flex justify-between items-center">
-                      <label className="font-serif text-[11px] font-bold text-bronze-charcoal flex items-center gap-1">
-                        ✍️ Set Custom Budget (BHD/Day):
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="1000"
-                        placeholder="e.g. 25"
-                        value={customBudgetVal}
-                        onChange={(e) => handleCustomBudgetChange(e.target.value)}
-                        className="w-20 text-center font-mono text-xs font-bold text-bahrain-red bg-[#FCFBF8] border border-amber-600/30 rounded-lg py-1 px-1.5 focus:outline-none focus:border-bahrain-red shadow-inner select-all"
-                      />
-                    </div>
+                  {/* Sync status footer */}
+                  <div className="pt-3 border-t border-red-500/5 mt-3 select-none flex justify-between items-center font-serif text-[9px] italic text-bronze-muted/60">
+                    <span>* Discovery feed locks on wax stamp imprint</span>
+                    <span className="font-mono text-[7.5px] not-italic text-bahrain-red font-bold">LEDGER SYNC: STANDBY</span>
                   </div>
+
                 </div>
-
               </div>
-
-            </div>
-
-            {/* Imprint Unlock Wax Seal Button */}
-            <div className="pt-3 border-t border-red-500/10 flex flex-col space-y-1 mt-5 select-none">
-              <button
-                onClick={handleGenerateChronicle}
-                disabled={loadingAI}
-                className="w-full py-3 rounded-xl bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-[10.5px] uppercase tracking-widest font-extrabold transition-all shadow-md cursor-pointer active:scale-98 flex items-center justify-center gap-2"
-              >
-                {loadingAI ? 'Your local is planning...' : 'Build My Bahrain 📖'}
-              </button>
-              <span className="font-serif text-[8.5px] text-bronze-muted/40 italic text-center block">
-                AI plans your itinerary in seconds. Adjust budget & duration above.
-              </span>
-            </div>
-
-          </div>
-
-          {/* RIGHT PAGE - Curated Spots discovered in real-time */}
-          <div className="journal-page-right p-6 md:p-8 flex flex-col relative text-left">
-            <div className="flex flex-col gap-3">
-              
-              {/* Header spots parsing */}
-              <div className="pb-2 border-b border-red-500/10 flex justify-between items-center mb-3">
-                <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
-                  Your Local's Draft Plan
-                </span>
-                <span className="font-mono text-[7px] text-bronze-muted/40 font-bold">
-                  Preview · Day 1 to {duration}
-                </span>
-              </div>
-
-              <p className="font-sans text-[11.5px] text-bronze-muted font-bold leading-relaxed mb-3">
-                Based on your vibes, your local is lining up the best spots — only places a resident would take you:
-              </p>
-
-              <div className="flex-1 overflow-y-auto antique-scrollbar space-y-2 max-h-[360px] pr-1 py-1">
-                {activeDiscoveredSpots.map((spot, idx) => {
-                  const dayNum = Math.floor(idx / 3) + 1
-                  if (dayNum > duration) return null
-                  return (
-                    <div 
-                      key={spot.id}
-                      className="p-3 rounded-xl border border-red-500/10 bg-white shadow-sm flex items-start gap-2.5 transition-all duration-300 transform hover:scale-[1.01] hover:border-red-500/25 relative overflow-hidden"
-                    >
-                      {/* Day capsule tag */}
-                      <span className="absolute top-2 right-2 font-serif text-[7.5px] font-bold text-bahrain-red bg-red-500/5 px-2 py-0.5 rounded border border-red-500/10">
-                        Day {dayNum} Stop
-                      </span>
-                      
-                      <span className="text-xl p-1 bg-red-500/5 rounded-lg border border-red-500/10 shrink-0">
-                        {spot.keepsakeEmoji}
-                      </span>
-                      <div className="min-w-0 flex-1 pr-16 text-left">
-                        <h5 className="font-serif text-[11px] font-bold text-bronze-charcoal leading-tight truncate">
-                          {spot.name}
-                        </h5>
-                        <p className="font-sans text-[8.5px] text-bronze-muted/65 mt-0.5 truncate font-semibold">
-                          {spot.period} • {spot.coords}
-                        </p>
-                        <p className="font-serif text-[9.5px] italic text-bahrain-red font-bold mt-1">
-                          ★ Selected Stop (Estimated: {tier === 'Wandering' ? spot.budgetCost : spot.premiumCost})
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Sync status footer */}
-              <div className="pt-3 border-t border-red-500/5 mt-3 select-none flex justify-between items-center font-serif text-[9px] italic text-bronze-muted/60">
-                <span>* Discovery feed locks on wax stamp imprint</span>
-                <span className="font-mono text-[7.5px] not-italic text-bahrain-red font-bold">LEDGER SYNC: STANDBY</span>
-              </div>
-
-            </div>
-          </div>
+            </>
+          )}
 
         </div>
       )}

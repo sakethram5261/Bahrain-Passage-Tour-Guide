@@ -40,6 +40,7 @@ export function VibeProvider({ children }) {
   const [currentDayTab, setCurrentDayTab] = useState(1)
 
   const [aiItinerary, setAiItinerary] = useState(null)
+  const [itinerarySpots, setItinerarySpots] = useState([])
   const [aiLoading, setAiLoading] = useState(false)
   const [currentSpotIndex, setCurrentSpotIndex] = useState(0)
 
@@ -122,6 +123,7 @@ export function VibeProvider({ children }) {
     setCompletedDays([])
     setCurrentDayTab(1)
     setAiItinerary(null)
+    setItinerarySpots([])
     setCapturedPhotos({})
     setLensStories({})
     setActiveGuide('jafar')
@@ -159,6 +161,8 @@ export function VibeProvider({ children }) {
       resetChronicle,
       aiItinerary,
       setAiItinerary,
+      itinerarySpots,
+      setItinerarySpots,
       aiLoading,
       setAiLoading,
       currentSpotIndex,
