@@ -843,9 +843,19 @@ export default function Dashboard() {
               {activeLeaf === 'chronicles' && (
                 <>
                   {/* Chapter Select tactile buttons */}
-                  <div className="flex justify-between items-center select-none pb-2 border-b border-red-500/10">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-serif text-[10px] text-bronze-charcoal font-bold">Ledger Chapters:</span>
+                  <div className="flex justify-between items-center select-none pb-2 border-b border-red-500/10 w-full overflow-hidden">
+                    <div 
+                      className="flex items-center gap-1.5 overflow-x-auto py-1 flex-1 mr-3"
+                      style={{ 
+                        scrollbarWidth: 'none', 
+                        msOverflowStyle: 'none',
+                        WebkitOverflowScrolling: 'touch',
+                        // Mask fade at the right edge to show scrollability
+                        maskImage: 'linear-gradient(to right, black 88%, transparent 100%)',
+                        WebkitMaskImage: 'linear-gradient(to right, black 88%, transparent 100%)'
+                      }}
+                    >
+                      <span className="font-serif text-[10px] text-bronze-charcoal font-bold shrink-0">Ledger Chapters:</span>
                       {Array.from({ length: duration }, (_, idx) => {
                         const d = idx + 1
                         const active = currentDayTab === d
@@ -855,7 +865,7 @@ export default function Dashboard() {
                             key={d}
                             disabled={!unlocked}
                             onClick={() => handleDaySwitch(d)}
-                            className={`w-7 h-7 rounded-full flex items-center justify-center font-serif text-[10px] font-extrabold transition-all relative ${
+                            className={`w-7 h-7 rounded-full flex items-center justify-center font-serif text-[10px] font-extrabold transition-all relative shrink-0 ${
                               !unlocked
                                 ? 'bg-red-500/5 text-bronze-charcoal/40 border border-dashed border-red-500/15 cursor-not-allowed'
                                 : active
@@ -868,7 +878,7 @@ export default function Dashboard() {
                         )
                       })}
                     </div>
-                    <span className="font-serif text-[10px] italic text-bahrain-red font-bold">
+                    <span className="font-serif text-[10px] italic text-bahrain-red font-bold shrink-0">
                       {romanNumerals[currentDayTab]}
                     </span>
                   </div>
