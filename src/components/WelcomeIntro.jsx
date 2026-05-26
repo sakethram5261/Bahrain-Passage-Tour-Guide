@@ -127,28 +127,45 @@ function DissolvingLetter({ char, delay, duration = 500 }) {
 export default function WelcomeIntro({ onComplete }) {
   const wrapRef = useRef(null)
   const trackRef = useRef(null)
+  const glowRef = useRef(null)
   const [phase, setPhase] = useState('slot') // 'slot' | 'hold-arabic' | 'morph' | 'done'
-  const [ambientX, setAmbientX] = useState(50)
-  const [ambientY, setAmbientY] = useState(50)
+  const [skipped, setSkipped] = useState(false)
 
-  // Subtle ambient mouse/float reaction
+  const onCompleteRef = useRef(onComplete)
+  useEffect(() => {
+    onCompleteRef.current = onComplete
+  }, [onComplete])
+
+  // Subtle ambient mouse/float reaction - direct GSAP animation for 60fps performance and zero React re-renders
   useEffect(() => {
     const handleMouseMove = (e) => {
+      if (!glowRef.current) return
       const x = (e.clientX / window.innerWidth) * 100
       const y = (e.clientY / window.innerHeight) * 100
-      gsap.to({ x: ambientX, y: ambientY }, {
-        x, y,
-        duration: 2,
+      gsap.to(glowRef.current, {
+        background: `radial-gradient(ellipse 70% 50% at ${x}% ${y}%, rgba(186,12,47,0.065) 0%, transparent 70%)`,
+        duration: 1.5,
         ease: 'power2.out',
-        onUpdate: function() {
-          setAmbientX(this.targets()[0].x)
-          setAmbientY(this.targets()[0].y)
-        }
       })
     }
     window.addEventListener('mousemove', handleMouseMove)
     return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [ambientX, ambientY])
+  }, [])
+
+  const skipIntro = () => {
+    if (skipped) return
+    setSkipped(true)
+    gsap.killTweensOf(wrapRef.current)
+    gsap.to(wrapRef.current, {
+      opacity: 0,
+      duration: 0.5,
+      ease: 'power3.inOut',
+      onComplete: () => {
+        setPhase('done')
+        onCompleteRef.current?.()
+      }
+    })
+  }
 
   // ── Phase 1: Slot machine with velocity-based motion blur & elastic rebound ──
   useEffect(() => {
@@ -163,6 +180,7 @@ export default function WelcomeIntro({ onComplete }) {
     const CENTER_OFFSET = (VIEWPORT_H - ITEM_H) / 2 // tight clearance top & bottom
 
     const track = trackRef.current
+    if (!track) return
     track.innerHTML = ''
 
     items.forEach((txt) => {
@@ -217,19 +235,20 @@ export default function WelcomeIntro({ onComplete }) {
 
     const totalMorphTime = 800 + (ENGLISH_FINAL.length * 40)
     const exitTimer = setTimeout(() => {
+      if (skipped) return
       gsap.to(wrapRef.current, {
         opacity: 0,
         duration: 0.9,
         ease: 'power3.inOut',
         onComplete: () => {
           setPhase('done')
-          onComplete?.()
+          onCompleteRef.current?.()
         }
       })
     }, totalMorphTime + 1300)
 
     return () => clearTimeout(exitTimer)
-  }, [phase, onComplete])
+  }, [phase, skipped])
 
   return (
     <div
@@ -243,11 +262,13 @@ export default function WelcomeIntro({ onComplete }) {
       }}
     >
       {/* Living Ambient Glow - reacts to mouse */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: `radial-gradient(ellipse 70% 50% at ${ambientX}% ${ambientY}%, rgba(186,12,47,0.065) 0%, transparent 70%)`,
-        transition: 'background 0.1s ease',
-      }} />
+      <div 
+        ref={glowRef}
+        style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(186,12,47,0.065) 0%, transparent 70%)',
+        }} 
+      />
 
       {/* Top flag stripe */}
       <div style={{
@@ -366,6 +387,32 @@ export default function WelcomeIntro({ onComplete }) {
           ))}
         </div>
       )}
+
+      {/* Skip Intro Button */}
+      <button
+        onClick={skipIntro}
+        style={{
+          position: 'absolute',
+          bottom: '2rem',
+          right: '2rem',
+          background: 'transparent',
+          border: 'none',
+          color: '#BA0C2F',
+          opacity: 0.4,
+          fontSize: '0.75rem',
+          fontFamily: '"Inter",system-ui,sans-serif',
+          fontWeight: '700',
+          letterSpacing: '0.15em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          transition: 'opacity 0.2s, transform 0.2s',
+          zIndex: 10000,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.opacity = 0.8; e.currentTarget.style.transform = 'translateX(-2px)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.opacity = 0.4; e.currentTarget.style.transform = 'none'; }}
+      >
+        Skip Intro →
+      </button>
 
       <style>{`
         @keyframes pulseGlow {
