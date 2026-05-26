@@ -312,122 +312,175 @@ export default function SensoryHero() {
         /* Book Cover */
         <div
           ref={contentRef}
-          className="relative w-full max-w-sm md:max-w-md select-none"
+          className="relative w-full max-w-sm md:max-w-md select-none animate-fadeIn"
           style={{
             transformStyle: 'preserve-3d',
-            perspective: '1000px',
+            perspective: '1200px',
           }}
         >
-          {/* Outer book border */}
+          {/* Outer book border - Luxury leather casing */}
           <div
-            className="relative rounded-3xl overflow-hidden flex flex-col"
+            className="relative rounded-[32px] overflow-hidden flex flex-col transition-all duration-350"
             style={{
-              border: '14px solid #1A1210',
-              boxShadow: '0 40px 80px -20px rgba(0,0,0,0.9), 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,175,55,0.3)',
-              outline: '2px solid rgba(212,175,55,0.35)',
+              border: '14px solid #1E1715',
+              boxShadow: '0 35px 75px -15px rgba(0,0,0,0.85), 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.15)',
+              outline: '1.5px solid rgba(212,175,55,0.45)',
               outlineOffset: '-14px',
             }}
           >
-            {/* Brass corner clips */}
-            <div className="book-corner-clip top-left" />
-            <div className="book-corner-clip top-right" />
-            <div className="book-corner-clip bottom-left" />
-            <div className="book-corner-clip bottom-right" />
+            {/* Highly detailed polished brass corner clips */}
+            <div className="book-corner-clip top-left" style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))' }} />
+            <div className="book-corner-clip top-right" style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))' }} />
+            <div className="book-corner-clip bottom-left" style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))' }} />
+            <div className="book-corner-clip bottom-right" style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))' }} />
 
-            {/* Book spine shadow */}
-            <div className="absolute top-0 bottom-0 left-0 w-5 bg-gradient-to-r from-black/30 to-transparent pointer-events-none z-20" />
+            {/* Book spine shadow (left gutter depth) */}
+            <div className="absolute top-0 bottom-0 left-0 w-6 bg-gradient-to-r from-black/45 via-black/20 to-transparent pointer-events-none z-20" />
 
-            {/* TOP RED BANNER — Bahrain flag inspired */}
+            {/* TOP CRIMSON BANNER — Luxury textured leather feel */}
             <div
-              className="relative flex flex-col items-center justify-center py-8 px-8 text-center overflow-hidden"
-              style={{ background: '#D11A38' }}
+              className="relative flex flex-col items-center justify-center py-10 px-8 text-center overflow-hidden"
+              style={{ 
+                background: 'linear-gradient(135deg, #A80D27 0%, #800A1E 100%)',
+                boxShadow: 'inset 0 -3px 8px rgba(0,0,0,0.2)'
+              }}
             >
+              {/* Subtle ambient leather grain & light sweep overlays */}
               <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.1) 0%, transparent 70%)' }}
+                className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-25"
+                style={{ background: 'radial-gradient(circle at 50% 30%, #fff 0%, #000 100%)' }}
               />
-              {/* Decorative compass */}
-              <svg viewBox="0 0 100 100" className="absolute right-4 top-3 w-20 h-20 opacity-10" fill="none" stroke="white" strokeWidth="0.7">
-                <circle cx="50" cy="50" r="42" strokeDasharray="3,4" />
-                <circle cx="50" cy="50" r="18" />
+              
+              {/* Gold Compass Overlay */}
+              <svg viewBox="0 0 100 100" className="absolute right-4 top-3 w-22 h-22 opacity-15" fill="none" stroke="#D4AF37" strokeWidth="0.8">
+                <circle cx="50" cy="50" r="42" strokeDasharray="3,3" />
+                <circle cx="50" cy="50" r="16" />
                 <path d="M 50,2 L 50,98 M 2,50 L 98,50" />
-                <path d="M 50,50 L 46,20 L 50,5 L 54,20 Z" fill="rgba(255,255,255,0.12)" />
-                <circle cx="50" cy="50" r="3" fill="white" />
+                <path d="M 50,50 L 47,22 L 50,6 L 53,22 Z" fill="rgba(212,175,55,0.25)" />
+                <path d="M 50,50 L 47,78 L 50,94 L 53,78 Z" fill="rgba(212,175,55,0.08)" />
+                <circle cx="50" cy="50" r="3" fill="#D4AF37" />
               </svg>
 
-              <p className="relative z-10 font-sans text-[8px] tracking-[0.4em] uppercase font-bold text-white/60 mb-2">
+              {/* Gold Star Constellation decoration */}
+              <div className="flex gap-1.5 opacity-65 mb-2.5 text-[8px] text-[#D4AF37]">
+                <span>✦</span><span>★</span><span>✦</span>
+              </div>
+
+              <p 
+                className="relative z-10 font-sans text-[8px] tracking-[0.45em] uppercase font-bold mb-1.5"
+                style={{ color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}
+              >
                 مملكة البحرين · Kingdom of Bahrain
               </p>
-              <h1 className="relative z-10 font-serif text-4xl md:text-5xl font-semibold text-white leading-none">
+              <h1 
+                className="relative z-10 font-serif text-4.5xl md:text-5xl font-black text-white leading-none tracking-tight"
+                style={{ 
+                  textShadow: '0 2.5px 5px rgba(0,0,0,0.45), 0 0 15px rgba(255,255,255,0.1)'
+                }}
+              >
                 Bahrain
               </h1>
-              <p className="relative z-10 font-serif text-xl italic font-light text-white/80 mt-1">
+              <p 
+                className="relative z-10 font-serif text-2xl italic font-medium mt-1.5 text-[#FAF0DD]"
+                style={{ 
+                  fontFamily: '"Cinzel", "Playfair Display", serif',
+                  textShadow: '0 1.5px 3px rgba(0,0,0,0.3)'
+                }}
+              >
                 Passage
               </p>
             </div>
 
-            {/* Serrated white edge — Bahrain flag zigzag */}
-            <div style={{ background: '#D11A38', lineHeight: 0 }}>
-              <svg viewBox="0 0 400 20" preserveAspectRatio="none" style={{ width: '100%', height: '20px', display: 'block' }}>
-                <path d="M0,0 L25,16 L50,0 L75,16 L100,0 L125,16 L150,0 L175,16 L200,0 L225,16 L250,0 L275,16 L300,0 L325,16 L350,0 L375,16 L400,0 L400,20 L0,20 Z" fill="#FAF9F6" />
+            {/* Serrated white edge — Bahrain flag zigzag (crisp vectors) */}
+            <div style={{ background: 'linear-gradient(to right, #800A1E, #A80D27)', lineHeight: 0 }}>
+              <svg viewBox="0 0 400 20" preserveAspectRatio="none" style={{ width: '100%', height: '22px', display: 'block' }}>
+                <path d="M0,0 L25,16 L50,0 L75,16 L100,0 L125,16 L150,0 L175,16 L200,0 L225,16 L250,0 L275,16 L300,0 L325,16 L350,0 L375,16 L400,0 L400,20 L0,20 Z" fill="#FAF8F5" />
               </svg>
             </div>
 
-            {/* WHITE BOTTOM SECTION */}
+            {/* WHITE/CREAM BOTTOM SECTION */}
             <div
-              className="flex flex-col items-center justify-between px-8 py-8 gap-6 flex-1"
-              style={{ background: '#FAF9F6' }}
+              className="flex flex-col items-center justify-between px-8 py-8 gap-7 flex-1"
+              style={{ background: '#FAF8F5' }}
             >
-              {/* Description */}
-              <div className="text-center space-y-3">
+              {/* Premium Embossed Seal & Grid line */}
+              <div className="w-full text-center space-y-4">
                 <div className="flex items-center justify-center gap-3">
-                  <div className="h-px flex-1" style={{ background: 'rgba(209,26,56,0.2)' }} />
-                  <svg viewBox="0 0 24 24" className="w-4 h-4 opacity-30" fill="none" stroke="#D11A38" strokeWidth="1.5">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 2 L12 22 M2 12 L22 12" />
-                  </svg>
-                  <div className="h-px flex-1" style={{ background: 'rgba(209,26,56,0.2)' }} />
+                  <div className="h-[1px] flex-1" style={{ background: 'linear-gradient(to right, transparent, rgba(168,13,39,0.15), rgba(168,13,39,0.3))' }} />
+                  <div className="w-7 h-7 rounded-full border border-dashed border-[#A80D27]/30 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 opacity-60" fill="none" stroke="#A80D27" strokeWidth="2">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 2v20M2 12h20" strokeDasharray="2,2" />
+                    </svg>
+                  </div>
+                  <div className="h-[1px] flex-1" style={{ background: 'linear-gradient(to left, transparent, rgba(168,13,39,0.15), rgba(168,13,39,0.3))' }} />
                 </div>
 
-                <p className="font-serif text-sm italic leading-relaxed" style={{ color: '#5C5451' }}>
+                {/* Elegant Quote Casing */}
+                <p 
+                  className="font-serif text-sm italic leading-relaxed px-2 font-medium" 
+                  style={{ color: '#4E4542', letterSpacing: '0.015em' }}
+                >
                   "Your personal local. Not a tour guide — a resident who knows every hidden alley, secret sandbank, and best karak spot in the Kingdom."
                 </p>
 
-                <div className="flex justify-center gap-4 text-[9px] font-sans font-bold uppercase tracking-widest" style={{ color: 'rgba(92,84,81,0.45)' }}>
-                  <span>18 Local Spots</span>
-                  <span style={{ color: 'rgba(209,26,56,0.3)' }}>·</span>
-                  <span>AI-Planned</span>
-                  <span style={{ color: 'rgba(209,26,56,0.3)' }}>·</span>
-                  <span>Gamified</span>
+                {/* Highly Aesthetic Pill Badges */}
+                <div className="flex flex-wrap justify-center gap-2 pt-2">
+                  <span className="px-3 py-1 rounded-full text-[9px] font-sans font-extrabold uppercase tracking-widest bg-[#A80D27]/5 border border-[#A80D27]/15 text-[#A80D27]/85 shadow-sm">
+                    🗺️ 18 Local Spots
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-[9px] font-sans font-extrabold uppercase tracking-widest bg-amber-500/5 border border-amber-500/20 text-amber-800/85 shadow-sm">
+                    ✨ AI-Planned
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-[9px] font-sans font-extrabold uppercase tracking-widest bg-emerald-500/5 border border-emerald-500/20 text-emerald-800/85 shadow-sm">
+                    🏆 Gamified
+                  </span>
                 </div>
               </div>
 
-              {/* CTA Button */}
-              <button
-                onClick={() => {
-                  playTypewriterClick(1.5)
-                  gsap.to(contentRef.current, {
-                    rotateY: -90,
-                    opacity: 0,
-                    scale: 0.96,
-                    duration: 0.6,
-                    ease: 'power3.inOut',
-                    onComplete: () => setCoverOpened(true),
-                  })
-                }}
-                className="w-full py-4 rounded-2xl font-sans text-sm uppercase tracking-widest font-extrabold transition-all cursor-pointer active:scale-95"
-                style={{
-                  background: '#D11A38',
-                  color: '#fff',
-                  boxShadow: '0 8px 24px rgba(209,26,56,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
-                }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 12px 32px rgba(209,26,56,0.5), inset 0 1px 0 rgba(255,255,255,0.15)'}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 8px 24px rgba(209,26,56,0.4), inset 0 1px 0 rgba(255,255,255,0.15)'}
-              >
-                Open My Ledger →
-              </button>
+              {/* Premium Leather-Strap Action Button */}
+              <div className="w-full relative group">
+                {/* Glow ring backing */}
+                <div 
+                  className="absolute inset-0 bg-[#A80D27] blur-md opacity-25 rounded-2xl transition-all duration-300 group-hover:blur-lg group-hover:opacity-40" 
+                  style={{ zIndex: 0 }}
+                />
+                
+                <button
+                  onClick={() => {
+                    playTypewriterClick(1.5)
+                    gsap.to(contentRef.current, {
+                      rotateY: -90,
+                      opacity: 0,
+                      scale: 0.96,
+                      duration: 0.6,
+                      ease: 'power3.inOut',
+                      onComplete: () => setCoverOpened(true),
+                    })
+                  }}
+                  className="w-full py-4 rounded-2xl font-sans text-xs uppercase tracking-widest font-black transition-all cursor-pointer active:scale-97 relative z-10 flex items-center justify-center gap-2"
+                  style={{
+                    background: 'linear-gradient(to bottom, #A80D27 0%, #800A1E 100%)',
+                    color: '#FAF8F5',
+                    boxShadow: '0 8px 20px rgba(128,10,30,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    letterSpacing: '0.18em'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                    e.currentTarget.style.boxShadow = '0 12px 28px rgba(128,10,30,0.45), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(128,10,30,0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  }}
+                >
+                  Open My Ledger
+                  <span className="inline-block transition-transform duration-300 group-hover:translate-x-1.5">→</span>
+                </button>
+              </div>
 
-              <p className="font-sans text-[8px] tracking-widest uppercase font-bold" style={{ color: 'rgba(92,84,81,0.3)' }}>
+              {/* Subdued Fine-print Volume stamp */}
+              <p className="font-sans text-[8px] tracking-[0.25em] uppercase font-bold" style={{ color: 'rgba(92,84,81,0.35)' }}>
                 Bahrain Passage · Volume I · 2026
               </p>
             </div>
