@@ -9,8 +9,33 @@ const MIN_LON = 50.42
 const MAX_LON = 50.80
 
 export default function WayfarerMap({ locations }) {
-  const { currentDayTab, currentSpotIndex, setCurrentSpotIndex, collectedKeepsakes, setActiveLeaf } = useVibe()
+  const { 
+    currentDayTab, 
+    currentSpotIndex, 
+    setCurrentSpotIndex, 
+    collectedKeepsakes, 
+    setActiveLeaf,
+    goldFils,
+    setGoldFils,
+    awardXP,
+    passportStamps,
+    setPassportStamps
+  } = useVibe()
   const [hoveredSpot, setHoveredSpot] = useState(null)
+  
+  // Dilmun Pearl Hunt Riddle States
+  const [pearlsCollected, setPearlsCollected] = useState([])
+  const [pearlChestAnim, setPearlChestAnim] = useState(null)
+  const [showClueScroll, setShowClueScroll] = useState(false)
+  const [pearlAlert, setPearlAlert] = useState(null)
+
+  const RIDDLE_ANSWERS = {
+    1: { spotId: 'jarada-island', clue: 'Where the ocean retreats, a sandbar appears, white as fresh milk and dry for few hours. Safe only at low tide, seek my shimmering shell.' },
+    2: { spotId: 'sakhir-desert', clue: 'Where falcon wings soar near the ancient graves of the desert sand, and generator towers rise under the Sakhir midday sun.' },
+    3: { spotId: 'qal-at-al-bahrain', clue: 'The grand stone fortresses standing watch over the northern deeps, where Strata marks 4,000 harvests of empires.' },
+    4: { spotId: 'muharraq-souq', clue: 'A maze of traditional alleyways breathing spices, saffron, and Bahraini halwa under Generational merchant arches.' },
+    5: { spotId: 'block-338', clue: 'The bohemian arts neighborhood packed with local murals, neon glass, and string-lit dining alleys.' }
+  }
 
   // Map coordinates to SVG coordinate system (width: 550, height: 360)
   const mapWidth = 550
@@ -38,6 +63,65 @@ export default function WayfarerMap({ locations }) {
     if (idx !== -1) {
       setCurrentSpotIndex(idx)
       setActiveLeaf('chronicles') 
+    }
+  }
+
+  const handleMapNodeClick = (spot) => {
+    const currentRiddle = RIDDLE_ANSWERS[currentDayTab] || RIDDLE_ANSWERS[1]
+    
+    if (spot.id === currentRiddle.spotId) {
+      if (pearlsCollected.includes(spot.id)) {
+        setPearlAlert({ success: true, text: "✨ You already unlocked the Shimmering Pearl chest for these coordinates!" })
+        return
+      }
+
+      // Spark chest opening animation!
+      setPearlChestAnim(spot.id)
+      setPearlsCollected(prev => [...prev, spot.id])
+      setGoldFils(prev => prev + 350)
+      awardXP(100, "Dilmun Pearl riddle solved")
+      
+      // Auto-unlock stamp for that spot
+      if (!passportStamps.includes(spot.id)) {
+        setPassportStamps(prev => [...prev, spot.id])
+      }
+
+      setPearlAlert({ 
+        success: true, 
+        text: `🏆 TREASURE FOUND! Solved coordinates for ${spot.name}! Unlocked a Shimmering Pearl, +350 Fils, and +100 XP!` 
+      })
+
+      // Correct audio chime
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext
+        if (AudioContext) {
+          const audioCtx = new AudioContext()
+          const osc = audioCtx.createOscillator()
+          const gain = audioCtx.createGain()
+          osc.type = 'triangle'
+          osc.frequency.setValueAtTime(523.25, audioCtx.currentTime) // C5
+          osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.15) // G5
+          osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.35) // C6
+          gain.gain.setValueAtTime(0, audioCtx.currentTime)
+          gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.05)
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5)
+          osc.connect(gain)
+          gain.connect(audioCtx.destination)
+          osc.start()
+          osc.stop(audioCtx.currentTime + 0.5)
+        }
+      } catch(e){}
+
+      setTimeout(() => {
+        setPearlChestAnim(null)
+      }, 3500)
+    } else {
+      // Normal spot click, but if clue open let them know it is wrong coordinates
+      handleSpotClick(spot.id)
+      setPearlAlert({ 
+        success: false, 
+        text: `📍 Checked coordinates for ${spot.name}. Keep looking for the riddle's ancient landmark!` 
+      })
     }
   }
 
@@ -280,13 +364,14 @@ export default function WayfarerMap({ locations }) {
                 const activeIndex = activeSpots.findIndex(s => s.id === spot.id)
                 const isSelectedSpot = isActiveDaySpot && currentSpotIndex === activeIndex
                 const scanned = collectedKeepsakes.includes(spot.id)
+                const hasPearl = pearlsCollected.includes(spot.id)
 
                 return (
                   <g
                     key={spot.id}
                     transform={`translate(${coords.x}, ${coords.y})`}
                     className="cursor-pointer"
-                    onClick={() => handleSpotClick(spot.id)}
+                    onClick={() => handleMapNodeClick(spot)}
                     onMouseEnter={() => setHoveredSpot(spot)}
                     onMouseLeave={() => setHoveredSpot(null)}
                   >
@@ -300,24 +385,37 @@ export default function WayfarerMap({ locations }) {
                       />
                     )}
 
+                    {/* Dilmun Chest Sparkle rotating ray */}
+                    {pearlChestAnim === spot.id && (
+                      <circle
+                        cx="0"
+                        cy="0"
+                        r="26"
+                        className="fill-none stroke-amber-500 stroke-[2px] stroke-dashed animate-spin"
+                        strokeDasharray="4,6"
+                      />
+                    )}
+
                     <circle
                       cx="0"
                       cy="0"
                       r={isSelectedSpot ? "9.5" : "7.8"}
                       className={`transition-all duration-300 ${
-                        scanned
+                        hasPearl
                           ? 'fill-amber-500 stroke-white'
-                          : isSelectedSpot
-                            ? 'fill-bahrain-red stroke-white shadow-md'
-                            : isActiveDaySpot
-                              ? 'fill-bahrain-accent stroke-[#FAF9F6]'
-                              : 'fill-bronze-muted/40 stroke-[#FAF9F6]/90'
+                          : scanned
+                            ? 'fill-emerald-500 stroke-white'
+                            : isSelectedSpot
+                              ? 'fill-bahrain-red stroke-white shadow-md'
+                              : isActiveDaySpot
+                                ? 'fill-bahrain-accent stroke-[#FAF9F6]'
+                                : 'fill-bronze-muted/40 stroke-[#FAF9F6]/90'
                       }`}
                       strokeWidth={isSelectedSpot ? "2.8" : "1.8"}
                     />
 
                     {/* Number index labels directly inside nodes */}
-                    {isActiveDaySpot && !scanned && (
+                    {isActiveDaySpot && !scanned && !hasPearl && (
                       <text
                         x="0"
                         y="2.8"
@@ -330,7 +428,20 @@ export default function WayfarerMap({ locations }) {
                       </text>
                     )}
 
-                    {scanned && (
+                    {hasPearl && (
+                      <text
+                        x="0"
+                        y="2.8"
+                        textAnchor="middle"
+                        fill="white"
+                        className="font-serif text-[8.5px] font-bold"
+                        stroke="none"
+                      >
+                        💎
+                      </text>
+                    )}
+
+                    {!hasPearl && scanned && (
                       <text
                         x="0"
                         y="2.8"
@@ -351,6 +462,57 @@ export default function WayfarerMap({ locations }) {
             {/* Map label */}
             <div className="absolute bottom-2 left-3 font-mono text-[7px] tracking-widest text-bronze-muted/50 font-bold uppercase">
               Bahrain Archipelago projections WGS84 • MERCATOR
+            </div>
+
+            {/* Pearl Quest Alert Notifications Banner */}
+            {pearlAlert && (
+              <div 
+                className={`absolute top-4 left-4 right-4 z-40 p-3 rounded-2xl border text-[9.5px] font-sans font-bold leading-relaxed shadow-lg animate-scaleIn flex justify-between items-center select-none ${
+                  pearlAlert.success 
+                    ? 'bg-emerald-500/95 border-emerald-500 text-white' 
+                    : 'bg-[#FAF9F6] border-rose-500/40 text-rose-800'
+                }`}
+              >
+                <span>{pearlAlert.text}</span>
+                <button 
+                  onClick={() => setPearlAlert(null)}
+                  className="px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-black/10 hover:bg-black/20 shrink-0 ml-2 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Dilmun Clue Scroll Launcher overlay */}
+            <div className="absolute bottom-12 right-4 flex flex-col items-end gap-2.5 z-40">
+              {showClueScroll && (
+                <div className="w-64 bg-[#FAF9F6] border-2 border-amber-600/40 p-3.5 rounded-2xl shadow-xl aged-paper-gradient text-left animate-scaleIn select-none">
+                  <div className="flex justify-between items-center pb-1.5 border-b border-amber-600/20">
+                    <span className="font-sans text-[7.5px] tracking-wider text-amber-700 font-extrabold uppercase">
+                      📜 Dilmun Clue Scroll
+                    </span>
+                    <button 
+                      onClick={() => setShowClueScroll(false)} 
+                      className="text-[9.5px] text-bronze-muted hover:text-bahrain-red cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <p className="font-serif text-[10px] italic text-bronze-charcoal leading-relaxed mt-2 font-semibold">
+                    "{RIDDLE_ANSWERS[currentDayTab]?.clue || RIDDLE_ANSWERS[1].clue}"
+                  </p>
+                  <span className="font-sans text-[7px] text-amber-600/60 uppercase block mt-2 text-right">
+                    Click correct coordinate pin to unlock Pearl
+                  </span>
+                </div>
+              )}
+
+              <button
+                onClick={() => { setShowClueScroll(prev => !prev); setPearlAlert(null); }}
+                className="px-3 py-2 rounded-full bg-amber-600 hover:bg-amber-500 border border-amber-500/20 text-white font-sans text-[9px] uppercase tracking-widest font-black transition-all cursor-pointer shadow-lg flex items-center gap-1.5 active:scale-95"
+              >
+                <span>📜</span> {showClueScroll ? 'Close Scroll' : 'Dilmun Pearl Clue'}
+              </button>
             </div>
 
             {/* Float details panel */}

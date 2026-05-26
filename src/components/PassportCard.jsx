@@ -9,7 +9,7 @@ export default function PassportCard({ onClose }) {
   const {
     xp, xpLog, selectedMoods, tier, duration,
     completedDays, collectedKeepsakes, capturedPhotos,
-    journalReflections,
+    journalReflections, passportStamps, goldFils
   } = useVibe()
 
   const cardRef = useRef(null)
@@ -44,7 +44,7 @@ export default function PassportCard({ onClose }) {
   const emoji = rankEmoji[rank.id] || '🧭'
 
   const handleShare = async () => {
-    const text = `Just explored Bahrain as a ${rank.label} on Bahrain Passage!\n\n🏆 ${xp} XP · ${completedDays.length}/${duration} days sealed · ${keepsakesCollected} keepsakes\nVibes: ${selectedMoods.map(m => MOOD_LABELS[m]).join(' · ')}\n\n#BahrainPassage #VisitBahrain`
+    const text = `Just explored Bahrain as a ${rank.label} on Bahrain Passage!\n\n🏆 ${xp} XP · 🪙 ${goldFils} Fils · ${completedDays.length}/${duration} days sealed\nVibes: ${selectedMoods.map(m => MOOD_LABELS[m]).join(' · ')}\n\n#BahrainPassage #VisitBahrain`
     if (navigator.share) {
       try {
         await navigator.share({ title: 'My Bahrain Passage', text })
@@ -113,7 +113,7 @@ export default function PassportCard({ onClose }) {
             </div>
           </div>
 
-          {/* User Rank Block */}
+          {/* User Rank Block & Wallet Balance */}
           <div className="flex items-center gap-4 bg-white/60 p-3 rounded-xl border border-red-500/5 shadow-sm">
             <div
               className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl shrink-0 bg-[#FAF9F6] border border-red-500/10 shadow-sm relative overflow-hidden"
@@ -122,9 +122,14 @@ export default function PassportCard({ onClose }) {
               {emoji}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="font-serif text-lg font-bold text-bronze-charcoal leading-none">{rank.label}</span>
-                <span className="text-[10px] text-bahrain-red font-bold font-sans">({rank.arabic})</span>
+              <div className="flex items-baseline gap-1.5 flex-wrap justify-between">
+                <div className="flex items-baseline gap-1">
+                  <span className="font-serif text-base font-bold text-bronze-charcoal leading-none">{rank.label}</span>
+                  <span className="text-[9px] text-bahrain-red font-bold font-sans">({rank.arabic})</span>
+                </div>
+                <span className="font-sans text-[9px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded leading-none shrink-0">
+                  🪙 {goldFils} fils
+                </span>
               </div>
               <div className="flex items-center gap-2 mt-1.5">
                 <span className="font-mono font-bold text-xs bg-bahrain-red/10 text-bahrain-red px-2 py-0.5 rounded-full select-none">
@@ -171,6 +176,53 @@ export default function PassportCard({ onClose }) {
             ))}
           </div>
 
+          {/* Authentic Ink Passport Stamps (Visual Trophies) */}
+          <div className="bg-white/40 p-3 rounded-xl border border-red-500/5 space-y-1.5">
+            <p className="text-[8px] tracking-[0.2em] uppercase text-bronze-muted/50 font-sans font-extrabold">Official Visa Seals</p>
+            {passportStamps && passportStamps.length > 0 ? (
+              <div className="grid grid-cols-4 gap-2 max-h-[140px] overflow-y-auto pr-1">
+                {passportStamps.map(spotId => {
+                  const spot = spotsCatalog.find(s => s.id === spotId)
+                  if (!spot) return null
+                  
+                  // Custom gorgeous styles based on spotId for distinct visual stamp varieties
+                  const stampStyles = {
+                    'qal-at-al-bahrain': { color: 'border-rose-700 text-rose-800 bg-rose-50/40', shape: 'rounded-full rotate-6' },
+                    'muharraq-souq': { color: 'border-emerald-600 text-emerald-700 bg-emerald-50/40', shape: 'rounded-xl -rotate-6' },
+                    'pearling-path': { color: 'border-blue-600 text-blue-700 bg-blue-50/40', shape: 'rounded-full border-double border-4 rotate-12' },
+                    'block-338': { color: 'border-amber-600 text-amber-700 bg-amber-50/40', shape: 'rounded-[12px] rotate-[-8deg] border-dashed' },
+                    'jarada-island': { color: 'border-cyan-600 text-cyan-700 bg-cyan-50/40', shape: 'rounded-full border-[3px] border-dotted rotate-45' },
+                    'sakhir-desert': { color: 'border-orange-600 text-orange-700 bg-orange-50/40', shape: 'rounded-xl border-[2px] -rotate-12' },
+                  }
+
+                  const style = stampStyles[spotId] || { color: 'border-red-700 text-red-800 bg-red-50/40', shape: 'rounded-full rotate-3' }
+
+                  return (
+                    <div 
+                      key={spotId} 
+                      className={`aspect-square border-2 flex flex-col items-center justify-center p-1 relative text-center select-none shadow-[inset_0_0_8px_rgba(0,0,0,0.03)] scale-95 transition-all duration-300 hover:scale-105 ${style.color} ${style.shape}`}
+                      title={`${spot.name} - Visited`}
+                    >
+                      <span className="font-serif text-[4.5px] font-black uppercase leading-none tracking-tighter truncate max-w-full">
+                        {spot.name.split(' ')[0]}
+                      </span>
+                      <span className="text-[10px] my-0.5">{spot.keepsakeEmoji}</span>
+                      <span className="font-serif text-[4px] leading-none text-bronze-charcoal/70">
+                        {spot.arabic.substring(0, 5)}
+                      </span>
+                      {/* Authentic mini date marker */}
+                      <span className="font-mono text-[3.5px] text-bronze-muted mt-0.5">2026.05</span>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="py-3 text-center text-[9px] italic text-bronze-muted/40 font-semibold bg-white/30 rounded-lg">
+                No active visa stamps yet. Focus lens and snap polaroids to unlock!
+              </div>
+            )}
+          </div>
+
           {/* Selected Vibes / Parameters */}
           {selectedMoods.length > 0 && (
             <div className="flex flex-wrap gap-1.5 items-center bg-white/40 p-2.5 rounded-xl border border-red-500/5">
@@ -188,30 +240,6 @@ export default function PassportCard({ onClose }) {
               >
                 {tier === 'Wandering' ? 'Budget' : tier === 'Curated' ? 'Curated' : 'Luxury'} · {duration}d
               </span>
-            </div>
-          )}
-
-          {/* Passport Keepsakes Drawer */}
-          {collectedKeepsakes.length > 0 && (
-            <div className="bg-white/40 p-3 rounded-xl border border-red-500/5 space-y-1.5">
-              <p className="text-[8px] tracking-[0.2em] uppercase text-bronze-muted/50 font-sans font-extrabold">Collected Relics</p>
-              <div className="flex flex-wrap gap-1.5">
-                {collectedKeepsakes.slice(0, 8).map(ksId => {
-                  const spot = spotsCatalog.find(s => s.keepsakeId === ksId || s.id === ksId)
-                  return spot ? (
-                    <span 
-                      key={ksId} 
-                      className="text-sm w-7 h-7 rounded-full bg-white flex items-center justify-center border border-red-500/10 shadow-xs hover:scale-115 transition-transform" 
-                      title={spot.keepsakeName}
-                    >
-                      {spot.keepsakeEmoji}
-                    </span>
-                  ) : null
-                })}
-                {collectedKeepsakes.length > 8 && (
-                  <span className="text-[8.5px] text-bahrain-red font-bold self-center ml-1">+{collectedKeepsakes.length - 8} more</span>
-                )}
-              </div>
             </div>
           )}
 

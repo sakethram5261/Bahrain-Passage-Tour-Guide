@@ -164,6 +164,16 @@ export default function Dashboard() {
     setShowPassportCard,
     solvedRiddles,
     solveRiddle,
+    goldFils,
+    setGoldFils,
+    characterRep,
+    setCharacterRep,
+    passportStamps,
+    spendFils,
+    awardReputation,
+    awardXP,
+    unlockKeepsake,
+    saveLensStory
   } = useVibe()
 
   const rank = getRank(xp)
@@ -181,15 +191,58 @@ export default function Dashboard() {
   const [showRankUpModal, setShowRankUpModal] = useState(false)
   const [unlockedRankInfo, setUnlockedRankInfo] = useState(null)
 
-  // Real-time ticking system clock state for the physical pocket watch hands
-  const [systemTime, setSystemTime] = useState(new Date())
+  // Premium Gamification States
+  const [showSouqShop, setShowSouqShop] = useState(false)
+  const [pearlQuestActive, setPearlQuestActive] = useState(true)
+  const [pearlsCollected, setPearlsCollected] = useState([]) // Array of spotIds where pearl was found
+  const [pearlChestAnim, setPearlChestAnim] = useState(null) // spotId currently showing chest sparkle
+  const [shopAlert, setShopAlert] = useState(null)
 
-  useEffect(() => {
-    const clockTimer = setInterval(() => {
-      setSystemTime(new Date())
-    }, 1000)
-    return () => clearInterval(clockTimer)
-  }, [])
+  const shopItems = [
+    { id: 'riddle-hint', name: 'Riddle Scroll Clue', desc: 'Poetic guidance for active Dilmun Pearl coordinate riddles.', cost: 150, emoji: '📜' },
+    { id: 'saffron-halwa', name: 'Saffron Halwa Plate', desc: 'Increases relationship with Jafar (Spice Merchant) by +25 XP.', cost: 300, emoji: '🍯' },
+    { id: 'pearl-hook', name: 'Generational Oyster Hook', desc: 'Increases relationship with Seyadi (Pearl Diver) by +30 XP.', cost: 400, emoji: '🪝' },
+    { id: 'falcon-glove', name: 'Falconer Leather Glove', desc: 'Increases relationship with Faisal (Falconer) by +30 XP.', cost: 400, emoji: '🧤' },
+    { id: 'keepsake-bag', name: 'Bazaar Keepsake Grab-bag', desc: 'Instantly unlocks a random traditional souvenir relic.', cost: 600, emoji: '🛍️' }
+  ]
+
+  const handleBuyItem = (item) => {
+    if (goldFils >= item.cost) {
+      const success = spendFils(item.cost)
+      if (success) {
+        // Apply rewards
+        if (item.id === 'riddle-hint') {
+          awardXP(30, 'Bought map clue scroll')
+          setShopAlert({ success: true, text: `📜 Hint Purchased! Clue: "Seek Jarada Sandbank or Bahrain Fort map coordinates!"` })
+        } else if (item.id === 'saffron-halwa') {
+          awardReputation('jafar', 25)
+          awardXP(30, 'Bought merchant halwa')
+          setShopAlert({ success: true, text: `🍯 Hot saffron halwa delivered! +25 Jafar Spice Merchant Reputation!` })
+        } else if (item.id === 'pearl-hook') {
+          awardReputation('seyadi', 30)
+          awardXP(40, 'Bought pearl hook')
+          setShopAlert({ success: true, text: `🪝 Generational Pearl Hook unlocked! +30 Seyadi Pearl Guild Reputation!` })
+        } else if (item.id === 'falcon-glove') {
+          awardReputation('faisal', 30)
+          awardXP(40, 'Bought leather falcon glove')
+          setShopAlert({ success: true, text: `🧤 Falconer leather glove unlocked! +30 Faisal Falconry Guild Reputation!` })
+        } else if (item.id === 'keepsake-bag') {
+          const lockedSpot = spotsCatalog.find(s => !collectedKeepsakes.includes(s.id))
+          if (lockedSpot) {
+            unlockKeepsake(lockedSpot.id)
+            saveLensStory(lockedSpot.id, "Purchased directly from Jafar's wooden merchant counter inside the historical Manama Souq bazar.")
+            setShopAlert({ success: true, text: `🛍️ Grab-bag opened! Unlocked keepsake relic: ${lockedSpot.keepsakeName} ${lockedSpot.keepsakeEmoji}!` })
+          } else {
+            // Already unlocked all
+            setGoldFils(prev => prev + item.cost) // Refund
+            setShopAlert({ success: false, text: `❌ Cabinet already complete! All keepsakes are fully unlocked!` })
+          }
+        }
+      }
+    } else {
+      setShopAlert({ success: false, text: `❌ Insufficient Fils! Snap photo polaroids or complete day itineraries first!` })
+    }
+  }
 
   const handleAnswerRiddle = (selectedIdx) => {
     const riddle = RIDDLES[activeSpot.id]
@@ -1397,60 +1450,162 @@ export default function Dashboard() {
 
               {activeLeaf === 'keepsakes' && (
                 <div className="w-full max-w-[350px] flex flex-col items-center space-y-4">
-                  <span className="font-sans text-[7px] tracking-[0.2em] text-amber-600 uppercase font-extrabold">
-                    Interactive Keepsake Cabinet
-                  </span>
-                  
-                  {/* Velvet Lined Drawer cabinet grid */}
-                  <div className="velvet-drawer p-5 rounded-2xl shadow-xl w-full">
-                    <div className="grid grid-cols-4 gap-2.5 relative z-10">
-                      {spotsCatalog.map(spot => {
-                        const unlocked = collectedKeepsakes.includes(spot.id)
-                        return (
-                          <button
-                            key={spot.id}
-                            disabled={!unlocked}
-                            onClick={() => setSelectedKeepsake(spot)}
-                            className={`aspect-square rounded-full flex items-center justify-center transition-all duration-300 relative border ${
-                              unlocked
-                                ? 'brass-coin-frame cursor-pointer hover:scale-105 active:scale-95'
-                                : 'bg-black/40 border-transparent opacity-20 cursor-not-allowed'
-                            }`}
-                          >
-                            <span className="text-base">{unlocked ? spot.keepsakeEmoji : '🔒'}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
+                  {/* Explorer Wallet Balance Header */}
+                  <div className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-600/25">
+                    <span className="font-sans text-[8px] uppercase tracking-wider text-amber-700 font-extrabold flex items-center gap-1">
+                      🪙 Travel Stipend
+                    </span>
+                    <span className="font-mono text-xs font-black text-amber-800">
+                      {goldFils} Fils
+                    </span>
                   </div>
 
-                  {collectedKeepsakes.length === 0 && (
-                    <p className="font-serif text-[10px] italic text-white/50 text-center leading-relaxed">
-                      Cabinet empty. Point the Capture Lens at active chronicle spots and click Shutter to unlock traditional souvenirs!
-                    </p>
-                  )}
+                  {showSouqShop ? (
+                    /* High-Fidelity Jafar's Souq Shop counter */
+                    <div className="w-full bg-[#201008] border border-amber-600/35 rounded-2xl p-4 text-left shadow-[0_12px_24px_rgba(0,0,0,0.55)] relative animate-scaleIn select-none">
+                      <div className="flex justify-between items-center pb-2 border-b border-amber-600/20 mb-3">
+                        <div className="flex flex-col">
+                          <span className="font-sans text-[7px] tracking-[0.2em] text-amber-500 uppercase font-extrabold">
+                            Manama Kiosk
+                          </span>
+                          <h5 className="font-serif text-[12px] font-bold text-white mt-0.5">
+                            Jafar's Souq Shop
+                          </h5>
+                        </div>
+                        <button 
+                          onClick={() => { setShowSouqShop(false); setShopAlert(null); }}
+                          className="px-2 py-1 rounded bg-amber-600/20 hover:bg-amber-600/30 text-amber-500 hover:text-amber-400 text-[8.5px] font-sans font-bold cursor-pointer transition-all"
+                        >
+                          ✕ Exit Souq
+                        </button>
+                      </div>
 
-                  {/* Coin Relic handwritten card */}
-                  {selectedKeepsake && (
-                    <div className="p-4 rounded-xl bg-white border border-amber-600/40 text-left relative animate-scaleIn w-full">
+                      {/* Shop Alerts feedback banner */}
+                      {shopAlert && (
+                        <div className={`p-2.5 rounded-xl border mb-3 text-[9.5px] leading-relaxed font-bold font-sans ${shopAlert.success ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300'}`}>
+                          {shopAlert.text}
+                        </div>
+                      )}
+
+                      <p className="font-serif text-[9.5px] italic text-amber-200/70 mb-3 leading-relaxed">
+                        "Marhaban traveler! Spend your shiny golden Fils travel stipend on local trade, secret coordinate scrolls, or local reputations."
+                      </p>
+
+                      {/* Shop Items list */}
+                      <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                        {shopItems.map(item => (
+                          <div 
+                            key={item.id} 
+                            className="p-2 rounded-xl bg-black/40 border border-amber-600/10 flex items-center justify-between gap-2.5 hover:border-amber-600/30 transition-all"
+                          >
+                            <span className="text-xl shrink-0 p-1 bg-amber-600/10 rounded-lg">{item.emoji}</span>
+                            <div className="flex-1 min-w-0">
+                              <h6 className="font-serif text-[10px] font-bold text-white leading-none">{item.name}</h6>
+                              <p className="font-sans text-[8px] text-amber-200/50 mt-0.5 truncate leading-none">{item.desc}</p>
+                            </div>
+                            <button 
+                              onClick={() => handleBuyItem(item)}
+                              className="px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-sans font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-amber-600/10 shrink-0"
+                            >
+                              {item.cost} Fils
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Keepsake grid and Souq launcher */
+                    <div className="w-full flex flex-col items-center space-y-4">
+                      {/* Souq launcher banner */}
                       <button 
-                        onClick={() => setSelectedKeepsake(null)}
-                        className="absolute top-2 right-2 text-[9px] text-bronze-muted/60 hover:text-bahrain-red cursor-pointer"
+                        onClick={() => setShowSouqShop(true)}
+                        className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-sans font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer shadow-lg shadow-amber-600/15 border border-amber-600/20 active:scale-98"
                       >
-                        ✕ Close
+                        🏪 Enter Jafar's Souq Shop
                       </button>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl p-1.5 rounded-lg bg-[#FAF9F6] border border-amber-600/20 shadow-sm">
-                          {selectedKeepsake.keepsakeEmoji}
+
+                      {/* Velvet Lined Drawer cabinet grid */}
+                      <div className="velvet-drawer p-5 rounded-2xl shadow-xl w-full">
+                        <span className="font-sans text-[7px] tracking-[0.2em] text-white/50 uppercase font-extrabold block mb-3 text-center">
+                          Velvet Relics Cabinet
                         </span>
-                        <div>
-                          <span className="font-sans text-[7px] tracking-wider text-bahrain-red uppercase font-bold block">{selectedKeepsake.period}</span>
-                          <h5 className="font-serif text-[12px] font-bold text-bronze-charcoal leading-none mt-0.5">{selectedKeepsake.keepsakeName}</h5>
+                        <div className="grid grid-cols-4 gap-2.5 relative z-10">
+                          {spotsCatalog.map(spot => {
+                            const unlocked = collectedKeepsakes.includes(spot.id)
+                            return (
+                              <button
+                                key={spot.id}
+                                disabled={!unlocked}
+                                onClick={() => setSelectedKeepsake(spot)}
+                                className={`aspect-square rounded-full flex items-center justify-center transition-all duration-300 relative border ${
+                                  unlocked
+                                    ? 'brass-coin-frame cursor-pointer hover:scale-105 active:scale-95'
+                                    : 'bg-black/40 border-transparent opacity-20 cursor-not-allowed'
+                                }`}
+                              >
+                                <span className="text-base">{unlocked ? spot.keepsakeEmoji : '🔒'}</span>
+                              </button>
+                            )
+                          })}
                         </div>
                       </div>
-                      <p className="font-serif text-[10px] italic text-bronze-charcoal leading-relaxed border-t border-red-500/5 pt-2 font-semibold">
-                        {selectedKeepsake.keepsakeDesc}
-                      </p>
+
+                      {collectedKeepsakes.length === 0 && (
+                        <p className="font-serif text-[10px] italic text-white/50 text-center leading-relaxed">
+                          Cabinet empty. Focus Capture Lens at chronicle spots to unlock traditional souvenirs!
+                        </p>
+                      )}
+
+                      {/* Resident Guilds Relationship Reputation Dashboard */}
+                      <div className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                        <span className="font-sans text-[7.5px] tracking-[0.2em] text-amber-500 uppercase font-extrabold block">
+                          Resident Guild Reputation
+                        </span>
+                        <div className="space-y-1.5">
+                          {[
+                            { name: 'Jafar (Spice Merchant)', rep: characterRep.jafar || 10, color: 'bg-rose-500' },
+                            { name: 'Seyadi (Pearl Diver)', rep: characterRep.seyadi || 10, color: 'bg-blue-500' },
+                            { name: 'Faisal (Falconer)', rep: characterRep.faisal || 10, color: 'bg-amber-500' },
+                          ].map(resident => (
+                            <div key={resident.name} className="space-y-0.5">
+                              <div className="flex justify-between items-center text-[7.5px] font-bold text-white/70">
+                                <span>{resident.name}</span>
+                                <span>{resident.rep}%</span>
+                              </div>
+                              <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full transition-all duration-500 ${resident.color}`}
+                                  style={{ width: `${resident.rep}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Keepsake Detail Handwritten card */}
+                      {selectedKeepsake && (
+                        <div className="p-4 rounded-xl bg-white border border-amber-600/40 text-left relative animate-scaleIn w-full">
+                          <button 
+                            onClick={() => setSelectedKeepsake(null)}
+                            className="absolute top-2 right-2 text-[9px] text-bronze-muted/60 hover:text-bahrain-red cursor-pointer"
+                          >
+                            ✕ Close
+                          </button>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-2xl p-1.5 rounded-lg bg-[#FAF9F6] border border-amber-600/20 shadow-sm">
+                              {selectedKeepsake.keepsakeEmoji}
+                            </span>
+                            <div>
+                              <span className="font-sans text-[7px] tracking-wider text-bahrain-red uppercase font-bold block">{selectedKeepsake.period}</span>
+                              <h5 className="font-serif text-[11px] font-bold text-bronze-charcoal leading-none mt-0.5">{selectedKeepsake.keepsakeName}</h5>
+                            </div>
+                          </div>
+                          <p className="font-serif text-[9.5px] italic text-bronze-charcoal leading-relaxed border-t border-red-500/5 pt-2 font-semibold">
+                            {selectedKeepsake.keepsakeDesc}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

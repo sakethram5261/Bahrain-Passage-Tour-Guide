@@ -61,6 +61,11 @@ export function VibeProvider({ children }) {
   // Riddle solving persistence for the gamified tour guide
   const [solvedRiddles, setSolvedRiddles] = useState({})
 
+  // Premium Gamification & local Fils Economy States
+  const [goldFils, setGoldFils] = useState(1200) // Start with warm travel stipend
+  const [characterRep, setCharacterRep] = useState({ jafar: 10, seyadi: 10, faisal: 10 }) // Base rep values
+  const [passportStamps, setPassportStamps] = useState([]) // Unlocked visual ink stamps
+
   const aligned = step === 5
 
   useEffect(() => {
@@ -76,6 +81,7 @@ export function VibeProvider({ children }) {
     if (!completedDays.includes(dayNum)) {
       setCompletedDays(prev => [...prev, dayNum])
       awardXP(100, `Day ${dayNum} sealed`)
+      setGoldFils(prev => prev + 400) // Grant coins for sealing day
       const nextDay = dayNum + 1
       if (nextDay <= duration && !unlockedDays.includes(nextDay)) {
         setUnlockedDays(prev => [...prev, nextDay])
@@ -86,6 +92,12 @@ export function VibeProvider({ children }) {
   const saveCapturedPhoto = (spotId, dataUrl) => {
     setCapturedPhotos(prev => ({ ...prev, [spotId]: dataUrl }))
     awardXP(30, 'Lens snapshot captured')
+    setGoldFils(prev => prev + 250) // Reward coins for photo snap
+    
+    // Auto-unlock stamp for that spot
+    if (!passportStamps.includes(spotId)) {
+      setPassportStamps(prev => [...prev, spotId])
+    }
   }
 
   const saveLensStory = (spotId, storyText) => {
@@ -104,18 +116,41 @@ export function VibeProvider({ children }) {
     setJournalReflections(prev => ({ ...prev, [spotId]: text }))
     if (!hadEntry && text.trim().length > 10) {
       awardXP(15, 'Journal entry written')
+      setGoldFils(prev => prev + 100) // Reward reflection coins
     }
   }
 
   const markSpotVisited = useCallback((spotId) => {
     awardXP(25, 'Spot explored')
+    setGoldFils(prev => prev + 80) // Exploratory fils stipend
   }, [awardXP])
 
   const solveRiddle = (spotId) => {
     if (!solvedRiddles[spotId]) {
       setSolvedRiddles(prev => ({ ...prev, [spotId]: true }))
-      awardXP(25, 'Riddle solved')
+      awardXP(35, 'Riddle solved')
+      setGoldFils(prev => prev + 150) // Reward riddle solving fils
+      
+      // Auto-unlock keepsake upon solving riddle
+      unlockKeepsake(spotId)
     }
+  }
+
+  // Deduct fils to unlock premium items in virtual souq shop
+  const spendFils = (amount) => {
+    if (goldFils >= amount) {
+      setGoldFils(prev => prev - amount)
+      return true
+    }
+    return false
+  }
+
+  // Level up local resident relationship guilds
+  const awardReputation = (character, amount) => {
+    setCharacterRep(prev => ({
+      ...prev,
+      [character]: Math.min((prev[character] || 0) + amount, 100)
+    }))
   }
 
   const resetChronicle = () => {
@@ -135,6 +170,9 @@ export function VibeProvider({ children }) {
     setShowPassportCard(false)
     setSelectedMoods([])
     setSolvedRiddles({})
+    setGoldFils(1200)
+    setCharacterRep({ jafar: 10, seyadi: 10, faisal: 10 })
+    setPassportStamps([])
     setStep(1)
   }
 
@@ -191,6 +229,14 @@ export function VibeProvider({ children }) {
       setShowPassportCard,
       solvedRiddles,
       solveRiddle,
+      goldFils,
+      setGoldFils,
+      characterRep,
+      setCharacterRep,
+      passportStamps,
+      setPassportStamps,
+      spendFils,
+      awardReputation,
     }}>
       {children}
     </VibeContext.Provider>

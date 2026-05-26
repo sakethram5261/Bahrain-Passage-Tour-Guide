@@ -25,6 +25,12 @@ export default function WayfarerLens({ spot, onClose }) {
   const [capturing, setCapturing] = useState(false)
   const [captured, setCaptured] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
+  
+  // High-fidelity Optics Scanner states
+  const [scanning, setScanning] = useState(false)
+  const [scanProgress, setScanProgress] = useState(0)
+  const [scanLog, setScanLog] = useState('Standby for snapshot alignment...')
+  const [photoRank, setPhotoRank] = useState('')
 
   useEffect(() => {
     let active = true
@@ -70,9 +76,39 @@ export default function WayfarerLens({ spot, onClose }) {
     )
   }, [captured])
 
+  const playScanBeep = (freq = 800, duration = 0.08) => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext
+      if (!AudioContext) return
+      const audioCtx = new AudioContext()
+      const osc = audioCtx.createOscillator()
+      const gainNode = audioCtx.createGain()
+      
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime)
+      
+      gainNode.gain.setValueAtTime(0, audioCtx.currentTime)
+      gainNode.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.01)
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration - 0.01)
+      
+      osc.connect(gainNode)
+      gainNode.connect(audioCtx.destination)
+      
+      osc.start()
+      osc.stop(audioCtx.currentTime + duration)
+    } catch(e){}
+  }
+
   const handleCapture = async () => {
-    if (capturing) return
+    if (capturing || scanning) return
     setCapturing(true)
+
+    // Play physical camera shutter sound
+    try {
+      const shutterSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav')
+      shutterSfx.volume = 0.25
+      shutterSfx.play().catch(() => {})
+    } catch(e){}
 
     // Play physical camera flash animation
     gsap.fromTo(flashRef.current,
@@ -114,20 +150,64 @@ export default function WayfarerLens({ spot, onClose }) {
       capturedDataUrl = spot.image
     }
 
-    // Save Captured Polaroid into context scrapbook
-    saveCapturedPhoto(spot.id, capturedDataUrl)
+    // Launch High-Fidelity Scanning simulation
+    setScanning(true)
+    setScanProgress(0)
+    setScanLog('🔄 INITIALIZING OPTICS SENSORS...')
+    
+    // Choose random premium rank
+    const ranks = [
+      '🏆 DILMUN ARCHIVIST RANK (GOLD STAMP)',
+      '🏆 NATIONAL GEOGRAPHIC QUALITY (SEAL)',
+      '🏆 LOCAL STORYTELLER PICK (LEGACY)',
+      '🏆 HIGH-FIDELITY LENS ALIGNED (AESTHETIC)'
+    ]
+    const chosenRank = ranks[Math.floor(Math.random() * ranks.length)]
+    setPhotoRank(chosenRank)
 
-    // Fetch dynamic real-time local storyteller decipher from OpenRouter
-    setAiLoading(true)
-    const storyText = await fetchAISpotStory(spot, selectedMoods, tier, activeGuide)
-    if (storyText) {
-      saveLensStory(spot.id, storyText)
-    }
-    unlockKeepsake(spot.id)
-    setAiLoading(false)
-    setCapturing(false)
-    setCaptured(true)
+    // Scanning intervals over 2.4 seconds
+    let progress = 0
+    const scanInterval = setInterval(() => {
+      progress += 10
+      setScanProgress(progress)
+      
+      // Play cool scanner beep ticks
+      playScanBeep(700 + progress * 3.5, 0.05)
+
+      if (progress === 10) {
+        setScanLog('⚙️ ALIGNING CODES WITH ANCIENT DILMUN SEALS...')
+      } else if (progress === 35) {
+        setScanLog('📡 STANDBY... MEASURING SUNSET CONTRAST & DEPTH...')
+      } else if (progress === 60) {
+        setScanLog('🎨 WEAVING STORY KEYS INTO PHOTOGRAMMETRIC LOGS...')
+      } else if (progress === 85) {
+        setScanLog('🔒 STAMPING TRAVEL VISAS & CUSTOMS PERKS...')
+      } else if (progress >= 100) {
+        clearInterval(scanInterval)
+        
+        // Save and compile story
+        saveCapturedPhoto(spot.id, capturedDataUrl)
+        setScanning(false)
+        setAiLoading(true)
+        
+        // Fetch dynamic real-time local storyteller decipher from OpenRouter
+        fetchAISpotStory(spot, selectedMoods, tier, activeGuide).then(storyText => {
+          if (storyText) {
+            saveLensStory(spot.id, storyText)
+          }
+          unlockKeepsake(spot.id)
+          setAiLoading(false)
+          setCapturing(false)
+          setCaptured(true)
+        }).catch(() => {
+          setAiLoading(false)
+          setCapturing(false)
+          setCaptured(true)
+        })
+      }
+    }, 240)
   }
+
 
   return (
     <div 
@@ -163,7 +243,72 @@ export default function WayfarerLens({ spot, onClose }) {
 
         {/* Viewport Box */}
         <div className="flex-1 flex flex-col items-center justify-center py-6">
-          {!captured ? (
+          {scanning ? (
+            /* Premium active optics scanning HUD view */
+            <div className="w-full max-w-sm p-6 rounded-2xl border border-amber-600/30 bg-[#160B05]/95 text-center select-none shadow-[0_0_30px_rgba(217,119,6,0.15)] relative overflow-hidden animate-pulse">
+              {/* Scanning gold coordinates overlay flanking brackets */}
+              <div className="absolute top-4 left-4 font-mono text-[9px] text-amber-500/80">
+                [ {spot.coords.split(',')[0] || '26.2285° N'} ]
+              </div>
+              <div className="absolute top-4 right-4 font-mono text-[9px] text-amber-500/80">
+                [ {spot.coords.split(',')[1]?.trim() || '50.5198° E'} ]
+              </div>
+
+              {/* Glowing circular reticle with gold sweep bar */}
+              <div className="relative w-44 h-44 mx-auto rounded-full border-2 border-dashed border-amber-600/50 flex items-center justify-center bg-black/60 shadow-[inset_0_0_20px_rgba(217,119,6,0.25)] my-5 overflow-hidden">
+                {/* Horizontal scanning sweep bar */}
+                <div 
+                  className="absolute left-0 right-0 h-1 bg-amber-500 shadow-[0_0_10px_#f59e0b] opacity-80"
+                  style={{
+                    top: `${scanProgress}%`,
+                    transition: 'top 0.1s linear'
+                  }}
+                />
+                
+                {/* Crosshairs */}
+                <div className="absolute w-6 h-px bg-amber-500/40" />
+                <div className="absolute h-6 w-px bg-amber-500/40" />
+
+                {/* Progress Circle Spinner */}
+                <svg className="absolute w-36 h-36 -rotate-90" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    stroke="rgba(217,119,6,0.05)"
+                    strokeWidth="2.5"
+                    fill="none"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    stroke="#d97706"
+                    strokeWidth="3"
+                    fill="none"
+                    strokeDasharray={2 * Math.PI * 45}
+                    strokeDashoffset={2 * Math.PI * 45 * (1 - scanProgress / 100)}
+                    style={{ transition: 'stroke-dashoffset 0.15s ease' }}
+                  />
+                </svg>
+
+                <span className="font-mono text-xl font-bold text-amber-500 z-10">
+                  {scanProgress}%
+                </span>
+              </div>
+
+              {/* Scrolling status log text */}
+              <div className="mt-4 bg-black/40 border border-amber-600/10 p-3 rounded-xl min-h-[60px] flex items-center justify-center">
+                <p className="font-mono text-[9px] text-amber-400 uppercase tracking-widest leading-relaxed">
+                  {scanLog}
+                </p>
+              </div>
+
+              <span className="font-sans text-[7px] tracking-[0.25em] text-white/35 uppercase block mt-3.5">
+                Do Not Move Device · Aligning Strata
+              </span>
+            </div>
+          ) : !captured ? (
             <div className="flex flex-col items-center w-full">
               
               {/* Retro Camera Reticle Round Frame */}
@@ -251,6 +396,26 @@ export default function WayfarerLens({ spot, onClose }) {
               <h4 className="font-serif text-2xl text-bronze-charcoal font-semibold mb-3">
                 {spot.name}
               </h4>
+
+              {/* Photo Clarity Rank badge */}
+              {photoRank && (
+                <div className="mb-3 px-3 py-1.5 rounded-xl border border-amber-600/30 bg-amber-500/5 flex items-center justify-between">
+                  <span className="font-sans text-[8px] uppercase tracking-wider text-amber-600 font-extrabold">
+                    Optics Rank
+                  </span>
+                  <span className="font-sans text-[8px] font-bold text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded truncate max-w-[200px]">
+                    {photoRank}
+                  </span>
+                </div>
+              )}
+
+              {/* Gold Fils and XP stipend reward banner */}
+              <div className="mb-3 p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-between text-emerald-800 font-sans text-[9px] font-bold">
+                <span>🏆 explorer stipend:</span>
+                <span className="bg-emerald-500/10 px-2 py-0.5 rounded text-emerald-900">
+                  +250 Fils & +30 XP Added!
+                </span>
+              </div>
               
               {/* Polaroid Decipher description */}
               <div className="p-4 rounded-xl bg-pearl-bg border border-red-500/5 mb-4 relative">
@@ -294,16 +459,16 @@ export default function WayfarerLens({ spot, onClose }) {
               {/* Massive Retro Shutter Button */}
               <button
                 onClick={handleCapture}
-                disabled={capturing}
-                className="w-16 h-16 rounded-full border-4 border-white bg-bahrain-red hover:bg-bahrain-dark transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center relative outline-none"
+                disabled={capturing || scanning}
+                className="w-16 h-16 rounded-full border-4 border-white bg-bahrain-red hover:bg-bahrain-dark transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center relative outline-none disabled:opacity-50"
               >
                 <div className="absolute inset-1 rounded-full border border-white/20" />
                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/50 font-sans">
-                  Snap
+                  {scanning ? '...' : 'Snap'}
                 </span>
               </button>
               <span className="font-sans text-[8px] tracking-widest text-bronze-muted/50 uppercase mt-2">
-                Press Shutter to Capture
+                {scanning ? 'Analysing Photo Strata...' : 'Press Shutter to Capture'}
               </span>
             </div>
           ) : (
