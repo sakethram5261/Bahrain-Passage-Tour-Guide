@@ -6,7 +6,7 @@ import WayfarerMap from './WayfarerMap'
 import PassportCard from './PassportCard'
 import { Carousel_002 } from './v1/skiper48'
 
-// 🛡️ MOVED FROM VIBE PROVIDER TO BREAK THE CIRCULAR CRASH LOOP 🛡️
+// 🛡️ RANKS AND RIDDLES
 const RANKS = [
   { id: 'wanderer', label: 'Wanderer', arabic: 'مسافر', minXP: 0, color: '#5C5451' },
   { id: 'nomad', label: 'Nomad', arabic: 'بدوي', minXP: 75, color: '#aa7c11' },
@@ -31,7 +31,6 @@ function getNextRank(xp) {
   return null
 }
 
-// Complete Bahrain-themed local riddles dictionary mapping to the 18 spots
 const RIDDLES = {
   'qal-at-al-bahrain': {
     question: "Which empire's legendary seals were discovered in the archaeological strata here?",
@@ -215,6 +214,16 @@ export default function Dashboard() {
   })()
 
   const { locations, loading } = useItinerary(selectedMoods, tier, duration, aiItinerary)
+  
+  // 🛡️ CRITICAL FIX: MOVE DECLARATIONS ABOVE EFFECTS SO THEY ARE NOT IN THE DEAD ZONE 🛡️
+  const activeSpots = locations.filter(s => s.day === currentDayTab)
+  const hasSpots = activeSpots.length > 0
+  const totalSteps = hasSpots ? activeSpots.length + 1 : 0
+  const isSealStep = currentSpotIndex === activeSpots.length
+  const activeSpot = !isSealStep && hasSpots ? activeSpots[currentSpotIndex] : null
+  const isDayCompleted = completedDays.includes(currentDayTab)
+  const hasKeepsake = (spotId) => collectedKeepsakes && collectedKeepsakes.includes(spotId)
+
   const [activeScanSpot, setActiveScanSpot] = useState(null)
   const [selectedKeepsake, setSelectedKeepsake] = useState(null)
   const [stamping, setStamping] = useState(false)
@@ -225,13 +234,13 @@ export default function Dashboard() {
   const [showRankUpModal, setShowRankUpModal] = useState(false)
   const [unlockedRankInfo, setUnlockedRankInfo] = useState(null)
 
-  // Premium Gamification States (pearlsCollected is now global in VibeProvider)
+  // Premium Gamification States
   const [showSouqShop, setShowSouqShop] = useState(false)
   const [shopAlert, setShopAlert] = useState(null)
   const [isMapOpen, setIsMapOpen] = useState(false)
   const [riddleError, setRiddleError] = useState(null)
 
-  // Local textarea state to prevent per-keystroke context re-renders
+  // Local textarea state
   const [localReflection, setLocalReflection] = useState('')
   const reflectionDebounceRef = useRef(null)
   const reflectionSpotRef = useRef(null)
@@ -317,6 +326,7 @@ export default function Dashboard() {
     }
   }
 
+  // 🛡️ EFFECT HOOKS CAN NOW SAFELY READ `activeSpot` 🛡️
   useEffect(() => {
     if (activeSpot?.id !== reflectionSpotRef.current) {
       reflectionSpotRef.current = activeSpot?.id
@@ -362,15 +372,6 @@ export default function Dashboard() {
     }
   }, [xp, rank, soundMuted, soundVolume])
 
-  const activeSpots = locations.filter(s => s.day === currentDayTab)
-  const hasSpots = activeSpots.length > 0
-  const totalSteps = hasSpots ? activeSpots.length + 1 : 0
-  const isSealStep = currentSpotIndex === activeSpots.length
-  const activeSpot = !isSealStep && hasSpots ? activeSpots[currentSpotIndex] : null
-  const isDayCompleted = completedDays.includes(currentDayTab)
-
-  const hasKeepsake = (spotId) => collectedKeepsakes && collectedKeepsakes.includes(spotId)
-
   const triggerPageTurnAnimation = (updateFn, direction = 'right') => {
     updateFn();
   }
@@ -393,7 +394,6 @@ export default function Dashboard() {
     }
   }
 
-  // 🛡️ HOISTING FIX: Safely ordered before initialization 🛡️
   const getLeafOrder = (leafId) => {
     switch (leafId) {
       case 'chronicles': return 1
