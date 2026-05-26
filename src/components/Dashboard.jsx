@@ -806,8 +806,8 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
-{/* Outer 3D Binder Journal Container - Centered and Balanced */}
-      <div className="w-full max-w-6xl px-12 relative flex items-center justify-center mx-auto">
+      {/* Outer 3D Binder Journal Container - Centered and Balanced */}
+      <div className="w-full max-w-6xl journal-binder-wrapper px-0 md:px-12 relative flex items-center justify-center mx-auto">
         
         {/* Protruding Leather Index Tabs */}
         <div className="absolute top-16 -right-[46px] hidden md:flex flex-col gap-3 z-40">

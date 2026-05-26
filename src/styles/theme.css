@@ -457,15 +457,24 @@
 .journal-page-left {
   background-color: #FAF9F6;
   background-image: radial-gradient(circle at 100% 50%, rgba(139, 90, 43, 0.015) 0%, transparent 100%);
-  border-radius: 24px 0 0 24px;
+  border-radius: 0;
   position: relative;
 }
 
 .journal-page-right {
   background-color: #FAF9F6;
   background-image: radial-gradient(circle at 0% 50%, rgba(139, 90, 43, 0.015) 0%, transparent 100%);
-  border-radius: 0 24px 24px 0;
+  border-radius: 0 0 24px 24px;
   position: relative;
+}
+
+@media (min-width: 768px) {
+  .journal-page-left {
+    border-radius: 24px 0 0 24px;
+  }
+  .journal-page-right {
+    border-radius: 0 24px 24px 0;
+  }
 }
 
 /* Subtle page seam shadow */
