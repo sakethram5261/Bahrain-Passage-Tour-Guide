@@ -1,5 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { gsap } from 'gsap'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
 
 const SLOT_PHRASES = [
   'Bienvenue à Bahreïn',
@@ -8,115 +12,79 @@ const SLOT_PHRASES = [
   'Willkommen in Bahrain',
   'Benvenuti in Bahrein',
   'Добро пожаловать в Бахрейн',
-  'バーレーنへようこそ',
+  'バーレーンへようこそ',
   '바레인에 오신 것을 환영합니다',
 ]
 
 const ARABIC_FINAL  = 'مرحباً بكم في البحرين'
 const ENGLISH_FINAL = 'Welcome to Bahrain'
-const MIXED_CHARS   = 'أبتثجحخدذرزسشصضWELCOMTBAHRINwelcomtbahrinطظعغfqklmnhو0123456789@#$%'
+const MIXED_CHARS   = 'أبتثجحخدذرزWELCOMTBAHRINwelcomtbahrinطظعغfqklmnhو0123456789@#$%'
 
-// Gorgeous reactive letter that scrambles, blurs in, and springs up into place
-function ScrambleLetter({ char, delay, duration = 750 }) {
-  const [display, setDisplay] = useState(char === ' ' ? ' ' : '')
-  const [opacity, setOpacity] = useState(0)
-  const [blur, setBlur] = useState(12)
-  const [y, setY] = useState(20)
+const ITEM_H = 88 // px — height of each slot strip item
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ScrambleLetter
+// Direct DOM mutation via useRef — zero useState, zero React re-renders at 60 fps.
+// Blurs in with a damped-spring bounce from below.
+// ─────────────────────────────────────────────────────────────────────────────
+function ScrambleLetter({ char, delay, duration = 700 }) {
+  const ref = useRef(null)
 
   useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
     if (char === ' ') {
-      setOpacity(1)
-      setBlur(0)
-      setY(0)
+      el.style.cssText = 'display:inline-block;opacity:1;filter:blur(0px);transform:translateY(0px);white-space:pre;will-change:transform,filter,opacity'
+      el.textContent = '\u00A0'
       return
     }
 
-    const startTimeout = setTimeout(() => {
-      const startTime = performance.now()
-      let raf;
+    el.style.cssText = 'display:inline-block;opacity:0;filter:blur(6px);transform:translateY(18px);will-change:transform,filter,opacity'
+    el.textContent = MIXED_CHARS[0]
 
-      function tick(now) {
-        const progress = Math.min((now - startTime) / duration, 1)
-        
-        // Custom elastic/spring-like ease-out for the position bounce
-        // p = progress. Elastic overshoot formula:
-        const p = progress;
-        const springY = 20 * (1 - p) * Math.cos(p * Math.PI * 1.5)
+    let rafId
+    const tid = setTimeout(() => {
+      const t0 = performance.now()
+      const tick = (now) => {
+        const p = Math.min((now - t0) / duration, 1)
+        const e = 1 - Math.pow(1 - p, 3)                         // ease-out cubic
+        const springY = 18 * (1 - e) * Math.cos(e * Math.PI * 1.4) // damped spring
 
-        setOpacity(progress)
-        setBlur((1 - progress) * 12)
-        setY(springY)
+        el.style.opacity   = String(Math.min(e * 1.12, 1))
+        el.style.filter    = `blur(${(1 - e) * 6}px)`
+        el.style.transform = `translateY(${springY}px)`
 
-        if (progress < 1) {
-          setDisplay(MIXED_CHARS[Math.floor(Math.random() * MIXED_CHARS.length)])
-          raf = requestAnimationFrame(tick)
+        if (p < 1) {
+          el.textContent = MIXED_CHARS[Math.floor(Math.random() * MIXED_CHARS.length)]
+          rafId = requestAnimationFrame(tick)
         } else {
-          setDisplay(char)
+          el.style.opacity   = '1'
+          el.style.filter    = 'blur(0px)'
+          el.style.transform = 'translateY(0px)'
+          el.textContent     = char
         }
       }
-      raf = requestAnimationFrame(tick)
-
-      return () => cancelAnimationFrame(raf)
+      rafId = requestAnimationFrame(tick)
     }, delay)
 
-    return () => clearTimeout(startTimeout)
+    return () => {
+      clearTimeout(tid)
+      cancelAnimationFrame(rafId)
+    }
   }, [char, delay, duration])
 
   return (
     <span
+      ref={ref}
       style={{
         display: 'inline-block',
-        opacity: opacity,
-        filter: `blur(${blur}px)`,
-        transform: `translateY(${y}px)`,
-        whiteSpace: char === ' ' ? 'pre' : 'normal',
+        opacity: 0,
+        filter: 'blur(6px)',
+        transform: 'translateY(18px)',
+        whiteSpace: 'normal',
         willChange: 'transform, filter, opacity',
-      }}
-    >
-      {display}
-    </span>
-  )
-}
-
-// Dissolves, blurs out, and floats up gracefully
-function DissolvingLetter({ char, delay, duration = 500 }) {
-  const [opacity, setOpacity] = useState(1)
-  const [blur, setBlur] = useState(0)
-  const [y, setY] = useState(0)
-
-  useEffect(() => {
-    const startTimeout = setTimeout(() => {
-      const startTime = performance.now()
-      let raf;
-
-      function tick(now) {
-        const progress = Math.min((now - startTime) / duration, 1)
-        const easeIn = progress * progress * progress
-
-        setOpacity(1 - progress)
-        setBlur(progress * 14)
-        setY(-easeIn * 20)
-
-        if (progress < 1) {
-          raf = requestAnimationFrame(tick)
-        }
-      }
-      raf = requestAnimationFrame(tick)
-      return () => cancelAnimationFrame(raf)
-    }, delay)
-
-    return () => clearTimeout(startTimeout)
-  }, [delay, duration])
-
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        opacity: opacity,
-        filter: `blur(${blur}px)`,
-        transform: `translateY(${y}px)`,
-        whiteSpace: char === ' ' ? 'pre' : 'normal',
-        willChange: 'transform, filter, opacity',
+        transition: 'none',
       }}
     >
       {char}
@@ -124,308 +92,568 @@ function DissolvingLetter({ char, delay, duration = 500 }) {
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// DissolvingLetter
+// Direct DOM mutation — floats up and blurs out with accelerating ease.
+// ─────────────────────────────────────────────────────────────────────────────
+function DissolvingLetter({ char, delay, duration = 420 }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    el.style.cssText = 'display:inline-block;opacity:1;filter:blur(0px);transform:translateY(0px);will-change:transform,filter,opacity'
+
+    let rafId
+    const tid = setTimeout(() => {
+      const t0 = performance.now()
+      const tick = (now) => {
+        const p = Math.min((now - t0) / duration, 1)
+        const e = p * p * p // ease-in cubic — accelerates as it fades out
+
+        el.style.opacity   = String(1 - p)
+        el.style.filter    = `blur(${e * 14}px)`
+        el.style.transform = `translateY(${-e * 16}px)`
+
+        if (p < 1) rafId = requestAnimationFrame(tick)
+      }
+      rafId = requestAnimationFrame(tick)
+    }, delay)
+
+    return () => {
+      clearTimeout(tid)
+      cancelAnimationFrame(rafId)
+    }
+  }, [char, delay, duration])
+
+  return (
+    <span
+      ref={ref}
+      style={{
+        display: 'inline-block',
+        opacity: 1,
+        filter: 'blur(0px)',
+        transform: 'translateY(0px)',
+        whiteSpace: char === ' ' ? 'pre' : 'normal',
+        willChange: 'transform, filter, opacity',
+        transition: 'none',
+      }}
+    >
+      {char}
+    </span>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper — detect script family for font selection
+// ─────────────────────────────────────────────────────────────────────────────
+function fontFor(txt) {
+  if (txt === ARABIC_FINAL) return '"Noto Sans Arabic","Geeza Pro","Arial Unicode MS",sans-serif'
+  if (/[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF]/.test(txt)) return 'system-ui,"Noto Sans CJK",sans-serif'
+  if (/[\u0400-\u04FF]/.test(txt)) return 'system-ui,"Noto Sans",sans-serif'
+  return '"Playfair Display","Georgia",serif'
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WelcomeIntro
+// ─────────────────────────────────────────────────────────────────────────────
 export default function WelcomeIntro({ onComplete }) {
-  const wrapRef = useRef(null)
-  const trackRef = useRef(null)
-  const glowRef = useRef(null)
-  const [phase, setPhase] = useState('slot') // 'slot' | 'hold-arabic' | 'morph' | 'done'
-  const [skipped, setSkipped] = useState(false)
+  // ── Refs ──────────────────────────────────────────────────────────────────
+  const wrapRef        = useRef(null)
+  const glowRef        = useRef(null)
+  const trackRef       = useRef(null)
+  const slotViewRef    = useRef(null)
+  const arabicViewRef  = useRef(null)
+  const morphViewRef   = useRef(null)
+  const arabicLineRef  = useRef(null)
+  const taglineRef     = useRef(null)
+  const morphLineRef   = useRef(null)
+  const slotTlRef      = useRef(null)
+  const blurTlRef      = useRef(null)
+  const timersRef      = useRef([])
+  const skippedRef     = useRef(false)
+  const onCompleteRef  = useRef(onComplete)
 
-  const onCompleteRef = useRef(onComplete)
-  useEffect(() => {
-    onCompleteRef.current = onComplete
-  }, [onComplete])
+  // Whether morph letters are mounted (they mount when morph phase begins,
+  // so their per-letter delays are relative to morph start — not component mount)
+  const [showMorphLetters, setShowMorphLetters] = useState(false)
 
-  // Subtle ambient mouse/float reaction - direct GSAP animation for 60fps performance and zero React re-renders
+  useEffect(() => { onCompleteRef.current = onComplete }, [onComplete])
+
+  // ── Ambient mouse-reactive glow (pure GSAP, zero re-renders) ─────────────
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const onMove = (e) => {
       if (!glowRef.current) return
-      const x = (e.clientX / window.innerWidth) * 100
+      const x = (e.clientX / window.innerWidth)  * 100
       const y = (e.clientY / window.innerHeight) * 100
       gsap.to(glowRef.current, {
-        background: `radial-gradient(ellipse 70% 50% at ${x}% ${y}%, rgba(186,12,47,0.065) 0%, transparent 70%)`,
-        duration: 1.5,
+        background: `radial-gradient(ellipse 85% 65% at ${x}% ${y}%, rgba(186,12,47,0.07) 0%, transparent 72%)`,
+        duration: 1.8,
         ease: 'power2.out',
       })
     }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mousemove', onMove, { passive: true })
+    return () => window.removeEventListener('mousemove', onMove)
   }, [])
 
-  const skipIntro = () => {
-    if (skipped) return
-    setSkipped(true)
-    gsap.killTweensOf(wrapRef.current)
-    gsap.to(wrapRef.current, {
+  // ── Exit / Skip ───────────────────────────────────────────────────────────
+  const exitIntro = useCallback(() => {
+    if (skippedRef.current) return
+    skippedRef.current = true
+
+    // Kill all running animations
+    slotTlRef.current?.kill()
+    blurTlRef.current?.kill()
+    timersRef.current.forEach(clearTimeout)
+    timersRef.current = []
+    gsap.killTweensOf([
+      wrapRef.current, glowRef.current, trackRef.current,
+      slotViewRef.current, arabicViewRef.current, morphViewRef.current,
+      taglineRef.current, morphLineRef.current, arabicLineRef.current,
+    ])
+
+    // Elegant exit — slight scale gives a sense of "opening into" the app
+    const el = wrapRef.current
+    if (!el) { onCompleteRef.current?.(); return }
+    gsap.to(el, {
       opacity: 0,
-      duration: 0.5,
+      scale: 1.014,
+      duration: 0.9,
       ease: 'power3.inOut',
-      onComplete: () => {
-        setPhase('done')
-        onCompleteRef.current?.()
-      }
+      onComplete: () => onCompleteRef.current?.(),
     })
-  }
+  }, [])
 
-  // ── Phase 1: Slot machine with velocity-based motion blur & elastic rebound ──
+  // ── Main animation sequence ───────────────────────────────────────────────
   useEffect(() => {
-    if (phase !== 'slot') return
+    const wrap       = wrapRef.current
+    const track      = trackRef.current
+    const slotView   = slotViewRef.current
+    const arabicView = arabicViewRef.current
+    const morphView  = morphViewRef.current
+    if (!wrap || !track || !slotView || !arabicView || !morphView) return
 
-    // Gentle backdrop fade in
-    gsap.fromTo(wrapRef.current, { opacity: 0 }, { opacity: 1, duration: 0.6 })
+    // ── Initial state setup ──────────────────────────────────────────────────
+    gsap.set(wrap,       { opacity: 0, scale: 1 })
+    gsap.set(arabicView, { opacity: 0, y: 14, pointerEvents: 'none' })
+    gsap.set(morphView,  { opacity: 0, pointerEvents: 'none' })
+    gsap.set(slotView,   { opacity: 1 })
+    if (taglineRef.current)   gsap.set(taglineRef.current,  { opacity: 0, y: 18, filter: 'blur(4px)' })
+    if (morphLineRef.current) gsap.set(morphLineRef.current, { width: 0 })
+    if (arabicLineRef.current) gsap.set(arabicLineRef.current, { width: 0 })
 
+    // ── Screen fade-in ───────────────────────────────────────────────────────
+    gsap.to(wrap, { opacity: 1, duration: 0.75, ease: 'power2.out' })
+
+    // ── Build slot strip ─────────────────────────────────────────────────────
     const items = [...SLOT_PHRASES, ARABIC_FINAL]
-    const ITEM_H = 80
-    const VIEWPORT_H = 90
-    const CENTER_OFFSET = (VIEWPORT_H - ITEM_H) / 2 // tight clearance top & bottom
-
-    const track = trackRef.current
-    if (!track) return
     track.innerHTML = ''
 
     items.forEach((txt) => {
+      const isArabic = txt === ARABIC_FINAL
       const el = document.createElement('div')
       el.style.cssText = `
         height:${ITEM_H}px; display:flex; align-items:center; justify-content:center;
-        font-size:clamp(1.8rem,7vw,3.3rem); font-weight:800; color:#BA0C2F;
-        letter-spacing:0.02em; white-space:nowrap;
-        font-family:${txt === ARABIC_FINAL ? '"Noto Sans Arabic","Geeza Pro",sans-serif' : '"Inter",system-ui,sans-serif'};
-        direction:${txt === ARABIC_FINAL ? 'rtl' : 'ltr'};
+        font-size:clamp(2rem,7vw,3.3rem); font-weight:800; color:#BA0C2F;
+        letter-spacing:${isArabic ? '0.01em' : '0.025em'};
+        white-space:nowrap;
+        font-family:${fontFor(txt)};
+        direction:${isArabic ? 'rtl' : 'ltr'};
+        user-select:none;
       `
       el.textContent = txt
       track.appendChild(el)
     })
 
-    // Setup initial position centered in viewport
-    gsap.set(track, { y: CENTER_OFFSET, filter: 'blur(0px)' })
+    const endY = -((items.length - 1) * ITEM_H) // final track position (Arabic centered)
+    gsap.set(track, { y: 0, filter: 'blur(0px)' })
 
-    const totalDistance = CENTER_OFFSET - ((items.length - 1) * ITEM_H)
+    // ── Slot machine — 3-phase mechanical physics ─────────────────────────────
+    //  Phase A: Build momentum (slow → fast)       0.85s  power2.in
+    //  Phase B: Peak velocity (linear)             1.05s  none
+    //  Phase C: Snap to Arabic (fast → precise)    1.45s  power4.out
+    // Total scroll duration: 3.35s  |  Timeline delay: 0.55s
 
-    // Spin animation with elastic snap-back at the end
-    gsap.to(track, {
-      y: totalDistance,
-      duration: 3.4,
-      ease: 'back.out(1.15)', // spring rebound
-      onUpdate: function() {
-        const progress = this.progress()
-        let currentBlur = 0
-        if (progress < 0.75) {
-          currentBlur = Math.sin(progress * Math.PI) * 10 * (1 - progress)
-        }
-        gsap.set(track, { filter: `blur(${currentBlur}px)` })
-      },
-      onComplete: () => {
-        setPhase('hold-arabic')
-      }
+    // Motion blur lives on the VIEWPORT CONTAINER (slotView), completely separate
+    // from the track translation tween — no per-frame gsap.set conflicts.
+    blurTlRef.current = gsap.timeline({ delay: 0.55 })
+      .to(slotView, { filter: 'blur(9px)',  duration: 1.9, ease: 'power2.inOut' })
+      .to(slotView, { filter: 'blur(0px)',  duration: 1.45, ease: 'power4.out' })
+
+    slotTlRef.current = gsap.timeline({
+      delay: 0.55,
+      onComplete: onSlotComplete,
     })
-  }, [phase])
+      .to(track, { y: endY * 0.28, duration: 0.85, ease: 'power2.in'  })
+      .to(track, { y: endY * 0.75, duration: 1.05, ease: 'none'       })
+      .to(track, { y: endY,        duration: 1.45, ease: 'power4.out' })
 
-  // ── Phase 2: Switch from hold-arabic to morph ──
-  useEffect(() => {
-    if (phase !== 'hold-arabic') return
-    const timer = setTimeout(() => {
-      setPhase('morph')
-    }, 950) // hold the settled Arabic clearly
-    return () => clearTimeout(timer)
-  }, [phase])
+    function onSlotComplete() {
+      if (skippedRef.current) return
+      gsap.set(slotView, { filter: 'blur(0px)' })
 
-  // ── Phase 3: Exit trigger after English settles ──
-  useEffect(() => {
-    if (phase !== 'morph') return
+      // ── Cross-fade: slot → Arabic hold ──────────────────────────────────────
+      gsap.to(slotView, { opacity: 0, duration: 0.5, ease: 'power2.inOut' })
 
-    const totalMorphTime = 800 + (ENGLISH_FINAL.length * 40)
-    const exitTimer = setTimeout(() => {
-      if (skipped) return
-      gsap.to(wrapRef.current, {
-        opacity: 0,
-        duration: 0.9,
-        ease: 'power3.inOut',
+      gsap.set(arabicView, { pointerEvents: 'auto' })
+      gsap.to(arabicView, {
+        opacity: 1, y: 0,
+        duration: 0.65, delay: 0.2,
+        ease: 'power3.out',
         onComplete: () => {
-          setPhase('done')
-          onCompleteRef.current?.()
-        }
+          // Decorative line expands under Arabic
+          if (arabicLineRef.current) {
+            gsap.to(arabicLineRef.current, { width: 80, duration: 0.7, ease: 'power3.out' })
+          }
+
+          // ── Hold Arabic, then transition to morph ────────────────────────────
+          const holdTimer = setTimeout(() => {
+            if (skippedRef.current) return
+
+            gsap.to(arabicView, { opacity: 0, y: -10, duration: 0.42, ease: 'power2.in' })
+
+            // Mount letters then fade in morphView
+            setShowMorphLetters(true)
+            gsap.set(morphView, { pointerEvents: 'auto' })
+            gsap.to(morphView, {
+              opacity: 1,
+              duration: 0.38, delay: 0.18,
+              ease: 'power2.out',
+              onComplete: () => {
+                if (skippedRef.current) return
+
+                // Tagline + line appear after English letters finish settling
+                // ENGLISH_FINAL.length=18, max delay = 180+(17*48) = 996ms, duration=700ms → settle≈1696ms
+                const taglineTimer = setTimeout(() => {
+                  if (skippedRef.current) return
+                  if (taglineRef.current) {
+                    gsap.to(taglineRef.current, {
+                      opacity: 0.72, y: 0, filter: 'blur(0px)',
+                      duration: 1.0, ease: 'power3.out',
+                    })
+                  }
+                  if (morphLineRef.current) {
+                    gsap.to(morphLineRef.current, { width: 110, duration: 0.9, delay: 0.4, ease: 'power3.out' })
+                  }
+                }, 1750)
+                timersRef.current.push(taglineTimer)
+
+                // ── Exit after tagline reads ──────────────────────────────────
+                const exitTimer = setTimeout(() => {
+                  if (!skippedRef.current) exitIntro()
+                }, 1750 + 1800)
+                timersRef.current.push(exitTimer)
+              },
+            })
+          }, 1050)
+          timersRef.current.push(holdTimer)
+        },
       })
-    }, totalMorphTime + 1300)
+    }
 
-    return () => clearTimeout(exitTimer)
-  }, [phase, skipped])
+    return () => {
+      slotTlRef.current?.kill()
+      blurTlRef.current?.kill()
+      timersRef.current.forEach(clearTimeout)
+      timersRef.current = []
+      gsap.killTweensOf([
+        wrap, glowRef.current, track, slotView, arabicView, morphView,
+        taglineRef.current, morphLineRef.current, arabicLineRef.current,
+      ])
+    }
+  }, [exitIntro])
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div
       ref={wrapRef}
       style={{
         position: 'fixed', inset: 0, zIndex: 9999,
-        background: '#fafafa',
+        background: '#FAF9F6',
+        backgroundImage: [
+          'radial-gradient(ellipse 80% 55% at 50% 42%, rgba(186,12,47,0.042) 0%, transparent 72%)',
+          'repeating-linear-gradient(90deg, rgba(186,12,47,0.010) 0px, rgba(186,12,47,0.010) 1px, transparent 1px, transparent 24px)',
+          'repeating-linear-gradient(0deg,  rgba(186,12,47,0.010) 0px, rgba(186,12,47,0.010) 1px, transparent 1px, transparent 24px)',
+        ].join(','),
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
+        opacity: 0,
+        willChange: 'opacity, transform',
       }}
     >
-      {/* Living Ambient Glow - reacts to mouse */}
-      <div 
+      {/* ── Ambient glow (mouse-reactive) ──────────────────────────────────── */}
+      <div
         ref={glowRef}
         style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(186,12,47,0.065) 0%, transparent 70%)',
-        }} 
+          background: 'radial-gradient(ellipse 85% 65% at 50% 42%, rgba(186,12,47,0.06) 0%, transparent 72%)',
+        }}
       />
 
-      {/* Top flag stripe */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: 4,
-        background: 'linear-gradient(90deg,#BA0C2F,#e8163b 50%,#BA0C2F)',
-      }} />
-
-      {/* Elegant Crown Element */}
-      <div style={{
-        marginBottom: '1rem', fontSize: '1.2rem',
-        opacity: 0.18, color: '#BA0C2F', letterSpacing: '0.65rem',
-        animation: 'pulseGlow 3s ease-in-out infinite',
-      }}>✦ ✦ ✦</div>
-
-      {/* ── STAGE 1: SLOT SPIN VIEWPORT (90px height keeps vertical space tight and centered) ── */}
-      {phase === 'slot' && (
+      {/* ── Bahrain flag: top serrated band ────────────────────────────────── */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2 }}>
         <div style={{
-          height: 90, overflow: 'hidden',
-          width: '100%', maxWidth: 700,
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
-          maskImage:        'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
-        }}>
-          <div ref={trackRef} style={{ willChange: 'transform, filter' }} />
+          height: 7,
+          background: 'linear-gradient(90deg, #8c0820, #BA0C2F 28%, #d41737 52%, #BA0C2F 76%, #8c0820)',
+          boxShadow: '0 2px 14px rgba(186,12,47,0.20)',
+        }} />
+        <svg viewBox="0 0 1200 14" preserveAspectRatio="none" style={{ width: '100%', height: 14, display: 'block' }}>
+          <path
+            d="M0,0 L50,11 L100,0 L150,11 L200,0 L250,11 L300,0 L350,11 L400,0 L450,11 L500,0 L550,11 L600,0 L650,11 L700,0 L750,11 L800,0 L850,11 L900,0 L950,11 L1000,0 L1050,11 L1100,0 L1150,11 L1200,0 L1200,14 L0,14 Z"
+            fill="#FAF9F6"
+          />
+        </svg>
+      </div>
+
+      {/* ── Bahrain flag: bottom serrated band ─────────────────────────────── */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2 }}>
+        <svg viewBox="0 0 1200 14" preserveAspectRatio="none" style={{ width: '100%', height: 14, display: 'block', transform: 'scaleY(-1)' }}>
+          <path
+            d="M0,0 L50,11 L100,0 L150,11 L200,0 L250,11 L300,0 L350,11 L400,0 L450,11 L500,0 L550,11 L600,0 L650,11 L700,0 L750,11 L800,0 L850,11 L900,0 L950,11 L1000,0 L1050,11 L1100,0 L1150,11 L1200,0 L1200,14 L0,14 Z"
+            fill="#FAF9F6"
+          />
+        </svg>
+        <div style={{
+          height: 7,
+          background: 'linear-gradient(90deg, #8c0820, #BA0C2F 28%, #d41737 52%, #BA0C2F 76%, #8c0820)',
+          boxShadow: '0 -2px 14px rgba(186,12,47,0.20)',
+        }} />
+      </div>
+
+      {/* ── Text stages container ───────────────────────────────────────────── */}
+      {/*    All three stages are always mounted. GSAP controls their opacity.  */}
+      {/*    This eliminates all DOM-swap flashes between phases.               */}
+      <div style={{
+        position: 'relative',
+        width: '100%',
+        height: 220,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'visible',
+      }}>
+
+        {/* ── STAGE 1: Slot machine ─────────────────────────────────────────── */}
+        <div
+          ref={slotViewRef}
+          style={{
+            position: 'absolute',
+            width: '100%',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {/* Viewport window with fade masks top and bottom */}
+          <div style={{
+            height: ITEM_H,
+            overflow: 'hidden',
+            width: '100%', maxWidth: 780,
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%)',
+            maskImage:        'linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%)',
+          }}>
+            <div ref={trackRef} style={{ willChange: 'transform' }} />
+          </div>
+
+          {/* Loading dots */}
+          <div style={{ marginTop: '2rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {[0, 1, 2].map(i => (
+              <span
+                key={i}
+                style={{
+                  width: 5, height: 5, borderRadius: '50%',
+                  background: '#BA0C2F', display: 'inline-block',
+                  animation: `introDot 1.3s ease-in-out ${i * 0.26}s infinite`,
+                }}
+              />
+            ))}
+          </div>
         </div>
-      )}
 
-      {/* ── STAGE 2: SETTLED ARABIC STATE (Hold - no scale jump keyframe to prevent clips) ── */}
-      {phase === 'hold-arabic' && (
-        <div style={{
-          textAlign: 'center', padding: '0 2rem',
-          height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        {/* ── STAGE 2: Arabic hold ─────────────────────────────────────────── */}
+        <div
+          ref={arabicViewRef}
+          style={{
+            position: 'absolute',
+            width: '100%',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            opacity: 0,
+            pointerEvents: 'none',
+          }}
+        >
           <p style={{
-            fontFamily: '"Noto Sans Arabic","Geeza Pro",sans-serif',
+            fontFamily: '"Noto Sans Arabic","Geeza Pro","Arial Unicode MS",sans-serif',
             direction: 'rtl',
-            fontSize: 'clamp(2rem,7.5vw,3.5rem)',
+            fontSize: 'clamp(2rem,7.2vw,3.4rem)',
             fontWeight: 800,
             color: '#BA0C2F',
             margin: 0,
-            lineHeight: 1.3,
+            letterSpacing: '0.01em',
+            lineHeight: 1.25,
+            textShadow: '0 4px 28px rgba(186,12,47,0.10)',
+            userSelect: 'none',
           }}>
             {ARABIC_FINAL}
           </p>
+          {/* Decorative expanding underline — animated by GSAP */}
+          <div
+            ref={arabicLineRef}
+            style={{
+              marginTop: '1rem',
+              height: 1.5,
+              width: 0,
+              background: 'linear-gradient(90deg, transparent, rgba(186,12,47,0.42), transparent)',
+              borderRadius: 1,
+            }}
+          />
         </div>
-      )}
 
-      {/* ── STAGE 3: THE DESTRUCTIVE MORPH (Arabic melts away, English scrambles up) ── */}
-      {phase === 'morph' && (
-        <div style={{ 
-          position: 'relative', textAlign: 'center', padding: '0 2rem',
-          height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          overflow: 'visible'
-        }}>
-          {/* Overlapping container to keep height stable */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
-            
-            {/* Arabic melting away */}
+        {/* ── STAGE 3: Morph (Arabic dissolves, English scrambles in) ─────── */}
+        <div
+          ref={morphViewRef}
+          style={{
+            position: 'absolute',
+            width: '100%',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            opacity: 0,
+            pointerEvents: 'none',
+            overflow: 'visible',
+          }}
+        >
+          {/* Letter animations — only mount when morph phase begins so that    */}
+          {/* per-letter delays are correctly relative to morph start, not mount */}
+          {showMorphLetters && (
             <div style={{
-              position: 'absolute',
-              fontFamily: '"Noto Sans Arabic","Geeza Pro",sans-serif',
-              direction: 'rtl',
-              fontSize: 'clamp(2rem,7.5vw,3.5rem)',
-              fontWeight: 800,
-              color: '#BA0C2F',
-              whiteSpace: 'nowrap',
+              position: 'relative',
+              height: ITEM_H,
+              width: '100%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               overflow: 'visible',
             }}>
+              {/* Arabic dissolving out */}
+              <div style={{
+                position: 'absolute',
+                fontFamily: '"Noto Sans Arabic","Geeza Pro","Arial Unicode MS",sans-serif',
+                direction: 'rtl',
+                fontSize: 'clamp(2rem,7.2vw,3.4rem)',
+                fontWeight: 800,
+                color: '#BA0C2F',
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textShadow: '0 4px 28px rgba(186,12,47,0.10)',
+                userSelect: 'none',
+              }}>
+                {ARABIC_FINAL.split('').map((c, i) => (
+                  <DissolvingLetter key={i} char={c} delay={i * 24} duration={420} />
+                ))}
+              </div>
 
-              {ARABIC_FINAL.split('').map((c, idx) => (
-                <DissolvingLetter key={idx} char={c} delay={idx * 28} />
-              ))}
+              {/* English scrambling in */}
+              <div style={{
+                position: 'absolute',
+                fontFamily: '"Playfair Display","Georgia",serif',
+                fontSize: 'clamp(2rem,7.2vw,3.4rem)',
+                fontWeight: 800,
+                color: '#BA0C2F',
+                letterSpacing: '0.025em',
+                whiteSpace: 'nowrap',
+                overflow: 'visible',
+                textShadow: '0 4px 28px rgba(186,12,47,0.10)',
+                userSelect: 'none',
+              }}>
+                {ENGLISH_FINAL.split('').map((c, i) => (
+                  <ScrambleLetter key={i} char={c} delay={180 + i * 48} duration={700} />
+                ))}
+              </div>
             </div>
+          )}
 
-            {/* English scrambling and taking its place */}
-            <div style={{
-              fontFamily: '"Inter",system-ui,sans-serif',
-              fontSize: 'clamp(2rem,7.5vw,3.5rem)',
-              fontWeight: 800,
+          {/* Tagline — always in morphView, GSAP animates opacity/y from initial set */}
+          <p
+            ref={taglineRef}
+            style={{
+              marginTop: '1.6rem',
+              fontFamily: '"Playfair Display","Georgia",serif',
+              fontStyle: 'italic',
+              fontSize: 'clamp(0.68rem,1.85vw,0.82rem)',
               color: '#BA0C2F',
-              letterSpacing: '0.02em',
-              whiteSpace: 'nowrap',
-              overflow: 'visible',
-            }}>
-              {ENGLISH_FINAL.split('').map((c, idx) => (
-                <ScrambleLetter key={idx} char={c} delay={220 + idx * 45} />
-              ))}
-            </div>
-
-            {/* Premium tag rises under English */}
-            <p style={{
-              marginTop: '1.2rem',
-              fontFamily: '"Inter",system-ui,sans-serif',
-              fontSize:   'clamp(0.7rem,2.2vw,0.85rem)',
-              color:      '#BA0C2F',
-              opacity:    0,
-              letterSpacing: '0.3em',
+              opacity: 0,
+              letterSpacing: '0.32em',
               textTransform: 'uppercase',
-              animation:  'fadeUpPremium 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards',
-            }}>
-              Your journey starts here
-            </p>
+              userSelect: 'none',
+              margin: '1.6rem 0 0',
+              padding: 0,
+            }}
+          >
+            مرحباً &nbsp;·&nbsp; Your Journey Awaits
+          </p>
 
-          </div>
+          {/* Decorative expanding underline */}
+          <div
+            ref={morphLineRef}
+            style={{
+              marginTop: '0.75rem',
+              height: 1,
+              width: 0,
+              background: 'linear-gradient(90deg, transparent, rgba(186,12,47,0.38), transparent)',
+              borderRadius: 1,
+            }}
+          />
         </div>
-      )}
+      </div>
 
-      {/* Pulsing visual cues */}
-      {phase === 'slot' && (
-        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem' }}>
-          {[0,1,2].map(i => (
-            <span key={i} style={{
-              width: 5, height: 5, borderRadius: '50%',
-              background: '#BA0C2F', opacity: 0.3, display: 'inline-block',
-              animation: `dotFade 1.1s ease-in-out ${i * 0.18}s infinite`,
-            }} />
-          ))}
-        </div>
-      )}
-
-      {/* Skip Intro Button */}
+      {/* ── Skip Intro — refined pill button ───────────────────────────────── */}
       <button
-        onClick={skipIntro}
+        onClick={exitIntro}
         style={{
           position: 'absolute',
-          bottom: '2rem',
-          right: '2rem',
-          background: 'transparent',
-          border: 'none',
+          bottom: '2.4rem',
+          right: '2.4rem',
+          background: 'rgba(250,249,246,0.6)',
+          border: '1px solid rgba(186,12,47,0.25)',
+          borderRadius: '100px',
           color: '#BA0C2F',
-          opacity: 0.4,
-          fontSize: '0.75rem',
-          fontFamily: '"Inter",system-ui,sans-serif',
-          fontWeight: '700',
-          letterSpacing: '0.15em',
+          opacity: 0.55,
+          fontSize: '0.72rem',
+          fontFamily: '"Playfair Display","Georgia",serif',
+          fontWeight: 700,
+          fontStyle: 'italic',
+          letterSpacing: '0.18em',
           textTransform: 'uppercase',
           cursor: 'pointer',
-          transition: 'opacity 0.2s, transform 0.2s',
+          padding: '0.52rem 1.2rem',
+          transition: 'opacity 0.22s ease, border-color 0.22s ease, background 0.22s ease, transform 0.22s ease',
           zIndex: 10000,
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          userSelect: 'none',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.opacity = 0.8; e.currentTarget.style.transform = 'translateX(-2px)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.opacity = 0.4; e.currentTarget.style.transform = 'none'; }}
+        onMouseEnter={e => {
+          e.currentTarget.style.opacity     = '1'
+          e.currentTarget.style.borderColor = 'rgba(186,12,47,0.6)'
+          e.currentTarget.style.background  = 'rgba(250,249,246,0.85)'
+          e.currentTarget.style.transform   = 'translateY(-2px)'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.opacity     = '0.55'
+          e.currentTarget.style.borderColor = 'rgba(186,12,47,0.25)'
+          e.currentTarget.style.background  = 'rgba(250,249,246,0.6)'
+          e.currentTarget.style.transform   = 'none'
+        }}
       >
         Skip Intro →
       </button>
 
+      {/* ── Keyframes ──────────────────────────────────────────────────────── */}
       <style>{`
-        @keyframes pulseGlow {
-          0%, 100% { opacity: 0.18; transform: scale(1); }
-          50% { opacity: 0.35; transform: scale(1.05); }
-        }
-        @keyframes dotFade {
-          0%, 100% { opacity: 0.15; transform: scale(0.85); }
-          50%      { opacity: 0.6; transform: scale(1.15); }
-        }
-        @keyframes fadeUpPremium {
-          from { opacity: 0; transform: translateY(12px); filter: blur(2px); }
-          to   { opacity: 0.45; transform: translateY(0); filter: blur(0); }
+        @keyframes introDot {
+          0%, 100% { opacity: 0.18; transform: scale(0.75) translateY(0);    }
+          50%       { opacity: 0.80; transform: scale(1.25) translateY(-3px); }
         }
       `}</style>
     </div>
