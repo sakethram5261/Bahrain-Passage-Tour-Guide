@@ -8,45 +8,166 @@ const SLOT_PHRASES = [
   'Willkommen in Bahrain',
   'Benvenuti in Bahrein',
   'Добро пожаловать в Бахрейн',
-  'バーレーンへようこそ',
+  'バーレーنへようこそ',
   '바레인에 오신 것을 환영합니다',
 ]
 
 const ARABIC_FINAL  = 'مرحباً بكم في البحرين'
 const ENGLISH_FINAL = 'Welcome to Bahrain'
+const MIXED_CHARS   = 'أبتثجحخدذرزسشصضWELCOMTBAHRINwelcomtbahrinطظعغfqklmnhو0123456789@#$%'
 
-// Mixed pool: Arabic glyphs + Latin — gives a "language morphing" feel during scramble
-const MIXED_CHARS = 'أبتثجحخدذرزسشصضWELCOMTBAHRINwelcomtbahrinطظعغfqklmnhو0123456789@#$%'
+// Gorgeous reactive letter that scrambles, blurs in, and springs up into place
+function ScrambleLetter({ char, delay, duration = 750 }) {
+  const [display, setDisplay] = useState(char === ' ' ? ' ' : '')
+  const [opacity, setOpacity] = useState(0)
+  const [blur, setBlur] = useState(12)
+  const [y, setY] = useState(20)
+
+  useEffect(() => {
+    if (char === ' ') {
+      setOpacity(1)
+      setBlur(0)
+      setY(0)
+      return
+    }
+
+    const startTimeout = setTimeout(() => {
+      const startTime = performance.now()
+      let raf;
+
+      function tick(now) {
+        const progress = Math.min((now - startTime) / duration, 1)
+        
+        // Custom elastic/spring-like ease-out for the position bounce
+        // p = progress. Elastic overshoot formula:
+        const p = progress;
+        const springY = 20 * (1 - p) * Math.cos(p * Math.PI * 1.5)
+
+        setOpacity(progress)
+        setBlur((1 - progress) * 12)
+        setY(springY)
+
+        if (progress < 1) {
+          setDisplay(MIXED_CHARS[Math.floor(Math.random() * MIXED_CHARS.length)])
+          raf = requestAnimationFrame(tick)
+        } else {
+          setDisplay(char)
+        }
+      }
+      raf = requestAnimationFrame(tick)
+
+      return () => cancelAnimationFrame(raf)
+    }, delay)
+
+    return () => clearTimeout(startTimeout)
+  }, [char, delay, duration])
+
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        opacity: opacity,
+        filter: `blur(${blur}px)`,
+        transform: `translateY(${y}px)`,
+        whiteSpace: char === ' ' ? 'pre' : 'normal',
+        willChange: 'transform, filter, opacity',
+      }}
+    >
+      {display}
+    </span>
+  )
+}
+
+// Dissolves, blurs out, and floats up gracefully
+function DissolvingLetter({ char, delay, duration = 500 }) {
+  const [opacity, setOpacity] = useState(1)
+  const [blur, setBlur] = useState(0)
+  const [y, setY] = useState(0)
+
+  useEffect(() => {
+    const startTimeout = setTimeout(() => {
+      const startTime = performance.now()
+      let raf;
+
+      function tick(now) {
+        const progress = Math.min((now - startTime) / duration, 1)
+        const easeIn = progress * progress * progress
+
+        setOpacity(1 - progress)
+        setBlur(progress * 14)
+        setY(-easeIn * 20)
+
+        if (progress < 1) {
+          raf = requestAnimationFrame(tick)
+        }
+      }
+      raf = requestAnimationFrame(tick)
+      return () => cancelAnimationFrame(raf)
+    }, delay)
+
+    return () => clearTimeout(startTimeout)
+  }, [delay, duration])
+
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        opacity: opacity,
+        filter: `blur(${blur}px)`,
+        transform: `translateY(${y}px)`,
+        whiteSpace: char === ' ' ? 'pre' : 'normal',
+        willChange: 'transform, filter, opacity',
+      }}
+    >
+      {char}
+    </span>
+  )
+}
 
 export default function WelcomeIntro({ onComplete }) {
-  const wrapRef    = useRef(null)
-  const trackRef   = useRef(null)
-  const textBoxRef = useRef(null)
-  const [phase, setPhase]       = useState('slot')   // 'slot' | 'decode' | 'done'
-  const [liveText, setLiveText] = useState('')
-  const [isArabic, setIsArabic] = useState(false)
-  const [showSub, setShowSub]   = useState(false)
-  const rafRef = useRef(null)
+  const wrapRef = useRef(null)
+  const trackRef = useRef(null)
+  const [phase, setPhase] = useState('slot') // 'slot' | 'hold-arabic' | 'morph' | 'done'
+  const [ambientX, setAmbientX] = useState(50)
+  const [ambientY, setAmbientY] = useState(50)
 
-  // ── Phase 1: slot machine ────────────────────────────────────────────────
+  // Subtle ambient mouse/float reaction
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const x = (e.clientX / window.innerWidth) * 100
+      const y = (e.clientY / window.innerHeight) * 100
+      gsap.to({ x: ambientX, y: ambientY }, {
+        x, y,
+        duration: 2,
+        ease: 'power2.out',
+        onUpdate: function() {
+          setAmbientX(this.targets()[0].x)
+          setAmbientY(this.targets()[0].y)
+        }
+      })
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [ambientX, ambientY])
+
+  // ── Phase 1: Slot machine with velocity-based motion blur & elastic rebound ──
   useEffect(() => {
     if (phase !== 'slot') return
 
-    gsap.fromTo(wrapRef.current, { opacity: 0 }, { opacity: 1, duration: 0.4 })
+    // Gentle backdrop fade in
+    gsap.fromTo(wrapRef.current, { opacity: 0 }, { opacity: 1, duration: 0.6 })
 
     const items = [...SLOT_PHRASES, ARABIC_FINAL]
-    const ITEM_H   = 80
-    const FAST_DUR = 0.07
-    const SLOW_DURS = [0.12, 0.17, 0.25, 0.36, 0.52]
-
+    const ITEM_H = 80
     const track = trackRef.current
     track.innerHTML = ''
+
     items.forEach((txt) => {
       const el = document.createElement('div')
       el.style.cssText = `
         height:${ITEM_H}px; display:flex; align-items:center; justify-content:center;
-        font-size:clamp(1.6rem,6vw,3rem); font-weight:700; color:#BA0C2F;
-        letter-spacing:0.03em; white-space:nowrap;
+        font-size:clamp(1.8rem,6vw,3.2rem); font-weight:800; color:#BA0C2F;
+        letter-spacing:0.02em; white-space:nowrap;
         font-family:${txt === ARABIC_FINAL ? '"Noto Sans Arabic","Geeza Pro",sans-serif' : '"Inter",system-ui,sans-serif'};
         direction:${txt === ARABIC_FINAL ? 'rtl' : 'ltr'};
       `
@@ -54,87 +175,60 @@ export default function WelcomeIntro({ onComplete }) {
       track.appendChild(el)
     })
 
-    gsap.set(track, { y: 0 })
+    // Setup initial position
+    gsap.set(track, { y: 0, filter: 'blur(0px)' })
 
-    const tl = gsap.timeline({ onComplete: () => setPhase('decode') })
-    const fastItems = items.length - 1 - SLOW_DURS.length
-    for (let i = 0; i < fastItems; i++) {
-      tl.to(track, { y: `-=${ITEM_H}`, duration: FAST_DUR, ease: 'none' })
-    }
-    SLOW_DURS.forEach((dur) => {
-      tl.to(track, { y: `-=${ITEM_H}`, duration: dur, ease: 'power2.out' })
+    const totalDistance = -((items.length - 1) * ITEM_H)
+
+    // Spin animation with elastic snap-back at the end
+    gsap.to(track, {
+      y: totalDistance,
+      duration: 3.4,
+      ease: 'back.out(1.15)', // spring rebound
+      onUpdate: function() {
+        const progress = this.progress()
+        // Blur curve: peak blur during high-speed middle spin, drop to 0 perfectly at final lock
+        let currentBlur = 0
+        if (progress < 0.75) {
+          // Scale blur with velocity (higher in first half, fading to zero as it settles)
+          currentBlur = Math.sin(progress * Math.PI) * 10 * (1 - progress)
+        }
+        gsap.set(track, { filter: `blur(${currentBlur}px)` })
+      },
+      onComplete: () => {
+        setPhase('hold-arabic')
+      }
     })
-
-    return () => tl.kill()
   }, [phase])
 
-  // ── Phase 2: Arabic slam-in → scramble → resolve to English ─────────────
+  // ── Phase 2: Switch from hold-arabic to morph ──
   useEffect(() => {
-    if (phase !== 'decode') return
+    if (phase !== 'hold-arabic') return
+    const timer = setTimeout(() => {
+      setPhase('morph')
+    }, 950) // hold the settled Arabic clearly
+    return () => clearTimeout(timer)
+  }, [phase])
 
-    // Show Arabic first
-    setIsArabic(true)
-    setLiveText(ARABIC_FINAL)
+  // ── Phase 3: Exit trigger after English settles ──
+  useEffect(() => {
+    if (phase !== 'morph') return
 
-    // Punch in
-    gsap.fromTo(textBoxRef.current,
-      { scale: 1.12, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.32, ease: 'back.out(2)' }
-    )
-
-    // Hold Arabic clearly, THEN scramble-decode into English
-    const holdTimer = setTimeout(() => {
-      setIsArabic(false)   // switch to LTR font mid-animation
-
-      const DECODE_MS   = 1400   // total decode duration
-      const REVEAL_LAG  = 0.35   // head start before chars are revealed (0→1)
-      const start = performance.now()
-
-      function tick(now) {
-        const t = Math.min((now - start) / DECODE_MS, 1)
-
-        // Reveal progress: starts after lag, finishes at 1
-        const revealProgress = Math.max(0, (t - REVEAL_LAG) / (1 - REVEAL_LAG))
-
-        const result = ENGLISH_FINAL
-          .split('')
-          .map((char, i) => {
-            if (char === ' ') return ' '
-            const charThreshold = i / ENGLISH_FINAL.length
-            // Character is locked in once revealProgress passes its threshold
-            if (revealProgress >= charThreshold + 0.08) return char
-            // Otherwise show a random char from the mixed pool
-            return MIXED_CHARS[Math.floor(Math.random() * MIXED_CHARS.length)]
-          })
-          .join('')
-
-        setLiveText(result)
-
-        if (t < 1) {
-          rafRef.current = requestAnimationFrame(tick)
-        } else {
-          setLiveText(ENGLISH_FINAL)
-          setShowSub(true)
-
-          // Exit fade
-          setTimeout(() => {
-            gsap.to(wrapRef.current, {
-              opacity: 0,
-              duration: 0.8,
-              ease: 'power2.inOut',
-              onComplete: () => { setPhase('done'); onComplete?.() }
-            })
-          }, 1400)
+    // Trigger complete fade out after English finishes resolving
+    const totalMorphTime = 800 + (ENGLISH_FINAL.length * 40) // delay + stagger timeline
+    const exitTimer = setTimeout(() => {
+      gsap.to(wrapRef.current, {
+        opacity: 0,
+        duration: 0.9,
+        ease: 'power3.inOut',
+        onComplete: () => {
+          setPhase('done')
+          onComplete?.()
         }
-      }
+      })
+    }, totalMorphTime + 1300)
 
-      rafRef.current = requestAnimationFrame(tick)
-    }, 700)  // hold Arabic for 700ms before scramble starts
-
-    return () => {
-      clearTimeout(holdTimer)
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
+    return () => clearTimeout(exitTimer)
   }, [phase, onComplete])
 
   return (
@@ -148,10 +242,11 @@ export default function WelcomeIntro({ onComplete }) {
         overflow: 'hidden',
       }}
     >
-      {/* Radial blush */}
+      {/* Living Ambient Glow - reacts to mouse */}
       <div style={{
         position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse 65% 45% at 50% 50%, rgba(186,12,47,0.07) 0%, transparent 70%)',
+        background: `radial-gradient(ellipse 70% 50% at ${ambientX}% ${ambientY}%, rgba(186,12,47,0.065) 0%, transparent 70%)`,
+        transition: 'background 0.1s ease',
       }} />
 
       {/* Top flag stripe */}
@@ -160,81 +255,127 @@ export default function WelcomeIntro({ onComplete }) {
         background: 'linear-gradient(90deg,#BA0C2F,#e8163b 50%,#BA0C2F)',
       }} />
 
-      {/* Stars */}
+      {/* Elegant Crown Element */}
       <div style={{
-        marginBottom: '1.5rem', fontSize: '1.2rem',
-        opacity: 0.2, color: '#BA0C2F', letterSpacing: '0.6rem',
+        marginBottom: '1.8rem', fontSize: '1.2rem',
+        opacity: 0.18, color: '#BA0C2F', letterSpacing: '0.65rem',
+        animation: 'pulseGlow 3s ease-in-out infinite',
       }}>✦ ✦ ✦</div>
 
-      {/* Slot window */}
+      {/* ── STAGE 1: SLOT SPIN VIEWPORT ── */}
       {phase === 'slot' && (
         <div style={{
           height: 80, overflow: 'hidden',
-          width: '100%', maxWidth: 640,
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)',
-          maskImage:        'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)',
+          width: '100%', maxWidth: 700,
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
+          maskImage:        'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
         }}>
-          <div ref={trackRef} />
+          <div ref={trackRef} style={{ willChange: 'transform, filter' }} />
         </div>
       )}
 
-      {/* Decode text */}
-      {phase === 'decode' && (
-        <div ref={textBoxRef} style={{ textAlign: 'center', padding: '0 2rem' }}>
+      {/* ── STAGE 2: SETTLED ARABIC STATE (Hold) ── */}
+      {phase === 'hold-arabic' && (
+        <div style={{
+          textAlign: 'center', padding: '0 2rem',
+          animation: 'springPunch 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+        }}>
           <p style={{
-            fontFamily: isArabic
-              ? '"Noto Sans Arabic","Geeza Pro",sans-serif'
-              : '"Inter",system-ui,sans-serif',
-            direction:   isArabic ? 'rtl' : 'ltr',
-            fontSize:    'clamp(1.8rem,7vw,3.4rem)',
-            fontWeight:  700,
-            color:       '#BA0C2F',
-            margin:      0,
-            lineHeight:  1.3,
-            minHeight:   '4.5rem',
-            letterSpacing: isArabic ? '0' : '0.02em',
+            fontFamily: '"Noto Sans Arabic","Geeza Pro",sans-serif',
+            direction: 'rtl',
+            fontSize: 'clamp(2rem,7.5vw,3.5rem)',
+            fontWeight: 800,
+            color: '#BA0C2F',
+            margin: 0,
+            lineHeight: 1.3,
           }}>
-            {liveText}
+            {ARABIC_FINAL}
           </p>
+        </div>
+      )}
 
-          {showSub && (
-            <p style={{
-              marginTop: '1rem',
+      {/* ── STAGE 3: THE DESTRUCTIVE MORPH (Arabic melts away, English scrambles up) ── */}
+      {phase === 'morph' && (
+        <div style={{ position: 'relative', textAlign: 'center', padding: '0 2rem' }}>
+          {/* Overlapping container to keep height stable */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            
+            {/* Arabic melting away */}
+            <div style={{
+              position: 'absolute',
+              fontFamily: '"Noto Sans Arabic","Geeza Pro",sans-serif',
+              direction: 'rtl',
+              fontSize: 'clamp(2rem,7.5vw,3.5rem)',
+              fontWeight: 800,
+              color: '#BA0C2F',
+              whiteSpace: 'nowrap',
+            }}>
+              {ARABIC_FINAL.split('').map((c, idx) => (
+                <DissolvingLetter key={idx} char={c} delay={idx * 28} />
+              ))}
+            </div>
+
+            {/* English scrambling and taking its place */}
+            <div style={{
               fontFamily: '"Inter",system-ui,sans-serif',
-              fontSize:   'clamp(0.7rem,2.2vw,0.9rem)',
+              fontSize: 'clamp(2rem,7.5vw,3.5rem)',
+              fontWeight: 800,
+              color: '#BA0C2F',
+              letterSpacing: '0.02em',
+              whiteSpace: 'nowrap',
+            }}>
+              {ENGLISH_FINAL.split('').map((c, idx) => (
+                <ScrambleLetter key={idx} char={c} delay={220 + idx * 45} />
+              ))}
+            </div>
+
+            {/* Premium tag rises under English */}
+            <p style={{
+              marginTop: '1.2rem',
+              fontFamily: '"Inter",system-ui,sans-serif',
+              fontSize:   'clamp(0.7rem,2.2vw,0.85rem)',
               color:      '#BA0C2F',
               opacity:    0,
-              letterSpacing: '0.28em',
+              letterSpacing: '0.3em',
               textTransform: 'uppercase',
-              animation:  'fadeUp 0.7s ease 0.1s forwards',
+              animation:  'fadeUpPremium 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards',
             }}>
               Your journey starts here
             </p>
-          )}
+
+          </div>
         </div>
       )}
 
-      {/* Pulsing dots during slot */}
+      {/* Pulsing visual cues */}
       {phase === 'slot' && (
-        <div style={{ marginTop: '2rem', display: 'flex', gap: '0.4rem' }}>
+        <div style={{ marginTop: '2.5rem', display: 'flex', gap: '0.5rem' }}>
           {[0,1,2].map(i => (
             <span key={i} style={{
-              width: 6, height: 6, borderRadius: '50%',
-              background: '#BA0C2F', opacity: 0.35, display: 'inline-block',
-              animation: `dot 1.1s ease-in-out ${i * 0.18}s infinite`,
+              width: 5, height: 5, borderRadius: '50%',
+              background: '#BA0C2F', opacity: 0.3, display: 'inline-block',
+              animation: `dotFade 1.1s ease-in-out ${i * 0.18}s infinite`,
             }} />
           ))}
         </div>
       )}
 
       <style>{`
-        @keyframes dot {
-          0%,100% { opacity:0.15; transform:scale(0.8); }
-          50%      { opacity:0.55; transform:scale(1.2); }
+        @keyframes pulseGlow {
+          0%, 100% { opacity: 0.18; transform: scale(1); }
+          50% { opacity: 0.35; transform: scale(1.05); }
         }
-        @keyframes fadeUp {
-          from { opacity:0; transform:translateY(10px); }
-          to   { opacity:0.45; transform:translateY(0); }
+        @keyframes dotFade {
+          0%, 100% { opacity: 0.15; transform: scale(0.85); }
+          50%      { opacity: 0.6; transform: scale(1.15); }
+        }
+        @keyframes springPunch {
+          0% { transform: scale(0.92); opacity: 0; filter: blur(4px); }
+          100% { transform: scale(1); opacity: 1; filter: blur(0); }
+        }
+        @keyframes fadeUpPremium {
+          from { opacity: 0; transform: translateY(12px); filter: blur(2px); }
+          to   { opacity: 0.45; transform: translateY(0); filter: blur(0); }
         }
       `}</style>
     </div>
