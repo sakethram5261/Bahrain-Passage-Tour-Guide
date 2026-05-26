@@ -574,10 +574,10 @@ export default function SensoryHero() {
           )}
         </div>
       ) : (
-        /* STAGE 2: PREMIUM COMPILING LEDGER SCREEN (Loading stage, double-page layout) */
+        /* STAGE 2: PREMIUM COMPILING LEDGER SCREEN (Loading stage, double-page layout on desktop, centered card on mobile) */
         <div 
           ref={contentRef}
-          className="relative w-full max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[460px]"
+          className="relative w-full max-w-md md:max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[380px] md:min-h-[460px]"
         >
           {/* Absolute corner clips & spine */}
           <div className="book-corner-clip top-left" />
@@ -627,10 +627,20 @@ export default function SensoryHero() {
                 animationIterationCount: 'infinite'
               }} />
             </div>
+
+            {/* Mobile-Only active compilation log card (avoids stacked columns) */}
+            <div className="md:hidden w-full max-w-[260px] bg-[#FCFBF8] border border-dashed border-[#A80D27]/18 rounded-xl p-3 shadow-inner mt-1">
+              <span className="font-sans text-[7.5px] tracking-[0.2em] text-[#A80D27] uppercase font-black block mb-1">
+                ⏳ Live Curation Log
+              </span>
+              <p className="font-mono text-[9.5px] leading-relaxed text-bronze-charcoal font-bold min-h-[36px] flex items-center justify-center">
+                {terminalLogs[terminalLogs.length - 1] || 'Assembling ledger...'}
+              </p>
+            </div>
           </div>
 
           {/* RIGHT PAGE - Typewriter Compiling Logs */}
-          <div className="journal-page-right p-8 flex flex-col relative text-left h-full justify-between overflow-hidden">
+          <div className="hidden md:flex journal-page-right p-8 flex-col relative text-left h-full justify-between overflow-hidden">
             <div className="flex flex-col flex-1 overflow-hidden">
               <div className="pb-2 border-b border-red-500/10 flex justify-between items-center mb-3">
                 <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
