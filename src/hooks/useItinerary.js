@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useVibe } from './useVibe'
 
 export const spotsCatalog = [
   {
@@ -392,15 +391,15 @@ const categoryImages = {
   default: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?q=80&w=1200&auto=format&fit=crop'
 }
 
-export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durationFilter = 3, aiItinerary = null) {
-  const { itinerarySpots } = useVibe()
+// Fixed Hook: accepts global itinerary spots explicitly to avoid importing useVibe/Context loops entirely
+export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durationFilter = 3, aiItinerary = null, injectedSpots = []) {
   const [locations, setLocations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (itinerarySpots && itinerarySpots.length > 0) {
-      setLocations(itinerarySpots)
+    if (injectedSpots && injectedSpots.length > 0) {
+      setLocations(injectedSpots)
       setLoading(false)
       return
     }
@@ -423,7 +422,6 @@ export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durat
                 }
               }
 
-              // Fallback dynamic mapping in case the ID fails to match but has categories
               const cat = aiItem.category ? aiItem.category.toLowerCase() : 'culture'
               const imgUrl = categoryImages[cat] || categoryImages.default
 
@@ -448,6 +446,7 @@ export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durat
           if (active) {
             setLocations(mapped.sort((a, b) => a.day - b.day))
             setError(null)
+            setLocations(mapped)
             setLoading(false)
           }
           return
@@ -485,7 +484,7 @@ export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durat
       clearTimeout(delay)
       setLoading(true)
     }
-  }, [selectedMoods, tierFilter, durationFilter, aiItinerary, itinerarySpots])
+  }, [selectedMoods, tierFilter, durationFilter, aiItinerary, injectedSpots])
 
   return { locations, loading, error }
 }
