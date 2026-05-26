@@ -263,10 +263,17 @@ export default function SensoryHero() {
           ease: 'power3.in',
           onComplete: () => {
             setShowPreviewOverview(true)
-            gsap.fromTo(contentRef.current,
-              { scale: 0.95, rotateY: -25, opacity: 0 },
-              { scale: 1, rotateY: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }
-            )
+            // Wait a small tick for React to swap key DOM nodes
+            setTimeout(() => {
+              if (contentRef.current) {
+                // Clear any inline styles left over by GSAP reconciliation reuse
+                gsap.set(contentRef.current, { clearProps: 'all' })
+                gsap.fromTo(contentRef.current,
+                  { scale: 0.95, rotateY: -25, opacity: 0 },
+                  { scale: 1, rotateY: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }
+                )
+              }
+            }, 50)
           }
         })
       } else {
@@ -373,6 +380,7 @@ export default function SensoryHero() {
       {showPreviewOverview ? (
         /* STAGE 3: FULL SCREEN TACTILE DECK CAROUSEL PREVIEW OVERVIEW */
         <div 
+          key="carousel-screen"
           ref={contentRef}
           className="relative w-full max-w-md mx-auto select-none animate-fadeIn flex flex-col gap-5 justify-center"
           style={{
@@ -593,6 +601,7 @@ export default function SensoryHero() {
       ) : (
         /* STAGE 2: PREMIUM COMPILING LEDGER SCREEN (Loading stage, double-page layout on desktop, centered card on mobile) */
         <div 
+          key="compiling-screen"
           ref={contentRef}
           className="relative w-full max-w-md md:max-w-5xl rounded-[28px] overflow-visible journal-open-book grid grid-cols-1 md:grid-cols-2 bg-[#FAF9F6] shadow-2xl min-h-[380px] md:min-h-[460px]"
         >
