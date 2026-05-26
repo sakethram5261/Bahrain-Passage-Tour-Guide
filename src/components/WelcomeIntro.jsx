@@ -159,6 +159,8 @@ export default function WelcomeIntro({ onComplete }) {
 
     const items = [...SLOT_PHRASES, ARABIC_FINAL]
     const ITEM_H = 80
+    const VIEWPORT_H = 180
+    const CENTER_OFFSET = (VIEWPORT_H - ITEM_H) / 2 // 50px clearance top & bottom
     const track = trackRef.current
     track.innerHTML = ''
 
@@ -166,7 +168,7 @@ export default function WelcomeIntro({ onComplete }) {
       const el = document.createElement('div')
       el.style.cssText = `
         height:${ITEM_H}px; display:flex; align-items:center; justify-content:center;
-        font-size:clamp(1.8rem,6vw,3.2rem); font-weight:800; color:#BA0C2F;
+        font-size:clamp(1.8rem,7vw,3.3rem); font-weight:800; color:#BA0C2F;
         letter-spacing:0.02em; white-space:nowrap;
         font-family:${txt === ARABIC_FINAL ? '"Noto Sans Arabic","Geeza Pro",sans-serif' : '"Inter",system-ui,sans-serif'};
         direction:${txt === ARABIC_FINAL ? 'rtl' : 'ltr'};
@@ -175,10 +177,10 @@ export default function WelcomeIntro({ onComplete }) {
       track.appendChild(el)
     })
 
-    // Setup initial position
-    gsap.set(track, { y: 0, filter: 'blur(0px)' })
+    // Setup initial position centered in viewport
+    gsap.set(track, { y: CENTER_OFFSET, filter: 'blur(0px)' })
 
-    const totalDistance = -((items.length - 1) * ITEM_H)
+    const totalDistance = CENTER_OFFSET - ((items.length - 1) * ITEM_H)
 
     // Spin animation with elastic snap-back at the end
     gsap.to(track, {
@@ -187,10 +189,8 @@ export default function WelcomeIntro({ onComplete }) {
       ease: 'back.out(1.15)', // spring rebound
       onUpdate: function() {
         const progress = this.progress()
-        // Blur curve: peak blur during high-speed middle spin, drop to 0 perfectly at final lock
         let currentBlur = 0
         if (progress < 0.75) {
-          // Scale blur with velocity (higher in first half, fading to zero as it settles)
           currentBlur = Math.sin(progress * Math.PI) * 10 * (1 - progress)
         }
         gsap.set(track, { filter: `blur(${currentBlur}px)` })
@@ -214,8 +214,7 @@ export default function WelcomeIntro({ onComplete }) {
   useEffect(() => {
     if (phase !== 'morph') return
 
-    // Trigger complete fade out after English finishes resolving
-    const totalMorphTime = 800 + (ENGLISH_FINAL.length * 40) // delay + stagger timeline
+    const totalMorphTime = 800 + (ENGLISH_FINAL.length * 40)
     const exitTimer = setTimeout(() => {
       gsap.to(wrapRef.current, {
         opacity: 0,
@@ -257,28 +256,28 @@ export default function WelcomeIntro({ onComplete }) {
 
       {/* Elegant Crown Element */}
       <div style={{
-        marginBottom: '1.8rem', fontSize: '1.2rem',
+        marginBottom: '1rem', fontSize: '1.2rem',
         opacity: 0.18, color: '#BA0C2F', letterSpacing: '0.65rem',
         animation: 'pulseGlow 3s ease-in-out infinite',
       }}>✦ ✦ ✦</div>
 
-      {/* ── STAGE 1: SLOT SPIN VIEWPORT ── */}
+      {/* ── STAGE 1: SLOT SPIN VIEWPORT (180px height gives massive clearance for vertical bounces) ── */}
       {phase === 'slot' && (
         <div style={{
-          height: 80, overflow: 'hidden',
+          height: 180, overflow: 'hidden',
           width: '100%', maxWidth: 700,
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
-          maskImage:        'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
+          maskImage:        'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
         }}>
           <div ref={trackRef} style={{ willChange: 'transform, filter' }} />
         </div>
       )}
 
-      {/* ── STAGE 2: SETTLED ARABIC STATE (Hold) ── */}
+      {/* ── STAGE 2: SETTLED ARABIC STATE (Hold - no scale jump keyframe to prevent clips) ── */}
       {phase === 'hold-arabic' && (
         <div style={{
           textAlign: 'center', padding: '0 2rem',
-          animation: 'springPunch 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+          height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <p style={{
             fontFamily: '"Noto Sans Arabic","Geeza Pro",sans-serif',
@@ -296,9 +295,13 @@ export default function WelcomeIntro({ onComplete }) {
 
       {/* ── STAGE 3: THE DESTRUCTIVE MORPH (Arabic melts away, English scrambles up) ── */}
       {phase === 'morph' && (
-        <div style={{ position: 'relative', textAlign: 'center', padding: '0 2rem' }}>
+        <div style={{ 
+          position: 'relative', textAlign: 'center', padding: '0 2rem',
+          height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          overflow: 'visible'
+        }}>
           {/* Overlapping container to keep height stable */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
             
             {/* Arabic melting away */}
             <div style={{
@@ -309,6 +312,7 @@ export default function WelcomeIntro({ onComplete }) {
               fontWeight: 800,
               color: '#BA0C2F',
               whiteSpace: 'nowrap',
+              overflow: 'visible',
             }}>
               {ARABIC_FINAL.split('').map((c, idx) => (
                 <DissolvingLetter key={idx} char={c} delay={idx * 28} />
@@ -323,6 +327,7 @@ export default function WelcomeIntro({ onComplete }) {
               color: '#BA0C2F',
               letterSpacing: '0.02em',
               whiteSpace: 'nowrap',
+              overflow: 'visible',
             }}>
               {ENGLISH_FINAL.split('').map((c, idx) => (
                 <ScrambleLetter key={idx} char={c} delay={220 + idx * 45} />
@@ -349,7 +354,7 @@ export default function WelcomeIntro({ onComplete }) {
 
       {/* Pulsing visual cues */}
       {phase === 'slot' && (
-        <div style={{ marginTop: '2.5rem', display: 'flex', gap: '0.5rem' }}>
+        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem' }}>
           {[0,1,2].map(i => (
             <span key={i} style={{
               width: 5, height: 5, borderRadius: '50%',
@@ -368,10 +373,6 @@ export default function WelcomeIntro({ onComplete }) {
         @keyframes dotFade {
           0%, 100% { opacity: 0.15; transform: scale(0.85); }
           50%      { opacity: 0.6; transform: scale(1.15); }
-        }
-        @keyframes springPunch {
-          0% { transform: scale(0.92); opacity: 0; filter: blur(4px); }
-          100% { transform: scale(1); opacity: 1; filter: blur(0); }
         }
         @keyframes fadeUpPremium {
           from { opacity: 0; transform: translateY(12px); filter: blur(2px); }
