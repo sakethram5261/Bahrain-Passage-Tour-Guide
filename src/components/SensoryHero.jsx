@@ -562,18 +562,15 @@ export default function SensoryHero() {
                     const stampSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav')
                     stampSfx.volume = 0.25 * soundVolume
                     stampSfx.play().catch(() => {})
-                    
-                    gsap.to(contentRef.current, {
-                      scale: 0.94,
-                      opacity: 0,
-                      y: 15,
-                      duration: 0.55,
-                      ease: 'power3.inOut',
-                      onComplete: () => {
-                        setStep(5) // Transition to Dashboard
-                        setSealing(false)
-                      }
-                    })
+                    if (contentRef.current) {
+                      contentRef.current.style.transition = 'opacity 0.55s ease, transform 0.55s ease'
+                      contentRef.current.style.opacity = '0'
+                      contentRef.current.style.transform = 'scale(0.94) translateY(15px)'
+                    }
+                    setTimeout(() => {
+                      setStep(5)
+                      setSealing(false)
+                    }, 580)
                   }}
                   className={`group relative flex flex-col items-center justify-center transition-transform duration-300 py-1 px-8 ${sealing ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:scale-105 active:scale-95'}`}
                 >
