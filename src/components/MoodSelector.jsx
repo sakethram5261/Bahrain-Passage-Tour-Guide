@@ -38,7 +38,8 @@ const MOODS = [
 ]
 
 export default function MoodSelector({ onConfirm }) {
-  const { selectedMoods, setSelectedMoods, duration } = useVibe()
+  const { selectedMoods, setSelectedMoods, duration, setDuration } = useVibe()
+
   const containerRef = useRef(null)
   const cardsRef = useRef([])
 
@@ -227,6 +228,39 @@ export default function MoodSelector({ onConfirm }) {
               }}
             />
           ))}
+        </div>
+
+        {/* Stay Duration Selector */}
+        <div 
+
+          className="bg-white border border-red-500/10 rounded-2xl p-5 shadow-sm mt-1 text-center md:text-left select-none transition-all duration-300 animate-fadeIn"
+          style={{
+            boxShadow: '0 2px 12px rgba(42,35,33,0.04), 0 1px 3px rgba(0,0,0,0.02)'
+          }}
+        >
+          <label className="font-serif text-[12.5px] font-extrabold text-[#2A2321] flex items-center justify-center md:justify-start gap-1.5">
+            ⏳ How long is your Bahrain stay?
+          </label>
+          <div className="grid grid-cols-5 gap-2 mt-3">
+            {[1, 2, 3, 4, 5].map((d) => {
+              const active = duration === d
+              return (
+                <button
+                  key={d}
+                  onClick={() => {
+                    setDuration(d)
+                  }}
+                  className={`py-3 rounded-xl border text-center font-sans text-xs font-black transition-all cursor-pointer ${
+                    active
+                      ? 'bg-[#D11A38] border-[#D11A38] text-white shadow-md scale-[1.03]'
+                      : 'bg-[#FCFBF8] border-red-500/10 text-[#5C5451] hover:border-red-500/25'
+                  }`}
+                >
+                  {d} {d === 1 ? 'Day' : 'Days'}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Action buttons */}

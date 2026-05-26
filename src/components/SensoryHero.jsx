@@ -24,7 +24,7 @@ export default function SensoryHero() {
 
   const [animating, setAnimating] = useState(false)
   const [loadingAI, setLoadingAI] = useState(false)
-  const [coverOpened, setCoverOpened] = useState(false)
+  const [coverOpened, setCoverOpened] = useState(true)
   const [showPreviewOverview, setShowPreviewOverview] = useState(false)
   const [carouselIndex, setCarouselIndex] = useState(0)
   const [terminalLogs, setTerminalLogs] = useState([])
@@ -363,64 +363,7 @@ export default function SensoryHero() {
       )}
 
       {/* 2. MAIN WORKSPACE CONTENT GRID */}
-      {!coverOpened ? (
-        /* STAGE 1: Book Cover */
-        <div
-          ref={contentRef}
-          className="relative w-full max-w-sm md:max-w-md select-none animate-fadeIn"
-          style={{
-            transformStyle: 'preserve-3d',
-            perspective: '1200px',
-          }}
-        >
-          <div
-            className="relative rounded-[24px] overflow-hidden flex flex-col transition-all duration-350 border border-amber-600/30 bg-white"
-            style={{
-              boxShadow: '0 25px 55px -12px rgba(0,0,0,0.25), 0 8px 20px -8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.6)',
-            }}
-          >
-
-            <div
-              className="relative flex flex-col items-center justify-center py-10 px-8 text-center overflow-hidden"
-              style={{ 
-                background: 'linear-gradient(135deg, #A80D27 0%, #800A1E 100%)',
-                boxShadow: 'inset 0 -3px 8px rgba(0,0,0,0.2)'
-              }}
-            >
-              <h1 className="relative z-10 font-serif text-4.5xl md:text-5xl font-black text-white leading-none tracking-tight">Bahrain</h1>
-            </div>
-            <div style={{ background: 'linear-gradient(to right, #800A1E, #A80D27)', lineHeight: 0 }}>
-              <svg viewBox="0 0 400 20" preserveAspectRatio="none" style={{ width: '100%', height: '22px', display: 'block' }}>
-                <path d="M0,0 L25,16 L50,0 L75,16 L100,0 L125,16 L150,0 L175,16 L200,0 L225,16 L250,0 L275,16 L300,0 L325,16 L350,0 L375,16 L400,0 L400,20 L0,20 Z" fill="#FAF8F5" />
-              </svg>
-            </div>
-            <div className="flex flex-col items-center justify-between px-8 py-8 gap-7 flex-1" style={{ background: '#FAF8F5' }}>
-              <button
-                onClick={() => {
-                  playTypewriterClick(1.5)
-                  gsap.to(contentRef.current, {
-                    rotateY: -90,
-                    opacity: 0,
-                    scale: 0.96,
-                    duration: 0.6,
-                    onComplete: () => setCoverOpened(true),
-                  })
-                }}
-                className="w-full py-4 rounded-2xl font-sans text-xs uppercase tracking-widest font-black transition-all cursor-pointer active:scale-97 relative z-10 flex items-center justify-center gap-2"
-                style={{
-                  background: 'linear-gradient(to bottom, #A80D27 0%, #800A1E 100%)',
-                  color: '#FAF8F5',
-                  boxShadow: '0 8px 20px rgba(128,10,30,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                  letterSpacing: '0.18em'
-                }}
-              >
-                Open My Ledger
-                <span className="inline-block transition-transform duration-300 group-hover:translate-x-1.5">→</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : showPreviewOverview ? (
+      {showPreviewOverview ? (
         /* STAGE 3: FULL SCREEN TACTILE DECK CAROUSEL PREVIEW OVERVIEW */
         <div 
           ref={contentRef}
