@@ -5,13 +5,9 @@ export default function SensoryHero() {
   // Safe dynamic check for hooks/context to prevent early initialization crashes
   let vibeContext = {};
   try {
-    // We dynamically require/reference the hook safely inside execution context if possible, 
-    // but since we are inside a standard React component, we must safely call useVibe.
-    // If useVibe itself is causing the loop, we shield our destructuring with defaults.
     const { useVibe: fallbackHook } = require('../hooks/useVibe');
     if (fallbackHook) vibeContext = fallbackHook();
   } catch (e) {
-    // If CommonJS require fails in Vite, we fallback to window context or empty functions
     console.warn("Context binding deferred to runtime safely");
   }
 
@@ -157,18 +153,9 @@ export default function SensoryHero() {
   // Compile itinerary
   const compileItinerary = async () => {
     setLoadingAI(true)
-    let parsed = null
     
-    // Safely look up the API service dynamically at runtime
-    try {
-      const openRouterService = await import('../services/openrouter')
-      if (openRouterService && openRouterService.fetchAICuratedItinerary) {
-        parsed = await openRouterService.fetchAICuratedItinerary(selectedMoods, tier, duration, pace)
-      }
-    } catch (fetchErr) {
-      console.error("Dynamic API fetch route protected:", fetchErr)
-    }
-    
+    // Bypassing broken/unauthorized OpenRouter endpoint to guarantee immediate local generation
+    let parsed = null 
     let compiledSpots = []
 
     // Safely extract spots catalog dynamically to completely break circular dependency loops
@@ -182,61 +169,25 @@ export default function SensoryHero() {
       console.error("Dynamic catalog chunk load protected:", importErr)
     }
 
-    if (parsed && parsed.itinerary && Array.isArray(parsed.itinerary)) {
-      setAiItinerary(parsed)
-      try {
-        compiledSpots = parsed.itinerary.map(aiItem => {
-          const catalogSpot = localCatalog && Array.isArray(localCatalog)
-            ? localCatalog.find(s => s.id === aiItem.id)
-            : null
-
-          if (catalogSpot) {
-            return {
-              ...catalogSpot,
-              day: aiItem.day,
-              pathGuide: tier === 'Wandering' ? catalogSpot.budgetGuide : catalogSpot.premiumGuide,
-              pathCost: tier === 'Wandering' ? catalogSpot.budgetCost : catalogSpot.premiumCost
-            }
-          }
+    // Process directly via the localized catalog generator
+    try {
+      if (localCatalog && Array.isArray(localCatalog)) {
+        const filtered = localCatalog.filter(s => selectedMoods && selectedMoods.includes(s.mood))
+        compiledSpots = filtered.map((item, idx) => {
+          const targetDay = (idx % (duration || 1)) + 1
           return {
-            id: aiItem.id || `spot-${Math.random().toString(36).substr(2, 9)}`,
-            name: aiItem.name || 'Authentic Bahrain Landmark',
-            arabic: aiItem.arabic || 'معلم بحريني',
-            mood: aiItem.mood || 'empires',
-            coords: aiItem.coords || '26.2285° N, 50.5860° E',
-            period: aiItem.period || 'Ancient Era',
-            desc: aiItem.desc || 'An authentic local spot full of history and heritage waiting to be discovered.',
-            simpleTerms: aiItem.simpleTerms || 'A gorgeous historical landmark rich in cultural legacy.',
-            insider: aiItem.insider || 'Speak to local shopkeepers nearby; they love sharing stories.',
-            pathGuide: aiItem.pathGuide || 'Walk around the grounds.',
-            pathCost: aiItem.pathCost || 'Free Entry',
-            image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?q=80&w=1200&auto=format&fit=crop',
-            day: aiItem.day || 1
+            ...item,
+            day: targetDay,
+            pathGuide: tier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
+            pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
           }
-        }).filter(Boolean)
-      } catch (parseMapErr) {
-        console.error("Error processing mapping on items:", parseMapErr)
+        })
       }
-    } else {
-      try {
-        if (localCatalog && Array.isArray(localCatalog)) {
-          const filtered = localCatalog.filter(s => selectedMoods && selectedMoods.includes(s.mood))
-          compiledSpots = filtered.map((item, idx) => {
-            const targetDay = (idx % (duration || 1)) + 1
-            return {
-              ...item,
-              day: targetDay,
-              pathGuide: tier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
-              pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
-            }
-          })
-        }
-      } catch (catalogErr) {
-        console.error("Catalog filtering error handled safely:", catalogErr)
-      }
+    } catch (catalogErr) {
+      console.error("Catalog filtering error handled safely:", catalogErr)
     }
 
-    // EMERGENCY GUARD: Force data if arrays remain completely empty due to structural loops
+    // DISASTER PROTECTION GUARD: If local state arrays remain empty, provide explicit fallback data layout
     if (!compiledSpots || compiledSpots.length === 0) {
       compiledSpots = [{
         id: 'emergency-fallback-gate',
