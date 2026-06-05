@@ -1,16 +1,48 @@
-# React + Vite
+# Bahrain Passage — Interactive Travel Chronicle
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A premium, immersive digital travel guide for the Kingdom of Bahrain. Built as a multi-page interactive experience that lets travelers discover authentic local spots, curate personal itineraries, and collect keepsakes from 18 historically rich landmarks.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Mood-Based Itinerary Builder** — Select your travel vibes (Empires, Sea, Spice, Lights) to generate a personalised day-by-day itinerary
+- **Wayfarer Ledger Dashboard** — A journal-style interface with day tabs, spot guides, and insider secrets
+- **Wayfarer Lens** — Camera viewfinder that captures polaroid snapshots with local storyteller narration
+- **Passport & XP System** — Earn XP, collect keepsakes, and rank up from Wanderer to Dilmun Pearl
+- **Interactive Map** — Explore landmark positions across Bahrain
+- **Lexicon Leaf** — Learn key Arabic travel phrases with audio pronunciation
+- **Gold Fils Economy** — Spend earned coins in the virtual Souq shop
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19 + Vite
+- TailwindCSS v4
+- GSAP (GreenSock Animation Platform)
+- Swiper.js
+- Lucide React icons
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+npm run dev
+```
+
+## Project Structure
+
+```
+src/
+  components/     # UI components (Dashboard, WelcomeIntro, MoodSelector, etc.)
+  context/        # Global state via VibeContext / VibeProvider
+  hooks/          # useItinerary, useVibe custom hooks
+  services/       # Itinerary and storyteller API service
+  styles/         # Global CSS and design tokens
+```
+
+## Landmarks Covered
+
+18 curated authentic Bahraini landmarks spanning:
+- Ancient forts (Qal'at al-Bahrain, Arad Fort, Riffa Fort, Barbar Temple)
+- UNESCO heritage trails (Pearling Path, Muharraq Souq)
+- Natural wonders (Tree of Life, Jarada Island)
+- Cultural districts (Block 338, Al Jasra, A'ali Pottery)
+- Coastal escapes (Al Dar Islands, Reef Island, Khalaf House)

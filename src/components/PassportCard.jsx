@@ -20,8 +20,7 @@ export default function PassportCard({ onClose }) {
   const reflectionsWritten = Object.values(journalReflections).filter(r => r && r.trim().length > 5).length
   const keepsakesCollected = collectedKeepsakes.length
   const totalKeepsakes = spotsCatalog.length
-
-  // Ranks mapped cleanly onto premium Bahrain red/bronze/pearl colors
+ 
   const rankColors = {
     wanderer: '#5C5451',
     nomad: '#A81028',

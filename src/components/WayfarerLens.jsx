@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { useVibe } from '../hooks/useVibe'
-import { fetchAISpotStory } from '../services/openrouter'
+import { fetchSpotStory } from '../services/itinerary-service'
 
 export default function WayfarerLens({ spot, onClose }) {
   const { 
@@ -24,7 +24,7 @@ export default function WayfarerLens({ spot, onClose }) {
   const [permission, setPermission] = useState('pending')
   const [capturing, setCapturing] = useState(false)
   const [captured, setCaptured] = useState(false)
-  const [aiLoading, setAiLoading] = useState(false)
+  const [storyLoading, setStoryLoading] = useState(false)
   
   // High-fidelity Optics Scanner states
   const [scanning, setScanning] = useState(false)
@@ -191,19 +191,19 @@ export default function WayfarerLens({ spot, onClose }) {
         // Save and compile story
         saveCapturedPhoto(spot.id, capturedDataUrl)
         setScanning(false)
-        setAiLoading(true)
+        setStoryLoading(true)
         
-        // Fetch dynamic real-time local storyteller decipher from OpenRouter
-        fetchAISpotStory(spot, selectedMoods, tier, activeGuide).then(storyText => {
+        // Fetch dynamic real-time local storyteller decipher
+        fetchSpotStory(spot, selectedMoods, tier, activeGuide).then(storyText => {
           if (storyText) {
             saveLensStory(spot.id, storyText)
           }
           unlockKeepsake(spot.id)
-          setAiLoading(false)
+          setStoryLoading(false)
           setCapturing(false)
           setCaptured(true)
         }).catch(() => {
-          setAiLoading(false)
+          setStoryLoading(false)
           setCapturing(false)
           setCaptured(true)
         })
@@ -422,7 +422,7 @@ export default function WayfarerLens({ spot, onClose }) {
               
               {/* Polaroid Decipher description */}
               <div className="p-4 rounded-xl bg-pearl-bg border border-red-500/5 mb-4 relative">
-                {aiLoading ? (
+                {storyLoading ? (
                   <div className="py-4 flex flex-col items-center justify-center gap-2 select-none">
                     <div className="w-6 h-6 border-2 border-red-500/10 border-t-bahrain-red rounded-full animate-spin" />
                     <span className="font-serif text-[10px] italic text-bronze-muted">

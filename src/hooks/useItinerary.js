@@ -392,7 +392,7 @@ const categoryImages = {
 }
 
 // Fixed Hook: accepts global itinerary spots explicitly to avoid importing useVibe/Context loops entirely
-export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durationFilter = 3, aiItinerary = null, injectedSpots = []) {
+export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durationFilter = 3, curatedItinerary = null, injectedSpots = []) {
   const [locations, setLocations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -408,37 +408,37 @@ export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durat
     
     const delay = setTimeout(() => {
       try {
-        if (aiItinerary && aiItinerary.itinerary && Array.isArray(aiItinerary.itinerary)) {
-          const mapped = aiItinerary.itinerary
-            .map(aiItem => {
-              const catalogSpot = spotsCatalog.find(s => s.id === aiItem.id)
+        if (curatedItinerary && curatedItinerary.itinerary && Array.isArray(curatedItinerary.itinerary)) {
+          const mapped = curatedItinerary.itinerary
+            .map(item => {
+              const catalogSpot = spotsCatalog.find(s => s.id === item.id)
               
               if (catalogSpot) {
                 return {
                   ...catalogSpot,
-                  day: aiItem.day,
+                  day: item.day,
                   pathGuide: tierFilter === 'Wandering' ? catalogSpot.budgetGuide : catalogSpot.premiumGuide,
                   pathCost: tierFilter === 'Wandering' ? catalogSpot.budgetCost : catalogSpot.premiumCost
                 }
               }
 
-              const cat = aiItem.category ? aiItem.category.toLowerCase() : 'culture'
+              const cat = item.category ? item.category.toLowerCase() : 'culture'
               const imgUrl = categoryImages[cat] || categoryImages.default
 
               return {
-                id: aiItem.id || `spot-${Math.random().toString(36).substr(2, 9)}`,
-                name: aiItem.name || 'Authentic Bahrain Landmark',
-                arabic: aiItem.arabic || 'معلم بحريني',
-                mood: aiItem.mood || 'empires',
-                coords: aiItem.coords || '26.2285° N, 50.5860° E',
-                period: aiItem.period || 'Ancient Era',
-                desc: aiItem.desc || 'An authentic local spot full of history and heritage waiting to be discovered.',
-                simpleTerms: aiItem.simpleTerms || 'What this offers: A gorgeous historical landmark rich in cultural legacy.',
-                insider: aiItem.insider || 'Speak to local shopkeepers nearby; they love sharing stories about the ancient Dilmun history of this area.',
-                pathGuide: aiItem.pathGuide || 'Walk around the grounds and enjoy the beautiful heritage architecture.',
-                pathCost: aiItem.pathCost || 'Free Entry',
+                id: item.id || `spot-${Math.random().toString(36).substr(2, 9)}`,
+                name: item.name || 'Authentic Bahrain Landmark',
+                arabic: item.arabic || 'معلم بحريني',
+                mood: item.mood || 'empires',
+                coords: item.coords || '26.2285° N, 50.5860° E',
+                period: item.period || 'Ancient Era',
+                desc: item.desc || 'An authentic local spot full of history and heritage waiting to be discovered.',
+                simpleTerms: item.simpleTerms || 'What this offers: A gorgeous historical landmark rich in cultural legacy.',
+                insider: item.insider || 'Speak to local shopkeepers nearby; they love sharing stories about the ancient Dilmun history of this area.',
+                pathGuide: item.pathGuide || 'Walk around the grounds and enjoy the beautiful heritage architecture.',
+                pathCost: item.pathCost || 'Free Entry',
                 image: imgUrl,
-                day: aiItem.day || 1
+                day: item.day || 1
               }
             })
             .filter(Boolean)
@@ -484,7 +484,7 @@ export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durat
       clearTimeout(delay)
       setLoading(true)
     }
-  }, [selectedMoods, tierFilter, durationFilter, aiItinerary, injectedSpots])
+  }, [selectedMoods, tierFilter, durationFilter, curatedItinerary, injectedSpots])
 
   return { locations, loading, error }
 }

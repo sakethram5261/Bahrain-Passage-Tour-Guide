@@ -293,7 +293,7 @@ export default function MoodSelector({ onConfirm }) {
         </div>
 
         <p className="text-[10px] text-center font-sans" style={{ color: 'rgba(92,84,81,0.45)' }}>
-          AI-planned · 18 curated local spots · Kingdom of Bahrain 🇧🇭
+          Expertly curated · 18 local spots · Kingdom of Bahrain 🇧🇭
         </p>
       </div>
     </div>

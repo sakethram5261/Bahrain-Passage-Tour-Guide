@@ -17,7 +17,7 @@ export default function SensoryHero() {
   const tier = vibeContext.tier || 'Wandering';
   const duration = vibeContext.duration || 1;
   const pace = vibeContext.pace || 'balanced';
-  const setAiItinerary = vibeContext.setAiItinerary || (() => {});
+  const setCuratedItinerary = vibeContext.setCuratedItinerary || (() => {});
   const itinerarySpots = vibeContext.itinerarySpots || [];
   const setItinerarySpots = vibeContext.setItinerarySpots || (() => {});
   const soundVolume = vibeContext.soundVolume !== undefined ? vibeContext.soundVolume : 1;
@@ -26,14 +26,14 @@ export default function SensoryHero() {
   const systemTime = vibeContext.systemTime || new Date();
 
   const [animating, setAnimating] = useState(false)
-  const [loadingAI, setLoadingAI] = useState(false)
+  const [loadingContent, setLoadingContent] = useState(false)
   const [coverOpened, setCoverOpened] = useState(true)
   const [showPreviewOverview, setShowPreviewOverview] = useState(false)
   const [carouselIndex, setCarouselIndex] = useState(0)
   const [terminalLogs, setTerminalLogs] = useState([])
   const [activeLogIndex, setActiveLogIndex] = useState(0)
   const [logsComplete, setLogsComplete] = useState(false)
-  const [aiLoaded, setAiLoaded] = useState(false)
+  const [contentLoaded, setContentLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
   const [sealing, setSealing] = useState(false) 
 
@@ -152,9 +152,8 @@ export default function SensoryHero() {
 
   // Compile itinerary
   const compileItinerary = async () => {
-    setLoadingAI(true)
+    setLoadingContent(true)
     
-    // Bypassing broken/unauthorized OpenRouter endpoint to guarantee immediate local generation
     let parsed = null 
     let compiledSpots = []
 
@@ -208,8 +207,8 @@ export default function SensoryHero() {
 
     compiledSpots.sort((a, b) => a.day - b.day)
     setItinerarySpots(compiledSpots)
-    setAiLoaded(true)
-    setLoadingAI(false)
+    setContentLoaded(true)
+    setLoadingContent(false)
   }
 
   // Type out guide notes in real-time
@@ -250,10 +249,10 @@ export default function SensoryHero() {
 
   // Transition to the card carousel overview cleanly when loading finishes
   useEffect(() => {
-    if (logsComplete && aiLoaded) {
+    if (logsComplete && contentLoaded) {
       setShowPreviewOverview(true)
     }
-  }, [logsComplete, aiLoaded])
+  }, [logsComplete, contentLoaded])
 
   // Calculate hands degrees for clock
   const secondsAngle = systemTime && typeof systemTime.getSeconds === 'function' ? systemTime.getSeconds() * 6 : 0
