@@ -1,29 +1,22 @@
 import { useRef, useState, useEffect } from 'react'
 import gsap from 'gsap'
+import { useVibe } from '../hooks/useVibe'
 
 export default function SensoryHero() {
-  // Safe dynamic check for hooks/context to prevent early initialization crashes
-  let vibeContext = {};
-  try {
-    const { useVibe: fallbackHook } = require('../hooks/useVibe');
-    if (fallbackHook) vibeContext = fallbackHook();
-  } catch (e) {
-    console.warn("Context binding deferred to runtime safely");
-  }
-
-  // Destructure with rigorous fallback safety guards so undefined hooks won't throw fatal crashes
-  const setStep = vibeContext.setStep || (() => {});
-  const selectedMoods = vibeContext.selectedMoods || [];
-  const tier = vibeContext.tier || 'Wandering';
-  const duration = vibeContext.duration || 1;
-  const pace = vibeContext.pace || 'balanced';
-  const setCuratedItinerary = vibeContext.setCuratedItinerary || (() => {});
-  const itinerarySpots = vibeContext.itinerarySpots || [];
-  const setItinerarySpots = vibeContext.setItinerarySpots || (() => {});
-  const soundVolume = vibeContext.soundVolume !== undefined ? vibeContext.soundVolume : 1;
-  const soundMuted = vibeContext.soundMuted !== undefined ? vibeContext.soundMuted : false;
-  const resetChronicle = vibeContext.resetChronicle || (() => {});
-  const systemTime = vibeContext.systemTime || new Date();
+  const {
+    setStep = () => {},
+    selectedMoods = [],
+    tier = 'Wandering',
+    duration = 1,
+    pace = 'balanced',
+    setCuratedItinerary = () => {},
+    itinerarySpots = [],
+    setItinerarySpots = () => {},
+    soundVolume = 1,
+    soundMuted = false,
+    resetChronicle = () => {},
+    systemTime = new Date(),
+  } = useVibe()
 
   const [animating, setAnimating] = useState(false)
   const [loadingContent, setLoadingContent] = useState(false)

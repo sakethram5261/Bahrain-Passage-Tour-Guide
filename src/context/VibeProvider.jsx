@@ -1,31 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { VibeContext } from './VibeContext'
+import { RANKS, getRank, getNextRank } from '../components/DashboardData'
 
-const RANKS = [
-  { id: 'wanderer', label: 'Wanderer', arabic: 'مسافر', minXP: 0, color: '#5C5451' },
-  { id: 'nomad', label: 'Nomad', arabic: 'بدوي', minXP: 75, color: '#aa7c11' },
-  { id: 'merchant', label: 'Merchant', arabic: 'تاجر', minXP: 250, color: '#c07b2a' },
-  { id: 'chronicler', label: 'Chronicler', arabic: 'مؤرخ', minXP: 600, color: '#D11A38' },
-  { id: 'pearldiver', label: 'Pearl Diver', arabic: 'غواص لؤلؤ', minXP: 1200, color: '#2563eb' },
-  { id: 'dilmun', label: 'Dilmun Pearl', arabic: 'لؤلؤة دلمون', minXP: 2200, color: '#7c3aed' },
-]
-
-export function getRank(xp) {
-  let rank = RANKS[0]
-  for (const r of RANKS) {
-    if (xp >= r.minXP) rank = r
-  }
-  return rank
-}
-
-export function getNextRank(xp) {
-  for (const r of RANKS) {
-    if (xp < r.minXP) return r
-  }
-  return null
-}
-
-export { RANKS }
+export { RANKS, getRank, getNextRank }
 
 export function VibeProvider({ children }) {
   const [step, setStep] = useState(1)

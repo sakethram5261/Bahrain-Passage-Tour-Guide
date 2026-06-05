@@ -5,7 +5,7 @@ import WayfarerLens from './WayfarerLens'
 import WayfarerMap from './WayfarerMap'
 import PassportCard from './PassportCard'
 import { Carousel_002 } from './v1/skiper48'
-import { RANKS, getRank, getNextRank, RIDDLES, getGuideThoughts, shopItems } from './DashboardData'
+import { RANKS, getRank, getNextRank, RIDDLES, getGuideThoughts, shopItems, getAlmanac, guides } from './DashboardData'
 
 export default function Dashboard() {
   const { 
@@ -394,78 +394,7 @@ export default function Dashboard() {
     } catch (e) {}
   }
 
-  const almanac = (() => {
-    switch (currentDayTab) {
-      case 1:
-        return {
-          location: 'Manama Souq Spicery',
-          metrics: [
-            { label: 'Ambient Temperature', value: '31°C / 88°F', desc: 'Warm spice alleys breeze' },
-            { label: 'Jasmine Bloom Peak', value: '7:00 PM - 9:30 PM', desc: 'Best aroma window left of gate' },
-            { label: 'Karak Steam Rating', value: 'Excellent (High humidity)', desc: 'Perfect acoustic coffee houses' }
-          ],
-          icon: '☕',
-          notes: 'The souq is warmest in mid-afternoon. Highly recommend exploring early morning or twilight after jasmine strands unfold.'
-        }
-      case 2:
-        return {
-          location: 'Sakhir Desert Mounds',
-          metrics: [
-            { label: 'Desert Air Clarity', value: '94% Visibility', desc: 'Superb dry stellar stargazing' },
-            { label: 'Stargazing Window', value: '9:00 PM - 2:00 AM', desc: 'Clear skies near Tree of Life' },
-            { label: 'Clay Mold Temp', value: 'Warm (Clay sets quick)', desc: 'Perfect Aali kick-wheel spinning' }
-          ],
-          icon: '🏰',
-          notes: 'High atmospheric clarity over the Sakhir dunes tonight. Clear wind gusts from the East carry cool, dry breezes.'
-        }
-      case 3:
-        return {
-          location: 'Jarada Tidal Shorelines',
-          metrics: [
-            { label: 'Disappearing Sandbar', value: 'Low Tide (2.4m Peak)', desc: 'Sand is 100% dry and exposed' },
-            { label: 'Tidal Sandbar Peak', value: '11:30 AM - 2:30 PM', desc: 'Ephemeral 3-hour low-tide peak' },
-            { label: 'Marine Water Temp', value: '26°C / 79°F', desc: 'Ideal shallow coral swimming' }
-          ],
-          icon: '⛵',
-          notes: 'Coordinate closely with speedboat captains. The Jarada sandbank will completely submerge back into the turquoise Gulf by 3:45 PM.'
-        }
-      case 4:
-        return {
-          location: 'Haniniya Valley Crests',
-          metrics: [
-            { label: 'Valley Wind Speed', value: '12 knots (Northeast)', desc: 'Cool cliffside ventilation breeze' },
-            { label: 'Promenade Neon Glow', value: 'Ignites at 7:15 PM', desc: 'Best skyline waterfront reflections' },
-            { label: 'Outdoor Acoustics', value: 'Calm water surface', desc: 'Ideal Reef Island coastal walk' }
-          ],
-          icon: '🌅',
-          notes: 'Sunset winds through the valley crests are incredibly refreshing. Excellent night-sky walks along modern promenades.'
-        }
-      case 5:
-        return {
-          location: 'Sitra Pearl Harbors',
-          metrics: [
-            { label: 'Coastal Wave Height', value: '0.4m (Gentle ripples)', desc: 'Ideal Sitra sea ferry transits' },
-            { label: 'Oyster Coral Visibility', value: 'Moderate water clarity', desc: 'Spot starfish near coral reefs' },
-            { label: 'Al Dar Cabana Temp', value: '29°C / 84°F', desc: 'Cool island breeze under palm shade' }
-          ],
-          icon: '🦪',
-          notes: 'Sea ferry waters remain calm and fully safe. Bring light linens for Sitra island harbor walking.'
-        }
-      default:
-        return {
-          location: 'Kingdom of Bahrain',
-          metrics: [{ label: 'Temperature', value: '30°C', desc: 'Warm Gulf breeze' }],
-          icon: '🇧🇭',
-          notes: 'Welcome wayfarer.'
-        }
-    }
-  })()
-
-  const guides = [
-    { id: 'jafar', name: 'Merchant Jafar', title: 'Pearling Era (1920s)', emoji: '⛵', arabic: 'تاجر' },
-    { id: 'ninsun', name: 'Priestess Ninsun', title: 'Dilmun Era (2000 BCE)', emoji: '🏺', arabic: 'كاهنة' },
-    { id: 'al-farsi', name: 'Architect Al-Farsi', title: 'Military Era (1400s)', emoji: '🏰', arabic: 'مهندس' }
-  ]
+  const almanac = getAlmanac(currentDayTab)
 
   const romanNumerals = { 
     1: 'Page I', 
