@@ -171,10 +171,10 @@ export function compileLocalItinerary(selectedMoods, tier, duration, pace) {
   }
 
   // Slice to fit a reasonable number of spots based on duration and pace
-  // Pace: Relaxed (1 spot/day), Balanced (2 spots/day), Packed (3 spots/day)
-  let spotsPerDay = 2
-  if (pace === 'Relaxed') spotsPerDay = 1
-  if (pace === 'Packed') spotsPerDay = 3
+  // Pace: Relaxed (2 spots/day), Balanced (4 spots/day), Packed (6 spots/day)
+  let spotsPerDay = 4
+  if (pace === 'Relaxed') spotsPerDay = 2
+  if (pace === 'Packed') spotsPerDay = 6
   
   const totalNeeded = duration * spotsPerDay
   let finalSpots = selectedSpotIds.slice(0, totalNeeded)

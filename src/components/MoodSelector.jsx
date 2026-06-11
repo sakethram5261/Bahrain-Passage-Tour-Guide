@@ -80,17 +80,17 @@ export default function MoodSelector({ onConfirm }) {
       className="fixed inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto"
       style={{ background: '#FAF9F6', opacity: 0 }}
     >
-      {/* Bahrain flag-inspired top banner */}
-      <div className="w-full relative overflow-hidden shrink-0" style={{ background: '#D11A38', minHeight: '180px' }}>
+      {/* Bahrain flag-inspired top banner (modestly adjusted) */}
+      <div className="w-full relative overflow-hidden shrink-0" style={{ background: '#D11A38', minHeight: '145px' }}>
         {/* Serrated white edge at bottom — mimics the Bahrain flag's zigzag */}
         <svg
           className="absolute bottom-0 left-0 w-full"
-          viewBox="0 0 1200 40"
+          viewBox="0 0 1200 35"
           preserveAspectRatio="none"
-          style={{ height: '40px', display: 'block' }}
+          style={{ height: '35px', display: 'block' }}
         >
           <path
-            d="M0,0 L80,28 L160,0 L240,28 L320,0 L400,28 L480,0 L560,28 L640,0 L720,28 L800,0 L880,28 L960,0 L1040,28 L1120,0 L1200,28 L1200,40 L0,40 Z"
+            d="M0,0 L80,24 L160,0 L240,24 L320,0 L400,24 L480,0 L560,24 L640,0 L720,24 L800,0 L880,24 L960,0 L1040,24 L1120,0 L1200,24 L1200,35 L0,35 Z"
             fill="#FAF9F6"
           />
         </svg>
@@ -102,7 +102,7 @@ export default function MoodSelector({ onConfirm }) {
         />
 
         {/* Decorative compass rose */}
-        <svg viewBox="0 0 100 100" className="absolute right-6 top-4 opacity-10 w-28 h-28 md:w-36 md:h-36" fill="none" stroke="white" strokeWidth="0.6">
+        <svg viewBox="0 0 100 100" className="absolute right-6 top-3 opacity-10 w-24 h-24 md:w-32 md:h-32" fill="none" stroke="white" strokeWidth="0.6">
           <circle cx="50" cy="50" r="42" strokeDasharray="3,4" />
           <circle cx="50" cy="50" r="18" />
           <path d="M 50,2 L 50,98 M 2,50 L 98,50" />
@@ -113,22 +113,22 @@ export default function MoodSelector({ onConfirm }) {
           <circle cx="50" cy="50" r="3" fill="white" />
         </svg>
 
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-10 pb-14">
-          <p className="font-sans text-[9px] tracking-[0.45em] uppercase font-bold text-white/60 mb-2">
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-7 pb-10">
+          <p className="font-sans text-[8.5px] tracking-[0.45em] uppercase font-bold text-white/65 mb-1.5">
             Kingdom of Bahrain · مملكة البحرين
           </p>
-          <h1 className="font-serif text-4xl md:text-5xl font-semibold text-white leading-tight">
+          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-white leading-tight">
             What pulls you in?
           </h1>
-          <p className="font-sans text-sm text-white/70 mt-2 max-w-sm leading-relaxed">
+          <p className="font-sans text-xs text-white/75 mt-1.5 max-w-sm leading-relaxed">
             Your personal local builds around your vibe — not a generic tour.
           </p>
         </div>
       </div>
 
-      {/* Cards + CTA */}
-      <div className="w-full max-w-2xl px-4 pt-8 pb-10 flex flex-col gap-5 mx-auto">
-        <div className="grid grid-cols-2 gap-3">
+      {/* Cards + CTA (fitted using spacing adjustments) */}
+      <div className="w-full max-w-2xl px-4 pt-4 pb-6 flex flex-col gap-4 mx-auto">
+        <div className="grid grid-cols-2 gap-3.5">
           {MOODS.map((mood, i) => {
             const active = selectedMoods.includes(mood.id)
             return (
@@ -155,7 +155,7 @@ export default function MoodSelector({ onConfirm }) {
                   />
                 )}
 
-                <div className="relative z-10 flex flex-col gap-2.5">
+                <div className="relative z-10 flex flex-col gap-2">
                   <div className="flex items-start justify-between">
                     <span className="text-2xl">{mood.icon}</span>
                     <div
@@ -215,7 +215,7 @@ export default function MoodSelector({ onConfirm }) {
         </div>
 
         {/* Selection count indicator */}
-        <div className="flex items-center gap-2 justify-center">
+        <div className="flex items-center gap-2 justify-center py-0.5">
           {MOODS.map(m => (
             <div
               key={m.id}
@@ -231,8 +231,7 @@ export default function MoodSelector({ onConfirm }) {
 
         {/* Stay Duration Selector */}
         <div 
-
-          className="bg-white border border-red-500/10 rounded-2xl p-5 shadow-sm mt-1 text-center md:text-left select-none transition-all duration-300 animate-fadeIn"
+          className="bg-white border border-red-500/10 rounded-2xl p-4 shadow-sm select-none transition-all duration-300 animate-fadeIn"
           style={{
             boxShadow: '0 2px 12px rgba(42,35,33,0.04), 0 1px 3px rgba(0,0,0,0.02)'
           }}
@@ -240,7 +239,7 @@ export default function MoodSelector({ onConfirm }) {
           <label className="font-serif text-[12.5px] font-extrabold text-[#2A2321] flex items-center justify-center md:justify-start gap-1.5">
             ⏳ How long is your Bahrain stay?
           </label>
-          <div className="grid grid-cols-5 gap-2 mt-3">
+          <div className="grid grid-cols-5 gap-2 mt-2">
             {[1, 2, 3, 4, 5].map((d) => {
               const active = duration === d
               return (
@@ -249,7 +248,7 @@ export default function MoodSelector({ onConfirm }) {
                   onClick={() => {
                     setDuration(d)
                   }}
-                  className={`py-3 rounded-xl border text-center font-sans text-xs font-black transition-all cursor-pointer ${
+                  className={`py-2 rounded-xl border text-center font-sans text-xs font-black transition-all cursor-pointer ${
                     active
                       ? 'bg-[#D11A38] border-[#D11A38] text-white shadow-md scale-[1.03]'
                       : 'bg-[#FCFBF8] border-red-500/10 text-[#5C5451] hover:border-red-500/25'
@@ -266,7 +265,7 @@ export default function MoodSelector({ onConfirm }) {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setSelectedMoods(allSelected ? [] : ['empires', 'sea', 'spice', 'lights'])}
-            className="text-[10px] tracking-wider uppercase font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer shrink-0"
+            className="text-[10px] tracking-wider uppercase font-bold px-4 py-3 rounded-xl transition-all cursor-pointer shrink-0"
             style={{
               color: '#5C5451',
               border: '1.5px solid rgba(42,35,33,0.15)',
@@ -279,7 +278,7 @@ export default function MoodSelector({ onConfirm }) {
           <button
             onClick={handleConfirm}
             disabled={noneSelected}
-            className="flex-1 py-4 rounded-2xl font-sans font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 py-3 rounded-xl font-sans font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
               background: noneSelected ? 'rgba(209,26,56,0.15)' : '#D11A38',
               color: noneSelected ? '#D11A38' : '#fff',

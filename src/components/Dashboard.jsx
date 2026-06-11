@@ -4,6 +4,8 @@ import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
 import WayfarerLens from './WayfarerLens'
 import WayfarerMap from './WayfarerMap'
 import PassportCard from './PassportCard'
+import TourChatbot from './TourChatbot'
+import VirtualTour, { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
 import { Carousel_002 } from './v1/skiper48'
 import { RANKS, getRank, getNextRank, RIDDLES, getGuideThoughts, shopItems, getAlmanac, guides } from './DashboardData'
 
@@ -80,7 +82,7 @@ export default function Dashboard() {
   const [selectedKeepsake, setSelectedKeepsake] = useState(null)
   const [stamping, setStamping] = useState(false)
   const [flippingLeaf, setFlippingLeaf] = useState(null)
-  
+
   // Rank Celebration Modal States
   const prevRankIdRef = useRef(null)
   const [showRankUpModal, setShowRankUpModal] = useState(false)
@@ -91,6 +93,10 @@ export default function Dashboard() {
   const [shopAlert, setShopAlert] = useState(null)
   const [isMapOpen, setIsMapOpen] = useState(false)
   const [riddleError, setRiddleError] = useState(null)
+
+  // Virtual Tour State
+  const [showVirtualTour, setShowVirtualTour] = useState(false)
+  const [virtualTourIndex, setVirtualTourIndex] = useState(0)
 
   // Local textarea state
   const [localReflection, setLocalReflection] = useState('')
@@ -416,8 +422,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen wood-desk-backdrop py-6 px-4 md:px-8 flex flex-col items-center justify-start md:justify-center font-sans relative select-none">
       
-      {/* 1. TACTILE DESKTOP PROPS */}
-      <div className="hidden lg:block desktop-prop-quill">
+      {/* Desktop accent — subtle only */}
+      <div className="hidden lg:block desktop-prop-quill" style={{ opacity: 0.4 }}>
         <svg viewBox="0 0 120 180" className="w-full h-auto">
           <defs>
             <linearGradient id="quillGradDash2" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -437,7 +443,7 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      <div className="hidden lg:block desktop-prop-tea" title="Generational Cardamom Karak Tea">
+      <div className="hidden lg:block desktop-prop-tea" style={{ opacity: 0.35 }} title="Cardamom Karak Tea">
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <ellipse cx="50" cy="72" rx="42" ry="12" fill="none" stroke="#d4af37" strokeWidth="1.8" />
           <ellipse cx="50" cy="72" rx="42" ry="12" fill="rgba(42,35,33,0.9)" />
@@ -452,7 +458,7 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      <div className="hidden lg:block desktop-prop-watch" title="Nautical chronometer watch (synced to local time)">
+      <div className="hidden lg:block desktop-prop-watch" style={{ opacity: 0.35 }} title="Nautical chronometer">
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <circle cx="50" cy="50" r="46" fill="none" stroke="#d4af37" strokeWidth="4" />
           <circle cx="50" cy="50" r="46" fill="rgba(42,35,33,0.95)" />
@@ -477,7 +483,7 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      <div className="hidden lg:block desktop-prop-passport">
+      <div className="hidden lg:block desktop-prop-passport" style={{ opacity: 0.35 }}>
         <svg viewBox="0 0 120 180" className="w-full h-auto">
           <rect x="5" y="5" width="110" height="170" rx="8" fill="#D11A38" stroke="#B0102A" strokeWidth="1.5" />
           <rect x="9" y="9" width="102" height="162" rx="5" fill="none" stroke="#FAF9F6" strokeWidth="0.75" strokeDasharray="3,3" />
@@ -490,49 +496,84 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      {/* Dashboard Header */}
+      {/* Dashboard Header — clean & focused */}
       <header className="w-full max-w-6xl z-10 select-none mb-6">
-        <div className="w-full rounded-2xl overflow-hidden mb-1" style={{ background: '#D11A38', boxShadow: '0 4px 20px rgba(209,26,56,0.25)' }}>
-          <div className="flex flex-col sm:flex-row items-center justify-between px-5 py-3 gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex flex-col">
-                <span className="font-sans text-[8px] tracking-[0.35em] uppercase font-bold text-white/60">
-                  مملكة البحرين · Your Local
-                </span>
-                <h1 className="font-serif text-2xl font-semibold text-white leading-tight">
-                  Bahrain <span className="italic font-light">Passage</span>
-                </h1>
-              </div>
+        <div className="w-full rounded-2xl overflow-hidden" style={{ background: '#D11A38', boxShadow: '0 4px 24px rgba(209,26,56,0.28)' }}>
+          <div className="flex items-center justify-between px-5 py-3 gap-4">
+            {/* Logo */}
+            <div className="flex flex-col">
+              <span className="font-sans text-[8px] tracking-[0.35em] uppercase font-bold text-white/55">
+                مملكة البحرين
+              </span>
+              <h1 className="font-serif text-2xl font-semibold text-white leading-tight">
+                Bahrain <span className="italic font-light">Passage</span>
+              </h1>
             </div>
 
-            <button
-              onClick={() => setShowPassportCard(true)}
-              className="flex items-center gap-3 cursor-pointer group"
-              title="View your Explorer Passport"
-            >
-              <div
-                className="flex items-center gap-2.5 px-4 py-2 rounded-xl transition-all duration-200 group-hover:scale-105"
-                style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)' }}
+            {/* Centre — trip status pill */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse" />
+              <span className="font-sans text-[9px] tracking-wider uppercase font-semibold text-white/75">
+                Day {currentDayTab} of {duration} · {completedDays.length} sealed
+              </span>
+              <span className="text-white/30 text-xs">·</span>
+              <span className="font-mono text-[9px] font-bold text-white/60">{xp.toLocaleString()} XP</span>
+            </div>
+
+            {/* Right controls */}
+            <div className="flex items-center gap-2">
+              {/* XP passport button */}
+              <button
+                onClick={() => setShowPassportCard(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl cursor-pointer transition-all hover:scale-105"
+                style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.22)' }}
+                title="View Explorer Passport"
               >
-                <div className="flex flex-col items-end">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-bold text-white text-sm">{xp.toLocaleString()}</span>
-                    <span className="font-sans text-[9px] text-white/60 uppercase tracking-wide">XP</span>
-                  </div>
-                  <span className="font-sans text-[9px] font-bold text-white/80 uppercase tracking-widest">{rank.label}</span>
-                </div>
-                {nextRank && (
-                  <div className="w-16 flex flex-col gap-1">
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${rankProgress}%`, background: '#fff' }} />
-                    </div>
-                    <span className="font-sans text-[8px] text-white/50">→ {nextRank.label}</span>
-                  </div>
-                )}
-                <span className="text-white/50 text-xs group-hover:text-white transition-colors">↗</span>
+                <span className="text-white text-xs">🪪</span>
+                <span className="font-sans text-[9px] font-bold text-white/80 uppercase tracking-wider hidden sm:inline">{rank.label}</span>
+              </button>
+              {/* Sound */}
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                <button onClick={() => setSoundMuted(!soundMuted)} className="text-xs focus:outline-none hover:scale-110 transition-transform cursor-pointer">
+                  {soundMuted ? '🔇' : '🔊'}
+                </button>
+                <input
+                  type="range" min="0" max="1" step="0.05" value={soundVolume}
+                  onChange={(e) => { setSoundVolume(parseFloat(e.target.value)); if (soundMuted) setSoundMuted(false) }}
+                  className="w-12 h-1 rounded-lg appearance-none cursor-pointer accent-bahrain-red brass-slider"
+                />
               </div>
-            </button>
+              {/* Journal Notebook — new premium view */}
+              <button
+                onClick={() => setStep(6)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white/90 hover:text-white text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer hover:scale-105"
+                style={{ background: 'rgba(255,255,255,0.13)', border: '1px solid rgba(212,175,55,0.35)' }}
+                title="Open Journal Notebook — Riffa Fort"
+              >
+                <span className="text-xs">📖</span>
+                <span className="hidden sm:inline">Notebook</span>
+              </button>
+              {/* Edit trip */}
+              <button
+                onClick={() => setStep(1)}
+                className="px-3 py-1.5 rounded-xl text-white/80 hover:text-white text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer"
+                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)' }}
+              >
+                ← Edit
+              </button>
+            </div>
           </div>
+
+          {/* XP progress strip */}
+          {nextRank && (
+            <div className="px-5 pb-3 flex items-center gap-3">
+              <span className="font-sans text-[8px] text-white/50 tracking-widest uppercase shrink-0">{rank.label}</span>
+              <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${rankProgress}%`, background: 'rgba(255,255,255,0.85)' }} />
+              </div>
+              <span className="font-sans text-[8px] text-white/40 tracking-widest uppercase shrink-0">→ {nextRank.label}</span>
+            </div>
+          )}
 
           <div style={{ lineHeight: 0 }}>
             <svg viewBox="0 0 1200 12" preserveAspectRatio="none" style={{ width: '100%', height: '12px', display: 'block' }}>
@@ -540,84 +581,44 @@ export default function Dashboard() {
             </svg>
           </div>
         </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 px-1 py-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-bahrain-red animate-pulse" />
-              <span className="font-sans text-[9px] tracking-widest uppercase font-bold text-bronze-charcoal">
-                {tier === 'Wandering' ? 'Budget Explorer' : tier === 'Curated' ? 'Curated Local' : 'Luxury Curator'}
-              </span>
-            </div>
-            <span className="w-1 h-1 rounded-full bg-red-500/20" />
-            <span className="font-sans text-[9px] tracking-wider uppercase font-semibold text-bronze-charcoal/60">
-              {completedDays.length}/{duration} days sealed · {collectedKeepsakes.length} keepsakes
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 bg-red-500/5 px-3 py-1.5 rounded-xl border border-red-500/10">
-              <button onClick={() => setSoundMuted(!soundMuted)} className="text-xs focus:outline-none hover:scale-110 transition-transform cursor-pointer">
-                {soundMuted ? '🔇' : '🔊'}
-              </button>
-              <input
-                type="range" min="0" max="1" step="0.05" value={soundVolume}
-                onChange={(e) => { setSoundVolume(parseFloat(e.target.value)); if (soundMuted) setSoundMuted(false) }}
-                className="w-14 h-1 rounded-lg appearance-none cursor-pointer accent-bahrain-red brass-slider"
-              />
-            </div>
-            <button
-              onClick={() => setStep(1)}
-              className="px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/8 text-bahrain-red text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer mr-1"
-            >
-              ← Edit Trip
-            </button>
-            <button
-              onClick={resetChronicle}
-              className="px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/8 text-bahrain-red text-[8px] tracking-widest uppercase font-bold transition-all cursor-pointer"
-            >
-              Reset
-            </button>
-          </div>
-        </div>
       </header>
-      {/* Outer 3D Binder Journal Container - Centered and Balanced */}
-      <div className="w-full max-w-6xl journal-binder-wrapper px-0 md:px-12 relative flex items-center justify-center mx-auto">
-        
-        {/* Protruding Leather Index Tabs */}
-        <div className="absolute top-16 -right-[46px] hidden md:flex flex-col gap-3 z-40">
-          {[
-            { id: 'chronicles', label: 'Chronicle', emoji: '📖' },
-            { id: 'cartography', label: 'Map Log', emoji: '🗺️' },
-            { id: 'keepsakes', label: 'Keepsakes', emoji: '🪙' },
-            { id: 'lexicon', label: 'Lexicon', emoji: '📜' }
-          ].map(tab => {
-            const active = activeLeaf === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleLeafSwitch(tab.id)}
-                className={`leather-tab-item relative px-3 py-3 flex flex-col items-center justify-center text-white ${active ? 'active' : ''}`}
-                style={{ width: '48px', height: '68px' }}
-              >
-                <span className="text-base leading-none">{tab.emoji}</span>
-                <span className="font-sans text-[7px] font-extrabold uppercase tracking-widest text-center mt-1 scale-90" style={{ writingMode: 'vertical-rl' }}>
-                  {tab.label}
-                </span>
-              </button>
-            )
-          })}
-        </div>
+      {/* Outer 3D Binder Journal Container */}
+      <div className="w-full max-w-5xl journal-binder-wrapper px-0 relative flex items-center justify-center mx-auto">
 
-        {/* The Open physical book ledger double page grid - Added mx-auto for centering */}
-        <div className="relative w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 rounded-[28px] overflow-visible journal-open-book bg-[#FAF9F6] shadow-2xl mx-auto">
-          
+        {/* Open journal double-page grid */}
+        <div className="relative w-full grid grid-cols-1 md:grid-cols-2 rounded-[28px] overflow-visible journal-open-book bg-[#FAF9F6] shadow-2xl mx-auto">
+
+          {/* Protruding Leather Index Tabs — flush against right edge of book */}
+          <div className="absolute top-16 left-full hidden md:flex flex-col gap-2 z-40" style={{ marginLeft: 0 }}>
+            {[
+              { id: 'chronicles', label: "Today's", emoji: '📖' },
+              { id: 'cartography', label: 'Map', emoji: '🗺️' },
+              { id: 'keepsakes', label: 'Souvenirs', emoji: '🪙' },
+              { id: 'lexicon', label: 'Phrases', emoji: '📜' }
+            ].map(tab => {
+              const active = activeLeaf === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleLeafSwitch(tab.id)}
+                  className={`leather-tab-item relative px-3 py-3 flex flex-col items-center justify-center text-white ${active ? 'active' : ''}`}
+                  style={{ width: '48px', height: '68px' }}
+                >
+                  <span className="text-base leading-none">{tab.emoji}</span>
+                  <span className="font-sans text-[7px] font-extrabold uppercase tracking-widest text-center mt-1 scale-90" style={{ writingMode: 'vertical-rl' }}>
+                    {tab.label}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
           <div className="flex md:hidden justify-around bg-[#FCFBF8] border-b border-red-500/10 py-3 rounded-t-[24px] px-2 w-full select-none z-40">
             {[
-              { id: 'chronicles', label: 'Chronicle', emoji: '📖' },
-              { id: 'cartography', label: 'Map Log', emoji: '🗺️' },
-              { id: 'keepsakes', label: 'Keepsakes', emoji: '🪙' },
-              { id: 'lexicon', label: 'Lexicon', emoji: '📜' }
+              { id: 'chronicles', label: "Today's Spots", emoji: '📖' },
+              { id: 'cartography', label: 'Map', emoji: '🗺️' },
+              { id: 'keepsakes', label: 'Souvenirs', emoji: '🪙' },
+              { id: 'lexicon', label: 'Phrasebook', emoji: '📜' }
             ].map(tab => {
               const active = activeLeaf === tab.id
               return (
@@ -652,115 +653,114 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <div className="journal-page-left p-6 md:p-8 flex flex-col justify-start gap-5 relative">
-            <div className="animate-fadeIn space-y-5 text-left">
-              
+          <div className="journal-page-left p-5 md:p-7 flex flex-col justify-start gap-4 relative">
+            <div className="animate-fadeIn space-y-4 text-left">
+
               {activeLeaf === 'chronicles' && (
                 <>
-                  <div className="flex justify-between items-center select-none pb-2 border-b border-red-500/10 w-full overflow-hidden">
-                    <div 
-                      className="flex items-center gap-1.5 overflow-x-auto py-1 flex-1 mr-3"
-                      style={{ 
-                        scrollbarWidth: 'none', 
-                        msOverflowStyle: 'none',
-                        WebkitOverflowScrolling: 'touch',
-                        maskImage: 'linear-gradient(to right, black 88%, transparent 100%)',
-                        WebkitMaskImage: 'linear-gradient(to right, black 88%, transparent 100%)'
-                      }}
-                    >
-                      <span className="font-serif text-[10px] text-bronze-charcoal font-bold shrink-0">Ledger Chapters:</span>
-                      {Array.from({ length: duration }, (_, idx) => {
-                        const d = idx + 1
-                        const active = currentDayTab === d
-                        const unlocked = unlockedDays.includes(d)
-                        return (
-                          <button
-                            key={d}
-                            disabled={!unlocked}
-                            onClick={() => handleDaySwitch(d)}
-                            title={unlocked ? `View Day ${d} Chronicles` : `Locked Chapter: Complete prior daily ledger seals in Chronicles to unlock!`}
-                            className={`w-7 h-7 rounded-full flex items-center justify-center font-serif text-[10px] font-extrabold transition-all relative shrink-0 ${
-                              !unlocked
-                                ? 'bg-red-500/5 text-bronze-charcoal/40 border border-dashed border-red-500/15 cursor-not-allowed'
-                                : active
-                                  ? 'bg-bahrain-red text-white border border-amber-500/30 scale-105 shadow-sm font-bold'
-                                  : 'bg-white border border-red-500/10 text-bronze-charcoal hover:border-red-500/35 hover:scale-102 cursor-pointer shadow-sm'
-                            }`}
-                          >
-                            {unlocked ? d : '🔒'}
-                          </button>
-                        )
-                      })}
+                  {/* Day navigation — cleaner, larger, more readable */}
+                  <div className="flex items-center justify-between select-none pb-3 border-b border-red-500/10">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-sans text-[9px] text-bronze-charcoal/60 font-semibold tracking-wider uppercase shrink-0">Day:</span>
+                      <div className="flex items-center gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                        {Array.from({ length: duration }, (_, idx) => {
+                          const d = idx + 1
+                          const active = currentDayTab === d
+                          const unlocked = unlockedDays.includes(d)
+                          return (
+                            <button
+                              key={d}
+                              disabled={!unlocked}
+                              onClick={() => handleDaySwitch(d)}
+                              title={unlocked ? `Day ${d}` : 'Seal the current day first to unlock'}
+                              className={`w-8 h-8 rounded-full flex items-center justify-center font-sans text-xs font-bold transition-all shrink-0 ${
+                                !unlocked
+                                  ? 'bg-red-500/5 text-bronze-charcoal/30 border border-dashed border-red-500/10 cursor-not-allowed'
+                                  : active
+                                    ? 'bg-bahrain-red text-white shadow-sm'
+                                    : 'bg-white border border-red-500/15 text-bronze-charcoal hover:border-red-500/30 cursor-pointer shadow-sm'
+                              }`}
+                            >
+                              {unlocked ? d : '🔒'}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
-                    <span className="font-serif text-[10px] italic text-bahrain-red font-bold shrink-0">
-                      {romanNumerals[currentDayTab]}
+                    <span className="font-sans text-[8px] text-bronze-charcoal/40 font-semibold">
+                      {currentSpotIndex < activeSpots.length ? `Stop ${currentSpotIndex + 1}/${activeSpots.length}` : 'All done'}
                     </span>
                   </div>
 
-                  <div className="relative p-4 bg-[#FCFBF8] border border-dashed border-red-500/25 rounded-2xl shadow-sm my-2 aged-paper-gradient">
-                    <div className="paper-clip-asset" />
-                    <span className="font-sans text-[7px] tracking-[0.25em] text-bahrain-red uppercase font-extrabold block pl-14">
-                      Historical Companion Decipher • {guides.find(g => g.id === activeGuide)?.name}
-                    </span>
-                    <p className="font-serif text-[11.5px] italic text-bronze-charcoal leading-relaxed mt-2 pl-14 font-bold">
-                      "{activeSpot ? getGuideThoughts(activeSpot, activeGuide) : `Select a landmark below, wayfarer. Let me guide you down these ancient paths...`}"
-                    </p>
-                    <div className="flex gap-1.5 mt-2.5 pl-14">
-                      {guides.map(g => (
-                        <button
-                          key={g.id}
-                          onClick={() => setActiveGuide(g.id)}
-                          className={`px-2 py-0.5 rounded-md text-[7px] uppercase tracking-wider font-extrabold transition-all border ${
-                            activeGuide === g.id
-                              ? 'bg-bahrain-red text-white border-bahrain-red'
-                              : 'bg-white border-red-500/15 text-bronze-charcoal hover:border-red-500/35'
-                          }`}
-                        >
-                          {g.emoji} {g.name.split(' ')[1]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {activeSpot ? (
-                    <div className="space-y-3.5">
-                      <div className="flex justify-between items-start border-b border-red-500/5 pb-1">
-                        <div>
-                          <span className="font-sans text-[7px] tracking-[0.15em] text-bronze-muted/50 uppercase font-bold">
-                            {activeSpot.period}
-                          </span>
-                          <span className="font-sans text-[7px] tracking-wider text-bahrain-red font-bold font-mono block mt-0.5">
-                            {activeSpot.coords}
-                          </span>
-                        </div>
-                        <span className="font-serif text-lg text-bahrain-red italic font-medium">
-                          {activeSpot.arabic}
+                  {/* Guide commentary — collapsible, less prominent */}
+                  <details className="group">
+                    <summary className="cursor-pointer list-none flex items-center justify-between p-3 bg-[#FCFBF8] border border-red-500/15 rounded-xl select-none hover:border-red-500/25 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">{guides.find(g => g.id === activeGuide)?.emoji}</span>
+                        <span className="font-sans text-[9px] font-bold tracking-wider uppercase text-bahrain-red">
+                          {guides.find(g => g.id === activeGuide)?.name} says...
                         </span>
                       </div>
+                      <span className="font-sans text-[9px] text-bronze-charcoal/40 group-open:rotate-180 transition-transform">▾</span>
+                    </summary>
+                    <div className="mt-2 p-3 bg-[#FCFBF8] border border-dashed border-red-500/20 rounded-xl aged-paper-gradient">
+                      <div className="paper-clip-asset" />
+                      <p className="font-serif text-[11px] italic text-bronze-charcoal leading-relaxed font-bold pl-14">
+                        "{activeSpot ? getGuideThoughts(activeSpot, activeGuide) : 'Select a landmark below, wayfarer...'}"
+                      </p>
+                      <div className="flex gap-1.5 mt-2 pl-14">
+                        {guides.map(g => (
+                          <button
+                            key={g.id}
+                            onClick={() => setActiveGuide(g.id)}
+                            className={`px-2 py-0.5 rounded-md text-[7px] uppercase tracking-wider font-extrabold transition-all border ${
+                              activeGuide === g.id
+                                ? 'bg-bahrain-red text-white border-bahrain-red'
+                                : 'bg-white border-red-500/15 text-bronze-charcoal hover:border-red-500/30'
+                            }`}
+                          >
+                            {g.emoji} {g.name.split(' ')[1]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </details>
 
-                      <h3 className="font-serif text-2xl text-bronze-charcoal font-semibold tracking-tight">
-                        {activeSpot.name}
-                      </h3>
-                      
-                      <p className="font-sans text-xs text-bronze-muted leading-relaxed font-semibold">
+                  {activeSpot ? (
+                    <div className="space-y-4">
+                      {/* Spot header — clear hierarchy */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-sans text-[8px] tracking-wider text-bahrain-red/70 uppercase font-bold">{activeSpot.period}</span>
+                          </div>
+                          <h3 className="font-serif text-xl text-bronze-charcoal font-semibold tracking-tight leading-tight">
+                            {activeSpot.name}
+                          </h3>
+                          <p className="font-sans text-[9px] text-bronze-charcoal/50 font-mono mt-1">{activeSpot.coords}</p>
+                        </div>
+                        <span className="font-serif text-2xl text-bahrain-red/80 italic font-medium shrink-0">{activeSpot.arabic}</span>
+                      </div>
+
+                      <p className="font-sans text-[12px] text-bronze-muted leading-relaxed">
                         {activeSpot.desc}
                       </p>
 
+                      {/* Insider tip — clear label */}
                       <div className="p-3.5 rounded-xl bg-red-500/5 border border-red-500/10">
-                        <span className="font-sans text-[7px] tracking-widest uppercase text-bahrain-red font-bold block mb-1">
-                          ✨ The Storyteller's Decipher Key
+                        <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold block mb-1.5">
+                          ✨ Local Insider Tip
                         </span>
-                        <p className="font-serif text-[11px] italic text-bronze-charcoal leading-relaxed font-bold">
+                        <p className="font-serif text-[11.5px] italic text-bronze-charcoal leading-relaxed">
                           {activeSpot.insider}
                         </p>
                       </div>
 
-                      <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white">
-                        <div className="flex justify-between items-center mb-1.5">
-                          <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
-                            ✍️ Wayfarer Reflexes Log
-                          </span>
-                        </div>
+                      {/* Personal notes */}
+                      <div className="p-3.5 rounded-xl border border-red-500/10 bg-white">
+                        <span className="font-sans text-[8px] tracking-widest uppercase text-bronze-charcoal/40 font-bold block mb-1.5">
+                          ✍️ Your Notes
+                        </span>
                         <textarea
                           value={localReflection}
                           onChange={(e) => {
@@ -772,8 +772,8 @@ export default function Dashboard() {
                               saveJournalReflection(activeSpot.id, val)
                             }, 400)
                           }}
-                          placeholder="Write your thoughts here..."
-                          rows="2.5"
+                          placeholder="Jot down your thoughts about this place..."
+                          rows="3"
                           className="w-full text-xs font-serif text-bronze-charcoal placeholder-bronze-muted/30 ruled-lines-container border-none focus:outline-none resize-none focus:ring-0 leading-6 bg-transparent"
                         />
                       </div>
@@ -966,13 +966,13 @@ export default function Dashboard() {
               {activeLeaf === 'lexicon' && (
                 <div className="space-y-4">
                   <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
-                    Bilingual Glossary Keys
+                    Bahraini Arabic · Phrasebook
                   </span>
                   <h3 className="font-serif text-2xl text-bronze-charcoal font-semibold mt-1">
-                    Wayfarer's Lexicon
+                    Useful Local Phrases
                   </h3>
                   <p className="font-sans text-xs text-bronze-muted leading-relaxed font-semibold">
-                    Click any word card to practice native Bahraini pronunciation and pluck the corresponding Oud acoustic scale.
+                    Tap any word to hear the pronunciation — great for greeting locals on your visit.
                   </p>
                   <div className="grid grid-cols-1 gap-3 mt-4 max-h-[360px] overflow-y-auto antique-scrollbar pr-1">
                     {[
@@ -1156,16 +1156,30 @@ export default function Dashboard() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => setActiveScanSpot(activeSpot)}
-                        className={`px-6 py-2 rounded-xl text-[9px] tracking-widest uppercase font-bold transition-all cursor-pointer shadow-md ${
-                          capturedPhotos[activeSpot.id]
-                            ? 'bg-green-600 hover:bg-green-700 text-white border border-green-600'
-                            : 'bg-bahrain-red hover:bg-bahrain-dark text-white border border-bahrain-red'
-                        }`}
-                      >
-                        {capturedPhotos[activeSpot.id] ? '📷 Re-Focus & Re-Shoot' : '📷 Capture Lens Stamp'}
-                      </button>
+                      {/* Action buttons — clearer grouping */}
+                      <div className="flex gap-2 flex-wrap justify-center">
+                        <button
+                          onClick={() => setActiveScanSpot(activeSpot)}
+                          className={`flex-1 min-w-[130px] px-4 py-2.5 rounded-xl text-[9px] tracking-widest uppercase font-bold transition-all cursor-pointer shadow-md ${
+                            capturedPhotos[activeSpot.id]
+                              ? 'bg-green-600 hover:bg-green-700 text-white'
+                              : 'bg-bahrain-red hover:bg-bahrain-dark text-white'
+                          }`}
+                        >
+                          {capturedPhotos[activeSpot.id] ? '📷 Re-Shoot' : '📷 Capture Lens'}
+                        </button>
+                        {hasVirtualTour(activeSpot.id) && (
+                          <button
+                            onClick={() => {
+                              setVirtualTourIndex(getTourIndexForSpot(activeSpot.id))
+                              setShowVirtualTour(true)
+                            }}
+                            className="flex-1 min-w-[130px] px-4 py-2.5 rounded-xl text-[9px] tracking-widest uppercase font-bold transition-all cursor-pointer shadow-md bg-white border border-red-500/20 text-bahrain-red hover:bg-red-500/5"
+                          >
+                            🎬 Virtual Tour
+                          </button>
+                        )}
+                      </div>
 
                       <div className="w-full max-w-[320px] p-4.5 rounded-2xl border border-amber-600/35 bg-[#FCFBF8] shadow-sm text-left select-none relative overflow-hidden stitch-border shrink-0 my-2">
                         <div className="paper-clip-asset" style={{ right: '20px', left: 'auto' }} />
@@ -1390,6 +1404,15 @@ export default function Dashboard() {
       {isMapOpen && locations && locations.length > 0 && (
         <WayfarerMap locations={locations} onClose={() => setIsMapOpen(false)} />
       )}
+
+      {showVirtualTour && (
+        <VirtualTour
+          initialIndex={virtualTourIndex}
+          onClose={() => setShowVirtualTour(false)}
+        />
+      )}
+
+      <TourChatbot activeSpotName={activeSpot?.name} />
 
       {showSouqShop && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#1A1412]/80 backdrop-blur-sm animate-fadeIn">

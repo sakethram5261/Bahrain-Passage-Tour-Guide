@@ -484,7 +484,13 @@ export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durat
       clearTimeout(delay)
       setLoading(true)
     }
-  }, [selectedMoods, tierFilter, durationFilter, curatedItinerary, injectedSpots])
+  }, [
+    JSON.stringify(selectedMoods),
+    tierFilter,
+    durationFilter,
+    curatedItinerary ? JSON.stringify(curatedItinerary) : '',
+    injectedSpots ? JSON.stringify(injectedSpots) : ''
+  ])
 
   return { locations, loading, error }
 }

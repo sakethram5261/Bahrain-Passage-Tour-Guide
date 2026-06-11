@@ -2,6 +2,7 @@
 
 @import "tailwindcss";
 @import "./styles/theme.css";
+@import "./styles/journal-notebook.css";
 
 :root {
   font-family: var(--font-sans);
