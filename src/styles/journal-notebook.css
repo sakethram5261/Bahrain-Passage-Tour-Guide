@@ -32,7 +32,7 @@
   /* Charcoal ink */
   --jn-ink:           #1a1210;
   --jn-ink-muted:     #3b2f2b;
-  --jn-ink-faint:     rgba(42, 35, 33, 0.45);
+  --jn-ink-faint:     rgba(42, 35, 33, 0.65);
 
   /* Gold accent */
   --jn-gold:          #d4af37;
@@ -405,7 +405,7 @@
 /* Binder spine rings on left (decorative) */
 .jn-spine {
   position: absolute;
-  left: -6px;
+  left: -22px;
   top: var(--jn-sp-xl);
   bottom: var(--jn-sp-xl);
   width: 14px;
@@ -464,10 +464,26 @@
 }
 
 /* ── 7. Mobile Tabs ───────────────────────────────────────────────────────── */
-.jn-mobile-tabs {
-  display: flex;
+.jn-mobile-tabs-wrap {
+  position: relative;
   background: var(--jn-cream);
   border-bottom: 1px solid rgba(193, 18, 47, 0.1);
+}
+
+/* Right-fade scroll hint */
+.jn-mobile-tabs-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  width: 40px;
+  background: linear-gradient(to right, transparent, var(--jn-cream));
+  pointer-events: none;
+  z-index: 2;
+}
+
+.jn-mobile-tabs {
+  display: flex;
+  background: transparent;
   padding: var(--jn-sp-sm) var(--jn-sp-md);
   gap: var(--jn-sp-sm);
   overflow-x: auto;
@@ -659,7 +675,7 @@
 
 .jn-postmark-text {
   font-family: var(--jn-font-sans);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -669,7 +685,7 @@
 
 .jn-postmark-sub {
   font-family: var(--jn-font-sans);
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -897,9 +913,9 @@
 
 .jn-tl-stop-num {
   font-family: var(--jn-font-sans);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--jn-ink-faint);
 }
@@ -1343,23 +1359,22 @@
   }
 
   /* Show desktop nav, hide hamburger */
-  .jn-desktop-nav { display: flex; }
-  .jn-hamburger   { display: none; }
-  .jn-mobile-tabs { display: none; }
-  .jn-mobile-menu { display: none; }
-  .jn-level-badge { display: inline-flex; }
+  .jn-desktop-nav    { display: flex; }
+  .jn-hamburger      { display: none; }
+  .jn-menu-btn       { display: none; }
+  .jn-mobile-tabs    { display: none; }
+  .jn-mobile-tabs-wrap { display: none; }
+  .jn-mobile-menu    { display: none; }
+  .jn-level-badge    { display: inline-flex; }
 
   /* Body */
   .jn-body {
     padding: var(--jn-sp-xl) var(--jn-sp-xl) calc(var(--jn-cta-h) + var(--jn-sp-xl) + 8px);
   }
 
-  /* Spine: show on left margin */
+  /* Spine: hide on desktop to avoid border clipping */
   .jn-spine {
-    left: 4px;
-    top: var(--jn-sp-2xl);
-    bottom: var(--jn-sp-2xl);
-    width: 18px;
+    display: none;
   }
 
   .jn-ring {
@@ -1464,7 +1479,7 @@
   /* Timeline notes always visible on desktop */
   .jn-tl-note {
     max-height: 200px;
-    opacity: 0.7;
+    opacity: 0.8;
   }
 
   .jn-timeline-item--active .jn-tl-note {

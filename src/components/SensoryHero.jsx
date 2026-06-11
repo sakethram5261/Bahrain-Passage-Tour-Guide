@@ -29,6 +29,7 @@ export default function SensoryHero() {
   const [contentLoaded, setContentLoaded] = useState(false)
   const [imageErrors, setImageErrors] = useState({})
   const [sealing, setSealing] = useState(false) 
+  const [confirmRemove, setConfirmRemove] = useState(null) // idx of spot to confirm-remove
 
   // Swipe gesture tracking references
   const touchStartX = useRef(0)
@@ -435,7 +436,7 @@ export default function SensoryHero() {
                           </div>
                           <div className="bg-[#FCFBF8] border border-dashed border-[#A80D27]/18 rounded-xl p-4 mt-4 space-y-3 shadow-inner aged-paper-gradient">
                             <div>
-                              <span className="font-sans text-[7px] tracking-[0.22em] text-[#A80D27] uppercase font-black block mb-0.5">
+                              <span className="font-sans text-[10px] tracking-[0.12em] text-[#A80D27] uppercase font-black block mb-0.5">
                                 🗺️ Curated Local Guide Plan
                               </span>
                               <p className="font-serif text-[11px] leading-relaxed text-bronze-charcoal font-semibold select-text">
@@ -443,7 +444,7 @@ export default function SensoryHero() {
                               </p>
                             </div>
                             <div className="pt-2 border-t border-red-500/5">
-                              <span className="font-sans text-[7px] tracking-[0.22em] text-amber-600 uppercase font-black block mb-0.5">
+                              <span className="font-sans text-[10px] tracking-[0.12em] text-amber-600 uppercase font-black block mb-0.5">
                                 📜 Generational Insider Secret
                               </span>
                               <p className="font-serif text-[11px] italic text-bronze-muted leading-relaxed font-bold select-text">
@@ -452,17 +453,35 @@ export default function SensoryHero() {
                             </div>
                           </div>
                         </div>
-                        <button
-                          onClick={() => {
-                            playTypewriterClick(0.75)
-                            const remaining = itinerarySpots.filter((_, sIdx) => sIdx !== idx)
-                            setItinerarySpots(remaining)
-                            if (carouselIndex >= remaining.length && remaining.length > 0) setCarouselIndex(remaining.length - 1)
-                          }}
-                          className="absolute bottom-5 right-5 px-3 py-1.5 rounded-lg border border-[#A80D27]/15 hover:border-[#A80D27]/35 bg-red-500/5 hover:bg-red-500/10 text-[#A80D27] font-sans text-[8.5px] uppercase tracking-wider font-extrabold cursor-pointer flex items-center gap-1 active:scale-95 z-30"
-                        >
-                          🗑️ Remove Stop
-                        </button>
+                        {confirmRemove === idx ? (
+                           <div className="absolute bottom-5 right-5 flex gap-2 z-30">
+                             <button
+                               onClick={() => setConfirmRemove(null)}
+                               className="px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-600 font-sans text-[9px] uppercase tracking-wider font-extrabold cursor-pointer active:scale-95"
+                             >
+                               Cancel
+                             </button>
+                             <button
+                               onClick={() => {
+                                 playTypewriterClick(0.75)
+                                 const remaining = itinerarySpots.filter((_, sIdx) => sIdx !== idx)
+                                 setItinerarySpots(remaining)
+                                 setConfirmRemove(null)
+                                 if (carouselIndex >= remaining.length && remaining.length > 0) setCarouselIndex(remaining.length - 1)
+                               }}
+                               className="px-3 py-1.5 rounded-lg border border-[#A80D27]/40 bg-red-500/10 text-[#A80D27] font-sans text-[9px] uppercase tracking-wider font-extrabold cursor-pointer active:scale-95"
+                             >
+                               Remove
+                             </button>
+                           </div>
+                         ) : (
+                           <button
+                             onClick={() => setConfirmRemove(idx)}
+                             className="absolute bottom-5 right-5 px-3 py-1.5 rounded-lg border border-[#A80D27]/15 hover:border-[#A80D27]/35 bg-red-500/5 hover:bg-red-500/10 text-[#A80D27] font-sans text-[8.5px] uppercase tracking-wider font-extrabold cursor-pointer flex items-center gap-1 active:scale-95 z-30"
+                           >
+                             🗑️ Remove Stop
+                           </button>
+                         )}
                       </div>
                     </div>
                   )
