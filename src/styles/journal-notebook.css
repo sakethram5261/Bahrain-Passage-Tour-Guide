@@ -1460,16 +1460,6 @@
     max-width: 360px;
   }
 
-  /* Both CTAs visible simultaneously, split left/right */
-  .jn-sticky-cta:first-of-type {
-    left: 0;
-    right: 50%;
-  }
-
-  .jn-sticky-cta:last-of-type {
-    left: 50%;
-    right: 0;
-  }
 
   /* Timeline notes always visible on desktop */
   .jn-tl-note {
