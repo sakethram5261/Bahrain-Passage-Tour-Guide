@@ -27,7 +27,7 @@ export default function SensoryHero() {
   const [activeLogIndex, setActiveLogIndex] = useState(0)
   const [logsComplete, setLogsComplete] = useState(false)
   const [contentLoaded, setContentLoaded] = useState(false)
-  const [imageError, setImageError] = useState(false)
+  const [imageErrors, setImageErrors] = useState({})
   const [sealing, setSealing] = useState(false) 
 
   // Swipe gesture tracking references
@@ -74,10 +74,7 @@ export default function SensoryHero() {
     }
   }
 
-  // Reset image load errors when switching slides
-  useEffect(() => {
-    setImageError(false)
-  }, [carouselIndex])
+  // Reset image load errors when switching slides (no longer needed with per-spot imageErrors)
 
   // Bulletproof safety check to prevent carouselIndex out of bounds
   useEffect(() => {
@@ -359,7 +356,7 @@ export default function SensoryHero() {
 
           {/* Floating tactile card wrapper */}
           <div
-            className="relative rounded-[24px] overflow-hidden flex flex-col transition-all duration-350 border border-amber-600/30 bg-[#FAF8F5] select-none"
+            className="relative rounded-[24px] overflow-hidden flex flex-col border border-amber-600/30 select-none w-full"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             style={{
@@ -375,93 +372,102 @@ export default function SensoryHero() {
                 </button>
               </div>
             ) : (
-              (() => {
-                const activeSpot = itinerarySpots[carouselIndex] || itinerarySpots[0]
-                if (!activeSpot) return null
-                return (
-                  <>
-                    <div className="relative h-52 overflow-hidden bg-zinc-950 flex items-center justify-center shrink-0">
-                      {!imageError ? (
-                        <img 
-                          src={activeSpot.image} 
-                          alt={activeSpot.name} 
-                          onError={() => setImageError(true)}
-                          className="w-full h-full object-cover opacity-90 transition-transform duration-[1200ms] hover:scale-105" 
-                        />
-                      ) : (
-                        <div 
-                          className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none"
-                          style={{
-                            background: 'radial-gradient(circle, #FAF8F5 0%, #EFEBE4 100%)',
-                            borderBottom: '1px solid rgba(168,13,39,0.1)'
-                          }}
-                        >
-                          <div className="absolute inset-0 opacity-[0.04]" style={{
-                            backgroundImage: 'radial-gradient(#A80D27 1.5px, transparent 1.5px)',
-                            backgroundSize: '16px 16px'
-                          }} />
-                          <div className="w-16 h-16 rounded-full border border-dashed border-[#A80D27]/25 flex items-center justify-center mb-2 animate-rotateCompass bg-white/20">
-                            <span className="text-xl">🧭</span>
-                          </div>
-                          <span className="font-mono text-[9px] text-[#A80D27] tracking-wider uppercase font-bold">
-                            {activeSpot.coords || '26.2285° N, 50.5860° E'}
-                          </span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
-                      <span className="absolute top-4 left-4 font-serif text-[10px] tracking-widest uppercase font-bold text-white py-1 px-3 rounded-full" style={{ background: 'linear-gradient(to right, #A80D27, #800A1E)' }}>
-                        Day {activeSpot.day || 1} Stop
-                      </span>
-                    </div>
-
-                    <div className="p-6 pb-20 flex flex-col justify-between bg-[#FAF8F5] relative min-h-[260px] text-left">
-                      <div>
-                        <h4 
-                          key={activeSpot.id}
-                          className="font-serif text-xl md:text-2xl font-black text-bronze-charcoal tracking-tight leading-tight flex items-start gap-2.5 animate-slideUpFade"
-                        >
-                          <span className="text-2xl shrink-0">{activeSpot.keepsakeEmoji || '📍'}</span>
-                          <span>{activeSpot.name}</span>
-                        </h4>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <span className="font-serif text-xs italic text-[#A80D27] font-bold shrink-0">{activeSpot.arabic}</span>
-                          <span className="h-[1px] flex-1 bg-red-500/10" />
-                          <span className="font-mono text-[8px] text-bronze-muted/50 tracking-wider uppercase font-bold shrink-0">{activeSpot.period}</span>
-                        </div>
-                        <div className="bg-[#FCFBF8] border border-dashed border-[#A80D27]/18 rounded-xl p-4 mt-4 space-y-3 shadow-inner aged-paper-gradient">
-                          <div>
-                            <span className="font-sans text-[7px] tracking-[0.22em] text-[#A80D27] uppercase font-black block mb-0.5">
-                              🗺️ Curated Local Guide Plan
+              <div 
+                className="flex transition-transform duration-500 ease-out w-full"
+                style={{
+                  transform: `translateX(-${carouselIndex * 100}%)`
+                }}
+              >
+                {itinerarySpots.map((spot, idx) => {
+                  const hasPicError = imageErrors[spot.id]
+                  return (
+                    <div 
+                      key={spot.id} 
+                      className="w-full shrink-0 flex flex-col bg-[#FAF8F5]"
+                      style={{ flex: '0 0 100%' }}
+                    >
+                      <div className="relative h-52 overflow-hidden bg-zinc-950 flex items-center justify-center shrink-0">
+                        {!hasPicError ? (
+                          <img 
+                            src={spot.image} 
+                            alt={spot.name} 
+                            onError={() => setImageErrors(prev => ({ ...prev, [spot.id]: true }))}
+                            className="w-full h-full object-cover opacity-90 transition-transform duration-[1200ms] hover:scale-105" 
+                          />
+                        ) : (
+                          <div 
+                            className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none"
+                            style={{
+                              background: 'radial-gradient(circle, #FAF8F5 0%, #EFEBE4 100%)',
+                              borderBottom: '1px solid rgba(168,13,39,0.1)'
+                            }}
+                          >
+                            <div className="absolute inset-0 opacity-[0.04]" style={{
+                              backgroundImage: 'radial-gradient(#A80D27 1.5px, transparent 1.5px)',
+                              backgroundSize: '16px 16px'
+                            }} />
+                            <div className="w-16 h-16 rounded-full border border-dashed border-[#A80D27]/25 flex items-center justify-center mb-2 animate-rotateCompass bg-white/20">
+                              <span className="text-xl">🧭</span>
+                            </div>
+                            <span className="font-mono text-[9px] text-[#A80D27] tracking-wider uppercase font-bold">
+                              {spot.coords || '26.2285° N, 50.5860° E'}
                             </span>
-                            <p className="font-serif text-[11px] leading-relaxed text-bronze-charcoal font-semibold select-text">
-                              {activeSpot.pathGuide}
-                            </p>
                           </div>
-                          <div className="pt-2 border-t border-red-500/5">
-                            <span className="font-sans text-[7px] tracking-[0.22em] text-amber-600 uppercase font-black block mb-0.5">
-                              📜 Generational Insider Secret
-                            </span>
-                            <p className="font-serif text-[11px] italic text-bronze-muted leading-relaxed font-bold select-text">
-                              "{activeSpot.insider}"
-                            </p>
-                          </div>
-                        </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
+                        <span className="absolute top-4 left-4 font-serif text-[10px] tracking-widest uppercase font-bold text-white py-1 px-3 rounded-full" style={{ background: 'linear-gradient(to right, #A80D27, #800A1E)' }}>
+                          Day {spot.day || 1} Stop
+                        </span>
                       </div>
-                      <button
-                        onClick={() => {
-                          playTypewriterClick(0.75)
-                          const remaining = itinerarySpots.filter((_, idx) => idx !== carouselIndex)
-                          setItinerarySpots(remaining)
-                          if (carouselIndex >= remaining.length && remaining.length > 0) setCarouselIndex(remaining.length - 1)
-                        }}
-                        className="absolute bottom-5 right-5 px-3 py-1.5 rounded-lg border border-[#A80D27]/15 hover:border-[#A80D27]/35 bg-red-500/5 hover:bg-red-500/10 text-[#A80D27] font-sans text-[8.5px] uppercase tracking-wider font-extrabold cursor-pointer flex items-center gap-1 active:scale-95 z-30"
-                      >
-                        🗑️ Remove Stop
-                      </button>
+
+                      <div className="p-6 pb-20 flex flex-col justify-between bg-[#FAF8F5] relative min-h-[260px] text-left flex-1">
+                        <div>
+                          <h4 
+                            className="font-serif text-xl md:text-2xl font-black text-bronze-charcoal tracking-tight leading-tight flex items-start gap-2.5"
+                          >
+                            <span className="text-2xl shrink-0">{spot.keepsakeEmoji || '📍'}</span>
+                            <span>{spot.name}</span>
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="font-serif text-xs italic text-[#A80D27] font-bold shrink-0">{spot.arabic}</span>
+                            <span className="h-[1px] flex-1 bg-red-500/10" />
+                            <span className="font-mono text-[8px] text-bronze-muted/50 tracking-wider uppercase font-bold shrink-0">{spot.period}</span>
+                          </div>
+                          <div className="bg-[#FCFBF8] border border-dashed border-[#A80D27]/18 rounded-xl p-4 mt-4 space-y-3 shadow-inner aged-paper-gradient">
+                            <div>
+                              <span className="font-sans text-[7px] tracking-[0.22em] text-[#A80D27] uppercase font-black block mb-0.5">
+                                🗺️ Curated Local Guide Plan
+                              </span>
+                              <p className="font-serif text-[11px] leading-relaxed text-bronze-charcoal font-semibold select-text">
+                                {spot.pathGuide}
+                              </p>
+                            </div>
+                            <div className="pt-2 border-t border-red-500/5">
+                              <span className="font-sans text-[7px] tracking-[0.22em] text-amber-600 uppercase font-black block mb-0.5">
+                                📜 Generational Insider Secret
+                              </span>
+                              <p className="font-serif text-[11px] italic text-bronze-muted leading-relaxed font-bold select-text">
+                                "{spot.insider}"
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            playTypewriterClick(0.75)
+                            const remaining = itinerarySpots.filter((_, sIdx) => sIdx !== idx)
+                            setItinerarySpots(remaining)
+                            if (carouselIndex >= remaining.length && remaining.length > 0) setCarouselIndex(remaining.length - 1)
+                          }}
+                          className="absolute bottom-5 right-5 px-3 py-1.5 rounded-lg border border-[#A80D27]/15 hover:border-[#A80D27]/35 bg-red-500/5 hover:bg-red-500/10 text-[#A80D27] font-sans text-[8.5px] uppercase tracking-wider font-extrabold cursor-pointer flex items-center gap-1 active:scale-95 z-30"
+                        >
+                          🗑️ Remove Stop
+                        </button>
+                      </div>
                     </div>
-                  </>
-                )
-              })()
+                  )
+                })}
+              </div>
             )}
           </div>
 

@@ -269,7 +269,11 @@ export default function JournalNotebook({ onBack }) {
   }
 
   /* ── Tab switch ──────────────────────────────────────────────────────────── */
-  const switchTab = (tab) => {
+  const switchTab = (tab, e) => {
+    if (e) {
+      e.stopPropagation()
+      e.preventDefault()
+    }
     if (tab === activeTab) return
     setActiveTab(tab)
     setTabKey(k => k + 1)
@@ -427,7 +431,7 @@ export default function JournalNotebook({ onBack }) {
               <button
                 key={t.id}
                 className={`jn-nav-btn ${activeTab === t.id ? 'jn-nav-btn--active' : ''}`}
-                onClick={() => switchTab(t.id)}
+                onClick={(e) => switchTab(t.id, e)}
               >
                 {t.emoji} {t.label}
               </button>
@@ -481,7 +485,7 @@ export default function JournalNotebook({ onBack }) {
           <button
             key={t.id}
             className={`jn-mob-nav-btn ${activeTab === t.id ? 'jn-mob-nav-btn--active' : ''}`}
-            onClick={() => switchTab(t.id)}
+            onClick={(e) => switchTab(t.id, e)}
           >
             {t.emoji} {t.label}
           </button>
@@ -514,7 +518,7 @@ export default function JournalNotebook({ onBack }) {
             aria-selected={activeTab === t.id}
             aria-controls={`panel-${t.id}`}
             className={`jn-tab ${activeTab === t.id ? 'jn-tab--active' : ''}`}
-            onClick={() => switchTab(t.id)}
+            onClick={(e) => switchTab(t.id, e)}
           >
             <span className="jn-tab-emoji">{t.emoji}</span>
             <span className="jn-tab-label">{t.label}</span>
@@ -524,13 +528,6 @@ export default function JournalNotebook({ onBack }) {
 
       {/* ── Main content area with binder ring system ───────────────────────── */}
       <div className="jn-body">
-        
-        {/* Realistic leather notebook spine binder rings (rendered on desktop) */}
-        <div className="jn-spine" aria-hidden="true">
-          {Array.from({ length: 8 }).map((_, idx) => (
-            <div key={idx} className="jn-ring" />
-          ))}
-        </div>
 
         <main className="jn-book">
           
@@ -705,33 +702,69 @@ export default function JournalNotebook({ onBack }) {
 
                   {/* Guide comments with collapsible tabs */}
                   <div className="jn-insider-box" style={{ background: '#fffdf9', border: '1px solid var(--jn-gold-muted)', padding: '15px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid rgba(193, 18, 47, 0.08)', paddingBottom: '6px' }}>
-                      <span className="jn-tag jn-tag--red">🎙️ Narrator Guide</span>
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        {guides.map(g => (
-                          <button
-                            key={g.id}
-                            onClick={() => setActiveGuide(g.id)}
-                            style={{
-                              padding: '2px 6px',
-                              fontSize: '8px',
-                              textTransform: 'uppercase',
-                              fontWeight: 'bold',
-                              borderRadius: '4px',
-                              border: activeGuide === g.id ? '1px solid var(--jn-crimson)' : '1px solid rgba(0,0,0,0.08)',
-                              background: activeGuide === g.id ? 'var(--jn-crimson-light)' : 'transparent',
-                              color: activeGuide === g.id ? 'var(--jn-crimson)' : 'var(--jn-ink-muted)',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            {g.emoji} {g.name.split(' ')[1] || g.name}
-                          </button>
-                        ))}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(193, 18, 47, 0.08)', paddingBottom: '6px' }}>
+                        <span className="jn-tag jn-tag--red">🎙️ Narrator Guide</span>
+                      </div>
+                      
+                      {/* Swipeable track for guides selector */}
+                      <div 
+                        className="jn-guides-track"
+                        style={{
+                          display: 'flex',
+                          gap: '8px',
+                          overflowX: 'auto',
+                          flexWrap: 'nowrap',
+                          WebkitOverflowScrolling: 'touch',
+                          paddingBottom: '6px',
+                          scrollbarWidth: 'none',
+                        }}
+                      >
+                        {guides.map(g => {
+                          const isActive = activeGuide === g.id
+                          return (
+                            <button
+                              key={g.id}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                e.preventDefault()
+                                setActiveGuide(g.id)
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                flex: '0 0 auto',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '8px 12px',
+                                minWidth: '95px',
+                                borderRadius: '10px',
+                                border: isActive ? '1.5px solid var(--jn-crimson)' : '1.5px solid rgba(193, 18, 47, 0.08)',
+                                background: isActive ? 'var(--jn-crimson-light)' : '#ffffff',
+                                color: isActive ? 'var(--jn-crimson)' : 'var(--jn-ink-muted)',
+                                boxShadow: isActive ? '0 4px 10px rgba(193, 18, 47, 0.12)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <span style={{ fontSize: '20px', marginBottom: '2px' }}>{g.emoji}</span>
+                              <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                                {g.name.split(' ')[0]}
+                              </span>
+                              <span style={{ fontSize: '7px', opacity: 0.7, marginTop: '2px' }}>
+                                {g.role || 'Guide'}
+                              </span>
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
-                    <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '11px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--jn-ink-muted)' }}>
-                      "{getGuideThoughts(activeSpot, activeGuide)}"
-                    </p>
+                    
+                    <div style={{ marginTop: '10px', borderTop: '1px dashed rgba(193, 18, 47, 0.08)', paddingTop: '10px' }}>
+                      <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '11.5px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--jn-ink-muted)' }}>
+                        "{getGuideThoughts(activeSpot, activeGuide)}"
+                      </p>
+                    </div>
                   </div>
 
                   {/* Insider tip */}

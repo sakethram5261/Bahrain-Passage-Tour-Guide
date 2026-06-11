@@ -470,10 +470,19 @@
   border-bottom: 1px solid rgba(193, 18, 47, 0.1);
   padding: var(--jn-sp-sm) var(--jn-sp-md);
   gap: var(--jn-sp-sm);
+  overflow-x: auto;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.jn-mobile-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .jn-tab {
-  flex: 1;
+  flex: 0 0 auto;
   padding: 10px var(--jn-sp-md);
   font-family: var(--jn-font-sans);
   font-size: 12px;

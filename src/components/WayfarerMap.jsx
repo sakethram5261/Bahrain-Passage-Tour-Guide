@@ -160,7 +160,11 @@ export default function WayfarerMap({ locations, onClose }) {
 
       {/* 2. WAX SEAL CLOSE MAP BUTTON (Rolls up scroll back to journal) */}
       <button
-        onClick={() => setActiveLeaf('chronicles')}
+        onClick={(e) => {
+          e.stopPropagation()
+          if (onClose) onClose()
+          else setActiveLeaf('chronicles')
+        }}
         className="absolute top-6 right-6 w-11 h-11 rounded-full bg-bahrain-red hover:bg-bahrain-dark border-2 border-double border-amber-500/60 flex items-center justify-center text-white shadow-lg cursor-pointer transform hover:scale-105 active:scale-95 z-50 font-sans font-extrabold text-[16px]"
         title="Close & Roll Up Map Scroll"
       >
