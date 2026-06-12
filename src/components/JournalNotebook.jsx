@@ -667,7 +667,7 @@ export default function JournalNotebook({ onBack }) {
                   fontSize: '8px', 
                   letterSpacing: '0.1em', 
                   color: 'rgba(255, 255, 255, 0.7)',
-                  marginTop: '-4px',
+                  marginTop: '3px',
                   whiteSpace: 'nowrap'
                 }}>
                   مملكة البحرين

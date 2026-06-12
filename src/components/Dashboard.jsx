@@ -506,7 +506,7 @@ export default function Dashboard() {
                 Bahrain{' '}
                 <span className="relative inline-block">
                   <span className="italic font-light">Passage</span>
-                  <span className="absolute right-0 top-[100%] font-sans text-[7px] tracking-[0.25em] uppercase font-bold text-white/55 mt-0.5 whitespace-nowrap">
+                  <span className="absolute right-0 top-[100%] font-sans text-[7px] tracking-[0.25em] uppercase font-bold text-white/55 mt-1.5 whitespace-nowrap">
                     مملكة البحرين
                   </span>
                 </span>
