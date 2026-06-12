@@ -12,7 +12,7 @@ const DESTINATIONS = {
     tip: "The archaeological layers here span the Dilmun, Assyrian, Greek, and Portuguese eras. Walk the excavated corridors to see how each civilisation built on top of the last.",
     emoji: '🏯',
   },
-  'barbar temple': {
+  'barbar temple':      {
     name: 'Barbar Temple',
     tip: "Built around 2200 BCE, this is one of the oldest temples in the Arabian Gulf. The central well still shows natural groundwater rising from below — ancient Sumerians believed it was the mouth of the god Enki's freshwater kingdom.",
     emoji: '🏺',

@@ -30,6 +30,58 @@ const SPOT_CLUES = {
   'al-areen': 'A protected desert wildlife sanctuary sheltering rare Arabian Oryx, desert gazelle, and native flora in the Sakhir dunes.',
 }
 
+// Real-world coordinate polygons for Bahrain geography outlines
+const BAHRAIN_MAIN_COORDS = [
+  [26.255, 50.565], // Reef Island / North Seef
+  [26.250, 50.555], // Seef
+  [26.245, 50.540], // West Seef
+  [26.232, 50.510], // Karranah
+  [26.230, 50.485], // Barbar
+  [26.225, 50.465], // Diraz
+  [26.215, 50.450], // Budaiya
+  [26.180, 50.453], // North Jasra
+  [26.155, 50.460], // Al Jasra
+  [26.120, 50.463], // Hamala / Dumistan
+  [26.090, 50.470], // Malkiya
+  [26.060, 50.475], // Zallaq North
+  [26.035, 50.480], // Zallaq
+  [25.990, 50.485], // Wasmiya / Al Areen
+  [25.950, 50.490], // Bottom Left (extends to bottom edge)
+  [25.950, 50.635], // Bottom Right (extends to bottom edge)
+  [25.980, 50.630], // Jaww
+  [26.020, 50.625], // Askar South
+  [26.060, 50.622], // Askar
+  [26.100, 50.612], // East Riffa / Eker
+  [26.140, 50.608], // Ma'ameer
+  [26.170, 50.612], // Sitra bridge
+  [26.205, 50.600], // Sitra causeway
+  [26.235, 50.595], // Diplomatic Area / Bridge
+  [26.248, 50.585], // Manama North Corniche
+]
+
+const MUHARRAQ_COORDS = [
+  [26.240, 50.605], // Bridge to Manama
+  [26.255, 50.600], // Busaiteen
+  [26.275, 50.615], // Dair / Samaheej
+  [26.280, 50.635], // Galali
+  [26.270, 50.660], // Amwaj Islands
+  [26.245, 50.655], // Hidd East
+  [26.220, 50.650], // Hidd South
+  [26.230, 50.625], // Arad Fort area
+  [26.235, 50.615], // Halat Seltah
+]
+
+const SITRA_COORDS = [
+  [26.170, 50.620], // North Sitra
+  [26.165, 50.635], // East Sitra
+  [26.150, 50.640], // Sitra Port
+  [26.135, 50.635], // South Sitra East
+  [26.125, 50.625], // South Sitra
+  [26.130, 50.615], // West Sitra
+  [26.150, 50.612], // Sitra Village
+  [26.165, 50.615], // Sitra Causeway
+]
+
 export default function WayfarerMap({ locations, onClose }) {
   const { 
     currentDayTab, 
@@ -244,61 +296,72 @@ export default function WayfarerMap({ locations, onClose }) {
                 <line x1="390" y1="0" x2="390" y2={mapHeight} />
               </g>
 
-              {/* Hand-Drawn Bahrain Main Island Outline */}
-              <path
-                d="M 120,40 
-                   Q 140,35 170,30
-                   Q 210,25 240,45
-                   Q 260,60 270,75
-                   Q 280,95 285,120
-                   Q 290,150 280,180
-                   Q 275,200 270,230
-                   Q 260,280 250,310
-                   Q 245,335 235,345
-                   Q 230,350 220,345
-                   Q 210,340 215,310
-                   Q 220,290 215,260
-                   Q 210,230 200,200
-                   Q 190,175 180,150
-                   Q 160,110 145,95
-                   Q 125,80 115,65
-                   Q 110,50 120,40 Z"
-                fill="#f4f0e2"
-                stroke="#4b3e39"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-                opacity="0.9"
-              />
+              {/* Dynamic GPS outline converter */}
+              {(() => {
+                const generatePath = (coords) => {
+                  return coords.map((p, idx) => {
+                    const { x, y } = getSvgCoords(p[0] + ',' + p[1])
+                    return `${idx === 0 ? 'M' : 'L'} ${x},${y}`
+                  }).join(' ') + ' Z'
+                }
+                return (
+                  <>
+                    {/* Geographically Accurate Bahrain Main Island Outline */}
+                    <path
+                      d={generatePath(BAHRAIN_MAIN_COORDS)}
+                      fill="#f4f0e2"
+                      stroke="#4b3e39"
+                      strokeWidth="1.6"
+                      strokeLinejoin="round"
+                      opacity="0.9"
+                    />
 
-              {/* Hand-Drawn Muharraq Island Outline (Northeast) */}
-              <path
-                d="M 285,35
-                   Q 305,25 330,30
-                   Q 350,35 345,55
-                   Q 340,70 325,65
-                   Q 310,60 295,50
-                   Q 280,45 285,35 Z"
-                fill="#f4f0e2"
-                stroke="#4b3e39"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-                opacity="0.9"
-              />
+                    {/* Geographically Accurate Muharraq Island Outline (Northeast) */}
+                    <path
+                      d={generatePath(MUHARRAQ_COORDS)}
+                      fill="#f4f0e2"
+                      stroke="#4b3e39"
+                      strokeWidth="1.6"
+                      strokeLinejoin="round"
+                      opacity="0.9"
+                    />
 
-              {/* Hand-Drawn Sitra Island Outline (East) */}
-              <path
-                d="M 288,140
-                   Q 305,145 308,165
-                   Q 310,180 298,190
-                   Q 290,195 284,185
-                   Q 280,170 285,155
-                   Q 288,145 288,140 Z"
-                fill="#f4f0e2"
-                stroke="#4b3e39"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-                opacity="0.9"
-              />
+                    {/* Geographically Accurate Sitra Island Outline (East) */}
+                    <path
+                      d={generatePath(SITRA_COORDS)}
+                      fill="#f4f0e2"
+                      stroke="#4b3e39"
+                      strokeWidth="1.6"
+                      strokeLinejoin="round"
+                      opacity="0.9"
+                    />
+
+                    {/* Al Dar Islands Coral Bar */}
+                    <circle
+                      cx={getSvgCoords('26.1558, 50.6833').x}
+                      cy={getSvgCoords('26.1558, 50.6833').y}
+                      r="4"
+                      fill="#FAF9F6"
+                      stroke="#4b3e39"
+                      strokeWidth="1"
+                      opacity="0.85"
+                    />
+
+                    {/* Jarada Island Sandbar */}
+                    <ellipse
+                      cx={getSvgCoords('26.2201, 50.7725').x}
+                      cy={getSvgCoords('26.2201, 50.7725').y}
+                      rx="6"
+                      ry="3"
+                      fill="#FAF9F6"
+                      stroke="#4b3e39"
+                      strokeWidth="1"
+                      opacity="0.85"
+                      transform={`rotate(15, ${getSvgCoords('26.2201, 50.7725').x}, ${getSvgCoords('26.2201, 50.7725').y})`}
+                    />
+                  </>
+                )
+              })()}
 
               {/* Ocean Waves Decorations */}
               <path d="M 50,40 Q 60,38 70,40" fill="none" stroke="rgba(209,26,56,0.18)" strokeWidth="0.8" />
@@ -308,8 +371,8 @@ export default function WayfarerMap({ locations, onClose }) {
               {/* HIGH-CONTRAST BOLD GEOGRAPHIC LABELS & CITIES */}
               <g stroke="none" fill="#0d0a09" className="font-serif font-bold text-[11px]">
                 <text x="145" y="70" fontSize="12" fill="#000000" fontWeight="900" letterSpacing="0.5">BAHRAIN ISLAND</text>
-                <text x="345" y="32" fontSize="9" letterSpacing="0.2">MUHARRAQ</text>
-                <text x="312" y="152" fontSize="9" letterSpacing="0.2">SITRA ISLAND</text>
+                <text x="295" y="24" fontSize="9" letterSpacing="0.2">MUHARRAQ</text>
+                <text x="305" y="144" fontSize="9" letterSpacing="0.2">SITRA ISLAND</text>
                 <text x="142" y="230" fontSize="9" fill="#3b2f2b" fontStyle="italic" opacity="0.8">Sakhir Desert Dunes</text>
                 <text x="400" y="270" fontSize="10.5" fill="#C1122F" fontWeight="800" opacity="0.45" letterSpacing="3">ARABIAN GULF</text>
               </g>
@@ -318,11 +381,6 @@ export default function WayfarerMap({ locations, onClose }) {
               <g transform="translate(230, 48)">
                 <path d="M 0,-7 L 2,-2 L 7,-2 L 3,1 L 5,6 L 0,3 L -5,6 L -3,1 L -7,-2 L -2,-2 Z" fill="#aa7c11" stroke="#000000" strokeWidth="0.5" />
                 <text x="10" y="3" fontSize="10.5" fill="#000000" fontWeight="900" fontFamily="serif" stroke="none">MANAMA (Capital)</text>
-              </g>
-              {/* Riffa Fort */}
-              <g transform="translate(195, 125)">
-                <circle cx="0" cy="0" r="3" fill="#C1122F" stroke="#000000" strokeWidth="0.5" />
-                <text x="8" y="3.5" fontSize="8.5" fill="#3b2f2b" fontFamily="sans-serif" stroke="none" fontWeight="bold">Riffa Fort</text>
               </g>
 
               {/* Dotted travel route path connecting day landmarks in order */}

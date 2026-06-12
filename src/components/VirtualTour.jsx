@@ -124,9 +124,12 @@ export function getTourIndexForSpot(spotId) {
 function VideoEmbed({ videoId, title }) {
   const [loaded, setLoaded] = useState(false)
 
+  // Reset loaded state when videoId changes
   useEffect(() => {
     setLoaded(false)
-    const timer = setTimeout(() => setLoaded(true), 200)
+    const timer = setTimeout(() => {
+      setLoaded(true)
+    }, 1200) // Fallback timer if onLoad doesn't fire
     return () => clearTimeout(timer)
   }, [videoId])
 
@@ -145,6 +148,7 @@ function VideoEmbed({ videoId, title }) {
           position: 'absolute', inset: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: '#0e0606',
+          zIndex: 10,
         }}>
           <div style={{
             width: 40, height: 40, borderRadius: '50%',
@@ -155,7 +159,7 @@ function VideoEmbed({ videoId, title }) {
         </div>
       )}
       <iframe
-        src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=1&modestbranding=1&rel=0&cc_load_policy=0&color=red`}
+        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=1&modestbranding=1&rel=0`}
         title={title}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
@@ -164,7 +168,8 @@ function VideoEmbed({ videoId, title }) {
           width: '100%', height: '100%',
           border: 'none',
           opacity: loaded ? 1 : 0,
-          transition: 'opacity 0.5s ease',
+          transition: 'opacity 0.4s ease',
+          zIndex: 5,
         }}
         onLoad={() => setLoaded(true)}
       />
@@ -207,7 +212,7 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
       style={{
         position: 'fixed', inset: 0,
         zIndex: 600,
-        background: 'rgba(5,0,0,0.92)',
+        background: 'rgba(26, 10, 12, 0.85)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -235,7 +240,7 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '14px 18px',
-          background: 'rgba(209,26,56,0.92)',
+          background: 'var(--jn-crimson, #C1122F)',
           borderRadius: '16px 16px 0 0',
           backdropFilter: 'blur(12px)',
         }}>
@@ -249,7 +254,7 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
                 Virtual Destination Tour
               </div>
               <div style={{
-                color: 'rgba(255,255,255,0.65)', fontSize: 10,
+                color: 'rgba(255,255,255,0.75)', fontSize: 10,
                 fontFamily: '"Outfit", sans-serif',
                 letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 1,
               }}>
@@ -276,17 +281,18 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
 
         {/* Main content */}
         <div style={{
-          background: 'linear-gradient(160deg, #1C1210 0%, #0e0606 100%)',
+          background: 'var(--jn-parchment-2, #f4f1e8)',
           borderRadius: '0 0 16px 16px',
           overflow: 'hidden',
-          border: '1px solid rgba(209,26,56,0.15)',
+          border: '1px solid var(--jn-crimson-mid, rgba(193, 18, 47, 0.2))',
           borderTop: 'none',
+          color: 'var(--jn-ink, #2A2321)',
         }}>
 
           {/* Title card */}
           <div style={{
             padding: '24px 28px 18px',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            borderBottom: '1px solid rgba(0,0,0,0.06)',
             opacity: transitioning ? 0 : 1,
             transform: transitioning ? 'translateY(8px)' : 'translateY(0)',
             transition: 'opacity 0.25s, transform 0.25s',
@@ -306,7 +312,7 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
                   fontFamily: '"Outfit", sans-serif',
                   fontSize: 10, letterSpacing: '0.25em',
                   textTransform: 'uppercase',
-                  color: 'rgba(209,26,56,0.8)',
+                  color: 'var(--jn-crimson, #C1122F)',
                   fontWeight: 700, marginBottom: 4,
                 }}>
                   {tour.subtitle}
@@ -314,7 +320,7 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
                 <h2 style={{
                   fontFamily: '"Playfair Display", serif',
                   fontSize: 'clamp(18px, 3vw, 24px)',
-                  fontWeight: 700, color: '#FAF9F6',
+                  fontWeight: 700, color: 'var(--jn-ink, #2A2321)',
                   margin: 0, lineHeight: 1.2,
                 }}>
                   {tour.name}
@@ -322,14 +328,14 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
                 <div style={{
                   fontFamily: '"Playfair Display", serif',
                   fontSize: 14, fontStyle: 'italic',
-                  color: 'rgba(209,26,56,0.7)', marginTop: 2,
+                  color: 'var(--jn-crimson, #C1122F)', marginTop: 2,
                   direction: 'rtl',
                 }}>
                   {tour.arabic}
                 </div>
                 <div style={{
                   fontFamily: '"Outfit", sans-serif',
-                  fontSize: 10, color: 'rgba(255,255,255,0.35)',
+                  fontSize: 10, color: 'var(--jn-ink-faint, #8C827E)',
                   marginTop: 4, letterSpacing: '0.1em',
                 }}>
                   {tour.period}
@@ -356,7 +362,7 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
             <p style={{
               fontFamily: '"Outfit", sans-serif',
               fontSize: 13, lineHeight: 1.7,
-              color: 'rgba(255,255,255,0.7)',
+              color: 'var(--jn-ink-muted, #554D4A)',
               margin: '0 0 14px',
             }}>
               {tour.description}
@@ -364,21 +370,21 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
 
             <div style={{
               padding: '12px 16px',
-              background: 'rgba(209,26,56,0.08)',
-              border: '1px solid rgba(209,26,56,0.2)',
+              background: 'var(--jn-crimson-light, rgba(193, 18, 47, 0.04))',
+              border: '1px solid var(--jn-crimson-mid, rgba(193, 18, 47, 0.15))',
               borderRadius: 10,
             }}>
               <div style={{
                 fontSize: 10, fontFamily: '"Outfit", sans-serif',
                 letterSpacing: '0.2em', textTransform: 'uppercase',
-                color: '#D11A38', fontWeight: 700, marginBottom: 5,
+                color: 'var(--jn-crimson, #C1122F)', fontWeight: 700, marginBottom: 5,
               }}>
                 ✨ Local Insider Tip
               </div>
               <p style={{
                 fontFamily: '"Playfair Display", serif',
                 fontStyle: 'italic', fontSize: 12.5,
-                color: 'rgba(255,255,255,0.75)', margin: 0,
+                color: 'var(--jn-ink, #2A2321)', margin: 0,
                 lineHeight: 1.6,
               }}>
                 "{tour.highlight}"
@@ -396,20 +402,20 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '10px 18px', borderRadius: 10,
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: 'rgba(255,255,255,0.7)',
+                background: 'rgba(0, 0, 0, 0.03)',
+                border: '1px solid rgba(0, 0, 0, 0.08)',
+                color: 'var(--jn-ink-muted, #554D4A)',
                 fontSize: 12, fontFamily: '"Outfit", sans-serif',
                 fontWeight: 600, cursor: 'pointer',
                 transition: 'all 0.2s',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-                e.currentTarget.style.color = '#fff'
+                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.06)'
+                e.currentTarget.style.color = 'var(--jn-ink, #2A2321)'
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                e.currentTarget.style.color = 'rgba(255,255,255,0.7)'
+                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.03)'
+                e.currentTarget.style.color = 'var(--jn-ink-muted, #554D4A)'
               }}
             >
               ← Previous
@@ -425,7 +431,7 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
                     width: i === current ? 20 : 7,
                     height: 7,
                     borderRadius: 4,
-                    background: i === current ? '#D11A38' : 'rgba(255,255,255,0.2)',
+                    background: i === current ? 'var(--jn-crimson, #C1122F)' : 'rgba(0, 0, 0, 0.15)',
                     border: 'none', cursor: 'pointer',
                     transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
                     padding: 0,
@@ -475,10 +481,10 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
                   padding: '7px 12px',
                   borderRadius: 8,
                   background: i === current
-                    ? 'rgba(209,26,56,0.2)'
-                    : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${i === current ? 'rgba(209,26,56,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                  color: i === current ? '#FAF9F6' : 'rgba(255,255,255,0.45)',
+                    ? 'var(--jn-crimson-light, rgba(193, 18, 47, 0.08))'
+                    : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${i === current ? 'var(--jn-crimson, #C1122F)' : 'rgba(0, 0, 0, 0.06)'}`,
+                  color: i === current ? 'var(--jn-crimson, #C1122F)' : 'var(--jn-ink-muted, #554D4A)',
                   fontSize: 11, fontFamily: '"Outfit", sans-serif',
                   fontWeight: i === current ? 700 : 500,
                   cursor: 'pointer', whiteSpace: 'nowrap',
@@ -487,14 +493,14 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
                 }}
                 onMouseEnter={e => {
                   if (i !== current) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-                    e.currentTarget.style.color = 'rgba(255,255,255,0.7)'
+                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'
+                    e.currentTarget.style.color = 'var(--jn-ink, #2A2321)'
                   }
                 }}
                 onMouseLeave={e => {
                   if (i !== current) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                    e.currentTarget.style.color = 'rgba(255,255,255,0.45)'
+                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)'
+                    e.currentTarget.style.color = 'var(--jn-ink-muted, #554D4A)'
                   }
                 }}
               >

@@ -501,12 +501,15 @@ export default function Dashboard() {
         <div className="w-full rounded-2xl overflow-hidden" style={{ background: '#D11A38', boxShadow: '0 4px 24px rgba(209,26,56,0.28)' }}>
           <div className="flex items-center justify-between px-5 py-3 gap-4">
             {/* Logo */}
-            <div className="flex flex-col">
-              <span className="font-sans text-[8px] tracking-[0.35em] uppercase font-bold text-white/55">
-                مملكة البحرين
-              </span>
-              <h1 className="font-serif text-2xl font-semibold text-white leading-tight">
-                Bahrain <span className="italic font-light">Passage</span>
+            <div className="flex flex-col items-start relative pb-2">
+              <h1 className="font-serif text-2xl font-semibold text-white leading-tight relative">
+                Bahrain{' '}
+                <span className="relative inline-block">
+                  <span className="italic font-light">Passage</span>
+                  <span className="absolute right-0 top-[100%] font-sans text-[7px] tracking-[0.25em] uppercase font-bold text-white/55 mt-0.5 whitespace-nowrap">
+                    مملكة البحرين
+                  </span>
+                </span>
               </h1>
             </div>
 
@@ -529,7 +532,7 @@ export default function Dashboard() {
                 style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.22)' }}
                 title="View Explorer Passport"
               >
-                <span className="text-white text-xs">🪪</span>
+                <span className="text-white text-[9px] font-bold uppercase tracking-wider">Passport</span>
                 <span className="font-sans text-[9px] font-bold text-white/80 uppercase tracking-wider hidden sm:inline">{rank.label}</span>
               </button>
               {/* Sound */}
@@ -1415,44 +1418,44 @@ export default function Dashboard() {
       <TourChatbot activeSpotName={activeSpot?.name} />
 
       {showSouqShop && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#1A1412]/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md bg-[#2d1b11] border-4 border-double border-amber-600/40 rounded-3xl p-6 text-left shadow-[0_24px_50px_rgba(0,0,0,0.65)] text-white relative animate-scaleIn select-none">
-            <div className="absolute inset-1.5 border border-dashed border-amber-600/20 rounded-[22px] pointer-events-none" />
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#1A0A0C]/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-[#FAF9F6] border-4 border-double border-[#C1122F]/40 rounded-3xl p-6 text-left shadow-[0_24px_50px_rgba(42,35,33,0.25)] text-[#3D3330] relative animate-scaleIn select-none">
+            <div className="absolute inset-1.5 border border-dashed border-[#C1122F]/15 rounded-[22px] pointer-events-none" />
 
             <div className="relative z-10 space-y-4">
-              <div className="flex justify-between items-center pb-2.5 border-b border-amber-600/20">
+              <div className="flex justify-between items-center pb-2.5 border-b border-[#C1122F]/20">
                 <div className="flex flex-col">
-                  <span className="font-sans text-[8px] tracking-[0.2em] text-amber-500 uppercase font-black">
+                  <span className="font-sans text-[8px] tracking-[0.2em] text-[#C1122F] uppercase font-black">
                     Manama Heritage Kiosk
                   </span>
-                  <h3 className="font-serif text-xl font-bold text-white mt-0.5 flex items-center gap-1.5">
+                  <h3 className="font-serif text-xl font-bold text-[#2A2321] mt-0.5 flex items-center gap-1.5">
                     🏪 Master Jafar's Souq Shop
                   </h3>
                 </div>
                 <button 
                   onClick={() => { setShowSouqShop(false); setShopAlert(null); }}
-                  className="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-500 hover:text-amber-400 text-[9px] font-sans font-extrabold cursor-pointer transition-all border border-amber-600/10"
+                  className="px-3 py-1.5 rounded-xl bg-[#C1122F]/10 hover:bg-[#C1122F]/20 text-[#C1122F] hover:text-[#9E0D25] text-[9px] font-sans font-extrabold cursor-pointer transition-all border border-[#C1122F]/10"
                 >
                   ✕ Exit Shop
                 </button>
               </div>
 
               {shopAlert && (
-                <div className={`p-2.5 rounded-xl border text-[9.5px] leading-relaxed font-bold font-sans ${shopAlert.success ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 animate-fadeIn' : 'bg-rose-500/15 border-rose-500/30 text-rose-300 animate-fadeIn'}`}>
+                <div className={`p-2.5 rounded-xl border text-[9.5px] leading-relaxed font-bold font-sans ${shopAlert.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800 animate-fadeIn' : 'bg-rose-50 border-rose-200 text-rose-800 animate-fadeIn'}`}>
                   {shopAlert.text}
                 </div>
               )}
 
-              <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-amber-600/15 border border-amber-600/30">
-                <span className="font-sans text-[8px] tracking-wider text-amber-300 font-extrabold uppercase flex items-center gap-1">
+              <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[#C1122F]/5 border border-[#C1122F]/15">
+                <span className="font-sans text-[8px] tracking-wider text-[#C1122F] font-extrabold uppercase flex items-center gap-1">
                   🪙 Your Travel Stipend
                 </span>
-                <span className="font-mono text-sm font-black text-amber-400">
+                <span className="font-mono text-sm font-black text-[#2A2321]">
                   {goldFils.toLocaleString()} Fils
                 </span>
               </div>
 
-              <p className="font-serif text-[10px] italic text-amber-200/80 leading-relaxed">
+              <p className="font-serif text-[10px] italic text-[#554D4A] leading-relaxed">
                 "Marhaban traveler! Spend your golden Fils stipend on spice guild halwa, falcon hoods, or pearl hunt clue scrolls to enhance your reputation with Manama residents."
               </p>
 
@@ -1460,16 +1463,16 @@ export default function Dashboard() {
                 {shopItems.map(item => (
                   <div 
                     key={item.id} 
-                    className="p-2.5 rounded-xl bg-black/30 border border-amber-600/10 flex items-center justify-between gap-3 hover:border-amber-600/30 transition-all"
+                    className="p-2.5 rounded-xl bg-white border border-[#C1122F]/10 flex items-center justify-between gap-3 hover:border-[#C1122F]/25 transition-all shadow-sm"
                   >
-                    <span className="text-2xl shrink-0 p-1.5 bg-amber-600/10 rounded-xl">{item.emoji}</span>
+                    <span className="text-2xl shrink-0 p-1.5 bg-[#C1122F]/5 rounded-xl">{item.emoji}</span>
                     <div className="flex-1 min-w-0">
-                      <h6 className="font-serif text-[11px] font-bold text-white leading-none">{item.name}</h6>
-                      <p className="font-sans text-[8px] text-amber-200/50 mt-1 leading-normal">{item.desc}</p>
+                      <h6 className="font-serif text-[11px] font-bold text-[#2A2321] leading-none">{item.name}</h6>
+                      <p className="font-sans text-[8px] text-[#8C827E] mt-1 leading-normal">{item.desc}</p>
                     </div>
                     <button 
                       onClick={() => handleBuyItem(item)}
-                      className="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-sans font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-amber-600/10 shrink-0"
+                      className="px-3 py-2 rounded-xl bg-[#C1122F] hover:bg-[#9E0D25] text-white font-sans font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-red-600/10 shrink-0"
                     >
                       {item.cost.toLocaleString()} Fils
                     </button>

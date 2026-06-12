@@ -248,20 +248,20 @@ export default function WayfarerLens({ spot, onClose }) {
         <div className="flex-1 flex flex-col items-center justify-center py-6">
           {scanning ? (
             /* Premium active optics scanning HUD view */
-            <div className="w-full max-w-sm p-6 rounded-2xl border border-amber-600/30 bg-[#160B05]/95 text-center select-none shadow-[0_0_30px_rgba(217,119,6,0.15)] relative overflow-hidden animate-pulse">
+            <div className="w-full max-w-sm p-6 rounded-2xl border border-amber-600/40 bg-[#f4f1e8] text-center select-none shadow-[0_4px_25px_rgba(184,134,11,0.18)] relative overflow-hidden animate-pulse">
               {/* Scanning gold coordinates overlay flanking brackets */}
-              <div className="absolute top-4 left-4 font-mono text-[9px] text-amber-500/80">
+              <div className="absolute top-4 left-4 font-mono text-[9px] text-amber-800 font-bold">
                 [ {spot.coords.split(',')[0] || '26.2285° N'} ]
               </div>
-              <div className="absolute top-4 right-4 font-mono text-[9px] text-amber-500/80">
+              <div className="absolute top-4 right-4 font-mono text-[9px] text-amber-800 font-bold">
                 [ {spot.coords.split(',')[1]?.trim() || '50.5198° E'} ]
               </div>
 
               {/* Glowing circular reticle with gold sweep bar */}
-              <div className="relative w-44 h-44 mx-auto rounded-full border-2 border-dashed border-amber-600/50 flex items-center justify-center bg-black/60 shadow-[inset_0_0_20px_rgba(217,119,6,0.25)] my-5 overflow-hidden">
+              <div className="relative w-44 h-44 mx-auto rounded-full border-2 border-dashed border-amber-600/60 flex items-center justify-center bg-white/75 shadow-[inset_0_0_20px_rgba(217,119,6,0.1)] my-5 overflow-hidden">
                 {/* Horizontal scanning sweep bar */}
                 <div 
-                  className="absolute left-0 right-0 h-1 bg-amber-500 shadow-[0_0_10px_#f59e0b] opacity-80"
+                  className="absolute left-0 right-0 h-1 bg-amber-600 shadow-[0_0_10px_#d97706] opacity-80"
                   style={{
                     top: `${scanProgress}%`,
                     transition: 'top 0.1s linear'
@@ -269,8 +269,8 @@ export default function WayfarerLens({ spot, onClose }) {
                 />
                 
                 {/* Crosshairs */}
-                <div className="absolute w-6 h-px bg-amber-500/40" />
-                <div className="absolute h-6 w-px bg-amber-500/40" />
+                <div className="absolute w-6 h-px bg-amber-600/60" />
+                <div className="absolute h-6 w-px bg-amber-600/60" />
 
                 {/* Progress Circle Spinner */}
                 <svg className="absolute w-36 h-36 -rotate-90" viewBox="0 0 100 100">
@@ -278,7 +278,7 @@ export default function WayfarerLens({ spot, onClose }) {
                     cx="50"
                     cy="50"
                     r="45"
-                    stroke="rgba(217,119,6,0.05)"
+                    stroke="rgba(217,119,6,0.1)"
                     strokeWidth="2.5"
                     fill="none"
                   />
@@ -286,7 +286,7 @@ export default function WayfarerLens({ spot, onClose }) {
                     cx="50"
                     cy="50"
                     r="45"
-                    stroke="#d97706"
+                    stroke="#b8860b"
                     strokeWidth="3"
                     fill="none"
                     strokeDasharray={2 * Math.PI * 45}
@@ -295,19 +295,19 @@ export default function WayfarerLens({ spot, onClose }) {
                   />
                 </svg>
 
-                <span className="font-mono text-xl font-bold text-amber-500 z-10">
+                <span className="font-mono text-xl font-bold text-amber-800 z-10">
                   {scanProgress}%
                 </span>
               </div>
 
               {/* Scrolling status log text */}
-              <div className="mt-4 bg-black/40 border border-amber-600/10 p-3 rounded-xl min-h-[60px] flex items-center justify-center">
-                <p className="font-mono text-[9px] text-amber-400 uppercase tracking-widest leading-relaxed">
+              <div className="mt-4 bg-white/95 border border-amber-600/20 p-3 rounded-xl min-h-[60px] flex items-center justify-center">
+                <p className="font-mono text-[9px] text-amber-900 uppercase tracking-widest leading-relaxed font-bold">
                   {scanLog}
                 </p>
               </div>
 
-              <span className="font-sans text-[7px] tracking-[0.25em] text-white/35 uppercase block mt-3.5">
+              <span className="font-sans text-[7px] tracking-[0.25em] text-amber-800/60 uppercase block mt-3.5 font-bold">
                 Do Not Move Device · Aligning Strata
               </span>
             </div>

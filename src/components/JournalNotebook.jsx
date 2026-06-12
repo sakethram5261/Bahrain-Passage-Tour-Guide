@@ -33,15 +33,30 @@ import { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
 
 /* ─── Tabs definition ──────────────────────────────────────────────────────── */
 const TABS = [
-  { id: 'info',       emoji: '📝', label: 'Info'       },
-  { id: 'itinerary',  emoji: '📍', label: 'Itinerary'  },
-  { id: 'map',        emoji: '🗺️', label: 'Map'        },
-  { id: 'souvenirs',  emoji: '🪙', label: 'Souvenirs'  },
-  { id: 'phrasebook', emoji: '📜', label: 'Phrases'    },
+  { id: 'info',       label: 'Info'       },
+  { id: 'itinerary',  label: 'Itinerary'  },
+  { id: 'map',        label: 'Map'        },
+  { id: 'souvenirs',  label: 'Souvenirs'  },
+  { id: 'phrasebook', label: 'Phrases'    },
 ]
 
+const LEAF_TO_TAB = {
+  chronicles: 'info',
+  cartography: 'map',
+  keepsakes: 'souvenirs',
+  lexicon: 'phrasebook'
+}
+
+const TAB_TO_LEAF = {
+  info: 'chronicles',
+  itinerary: 'chronicles',
+  map: 'cartography',
+  souvenirs: 'keepsakes',
+  phrasebook: 'lexicon'
+}
+
 const PHRASES = [
-  { label: 'Karak',  arabic: 'كَرَتْ',  desc: "Bahrain's signature robust spiced condensed-milk tea.", pitchOffset: 0 },
+  { label: 'Karak',  arabic: 'كَرَّكْ',  desc: "Bahrain's signature robust spiced condensed-milk tea.", pitchOffset: 0 },
   { label: 'Halwa',  arabic: 'حَلْوَى', desc: 'Saffron sweet jelly cooked in copper vats with almonds.', pitchOffset: 35 },
   { label: 'Souq',   arabic: 'سُوقْ',   desc: 'Ancient maze-like merchant alleyways of Old Manama.', pitchOffset: -15 },
   { label: 'Dallah', arabic: 'دَلَّهْ', desc: 'Long-beaked brass coffee pot used to brew Arabic coffee.', pitchOffset: 60 },
@@ -77,25 +92,45 @@ function useSpring(target, stiffness = 180, damping = 22) {
 }
 
 /* ─── Phrase pronunciation (Web Audio API) ───────────────────────────────── */
-function playPhrase(pitchOffset = 0) {
+function playPhrase(phraseText) {
+  // 1. Play standard organic click feedback tone
   try {
     const AC  = window.AudioContext || window.webkitAudioContext
-    if (!AC) return
-    const ctx  = new AC()
-    const osc  = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.type = 'sine'
-    osc.frequency.setValueAtTime(220 + pitchOffset, ctx.currentTime)
-    osc.frequency.exponentialRampToValueAtTime(330 + pitchOffset, ctx.currentTime + 0.12)
-    osc.frequency.exponentialRampToValueAtTime(280 + pitchOffset, ctx.currentTime + 0.28)
-    gain.gain.setValueAtTime(0, ctx.currentTime)
-    gain.gain.linearRampToValueAtTime(0.07, ctx.currentTime + 0.04)
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45)
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.start()
-    osc.stop(ctx.currentTime + 0.45)
+    if (AC) {
+      const ctx  = new AC()
+      const osc  = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(330, ctx.currentTime)
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.08)
+      gain.gain.setValueAtTime(0, ctx.currentTime)
+      gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start()
+      osc.stop(ctx.currentTime + 0.22)
+    }
   } catch (_) {}
+
+  // 2. Perform high-fidelity browser speech synthesis in Arabic
+  try {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel() // Stop any current utterance
+      const utterance = new SpeechSynthesisUtterance(phraseText)
+      utterance.lang = 'ar-BH' // Bahraini Arabic locale
+      
+      const voices = window.speechSynthesis.getVoices()
+      const arabicVoice = voices.find(v => v.lang.startsWith('ar'))
+      if (arabicVoice) {
+        utterance.voice = arabicVoice
+      }
+      utterance.rate = 0.82 // Slightly slower rate for clear tourist learning
+      window.speechSynthesis.speak(utterance)
+    }
+  } catch (e) {
+    console.error('SpeechSynthesis error:', e)
+  }
 }
 
 export default function JournalNotebook({ onBack }) {
@@ -412,6 +447,205 @@ export default function JournalNotebook({ onBack }) {
   /* ── Almanac data ─────────────────────────────────────────────────────────── */
   const almanac = getAlmanac ? getAlmanac() : { metrics: [] }
 
+  /* ── Spot Details Helper ──────────────────────────────────────────────────── */
+  const renderSpotDetails = () => {
+    if (!activeSpot) return null
+    return (
+      <div className="space-y-5">
+        <p className="jn-description">{activeSpot.desc}</p>
+
+        {/* Action buttons row — Lens capture, virtual tour, riddle */}
+        <div className="jn-action-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '14px', marginBottom: '14px' }}>
+          <button
+            className="jn-action-btn jn-action-btn--primary"
+            onClick={() => setLensOpenSpot(activeSpot)}
+            aria-label="Open camera lens simulator to capture photo"
+            style={{ flex: '1 1 120px' }}
+          >
+            {capturedPhotos[activeSpot.id] ? '📷 Re-shoot Spot' : '📷 Capture Lens'}
+          </button>
+          {hasVirtualTour(activeSpot.id) && (
+            <button
+              className="jn-action-btn jn-action-btn--ghost"
+              onClick={() => setTourOpen(true)}
+              aria-label="Open virtual tour clip"
+              style={{ flex: '1 1 120px' }}
+            >
+              🎬 Virtual Tour
+            </button>
+          )}
+        </div>
+
+        {/* Guide comments with collapsible tabs */}
+        <div className="jn-insider-box" style={{ background: '#fffdf9', border: '1px solid var(--jn-gold-muted)', padding: '15px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(193, 18, 47, 0.08)', paddingBottom: '6px' }}>
+              <span className="jn-tag jn-tag--red">🎙️ Narrator Guide</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--jn-font-sans)', color: 'var(--jn-ink-faint)', fontStyle: 'italic' }}>Tap to switch guide</span>
+            </div>
+            
+            {/* Swipeable track for guides selector */}
+            <div 
+              className="jn-guides-track"
+              style={{
+                display: 'flex',
+                gap: '8px',
+                overflowX: 'auto',
+                flexWrap: 'nowrap',
+                WebkitOverflowScrolling: 'touch',
+                paddingBottom: '6px',
+                scrollbarWidth: 'none',
+              }}
+            >
+              {guides.map(g => {
+                const isActive = activeGuide === g.id
+                return (
+                  <button
+                    key={g.id}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      setActiveGuide(g.id)
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      flex: '0 0 auto',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px 12px',
+                      minWidth: '95px',
+                      borderRadius: '10px',
+                      border: isActive ? '1.5px solid var(--jn-crimson)' : '1.5px solid rgba(193, 18, 47, 0.08)',
+                      background: isActive ? 'var(--jn-crimson-light)' : '#ffffff',
+                      color: isActive ? 'var(--jn-crimson)' : 'var(--jn-ink-muted)',
+                      boxShadow: isActive ? '0 4px 10px rgba(193, 18, 47, 0.12)' : 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <span style={{ fontSize: '20px', marginBottom: '2px' }}>{g.emoji}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                      {g.name.split(' ')[0]}
+                    </span>
+                    <span style={{ fontSize: '9px', opacity: 0.7, marginTop: '2px' }}>
+                      {g.role || 'Guide'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          
+          <div style={{ marginTop: '10px', borderTop: '1px dashed rgba(193, 18, 47, 0.08)', paddingTop: '10px' }}>
+            <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--jn-ink-muted)' }}>
+              "{getGuideThoughts(activeSpot, activeGuide)}"
+            </p>
+          </div>
+        </div>
+
+        {/* Insider tip */}
+        <div className="jn-insider-box" role="complementary" aria-label="Local insider tip">
+          <span className="jn-tag jn-tag--red">✨ Local Insider Tip</span>
+          <p className="jn-insider-text">{activeSpot.insider}</p>
+        </div>
+
+        {/* Journal reflections textarea */}
+        <div style={{ marginBottom: 'var(--jn-sp-lg)' }}>
+          <label
+            htmlFor={`reflection-${activeSpot.id}`}
+            style={{
+              display: 'block',
+              fontFamily: 'var(--jn-font-sans)',
+              fontSize: '10px',
+              fontWeight: '800',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: 'var(--jn-crimson)',
+              marginBottom: '6px',
+            }}
+          >
+            🗒️ My Notes
+          </label>
+          <textarea
+            id={`reflection-${activeSpot.id}`}
+            value={localReflection}
+            onChange={handleReflectionChange}
+            placeholder="Jot down your thoughts, observations, or memories from this spot…"
+            rows={3}
+            style={{
+              width: '100%',
+              fontFamily: 'var(--jn-font-serif)',
+              fontSize: '13px',
+              lineHeight: 1.6,
+              color: 'var(--jn-ink)',
+              background: '#fffdf9',
+              border: '1px solid rgba(193,18,47,0.15)',
+              borderRadius: 'var(--jn-r-md)',
+              padding: '10px 14px',
+              resize: 'none',
+              outline: 'none',
+              boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.04)',
+              transition: 'border-color 0.2s ease',
+            }}
+            onFocus={e => e.target.style.borderColor = 'var(--jn-crimson)'}
+            onBlur={e => e.target.style.borderColor = 'rgba(193,18,47,0.15)'}
+          />
+        </div>
+
+        {/* Riddle Quest */}
+        {RIDDLES[activeSpot.id] && (
+          <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70">
+            <div className="flex justify-between items-center mb-2 select-none">
+              <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
+                🧭 Local Riddle Quest
+              </span>
+              {solvedRiddles[activeSpot.id] ? (
+                <span className="text-[8px] bg-green-100 text-green-800 font-extrabold px-1.5 py-0.5 rounded-full">
+                  ✓ Solved (+35 XP)
+                </span>
+              ) : (
+                <span className="text-[8px] bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">
+                  Unsolved (+35 XP)
+                </span>
+              )}
+            </div>
+
+            <p className="font-serif text-[10.5px] text-bronze-charcoal leading-relaxed font-bold mb-3">
+              "{RIDDLES[activeSpot.id].question}"
+            </p>
+
+            {solvedRiddles[activeSpot.id] ? (
+              <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/10 space-y-1">
+                <p className="font-sans text-[8px] uppercase tracking-wider text-green-700 font-extrabold select-none">Insider Discovery Reveal:</p>
+                <p className="font-serif text-[9.5px] text-bronze-charcoal leading-relaxed italic font-semibold">
+                  {RIDDLES[activeSpot.id].insider}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {RIDDLES[activeSpot.id].options.map((opt, oIdx) => (
+                  <button
+                    key={oIdx}
+                    onClick={() => handleAnswerRiddle(oIdx)}
+                    className="w-full p-2 text-left rounded-lg border border-red-500/10 hover:border-bahrain-red bg-white hover:bg-red-500/5 text-[9px] font-sans font-bold text-bronze-charcoal transition-all cursor-pointer active:scale-99"
+                  >
+                    {opt}
+                  </button>
+                ))}
+                {riddleError && (
+                  <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-sans text-[9px] font-bold animate-scaleIn select-none">
+                    ❌ {riddleError}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   /* ════════════════════════════════════════════════════════════════════════════
      RENDER
      ════════════════════════════════════════════════════════════════════════════ */
@@ -421,9 +655,25 @@ export default function JournalNotebook({ onBack }) {
       {/* ── Fixed crimson header ────────────────────────────────────────────── */}
       <header className="jn-header" role="banner">
         <div className="jn-header-inner">
-          <div className="jn-brand">
-            <span className="jn-brand-arabic" lang="ar">مملكة البحرين</span>
-            <span className="jn-brand-title">Bahrain <em>Passage</em></span>
+          <div className="jn-brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', position: 'relative' }}>
+            <span className="jn-brand-title" style={{ position: 'relative', paddingBottom: '6px' }}>
+              Bahrain{' '}
+              <span style={{ position: 'relative', display: 'inline-block' }}>
+                <em>Passage</em>
+                <span className="jn-brand-arabic" lang="ar" style={{ 
+                  position: 'absolute', 
+                  right: 0, 
+                  top: '100%', 
+                  fontSize: '8px', 
+                  letterSpacing: '0.1em', 
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  marginTop: '-4px',
+                  whiteSpace: 'nowrap'
+                }}>
+                  مملكة البحرين
+                </span>
+              </span>
+            </span>
           </div>
 
           <nav className="jn-desktop-nav" aria-label="Desktop sections">
@@ -433,7 +683,7 @@ export default function JournalNotebook({ onBack }) {
                 className={`jn-nav-btn ${activeTab === t.id ? 'jn-nav-btn--active' : ''}`}
                 onClick={(e) => switchTab(t.id, e)}
               >
-                {t.emoji} {t.label}
+                {t.label}
               </button>
             ))}
           </nav>
@@ -446,7 +696,7 @@ export default function JournalNotebook({ onBack }) {
               style={{ padding: '6px 12px', fontSize: '10px', height: 'auto', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
               title="View Explorer Passport"
             >
-              <span>🪪</span>
+              <span>Passport</span>
               <span className="jn-level-badge">{rank.label}</span>
             </button>
 
@@ -513,7 +763,6 @@ export default function JournalNotebook({ onBack }) {
               className={`jn-tab ${activeTab === t.id ? 'jn-tab--active' : ''}`}
               onClick={(e) => switchTab(t.id, e)}
             >
-              <span className="jn-tab-emoji">{t.emoji}</span>
               <span className="jn-tab-label">{t.label}</span>
             </button>
           ))}
@@ -665,150 +914,9 @@ export default function JournalNotebook({ onBack }) {
 
                   <hr className="jn-divider" aria-hidden="true" />
 
-                  <p className="jn-description">{activeSpot.desc}</p>
-
-                  {/* Action buttons row — Lens capture, virtual tour, riddle */}
-                  <div className="jn-action-row" style={{ flexWrap: 'wrap', gap: '8px' }}>
-                    <button
-                      className="jn-action-btn jn-action-btn--primary"
-                      onClick={() => setLensOpenSpot(activeSpot)}
-                      aria-label="Open camera lens simulator to capture photo"
-                      style={{ flex: '1 1 120px' }}
-                    >
-                      {capturedPhotos[activeSpot.id] ? '📷 Re-shoot Spot' : '📷 Capture Lens'}
-                    </button>
-                    {hasVirtualTour(activeSpot.id) && (
-                      <button
-                        className="jn-action-btn jn-action-btn--ghost"
-                        onClick={() => {
-                          setTourOpen(true)
-                          // Set tourIndex correctly
-                          const tIdx = getTourIndexForSpot(activeSpot.id)
-                          // Set VirtualTour index
-                        }}
-                        aria-label="Open virtual tour clip"
-                        style={{ flex: '1 1 120px' }}
-                      >
-                        🎬 Virtual Tour
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Guide comments with collapsible tabs */}
-                  <div className="jn-insider-box" style={{ background: '#fffdf9', border: '1px solid var(--jn-gold-muted)', padding: '15px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(193, 18, 47, 0.08)', paddingBottom: '6px' }}>
-                        <span className="jn-tag jn-tag--red">🎙️ Narrator Guide</span>
-                        <span style={{ fontSize: '10px', fontFamily: 'var(--jn-font-sans)', color: 'var(--jn-ink-faint)', fontStyle: 'italic' }}>Tap to switch guide</span>
-                      </div>
-                      
-                      {/* Swipeable track for guides selector */}
-                      <div 
-                        className="jn-guides-track"
-                        style={{
-                          display: 'flex',
-                          gap: '8px',
-                          overflowX: 'auto',
-                          flexWrap: 'nowrap',
-                          WebkitOverflowScrolling: 'touch',
-                          paddingBottom: '6px',
-                          scrollbarWidth: 'none',
-                        }}
-                      >
-                        {guides.map(g => {
-                          const isActive = activeGuide === g.id
-                          return (
-                            <button
-                              key={g.id}
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                e.preventDefault()
-                                setActiveGuide(g.id)
-                              }}
-                              style={{
-                                display: 'inline-flex',
-                                flex: '0 0 auto',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '8px 12px',
-                                minWidth: '95px',
-                                borderRadius: '10px',
-                                border: isActive ? '1.5px solid var(--jn-crimson)' : '1.5px solid rgba(193, 18, 47, 0.08)',
-                                background: isActive ? 'var(--jn-crimson-light)' : '#ffffff',
-                                color: isActive ? 'var(--jn-crimson)' : 'var(--jn-ink-muted)',
-                                boxShadow: isActive ? '0 4px 10px rgba(193, 18, 47, 0.12)' : 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                              }}
-                            >
-                              <span style={{ fontSize: '20px', marginBottom: '2px' }}>{g.emoji}</span>
-                              <span style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                                {g.name.split(' ')[0]}
-                              </span>
-                              <span style={{ fontSize: '9px', opacity: 0.7, marginTop: '2px' }}>
-                                {g.role || 'Guide'}
-                              </span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                    
-                    <div style={{ marginTop: '10px', borderTop: '1px dashed rgba(193, 18, 47, 0.08)', paddingTop: '10px' }}>
-                      <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--jn-ink-muted)' }}>
-                        "{getGuideThoughts(activeSpot, activeGuide)}"
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Insider tip */}
-                  <div className="jn-insider-box" role="complementary" aria-label="Local insider tip">
-                    <span className="jn-tag jn-tag--red">✨ Local Insider Tip</span>
-                    <p className="jn-insider-text">{activeSpot.insider}</p>
-                  </div>
-
-                  {/* Journal reflections textarea */}
-                  <div style={{ marginBottom: 'var(--jn-sp-lg)' }}>
-                    <label
-                      htmlFor={`reflection-${activeSpot.id}`}
-                      style={{
-                        display: 'block',
-                        fontFamily: 'var(--jn-font-sans)',
-                        fontSize: '10px',
-                        fontWeight: '800',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: 'var(--jn-crimson)',
-                        marginBottom: '6px',
-                      }}
-                    >
-                      🗒️ My Notes
-                    </label>
-                    <textarea
-                      id={`reflection-${activeSpot.id}`}
-                      value={localReflection}
-                      onChange={handleReflectionChange}
-                      placeholder="Jot down your thoughts, observations, or memories from this spot…"
-                      rows={3}
-                      style={{
-                        width: '100%',
-                        fontFamily: 'var(--jn-font-serif)',
-                        fontSize: '13px',
-                        lineHeight: 1.6,
-                        color: 'var(--jn-ink)',
-                        background: '#fffdf9',
-                        border: '1px solid rgba(193,18,47,0.15)',
-                        borderRadius: 'var(--jn-r-md)',
-                        padding: '10px 14px',
-                        resize: 'vertical',
-                        outline: 'none',
-                        boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.04)',
-                        transition: 'border-color 0.2s ease',
-                      }}
-                      onFocus={e => e.target.style.borderColor = 'var(--jn-crimson)'}
-                      onBlur={e => e.target.style.borderColor = 'rgba(193,18,47,0.15)'}
-                    />
+                  {/* On desktop: hide details on left page (rendered on right page instead) */}
+                  <div className="jn-desktop-hidden-details">
+                    {renderSpotDetails()}
                   </div>
                 </div>
               ) : null}
@@ -824,93 +932,156 @@ export default function JournalNotebook({ onBack }) {
           >
             <div key={tabKey} className="jn-page-anim-wrap">
               
-              {/* ─── SUB-TAB: ITINERARY ─── */}
-              {(activeTab === 'itinerary' || activeTab === 'info' /* Shown on desktop right page */) && (
-                <div className="space-y-4">
-                  <div className="jn-section-heading">
-                    <h2 className="jn-section-title">Discovery Route</h2>
-                    <span className="jn-section-subtitle">Bahrain Custom Itinerary timeline</span>
-                  </div>
+              {/* ─── SUB-TAB: ITINERARY / LANDMARK DETAILS SPLIT ─── */}
+              {/* ─── SUB-TAB: LANDMARK DETAILS (INFO) ─── */}
+              {activeTab === 'info' && (
+                <div className="jn-desktop-shown-details">
+                  {activeSpot && (
+                    <div className="space-y-4">
+                      <div className="jn-section-heading">
+                        <h2 className="jn-section-title">Journal Ledger</h2>
+                        <span className="jn-section-subtitle">Chronicle details & Riddle Quest</span>
+                      </div>
+                      <hr className="jn-divider" aria-hidden="true" />
+                      {renderSpotDetails()}
+                    </div>
+                  )}
+                  {isSealStep && (
+                    <div className="space-y-4">
+                      <div className="jn-section-heading">
+                        <h2 className="jn-section-title">Chapter Sealed</h2>
+                        <span className="jn-section-subtitle">Select Day Chapter above to read other pages</span>
+                      </div>
+                      <hr className="jn-divider" aria-hidden="true" />
+                      <p className="jn-description" style={{ fontStyle: 'italic', color: 'var(--jn-ink-faint)' }}>
+                        This daily chapter's travel route has been completed. Use the chapter selector at the top or side tabs to continue.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
-                  <hr className="jn-divider" aria-hidden="true" />
+              {/* ─── SUB-TAB: ITINERARY TIMELINE ─── */}
+              {activeTab === 'itinerary' && (
+                <div className="jn-mobile-shown-timeline">
+                  <div className="space-y-4">
+                    <div className="jn-section-heading">
+                      <h2 className="jn-section-title">Discovery Route</h2>
+                      <span className="jn-section-subtitle">Bahrain Custom Itinerary timeline</span>
+                    </div>
 
-                  {/* Day chapter tabs */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0' }}>
-                    <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 'bold', color: 'var(--jn-ink-faint)' }}>Chapter Day:</span>
-                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
-                      {Array.from({ length: duration }, (_, idx) => {
-                        const d = idx + 1
-                        const unlocked = unlockedDays.includes(d)
-                        const active = currentDayTab === d
+                    <hr className="jn-divider" aria-hidden="true" />
+
+                    {/* Day chapter tabs */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0' }}>
+                      <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 'bold', color: 'var(--jn-ink-faint)' }}>Chapter Day:</span>
+                      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
+                        {Array.from({ length: duration }, (_, idx) => {
+                          const d = idx + 1
+                          const unlocked = unlockedDays.includes(d)
+                          const active = currentDayTab === d
+                          return (
+                            <button
+                              key={d}
+                              disabled={!unlocked}
+                              onClick={() => {
+                                setCurrentDayTab(d)
+                                setCurrentSpotIndex(0)
+                                playTypewriterClick(1.0)
+                              }}
+                              title={!unlocked ? `Complete Day ${d - 1} to unlock Day ${d}` : `Go to Day ${d}`}
+                              style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                border: active ? '1px solid var(--jn-crimson)' : '1px solid rgba(0,0,0,0.08)',
+                                background: active ? 'var(--jn-crimson)' : unlocked ? '#ffffff' : 'rgba(0,0,0,0.03)',
+                                color: active ? '#ffffff' : unlocked ? 'var(--jn-ink-muted)' : 'rgba(0,0,0,0.2)',
+                                cursor: unlocked ? 'pointer' : 'not-allowed',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              {unlocked ? d : '🔒'}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Progress strip */}
+                    {hasSpots && (() => {
+                      const capturedCount = activeSpots.filter(s => capturedPhotos[s.id]).length
+                      const solvedCount = activeSpots.filter(s => solvedRiddles[s.id]).length
+                      return (
+                        <div style={{
+                          display: 'flex', gap: '10px', padding: '7px 12px',
+                          background: 'var(--jn-crimson-light)', border: '1px solid var(--jn-crimson-mid)',
+                          borderRadius: 'var(--jn-r-md)', marginBottom: '10px', flexWrap: 'wrap',
+                        }}>
+                          <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-ink-muted)' }}>
+                            📸 {capturedCount}/{activeSpots.length} captured
+                          </span>
+                          <span style={{ color: 'var(--jn-ink-faint)' }}>·</span>
+                          <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-ink-muted)' }}>
+                            🧭 {solvedCount} riddle{solvedCount !== 1 ? 's' : ''} solved
+                          </span>
+                          {isDayCompleted && (
+                            <><span style={{ color: 'var(--jn-ink-faint)' }}>·</span>
+                            <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-green)' }}>✓ Day sealed</span></>
+                          )}
+                        </div>
+                      )
+                    })()}
+
+                    {/* Itinerary timeline stops */}
+                    <ol className="jn-timeline" aria-label="Day itinerary stops">
+                      {activeSpots.map((stop, idx) => {
+                        const isSelected = activeSpot && activeSpot.id === stop.id
+                        const hasPic = !!capturedPhotos[stop.id]
                         return (
-                          <button
-                            key={d}
-                            disabled={!unlocked}
+                          <li
+                            key={stop.id}
+                            className={`jn-timeline-item ${isSelected ? 'jn-timeline-item--active' : ''}`}
                             onClick={() => {
-                              setCurrentDayTab(d)
-                              setCurrentSpotIndex(0)
-                              playTypewriterClick(1.0)
+                              setCurrentSpotIndex(idx)
+                              playTypewriterClick(0.95 + idx * 0.05)
+                              // On mobile, click stop -> switch to Info tab to see it
+                              if (window.innerWidth < 768) {
+                                setActiveTab('info')
+                              }
                             }}
-                            title={!unlocked ? `Complete Day ${d - 1} to unlock Day ${d}` : `Go to Day ${d}`}
-                            style={{
-                              width: '36px',
-                              height: '36px',
-                              borderRadius: '50%',
-                              fontSize: '13px',
-                              fontWeight: 'bold',
-                              border: active ? '1px solid var(--jn-crimson)' : '1px solid rgba(0,0,0,0.08)',
-                              background: active ? 'var(--jn-crimson)' : unlocked ? '#ffffff' : 'rgba(0,0,0,0.03)',
-                              color: active ? '#ffffff' : unlocked ? 'var(--jn-ink-muted)' : 'rgba(0,0,0,0.2)',
-                              cursor: unlocked ? 'pointer' : 'not-allowed',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
+                            style={{ cursor: 'pointer' }}
                           >
-                            {unlocked ? d : '🔒'}
-                          </button>
+                            <div className="jn-tl-node" aria-hidden="true">
+                              <span className="jn-tl-emoji">{hasPic ? '📸' : idx + 1}</span>
+                              {idx < activeSpots.length - 1 && <div className="jn-tl-connector" />}
+                            </div>
+                            <div className="jn-tl-content">
+                              <div className="jn-tl-meta">
+                                <span className="jn-tl-stop-num">Stop {idx + 1}</span>
+                                <span style={{ fontSize: '10px', color: 'var(--jn-crimson)', fontWeight: 'bold' }}>{stop.pathCost}</span>
+                              </div>
+                              <h3 className="jn-tl-stop-name" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                {stop.name} {hasPic && <span style={{ color: 'var(--jn-green)', fontSize: '10px' }}>✓ Captured</span>}
+                              </h3>
+                              <p className="jn-tl-coords">📍 {stop.coords}</p>
+                              <p className="jn-tl-note" style={{ fontSize: '11px' }}>{stop.pathGuide}</p>
+                            </div>
+                          </li>
                         )
                       })}
-                    </div>
-                  </div>
 
-                  {/* Progress strip */}
-                  {hasSpots && (() => {
-                    const capturedCount = activeSpots.filter(s => capturedPhotos[s.id]).length
-                    const solvedCount = activeSpots.filter(s => solvedRiddles[s.id]).length
-                    return (
-                      <div style={{
-                        display: 'flex', gap: '10px', padding: '7px 12px',
-                        background: 'var(--jn-crimson-light)', border: '1px solid var(--jn-crimson-mid)',
-                        borderRadius: 'var(--jn-r-md)', marginBottom: '10px', flexWrap: 'wrap',
-                      }}>
-                        <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-ink-muted)' }}>
-                          📸 {capturedCount}/{activeSpots.length} captured
-                        </span>
-                        <span style={{ color: 'var(--jn-ink-faint)' }}>·</span>
-                        <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-ink-muted)' }}>
-                          🧭 {solvedCount} riddle{solvedCount !== 1 ? 's' : ''} solved
-                        </span>
-                        {isDayCompleted && (
-                          <><span style={{ color: 'var(--jn-ink-faint)' }}>·</span>
-                          <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-green)' }}>✓ Day sealed</span></>
-                        )}
-                      </div>
-                    )
-                  })()}
-                  {/* Itinerary timeline stops */}
-                  <ol className="jn-timeline" aria-label="Day itinerary stops">
-                    {activeSpots.map((stop, idx) => {
-                      const isSelected = activeSpot && activeSpot.id === stop.id
-                      const hasPic = !!capturedPhotos[stop.id]
-                      return (
+                      {/* Seal day timeline node */}
+                      {hasSpots && (
                         <li
-                          key={stop.id}
-                          className={`jn-timeline-item ${isSelected ? 'jn-timeline-item--active' : ''}`}
+                          className={`jn-timeline-item ${isSealStep ? 'jn-timeline-item--active' : ''}`}
                           onClick={() => {
-                            setCurrentSpotIndex(idx)
-                            playTypewriterClick(0.95 + idx * 0.05)
-                            // On mobile, click stop -> switch to Info tab to see it
+                            setCurrentSpotIndex(activeSpots.length)
+                            playTypewriterClick(1.2)
                             if (window.innerWidth < 768) {
                               setActiveTab('info')
                             }
@@ -918,52 +1089,21 @@ export default function JournalNotebook({ onBack }) {
                           style={{ cursor: 'pointer' }}
                         >
                           <div className="jn-tl-node" aria-hidden="true">
-                            <span className="jn-tl-emoji">{hasPic ? '📸' : idx + 1}</span>
-                            {idx < activeSpots.length - 1 && <div className="jn-tl-connector" />}
+                            <span className="jn-tl-emoji">{isDayCompleted ? '✓' : '🔒'}</span>
                           </div>
                           <div className="jn-tl-content">
                             <div className="jn-tl-meta">
-                              <span className="jn-tl-stop-num">Stop {idx + 1}</span>
-                              <span style={{ fontSize: '10px', color: 'var(--jn-crimson)', fontWeight: 'bold' }}>{stop.pathCost}</span>
+                              <span className="jn-tl-stop-num">End of Day</span>
                             </div>
-                            <h3 className="jn-tl-stop-name" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              {stop.name} {hasPic && <span style={{ color: 'var(--jn-green)', fontSize: '10px' }}>✓ Captured</span>}
-                            </h3>
-                            <p className="jn-tl-coords">📍 {stop.coords}</p>
-                            <p className="jn-tl-note" style={{ fontSize: '11px' }}>{stop.pathGuide}</p>
+                            <h3 className="jn-tl-stop-name">Seal Chapter {currentDayTab}</h3>
+                            <p className="jn-tl-note" style={{ fontSize: '11px' }}>
+                              {isDayCompleted ? '✓ Entry fully sealed & passkey active' : 'Authenticate entry with the border stamp'}
+                            </p>
                           </div>
                         </li>
-                      )
-                    })}
-
-                    {/* Seal day timeline node */}
-                    {hasSpots && (
-                      <li
-                        className={`jn-timeline-item ${isSealStep ? 'jn-timeline-item--active' : ''}`}
-                        onClick={() => {
-                          setCurrentSpotIndex(activeSpots.length)
-                          playTypewriterClick(1.2)
-                          if (window.innerWidth < 768) {
-                            setActiveTab('info')
-                          }
-                        }}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="jn-tl-node" aria-hidden="true">
-                          <span className="jn-tl-emoji">{isDayCompleted ? '✓' : '🔒'}</span>
-                        </div>
-                        <div className="jn-tl-content">
-                          <div className="jn-tl-meta">
-                            <span className="jn-tl-stop-num">End of Day</span>
-                          </div>
-                          <h3 className="jn-tl-stop-name">Seal Chapter {currentDayTab}</h3>
-                          <p className="jn-tl-note" style={{ fontSize: '11px' }}>
-                            {isDayCompleted ? '✓ Entry fully sealed & passkey active' : 'Authenticate entry with the border stamp'}
-                          </p>
-                        </div>
-                      </li>
-                    )}
-                  </ol>
+                      )}
+                    </ol>
+                  </div>
                 </div>
               )}
 
@@ -1118,7 +1258,7 @@ export default function JournalNotebook({ onBack }) {
                       <button
                         key={idx}
                         className="jn-phrase-card"
-                        onClick={() => playPhrase(p.pitchOffset)}
+                        onClick={() => playPhrase(p.arabic)}
                         aria-label={`Hear pronunciation of ${p.label}`}
                       >
                         <div className="jn-phrase-card-content">
