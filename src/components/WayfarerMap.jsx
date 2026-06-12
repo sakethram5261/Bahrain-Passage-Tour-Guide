@@ -1,6 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useVibe } from '../hooks/useVibe'
 import { spotsCatalog } from '../hooks/useItinerary'
+
+// Helper to clean and format legend name
+const formatLegendName = (name) => {
+  let clean = name.replace(/\s*\(.*\)/g, '')
+  clean = clean.trim()
+  if (clean.length > 20) return clean.substring(0, 18) + '...'
+  return clean
+}
+
+// Helper to get category icons
+const getCategoryIcon = (category) => {
+  switch (category?.toLowerCase()) {
+    case 'fort': return '🏰'
+    case 'souq': return '🕌'
+    case 'coast': return '🦪'
+    case 'culture': return '🏺'
+    case 'desert': return '🌳'
+    case 'modern': return '✨'
+    default: return '📍'
+  }
+}
+
 
 // Bounding boxes for Bahrain geography coordinates mapping
 const MIN_LAT = 25.95
@@ -106,6 +128,19 @@ export default function WayfarerMap({ locations, onClose }) {
 
   // Dynamically pick current riddle from spots the user actually has on their itinerary for this day
   const activeSpots = locations.filter(s => s.day === currentDayTab)
+  
+  // Local state for selected spot (shown in details card)
+  const [selectedSpot, setSelectedSpot] = useState(() => {
+    return activeSpots[currentSpotIndex] || activeSpots[0] || null
+  })
+
+  // Sync selectedSpot if currentSpotIndex or currentDayTab or locations changes
+  useEffect(() => {
+    const active = locations.filter(s => s.day === currentDayTab)
+    const current = active[currentSpotIndex] || active[0] || null
+    setSelectedSpot(current)
+  }, [currentSpotIndex, currentDayTab, locations])
+
   const riddleCandidates = activeSpots.filter(s => SPOT_CLUES[s.id])
   // Use a stable index based on day so clue doesn't change on re-render, but varies per day
   const riddleSpot = riddleCandidates.length > 0 
@@ -135,8 +170,7 @@ export default function WayfarerMap({ locations, onClose }) {
     const idx = activeSpots.findIndex(s => s.id === spotId)
     if (idx !== -1) {
       setCurrentSpotIndex(idx)
-      if (onClose) onClose()
-      else setActiveLeaf('chronicles')
+      setSelectedSpot(activeSpots[idx])
     }
   }
 
@@ -149,6 +183,7 @@ export default function WayfarerMap({ locations, onClose }) {
     if (spot.id === riddleSpot.id) {
       if (pearlsCollected.includes(spot.id)) {
         setPearlAlert({ success: true, text: "✨ You already unlocked the Shimmering Pearl chest for these coordinates!" })
+        handleSpotClick(spot.id)
         return
       }
 
@@ -192,6 +227,8 @@ export default function WayfarerMap({ locations, onClose }) {
       setTimeout(() => {
         setPearlChestAnim(null)
       }, 3500)
+      
+      handleSpotClick(spot.id)
     } else {
       // Normal spot click
       handleSpotClick(spot.id)
@@ -247,7 +284,7 @@ export default function WayfarerMap({ locations, onClose }) {
               Route Stops Legend:
             </span>
             {activeSpots.map((spot, idx) => {
-              const isActive = currentSpotIndex === idx
+              const isActive = selectedSpot && selectedSpot.id === spot.id
               const scanned = collectedKeepsakes.includes(spot.id)
 
               return (
@@ -267,7 +304,7 @@ export default function WayfarerMap({ locations, onClose }) {
                       {idx + 1}
                     </span>
                     <span className="font-serif text-[12px] text-bronze-charcoal block truncate font-bold">
-                      {spot.name.split(' ')[0]}
+                      {formatLegendName(spot.name)}
                     </span>
                   </div>
                   <span className="text-[12px] shrink-0">
@@ -449,7 +486,7 @@ export default function WayfarerMap({ locations, onClose }) {
                 const coords = getSvgCoords(spot.coords)
                 const isActiveDaySpot = activeSpots.some(s => s.id === spot.id)
                 const activeIndex = activeSpots.findIndex(s => s.id === spot.id)
-                const isSelectedSpot = isActiveDaySpot && currentSpotIndex === activeIndex
+                const isSelectedSpot = selectedSpot && selectedSpot.id === spot.id
                 const scanned = collectedKeepsakes.includes(spot.id)
                 const hasPearl = pearlsCollected.includes(spot.id)
 
@@ -627,6 +664,65 @@ export default function WayfarerMap({ locations, onClose }) {
           </div>
 
         </div>
+
+        {/* Selected Spot Details Ledger Card */}
+        {selectedSpot && (
+          <div className="mt-2 bg-[#FCFBF8] border-2 border-double border-amber-600/40 rounded-2xl p-4 md:p-5 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-left animate-fadeIn select-none shrink-0">
+            <div className="flex items-start gap-4 flex-1 min-w-0">
+              <span className="text-3xl p-2.5 bg-amber-600/5 rounded-2xl border border-amber-500/10 shrink-0 select-none">
+                {getCategoryIcon(selectedSpot.category)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <h5 className="font-serif text-base font-bold text-bronze-charcoal leading-tight">
+                    {selectedSpot.name}
+                  </h5>
+                  <span className="font-serif text-sm text-bahrain-red italic font-extrabold select-none">
+                    {selectedSpot.arabic}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mt-1 text-[8px] font-sans text-bronze-muted/75 font-extrabold uppercase tracking-wider">
+                  <span>{selectedSpot.period}</span>
+                  <span>•</span>
+                  <span className="text-bahrain-red/90">{selectedSpot.coords}</span>
+                  <span>•</span>
+                  <span className="text-amber-700/80">{selectedSpot.category}</span>
+                </div>
+                <p className="font-sans text-xs text-bronze-charcoal mt-2 leading-relaxed font-medium">
+                  {selectedSpot.desc}
+                </p>
+                {selectedSpot.insider && (
+                  <p className="font-serif text-[11px] text-amber-800 italic mt-1.5 leading-relaxed font-semibold">
+                    💡 <span className="font-sans font-bold not-italic text-[9px] uppercase tracking-wide mr-1">Insider Tip:</span>
+                    {selectedSpot.insider}
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-row md:flex-col lg:flex-row gap-2.5 w-full md:w-auto shrink-0 self-stretch md:self-center justify-end">
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedSpot.name + ', Bahrain')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 md:flex-none px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[10px] uppercase tracking-wider font-extrabold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <span>🧭</span> Google Maps
+              </a>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (onClose) onClose()
+                  else setActiveLeaf('chronicles')
+                }}
+                className="flex-1 md:flex-none px-4 py-2.5 bg-bahrain-red hover:bg-bahrain-dark border-2 border-double border-amber-500/60 text-white font-sans text-[10px] uppercase tracking-wider font-extrabold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              >
+                <span>📖</span> Explore Ledger
+              </button>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
