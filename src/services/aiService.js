@@ -1,13 +1,18 @@
 /**
  * aiService.js — Shared AI utility for Bahrain Passage Tour Guide
- * Routes calls to local Ollama (qwen2.5-coder:7b) with static fallback.
+ * Primary: OpenRouter API (free tier, publicly deployed)
+ * Fallback: static text strings (works even with no internet)
  */
 
-const OLLAMA_BASE = 'http://localhost:11434'
-const OLLAMA_CHAT = `${OLLAMA_BASE}/v1/chat/completions`
-const DEFAULT_MODEL = 'qwen2.5-coder:7b'
+const OPENROUTER_BASE = 'https://openrouter.ai/api/v1/chat/completions'
+const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.VITE_DEEPSEEK_API_KEY || ''
 
-// In-memory cache keyed by prompt hash to avoid duplicate calls
+// Model to use via OpenRouter — qwen/qwen-2.5-72b-instruct is free and excellent
+// for narrative/storytelling tasks. Fallback to a smaller free model if needed.
+const PRIMARY_MODEL = 'qwen/qwen-2.5-72b-instruct'
+const FALLBACK_MODEL = 'mistralai/mistral-7b-instruct'
+
+// In-memory response cache to avoid duplicate API calls
 const responseCache = new Map()
 
 function hashKey(systemPrompt, userPrompt) {
@@ -15,18 +20,17 @@ function hashKey(systemPrompt, userPrompt) {
 }
 
 /**
- * Call local Ollama AI with a system + user prompt.
- * Returns the AI response string, or fallbackText if the call fails.
+ * Call OpenRouter AI with system + user prompts.
+ * Returns AI response string, or fallbackText if the call fails.
  *
  * @param {string} systemPrompt  — Role/instructions for the model
  * @param {string} userPrompt    — The actual user query
- * @param {string} fallbackText  — Static text to return if AI is unavailable
- * @param {object} options       — Optional overrides: { model, maxTokens, temperature, cacheKey }
+ * @param {string} fallbackText  — Static text to return if AI unavailable
+ * @param {object} options       — { maxTokens, temperature, cacheKey, useCache }
  */
 export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', options = {}) {
   const {
-    model = DEFAULT_MODEL,
-    maxTokens = 140,
+    maxTokens = 150,
     temperature = 0.75,
     useCache = true,
   } = options
@@ -37,42 +41,58 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
     return responseCache.get(cacheKey)
   }
 
-  try {
-    const res = await fetch(OLLAMA_CHAT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature,
-        max_tokens: maxTokens,
-        stream: false,
-      }),
-      signal: AbortSignal.timeout(12000), // 12s max wait
-    })
-
-    if (!res.ok) {
-      console.warn(`[aiService] HTTP ${res.status} from Ollama`)
-      return fallbackText
-    }
-
-    const data = await res.json()
-    const text = data.choices?.[0]?.message?.content?.trim()
-    if (!text) return fallbackText
-
-    if (useCache) responseCache.set(cacheKey, text)
-    return text
-  } catch (err) {
-    if (err.name === 'TimeoutError') {
-      console.warn('[aiService] Ollama request timed out')
-    } else {
-      console.warn('[aiService] Ollama unavailable:', err.message)
-    }
+  if (!OPENROUTER_KEY) {
+    console.warn('[aiService] No API key found — returning static fallback')
     return fallbackText
   }
+
+  // Try primary model, then fallback model
+  for (const model of [PRIMARY_MODEL, FALLBACK_MODEL]) {
+    try {
+      const res = await fetch(OPENROUTER_BASE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENROUTER_KEY}`,
+          'HTTP-Referer': 'https://bahrain-passage.app',
+          'X-Title': 'Bahrain Passage Tour Guide',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature,
+          max_tokens: maxTokens,
+        }),
+        signal: AbortSignal.timeout(15000), // 15s max
+      })
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '')
+        console.warn(`[aiService] ${model} returned HTTP ${res.status}:`, errText.slice(0, 200))
+        // If 402 (payment required) or 401 (auth), no point retrying other model
+        if (res.status === 401 || res.status === 402) break
+        continue // try fallback model
+      }
+
+      const data = await res.json()
+      const text = data.choices?.[0]?.message?.content?.trim()
+      if (!text) continue
+
+      if (useCache) responseCache.set(cacheKey, text)
+      return text
+    } catch (err) {
+      if (err.name === 'TimeoutError') {
+        console.warn(`[aiService] ${model} timed out`)
+      } else {
+        console.warn(`[aiService] ${model} error:`, err.message)
+      }
+    }
+  }
+
+  return fallbackText
 }
 
 /**
@@ -86,22 +106,22 @@ export function clearAICache() {
 
 export function buildSpotNarratorPrompt(spotName, spotDesc) {
   return {
-    system: `You are Jafar Al-Sayyed, an elderly Bahraini pearl merchant and storyteller. 
-You speak in first person with vivid, warm, authentic detail about places in Bahrain you have personally visited many times. 
+    system: `You are Jafar Al-Sayyed, an elderly Bahraini pearl merchant and storyteller.
+You speak in first person with vivid, warm, authentic detail about places in Bahrain you have personally visited many times.
 Keep responses to exactly 2 sentences. Never use generic tourist language.`,
     user: `Tell me a personal memory or vivid observation about ${spotName}. Context about the place: ${spotDesc}`,
   }
 }
 
 export function buildHotelAdvisorPrompt(moods, tier, duration, hotels) {
-  const tierLabel = { budget: 'budget-conscious', curated: 'mid-range', luxury: 'luxury-seeking' }[tier] || 'balanced'
+  const tierLabel = { budget: 'budget-conscious', Wandering: 'budget-conscious', curated: 'mid-range', Curated: 'mid-range', luxury: 'luxury-seeking', Luxury: 'luxury-seeking' }[tier] || 'balanced'
   const moodList = Array.isArray(moods) ? moods.join(', ') : moods
   const hotelList = hotels.map((h, i) => `${i + 1}. ${h.name} (${h.tier}, ${h.cost}): ${h.desc}`).join('\n')
 
   return {
     system: `You are a Bahrain travel consultant who recommends hotels based on traveler personality.
 Be specific, warm, and honest. Match accommodation to the traveler's actual vibe.
-Reply with ONLY a JSON array of 3 hotel objects: [{name, reason}] where reason is exactly 1 sentence.
+Reply with ONLY a JSON array of 3 hotel objects: [{"name": "...", "reason": "..."}] where reason is exactly 1 sentence.
 No extra text, no markdown, just valid JSON.`,
     user: `Traveler profile: ${tierLabel} budget, interested in ${moodList}, staying ${duration} days.
 Available hotels:\n${hotelList}\nRecommend the 3 best matches with personal reasons.`,
@@ -110,7 +130,7 @@ Available hotels:\n${hotelList}\nRecommend the 3 best matches with personal reas
 
 export function buildBudgetAdvisorPrompt(goldFils, currentDay, totalDays, tier) {
   return {
-    system: `You are a friendly Bahraini travel budget advisor. Give practical, specific advice in 1 concise sentence. 
+    system: `You are a friendly Bahraini travel budget advisor. Give practical, specific advice in 1 concise sentence.
 Use Fils (local currency) naturally. Be encouraging but honest about spending.`,
     user: `Traveler has ${goldFils.toLocaleString()} Gold Fils remaining on Day ${currentDay} of ${totalDays}. Budget tier: ${tier}. Give one spending tip.`,
   }
@@ -118,7 +138,7 @@ Use Fils (local currency) naturally. Be encouraging but honest about spending.`,
 
 export function buildRiddleHintPrompt(question, options) {
   return {
-    system: `You are a cryptic but fair puzzle guide for Bahrain heritage riddles. 
+    system: `You are a cryptic but fair puzzle guide for Bahrain heritage riddles.
 Give ONE helpful hint that guides without directly revealing the answer. Maximum 2 sentences. Be poetic and historical.`,
     user: `Riddle: "${question}"\nOptions: ${options.join(' / ')}\nProvide a hint that helps the traveler without stating the answer.`,
   }
@@ -126,7 +146,7 @@ Give ONE helpful hint that guides without directly revealing the answer. Maximum
 
 export function buildLocationNavPrompt(spotName) {
   return {
-    system: `You are a local Bahraini guide giving practical navigation tips. 
+    system: `You are a local Bahraini guide giving practical navigation tips.
 Be specific — name actual streets, districts, or nearby landmarks. 1 sentence only.`,
     user: `How do travelers get to ${spotName} in Bahrain? Give a specific local navigation tip with a nearby street or landmark.`,
   }

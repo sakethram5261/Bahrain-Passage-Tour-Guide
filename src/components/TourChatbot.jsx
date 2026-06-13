@@ -373,11 +373,11 @@ export default function TourChatbot({ activeSpotName }) {
 
   const [open, setOpen] = useState(false)
   const deepSeekKey = import.meta.env.VITE_DEEPSEEK_API_KEY
-  const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY
+  const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.VITE_DEEPSEEK_API_KEY
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY
 
   const [provider, setProvider] = useState(() => {
-    if (deepSeekKey) return 'deepseek'
+    // OpenRouter is the primary provider — it covers both VITE_OPENROUTER_API_KEY and VITE_DEEPSEEK_API_KEY
     if (openRouterKey) return 'openrouter'
     if (apiKey) return 'gemini'
     return 'fallback'
@@ -386,26 +386,17 @@ export default function TourChatbot({ activeSpotName }) {
   const [ollamaAvailable, setOllamaAvailable] = useState(false)
 
   useEffect(() => {
+    // Still detect Ollama for the dropdown option, but don't auto-switch if we have an API key
     const checkOllama = async () => {
       try {
         const res = await fetch('http://localhost:11434/api/tags')
-        if (res.ok) {
-          setOllamaAvailable(true)
-          setProvider(prev => {
-            if (prev === 'fallback' || !deepSeekKey) {
-              return 'ollama'
-            }
-            return prev
-          })
-        }
-      } catch (err) {
-        // Not running
-      }
+        if (res.ok) setOllamaAvailable(true)
+      } catch {}
     }
     checkOllama()
   }, [])
 
-  const hasApiKey = !!apiKey || !!openRouterKey || !!deepSeekKey || ollamaAvailable
+  const hasApiKey = !!openRouterKey || !!apiKey || ollamaAvailable
   const apiProviderName = provider === 'deepseek' ? 'DeepSeek AI' : provider === 'openrouter' ? 'OpenRouter AI' : provider === 'gemini' ? 'Gemini AI' : provider === 'ollama' ? 'Local Ollama' : 'Local Fallback'
 
   const [messages, setMessages] = useState([
@@ -846,7 +837,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         'X-Title': 'Bahrain Passage'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'qwen/qwen-2.5-72b-instruct',
         messages: messagesPayload,
         response_format: {
           type: 'json_object'
