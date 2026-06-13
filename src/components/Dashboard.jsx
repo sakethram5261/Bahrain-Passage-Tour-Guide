@@ -596,6 +596,7 @@ export default function Dashboard() {
             {[
               { id: 'chronicles', label: "Today's", emoji: '📖' },
               { id: 'cartography', label: 'Map', emoji: '🗺️' },
+              { id: 'hotels', label: 'Hotels', emoji: '🏨' },
               { id: 'keepsakes', label: 'Souvenirs', emoji: '🪙' },
               { id: 'lexicon', label: 'Phrases', emoji: '📜' }
             ].map(tab => {
@@ -616,12 +617,13 @@ export default function Dashboard() {
             })}
           </div>
 
-          <div className="flex md:hidden justify-around bg-[#FCFBF8] border-b border-red-500/10 py-3 rounded-t-[24px] px-2 w-full select-none z-40">
+          <div className="flex md:hidden justify-around bg-[#FCFBF8] border-b border-red-500/10 py-3 rounded-t-[24px] px-2 w-full select-none z-40 overflow-x-auto gap-1">
             {[
-              { id: 'chronicles', label: "Today's Spots", emoji: '📖' },
+              { id: 'chronicles', label: "Today's", emoji: '📖' },
               { id: 'cartography', label: 'Map', emoji: '🗺️' },
+              { id: 'hotels', label: 'Hotels', emoji: '🏨' },
               { id: 'keepsakes', label: 'Souvenirs', emoji: '🪙' },
-              { id: 'lexicon', label: 'Phrasebook', emoji: '📜' }
+              { id: 'lexicon', label: 'Phrases', emoji: '📜' }
             ].map(tab => {
               const active = activeLeaf === tab.id
               return (
@@ -695,67 +697,40 @@ export default function Dashboard() {
                     </span>
                   </div>
 
-                  {/* Guide commentary — collapsible, less prominent */}
-                  <details className="group">
-                    <summary className="cursor-pointer list-none flex items-center justify-between p-3 bg-[#FCFBF8] border border-red-500/15 rounded-xl select-none hover:border-red-500/25 transition-colors">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">{guides.find(g => g.id === activeGuide)?.emoji}</span>
-                        <span className="font-sans text-[9px] font-bold tracking-wider uppercase text-bahrain-red">
-                          {guides.find(g => g.id === activeGuide)?.name} says...
-                        </span>
-                      </div>
-                      <span className="font-sans text-[9px] text-bronze-charcoal/40 group-open:rotate-180 transition-transform">▾</span>
-                    </summary>
-                    <div className="mt-2 p-3 bg-[#FCFBF8] border border-dashed border-red-500/20 rounded-xl aged-paper-gradient">
-                      <div className="paper-clip-asset" />
-                      <p className="font-serif text-[11px] italic text-bronze-charcoal leading-relaxed font-bold pl-14">
-                        "{activeSpot ? getGuideThoughts(activeSpot, activeGuide) : 'Select a landmark below, wayfarer...'}"
-                      </p>
-                      <div className="flex gap-1.5 mt-2 pl-14">
-                        {guides.map(g => (
-                          <button
-                            key={g.id}
-                            onClick={() => setActiveGuide(g.id)}
-                            className={`px-2 py-0.5 rounded-md text-[7px] uppercase tracking-wider font-extrabold transition-all border ${
-                              activeGuide === g.id
-                                ? 'bg-bahrain-red text-white border-bahrain-red'
-                                : 'bg-white border-red-500/15 text-bronze-charcoal hover:border-red-500/30'
-                            }`}
-                          >
-                            {g.emoji} {g.name.split(' ')[1]}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </details>
+                  {/* Narrator guide comments removed */}
 
                   {activeSpot ? (
                     <div className="space-y-4">
                       {/* Spot header — clear hierarchy */}
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-sans text-[8px] tracking-wider text-bahrain-red/70 uppercase font-bold">{activeSpot.period}</span>
-                          </div>
+                      <div className="flex flex-col items-start gap-2 mb-4">
+                        <div>
+                          <span className="font-sans text-[8.5px] text-bahrain-red/80 font-bold uppercase tracking-widest block mb-0.5">
+                            {activeSpot.period}
+                          </span>
                           <h3 className="font-serif text-xl text-bronze-charcoal font-semibold tracking-tight leading-tight">
                             {activeSpot.name}
                           </h3>
                           <p className="font-sans text-[9px] text-bronze-charcoal/50 font-mono mt-1">{activeSpot.coords}</p>
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            <span className="px-2 py-0.5 rounded bg-emerald-700/10 text-emerald-800 text-[9px] font-sans font-bold uppercase tracking-wider">
+                              💰 Cost: {activeSpot.pathCost || activeSpot.budgetCost || 'Free Entry'}
+                            </span>
+                          </div>
                         </div>
-                        <span className="font-serif text-2xl text-bahrain-red/80 italic font-medium shrink-0">{activeSpot.arabic}</span>
+                        <span className="font-serif text-xl text-bahrain-red/80 font-medium mt-1">{activeSpot.arabic}</span>
                       </div>
 
                       <p className="font-sans text-[12px] text-bronze-muted leading-relaxed">
                         {activeSpot.desc}
                       </p>
 
-                      {/* Insider tip — clear label */}
+                      {/* What You Can Find Here */}
                       <div className="p-3.5 rounded-xl bg-red-500/5 border border-red-500/10">
                         <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold block mb-1.5">
-                          ✨ Local Insider Tip
+                          🔍 What You Can Find Here
                         </span>
-                        <p className="font-serif text-[11.5px] italic text-bronze-charcoal leading-relaxed">
-                          {activeSpot.insider}
+                        <p className="font-serif text-[11.5px] text-bronze-charcoal leading-relaxed font-bold">
+                          {activeSpot.simpleTerms}
                         </p>
                       </div>
 
@@ -1000,6 +975,54 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {activeLeaf === 'hotels' && (
+                <div className="space-y-4">
+                  <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
+                    Curated Accommodations
+                  </span>
+                  <h3 className="font-serif text-2xl text-bronze-charcoal font-semibold mt-1">
+                    Authentic Hotel Stays
+                  </h3>
+                  <p className="font-sans text-xs text-bronze-muted leading-relaxed font-semibold">
+                    Hand-picked stays in the Kingdom. Choose between grand modern resorts, artistic city retreats, or heritage wind-tower houses.
+                  </p>
+                  <div className="grid grid-cols-1 gap-3 mt-4 max-h-[380px] overflow-y-auto antique-scrollbar pr-1">
+                    {[
+                      { name: "The Merchant House", tier: "Heritage Boutique", cost: "From 80 BHD/night", desc: "Art-filled suite hotel nestled near Bab Al Bahrain and Manama Souq.", emoji: "🏨" },
+                      { name: "Four Seasons Bahrain Bay", tier: "Ultra Luxury", cost: "From 140 BHD/night", desc: "Private island resort featuring spectacular skyline views and warm sandy beaches.", emoji: "🏝️" },
+                      { name: "Al Areen Palace & Spa", tier: "Desert Sanctuary", cost: "From 110 BHD/night", desc: "Private pool villas in the Sakhir dunes, ideal for a quiet starlit getaway.", emoji: "🕌" },
+                      { name: "Muharraq Heritage Houses", tier: "Authentic / Budget", cost: "From 25 BHD/night", desc: "Traditional guest rooms inside restored pearling houses of historic Muharraq.", emoji: "⛵" },
+                      { name: "The K Hotel Juffair", tier: "Modern / Budget", cost: "From 35 BHD/night", desc: "Comfortable high-rise lodging close to Adliya Block 338 food and art hubs.", emoji: "🏢" }
+                    ].map((hotel, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-xl border border-red-500/10 bg-white shadow-sm flex items-start justify-between gap-3 stitch-border"
+                      >
+                        <span className="text-2xl p-2 bg-amber-500/5 border border-amber-500/10 rounded-xl shrink-0 select-none">
+                          {hotel.emoji}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h5 className="font-serif text-[12px] font-bold text-bronze-charcoal leading-tight">
+                            {hotel.name}
+                          </h5>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className="px-1.5 py-0.5 rounded bg-amber-600/10 text-amber-700 text-[8px] font-sans font-bold uppercase tracking-wider">
+                              {hotel.tier}
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-700/10 text-emerald-800 text-[8px] font-sans font-bold uppercase tracking-wider">
+                              💰 {hotel.cost}
+                            </span>
+                          </div>
+                          <p className="font-sans text-[10px] text-bronze-muted mt-1.5 leading-relaxed font-semibold">
+                            {hotel.desc}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
 
             {activeLeaf === 'chronicles' && hasSpots && (
@@ -1008,7 +1031,7 @@ export default function Dashboard() {
                   {currentSpotIndex < activeSpots.length ? (
                     `Page ${currentSpotIndex + 1} of ${activeSpots.length}`
                   ) : (
-                    "Seal Ledger Chapter"
+                    "Proceed"
                   )}
                 </span>
 
@@ -1301,31 +1324,7 @@ export default function Dashboard() {
                     </p>
                   )}
 
-                  <div className="w-full p-4 rounded-2xl bg-amber-500/5 border border-amber-600/15 space-y-2 animate-fadeIn">
-                    <span className="font-sans text-[7.5px] tracking-[0.2em] text-amber-700 uppercase font-extrabold block">
-                      Resident Guild Reputation
-                    </span>
-                    <div className="space-y-2.5">
-                      {[
-                        { name: 'Jafar (Spice Merchant)', rep: characterRep.jafar || 10, color: 'bg-[#A80D27]' },
-                        { name: 'Seyadi (Pearl Diver)', rep: characterRep.seyadi || 10, color: 'bg-amber-600' },
-                        { name: 'Faisal (Falconer)', rep: characterRep.faisal || 10, color: 'bg-emerald-700' },
-                      ].map(resident => (
-                        <div key={resident.name} className="space-y-1">
-                          <div className="flex justify-between items-center text-[7.5px] font-extrabold text-bronze-charcoal uppercase">
-                            <span>{resident.name}</span>
-                            <span>{resident.rep}%</span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-amber-600/10 overflow-hidden">
-                            <div 
-                              className={`h-full rounded-full transition-all duration-500 ${resident.color}`}
-                              style={{ width: `${resident.rep}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  {/* Resident Guild Reputation removed */}
 
                   {selectedKeepsake && (
                     <div className="p-4 rounded-xl bg-white border border-amber-600/40 text-left relative animate-scaleIn w-full shadow-sm">
@@ -1386,6 +1385,21 @@ export default function Dashboard() {
                       "Stand before Master Jafar, raise your hand, look him in the eye and say: 'Salam Alaykum, ya sadiqee!' (Peace be upon you, my friend!)"
                     </p>
                   </div>
+                </div>
+              )}
+
+              {activeLeaf === 'hotels' && (
+                <div className="flex flex-col items-center justify-center p-6 text-center max-w-[280px] aged-paper-gradient border border-dashed border-amber-600/20 rounded-2xl shadow-sm mt-4 space-y-4">
+                  <span className="text-5xl mb-1 animate-pulse">🏨</span>
+                  <div className="space-y-1">
+                    <span className="font-sans text-[7.5px] tracking-[0.25em] text-bahrain-red uppercase font-black block">
+                      STAY IN BAHRAIN
+                    </span>
+                    <h5 className="font-serif text-xs font-bold text-bronze-charcoal">Bahrain Passage Stays</h5>
+                  </div>
+                  <p className="font-serif text-[10px] italic text-bronze-muted leading-relaxed">
+                    We recommend arranging bookings in advance to secure heritage stays or private villas, matching the dates of your customized {duration}-day itinerary.
+                  </p>
                 </div>
               )}
 

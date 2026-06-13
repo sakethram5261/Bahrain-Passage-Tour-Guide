@@ -445,10 +445,18 @@ export default function SensoryHero() {
                             </div>
                             <div className="pt-2 border-t border-red-500/5">
                               <span className="font-sans text-[10px] tracking-[0.12em] text-amber-600 uppercase font-black block mb-0.5">
-                                📜 Generational Insider Secret
+                                🔍 What You Can Find Here
                               </span>
-                              <p className="font-serif text-[11px] italic text-bronze-muted leading-relaxed font-bold select-text">
-                                "{spot.insider}"
+                              <p className="font-serif text-[11px] text-bronze-charcoal leading-relaxed font-semibold select-text">
+                                {spot.simpleTerms}
+                              </p>
+                            </div>
+                            <div className="pt-2 border-t border-red-500/5">
+                              <span className="font-sans text-[10px] tracking-[0.12em] text-emerald-600 uppercase font-black block mb-0.5">
+                                💰 Estimated Cost / Budget
+                              </span>
+                              <p className="font-serif text-[11px] text-bronze-charcoal leading-relaxed font-semibold select-text">
+                                {spot.pathCost || spot.budgetCost || 'Free Entry'}
                               </p>
                             </div>
                           </div>
@@ -545,7 +553,7 @@ export default function SensoryHero() {
                     }}
                   >
                     <span className="text-xs">{sealing ? '⏳' : '📜'}</span>
-                    {sealing ? 'Sealing Passage...' : 'Imprint Seal & Enter Ledger'}
+                    {sealing ? 'Sealing Passage...' : 'Proceed'}
                     {!sealing && <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>}
                   </div>
                 </button>
@@ -618,7 +626,7 @@ export default function SensoryHero() {
                   </p>
                 )) : (
                   <p className="font-mono text-[9.5px] leading-relaxed text-bronze-charcoal font-bold min-h-[36px] flex items-center justify-center">
-                    Assembling ledger...
+                    Assembling Passage...
                   </p>
                 )}
               </div>

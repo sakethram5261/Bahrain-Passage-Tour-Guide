@@ -698,10 +698,11 @@
 /* Spot header */
 .jn-spot-header {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--jn-sp-md);
+  gap: var(--jn-sp-xs);
   margin-bottom: var(--jn-sp-md);
+  width: 100%;
 }
 
 .jn-period-tag {
@@ -735,13 +736,13 @@
 
 .jn-arabic {
   font-family: var(--jn-font-serif);
-  font-size: clamp(20px, 4vw, 28px);
+  font-size: clamp(18px, 4vw, 24px);
   font-weight: 500;
   color: rgba(193, 18, 47, 0.75);
-  font-style: italic;
   line-height: 1.2;
   flex-shrink: 0;
-  text-align: right;
+  text-align: left;
+  margin-top: 4px;
 }
 
 /* Divider */

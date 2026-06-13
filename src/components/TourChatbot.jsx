@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useVibe } from '../hooks/useVibe'
 
 // ─── Knowledge base ────────────────────────────────────────────────────────────
 const DESTINATIONS = {
@@ -100,7 +101,7 @@ const DESTINATIONS = {
 }
 
 const MECHANICS = {
-  xp: "XP (Experience Points) are earned by visiting spots, capturing Lens photos, solving riddles, and completing a day's itinerary. Earn enough to climb through ranks: Wanderer → Nomad → Merchant → Chronicler → Pearl Diver → Dilmun Pearl.",
+  xp: "XP (Experience Points) are earned by exploring landmarks, capturing Lens photos, solving riddles, and completing a day's itinerary. Earn enough to climb through ranks: Wanderer → Nomad → Merchant → Chronicler → Pearl Diver → Dilmun Pearl.",
   rank: "Your rank is shown in the top-right of the header. Tap it to open your Explorer Passport which shows your full progress. The higher your rank, the deeper your cultural insider knowledge grows.",
   keepsake: "Keepsakes are traditional souvenir relics unlocked by using the Capture Lens at each landmark. Open the Souvenirs tab (right side tabs) to see your collection. You can also buy keepsakes from Jafar's Souq Shop using Gold Fils.",
   lens: "The Capture Lens is a camera-style tool for each location. Tap '📷 Capture Lens Stamp' on any spot card to open it. You can take a photo or capture the landmark image — this earns XP, Gold Fils, and unlocks a Keepsake.",
@@ -110,70 +111,152 @@ const MECHANICS = {
   map: "The interactive Wayfarer Map shows all your itinerary spots on a Bahrain map with pulsing location markers. Open it from the Map tab. Tap any marker to jump to that spot's chronicle entry.",
   shop: "Jafar's Souq Shop is in the Souvenirs tab. Spend Gold Fils (earned from Lens captures and day completions) on riddle hints, reputation boosters with local characters, and instant keepsake unlocks.",
   fils: "Gold Fils are the in-game currency. You earn them by capturing Lens photos and completing day itineraries. Spend them at Jafar's Souq Shop in the Souvenirs tab.",
-  guide: "Three historical guides comment on each spot: Merchant Jafar (1920s pearling era), Priestess Ninsun (2000 BCE Dilmun era), and Architect Al-Farsi (1400s military era). Switch between them using the buttons in the guide panel.",
   passport: "Your Explorer Passport shows your XP, rank, collected passport stamps for completed days, and all earned keepsakes. Tap the XP badge in the top-right header to open it.",
-  journal: "The open-book journal is your main dashboard. The left page shows spot details, guide commentary, your personal notes, and riddles. The right page shows the spot postcard, your itinerary list, and lens capture.",
-  tab: "The four tabs (Today's Spots, Map, Souvenirs, Phrasebook) let you switch between different sections. On desktop they appear as leather tabs on the right side. On mobile they appear as a row at the top.",
-  phrasebook: "The Phrasebook tab teaches you Bahraini Arabic words. Tap any word card to hear the pronunciation via your device's speech system — it also plays a traditional Oud acoustic tone. Great for greeting locals.",
-  almanac: "The Almanac in the Map tab shows themed atmospheric data for each day's locations — tide times, temperature, stargazing windows, and more. It adds context to when and how to visit each spot.",
+  journal: "The open-book journal is your main dashboard. The left page shows spot details, your personal notes, and riddles. The right page shows the spot postcard, your itinerary list, and lens capture.",
+  tab: "The tabs (Info, Itinerary, Map, Hotels, Souvenirs, Phrases) let you switch between different sections. On desktop they appear as leather tabs on the right side. On mobile they appear as a row at the top.",
+  phrasebook: "The Phrases tab teaches you Bahraini Arabic words. Tap any word card to hear the pronunciation via your device's speech system — it also plays a traditional Oud acoustic tone. Great for greeting locals.",
   mood: "Your vibes (Empires, Sea, Spice, Lights) set at the start determine which of Bahrain's 18 landmarks appear in your personal itinerary. You can edit your selections any time from the 'Edit Trip' button in the header.",
 }
 
 const QUICK_QUESTIONS = [
-  { label: "How do I unlock the next day?", key: 'unlock' },
+  { label: "Change budget to Luxury", key: 'luxury' },
+  { label: "Make my trip 5 days", key: '5 days' },
+  { label: "Give me 500 gold fils", key: 'give me 500 gold fils' },
+  { label: "Tell me about Bahrain Fort", key: 'bahrain fort' },
   { label: "What is the Capture Lens?", key: 'lens' },
-  { label: "How do I earn Gold Fils?", key: 'fils' },
-  { label: "What are keepsakes?", key: 'keepsake' },
-  { label: "Tell me about the Bahrain Fort", key: 'bahrain fort' },
-  { label: "What's the Tree of Life?", key: 'tree of life' },
+  { label: "How do I unlock the next day?", key: 'unlock' },
 ]
 
-// ─── Response engine ─────────────────────────────────────────────────────────
-function getResponse(input, activeSpotName) {
+// ─── Local Fallback Parser (Offline / Mismatch Keys) ──────────────────────────
+function getLocalResponseAndActions(input, activeSpotName, currentMoods) {
   const q = input.toLowerCase().trim()
+  const actions = []
+  const actionsApplied = []
+
+  // Check for budget tier change
+  if (q.includes('budget') || q.includes('tier') || q.includes('wandering') || q.includes('curated') || q.includes('luxury')) {
+    if (q.includes('luxury')) {
+      actions.push({ type: 'SET_TIER', value: 'Luxury' })
+      actionsApplied.push('Changed budget tier to Luxury')
+    } else if (q.includes('curated')) {
+      actions.push({ type: 'SET_TIER', value: 'Curated' })
+      actionsApplied.push('Changed budget tier to Curated')
+    } else if (q.includes('wandering') || q.includes('budget') || q.includes('basic') || q.includes('budget')) {
+      actions.push({ type: 'SET_TIER', value: 'Wandering' })
+      actionsApplied.push('Changed budget tier to Wandering')
+    }
+  }
+
+  // Check for duration change
+  const durationMatch = q.match(/(?:duration|days?|stay|trip|length)\s*(?:to|for)?\s*(\d+)/i) || q.match(/(\d+)\s*(?:days?|nights?)/i)
+  if (durationMatch) {
+    const val = parseInt(durationMatch[1], 10)
+    if (val >= 1 && val <= 10) {
+      actions.push({ type: 'SET_DURATION', value: val })
+      actionsApplied.push(`Set stay duration to ${val} days`)
+    }
+  }
+
+  // Check for mood / vibe changes
+  const moodsList = []
+  if (q.includes('empires') || q.includes('empire') || q.includes('ancient') || q.includes('fort')) moodsList.push('empires')
+  if (q.includes('sea') || q.includes('ocean') || q.includes('pearl')) moodsList.push('sea')
+  if (q.includes('spice') || q.includes('food') || q.includes('souq') || q.includes('tea')) moodsList.push('spice')
+  if (q.includes('lights') || q.includes('light') || q.includes('modern') || q.includes('art')) moodsList.push('lights')
+
+  if (moodsList.length > 0 && (q.includes('vibe') || q.includes('mood') || q.includes('change') || q.includes('set') || q.includes('add') || q.includes('remove'))) {
+    if (q.includes('remove') || q.includes('delete')) {
+      const remaining = currentMoods.filter(m => !moodsList.includes(m))
+      actions.push({ type: 'SET_MOODS', value: remaining })
+      actionsApplied.push(`Removed vibes: ${moodsList.join(', ')}`)
+    } else if (q.includes('add') || q.includes('append')) {
+      const merged = Array.from(new Set([...currentMoods, ...moodsList]))
+      actions.push({ type: 'SET_MOODS', value: merged })
+      actionsApplied.push(`Added vibes: ${moodsList.join(', ')}`)
+    } else {
+      actions.push({ type: 'SET_MOODS', value: moodsList })
+      actionsApplied.push(`Set vibes to: ${moodsList.join(', ')}`)
+    }
+  }
+
+  // Check for day change
+  const dayMatch = q.match(/(?:go to|navigate to|show|view|day)\s*(\d+)/i)
+  if (dayMatch) {
+    const val = parseInt(dayMatch[1], 10)
+    actions.push({ type: 'SET_DAY', value: val })
+    actionsApplied.push(`Navigated to Day ${val}`)
+  }
+
+  // Check for money / fils cheat
+  const filsMatch = q.match(/(?:give|add|grant|cheat|gain)\s+(?:me\s+)?(\d+)\s+(?:gold\s+)?(?:fils|coins|gold|money)/i) || q.match(/(\d+)\s+(?:gold\s+)?(?:fils|coins|gold)/i)
+  if (filsMatch) {
+    const val = parseInt(filsMatch[1], 10)
+    actions.push({ type: 'ADD_FILS', value: val })
+    actionsApplied.push(`Granted +${val} Gold Fils`)
+  } else if (q.includes('give me coins') || q.includes('free money') || q.includes('infinite money')) {
+    actions.push({ type: 'ADD_FILS', value: 1000 })
+    actionsApplied.push('Granted +1000 Gold Fils')
+  }
+
+  // Check for XP cheat
+  if (q.includes('give me xp') || q.includes('add xp') || q.includes('level up')) {
+    actions.push({ type: 'ADD_XP', value: 300 })
+    actionsApplied.push('Awarded +300 XP')
+  }
+
+  // Check for reset
+  if (q.includes('reset') || q.includes('restart')) {
+    actions.push({ type: 'RESET' })
+    actionsApplied.push('Reset travel chronicle')
+  }
+
+  // Return local response if actions matched
+  if (actions.length > 0) {
+    return {
+      text: `I've updated your trip parameters as requested! Let me know if you want to make further adjustments. 🗺️`,
+      actions,
+      actionsApplied
+    }
+  }
 
   // Contextual — ask about current spot
   if ((q.includes('current') || q.includes('this spot') || q.includes('here') || q.includes('where am i')) && activeSpotName) {
     const key = Object.keys(DESTINATIONS).find(k => activeSpotName.toLowerCase().includes(k))
     if (key) {
       const d = DESTINATIONS[key]
-      return { text: `You're at **${d.name}** ${d.emoji}\n\n${d.tip}`, type: 'spot' }
+      return { text: `You're at **${d.name}** ${d.emoji}\n\n${d.tip}`, actions: [], actionsApplied: [] }
     }
   }
 
   // Mechanics
   for (const [key, answer] of Object.entries(MECHANICS)) {
     if (q.includes(key)) {
-      return { text: answer, type: 'mechanic' }
+      return { text: answer, actions: [], actionsApplied: [] }
     }
   }
 
   // Destination match
   for (const [key, dest] of Object.entries(DESTINATIONS)) {
     if (q.includes(key)) {
-      return { text: `**${dest.name}** ${dest.emoji}\n\n${dest.tip}`, type: 'spot' }
+      return { text: `**${dest.name}** ${dest.emoji}\n\n${dest.tip}`, actions: [], actionsApplied: [] }
     }
   }
 
   // Greetings
   if (q.match(/^(hi|hello|hey|marhaba|salam)/)) {
-    return { text: "Marhaba! 👋 I'm your Bahrain Passage guide. Ask me about any destination, or how the app works — riddles, keepsakes, Gold Fils, unlocking days, you name it.", type: 'greeting' }
+    return { text: "Marhaba! 👋 I'm your Bahrain Passage guide. Ask me to change budget level, stay duration, or add/remove vibes, or ask about any local destinations or how the app works.", actions: [], actionsApplied: [] }
   }
 
   // Karak / food
   if (q.includes('karak') || q.includes('tea') || q.includes('coffee') || q.includes('food') || q.includes('eat')) {
-    return { text: "For the best karak tea experience, head to Haji's Cafe inside Manama Souq — established 1950, no menu, pure generational cooking. For cardamom coffee (gahwa), any traditional souq vendor will serve you in a small brass dallah pot. 🍵", type: 'tip' }
-  }
-
-  // Help catch-all
-  if (q.includes('help') || q.includes('lost') || q.includes('confused') || q.includes('what do i do') || q.includes('how does')) {
-    return { text: "No worries! Here's the flow:\n\n1. **Browse spots** on the left page — tap Prev/Next to move between them\n2. **Capture a photo** using the Lens button on the right page\n3. **Solve the riddle** for +35 XP and a secret insider tip\n4. **Seal the day** at the final step to stamp your passport & unlock day 2\n\nTap any quick question below or just ask me anything!", type: 'help' }
+    return { text: "For the best karak tea experience, head to Haji's Cafe inside Manama Souq — established 1950, no menu, pure cooking. For cardamom coffee (gahwa), any traditional souq vendor will serve you in a small brass dallah pot. 🍵", actions: [], actionsApplied: [] }
   }
 
   // Default
   return {
-    text: "Hmm, I don't have a specific answer for that — but I know every corner of Bahrain! Try asking about a destination (\"tell me about Barbar Temple\") or how something works (\"what is XP?\", \"how do I unlock the next day?\").",
-    type: 'default'
+    text: "Hmm, I don't have a specific answer for that. But I know every corner of Bahrain! Try asking me to \"change budget to luxury\" or \"set duration to 7 days\" or \"tell me about Bahrain Fort\".",
+    actions: [],
+    actionsApplied: []
   }
 }
 
@@ -232,7 +315,36 @@ function Bubble({ msg }) {
           ? '0 4px 12px rgba(209,26,56,0.25)'
           : '0 1px 4px rgba(42,35,33,0.06)',
       }}>
-        {renderText(msg.text)}
+        <div>{renderText(msg.text)}</div>
+        
+        {/* Applied actions badge */}
+        {msg.actionsApplied && msg.actionsApplied.length > 0 && (
+          <div style={{
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+            borderTop: isUser ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(209,26,56,0.12)',
+            paddingTop: 6,
+          }}>
+            {msg.actionsApplied.map((act, i) => (
+              <div key={i} style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 10,
+                background: isUser ? 'rgba(255,255,255,0.18)' : 'rgba(209,26,56,0.08)',
+                color: isUser ? '#fff' : '#D11A38',
+                padding: '2px 6px',
+                borderRadius: 6,
+                fontWeight: 600,
+                alignSelf: 'flex-start',
+              }}>
+                ⚙️ {act}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -240,13 +352,41 @@ function Bubble({ msg }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function TourChatbot({ activeSpotName }) {
+  const {
+    step,
+    setStep,
+    selectedMoods,
+    setSelectedMoods,
+    tier,
+    setTier,
+    duration,
+    setDuration,
+    currentDayTab,
+    setCurrentDayTab,
+    goldFils,
+    setGoldFils,
+    xp,
+    awardXP,
+    itinerarySpots = [],
+    resetChronicle
+  } = useVibe()
+
   const [open, setOpen] = useState(false)
+  const deepSeekKey = import.meta.env.VITE_DEEPSEEK_API_KEY
+  const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY
+  const hasApiKey = !!apiKey || !!openRouterKey || !!deepSeekKey
+  const apiProviderName = deepSeekKey ? 'DeepSeek AI' : openRouterKey ? 'OpenRouter AI' : apiKey ? 'Gemini AI' : 'Local Fallback'
+
   const [messages, setMessages] = useState([
     {
       role: 'bot',
-      text: "Marhaba! I'm your local guide — ask me about any Bahrain destination, how to earn XP, unlock days, or anything else you need. 🇧🇭",
+      text: hasApiKey 
+        ? `Marhaba! I'm your local guide — ask me about any Bahrain destination, or ask me to change budget level, stay duration, or vibes directly in chat! (Connected via ${apiProviderName}) 🇧🇭`
+        : "Marhaba! I'm your local guide. Ask me about any Bahrain destination or how the app works.\n\n*(Note: API key is missing. Add VITE_DEEPSEEK_API_KEY or VITE_OPENROUTER_API_KEY to .env.local to enable full generative AI replies. Running in local fallback mode.)*",
     },
   ])
+  
   const [input, setInput] = useState('')
   const [typing, setTyping] = useState(false)
   const messagesEndRef = useRef(null)
@@ -264,18 +404,512 @@ export default function TourChatbot({ activeSpotName }) {
     }
   }, [open])
 
-  const sendMessage = (text) => {
+  // Execute structural state modifications
+  const executeActions = (actions) => {
+    if (!actions || !Array.isArray(actions)) return []
+    const applied = []
+
+    actions.forEach(action => {
+      try {
+        switch (action.type) {
+          case 'SET_TIER': {
+            const val = action.value
+            if (['Wandering', 'Curated', 'Luxury'].includes(val)) {
+              setTier(val)
+              applied.push(`Budget tier set to: ${val}`)
+            }
+            break
+          }
+          case 'SET_DURATION': {
+            const val = Number(action.value)
+            if (val >= 1 && val <= 10) {
+              setDuration(val)
+              applied.push(`Stay duration set to: ${val} Days`)
+            }
+            break
+          }
+          case 'SET_STEP': {
+            const val = Number(action.value)
+            if (val >= 1 && val <= 6) {
+              setStep(val)
+              applied.push(`App screen step set to: ${val}`)
+            }
+            break
+          }
+          case 'SET_DAY': {
+            const val = Number(action.value)
+            if (val >= 1 && val <= duration) {
+              setCurrentDayTab(val)
+              applied.push(`Active day tab set to: Day ${val}`)
+            }
+            break
+          }
+          case 'SET_MOODS': {
+            const val = action.value
+            if (Array.isArray(val)) {
+              const valid = val.filter(m => ['empires', 'sea', 'spice', 'lights'].includes(m))
+              setSelectedMoods(valid)
+              applied.push(`Vibes set to: ${valid.join(', ')}`)
+            }
+            break
+          }
+          case 'ADD_FILS': {
+            const val = Number(action.value)
+            if (!isNaN(val)) {
+              setGoldFils(prev => Math.max(0, prev + val))
+              applied.push(`Gold Fils adjusted by: ${val > 0 ? '+' : ''}${val}`)
+            }
+            break
+          }
+          case 'ADD_XP': {
+            const val = Number(action.value)
+            if (!isNaN(val)) {
+              awardXP(val, "AI Companion Reward")
+              applied.push(`XP adjusted by: +${val}`)
+            }
+            break
+          }
+          case 'RESET': {
+            resetChronicle()
+            applied.push(`Reset travel chronicles`)
+            break
+          }
+          default:
+            console.warn(`[Chatbot] Unknown action type: ${action.type}`)
+        }
+      } catch (err) {
+        console.error(`[Chatbot] Error executing action`, action, err)
+      }
+    })
+    return applied
+  }
+
+  // Generative API fetch logic for DeepSeek
+  const callDeepSeekAPI = async (userText, chatHistory) => {
+    const messagesPayload = [
+      {
+        role: 'system',
+        content: `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
+You are embedded in a premium interactive travel journal app.
+The user can talk to you to get recommendations, ask about landmarks, or instruct you to update their trip parameters directly.
+
+Here is the current state of the user's trip:
+- Step in App: ${step} (1=Mood Selection, 4=Itinerary Generation/Sensory Hero, 5=Journal Left Page/Seal Day, 6=Full Journal)
+- Selected Vibes: ${JSON.stringify(selectedMoods)} (Possible: empires, sea, spice, lights)
+- Stay Duration: ${duration} days (Max 10)
+- Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
+- Current Day Viewed: ${currentDayTab}
+- Coins (Gold Fils): ${goldFils}
+- XP (Experience Points): ${xp}
+- Active Spot: ${activeSpotName || 'None'}
+- Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
+
+LANDMARK KNOWLEDGE BASE:
+${JSON.stringify(DESTINATIONS, null, 2)}
+
+DIRECTIONS:
+1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
+2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 gold fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
+3. You MUST respond with a valid JSON object matching the following structure:
+{
+  "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
+  "actions": [
+    { "type": "SET_TIER", "value": "Luxury" },
+    { "type": "SET_DURATION", "value": 5 },
+    { "type": "SET_STEP", "value": 5 },
+    { "type": "SET_DAY", "value": 2 },
+    { "type": "SET_MOODS", "value": ["empires", "sea"] },
+    { "type": "ADD_FILS", "value": 500 },
+    { "type": "ADD_XP", "value": 100 },
+    { "type": "RESET" }
+  ]
+}
+
+ACTIONS SPECIFICATION:
+- SET_TIER: value must be one of: "Wandering", "Curated", "Luxury".
+- SET_DURATION: value must be an integer between 1 and 10.
+- SET_STEP: value must be an integer between 1 and 6.
+- SET_DAY: value must be an integer between 1 and duration.
+- SET_MOODS: value must be an array containing subset of: "empires", "sea", "spice", "lights".
+- ADD_FILS: value must be an integer (positive or negative) to add to user's coins.
+- ADD_XP: value must be an integer to add to user's XP.
+- RESET: no value, resets progress.
+
+If no actions are requested, return an empty actions array: "actions": [].
+Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
+      }
+    ]
+
+    chatHistory.forEach(msg => {
+      messagesPayload.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.text
+      })
+    })
+
+    messagesPayload.push({
+      role: 'user',
+      content: userText
+    })
+
+    const url = 'https://api.deepseek.com/chat/completions'
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${deepSeekKey}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-v4-flash',
+        messages: messagesPayload,
+        response_format: {
+          type: 'json_object'
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const errText = await response.text()
+      throw new Error(`DeepSeek API_ERROR: ${response.status} - ${errText}`)
+    }
+
+    const data = await response.json()
+    const textResult = data.choices?.[0]?.message?.content
+    if (!textResult) {
+      throw new Error("EMPTY_RESPONSE_FROM_DEEPSEEK")
+    }
+
+    try {
+      const parsed = JSON.parse(textResult.trim())
+      return {
+        text: parsed.text || "Processed request.",
+        actions: parsed.actions || []
+      }
+    } catch (e) {
+      const jsonMatch = textResult.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0].trim())
+          return {
+            text: parsed.text || "Processed request.",
+            actions: parsed.actions || []
+          }
+        } catch (inner) {
+          // ignore
+        }
+      }
+      return {
+        text: textResult,
+        actions: []
+      }
+    }
+  }
+
+  // Generative API fetch logic for OpenRouter
+  const callOpenRouterAPI = async (userText, chatHistory) => {
+    const messagesPayload = [
+      {
+        role: 'system',
+        content: `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
+You are embedded in a premium interactive travel journal app.
+The user can talk to you to get recommendations, ask about landmarks, or instruct you to update their trip parameters directly.
+
+Here is the current state of the user's trip:
+- Step in App: ${step} (1=Mood Selection, 4=Itinerary Generation/Sensory Hero, 5=Journal Left Page/Seal Day, 6=Full Journal)
+- Selected Vibes: ${JSON.stringify(selectedMoods)} (Possible: empires, sea, spice, lights)
+- Stay Duration: ${duration} days (Max 10)
+- Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
+- Current Day Viewed: ${currentDayTab}
+- Coins (Gold Fils): ${goldFils}
+- XP (Experience Points): ${xp}
+- Active Spot: ${activeSpotName || 'None'}
+- Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
+
+LANDMARK KNOWLEDGE BASE:
+${JSON.stringify(DESTINATIONS, null, 2)}
+
+DIRECTIONS:
+1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
+2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 gold fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
+3. You MUST respond with a valid JSON object matching the following structure:
+{
+  "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
+  "actions": [
+    { "type": "SET_TIER", "value": "Luxury" },
+    { "type": "SET_DURATION", "value": 5 },
+    { "type": "SET_STEP", "value": 5 },
+    { "type": "SET_DAY", "value": 2 },
+    { "type": "SET_MOODS", "value": ["empires", "sea"] },
+    { "type": "ADD_FILS", "value": 500 },
+    { "type": "ADD_XP", "value": 100 },
+    { "type": "RESET" }
+  ]
+}
+
+ACTIONS SPECIFICATION:
+- SET_TIER: value must be one of: "Wandering", "Curated", "Luxury".
+- SET_DURATION: value must be an integer between 1 and 10.
+- SET_STEP: value must be an integer between 1 and 6.
+- SET_DAY: value must be an integer between 1 and duration.
+- SET_MOODS: value must be an array containing subset of: "empires", "sea", "spice", "lights".
+- ADD_FILS: value must be an integer (positive or negative) to add to user's coins.
+- ADD_XP: value must be an integer to add to user's XP.
+- RESET: no value, resets progress.
+
+If no actions are requested, return an empty actions array: "actions": [].
+Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
+      }
+    ]
+
+    chatHistory.forEach(msg => {
+      messagesPayload.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.text
+      })
+    })
+
+    messagesPayload.push({
+      role: 'user',
+      content: userText
+    })
+
+    const url = 'https://openrouter.ai/api/v1/chat/completions'
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openRouterKey}`,
+        'HTTP-Referer': 'https://github.com/sakethram5261/Bahrain-Passage-Tour-Guide',
+        'X-Title': 'Bahrain Passage'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: messagesPayload,
+        response_format: {
+          type: 'json_object'
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const errText = await response.text()
+      throw new Error(`OpenRouter API_ERROR: ${response.status} - ${errText}`)
+    }
+
+    const data = await response.json()
+    const textResult = data.choices?.[0]?.message?.content
+    if (!textResult) {
+      throw new Error("EMPTY_RESPONSE_FROM_OPENROUTER")
+    }
+
+    try {
+      const parsed = JSON.parse(textResult.trim())
+      return {
+        text: parsed.text || "Processed request.",
+        actions: parsed.actions || []
+      }
+    } catch (e) {
+      const jsonMatch = textResult.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0].trim())
+          return {
+            text: parsed.text || "Processed request.",
+            actions: parsed.actions || []
+          }
+        } catch (inner) {
+          // ignore
+        }
+      }
+      return {
+        text: textResult,
+        actions: []
+      }
+    }
+  }
+
+  // Generative API fetch logic
+  const callGeminiAPI = async (userText, chatHistory) => {
+    const contents = chatHistory.map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.text }]
+    }))
+    
+    contents.push({
+      role: 'user',
+      parts: [{ text: userText }]
+    })
+
+    const systemInstructionText = `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
+You are embedded in a premium interactive travel journal app.
+The user can talk to you to get recommendations, ask about landmarks, or instruct you to update their trip parameters directly.
+
+Here is the current state of the user's trip:
+- Step in App: ${step} (1=Mood Selection, 4=Itinerary Generation/Sensory Hero, 5=Journal Left Page/Seal Day, 6=Full Journal)
+- Selected Vibes: ${JSON.stringify(selectedMoods)} (Possible: empires, sea, spice, lights)
+- Stay Duration: ${duration} days (Max 10)
+- Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
+- Current Day Viewed: ${currentDayTab}
+- Coins (Gold Fils): ${goldFils}
+- XP (Experience Points): ${xp}
+- Active Spot: ${activeSpotName || 'None'}
+- Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
+
+LANDMARK KNOWLEDGE BASE:
+${JSON.stringify(DESTINATIONS, null, 2)}
+
+DIRECTIONS:
+1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
+2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 gold fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
+3. You MUST respond with a valid JSON object matching the following structure:
+{
+  "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
+  "actions": [
+    { "type": "SET_TIER", "value": "Luxury" },
+    { "type": "SET_DURATION", "value": 5 },
+    { "type": "SET_STEP", "value": 5 },
+    { "type": "SET_DAY", "value": 2 },
+    { "type": "SET_MOODS", "value": ["empires", "sea"] },
+    { "type": "ADD_FILS", "value": 500 },
+    { "type": "ADD_XP", "value": 100 },
+    { "type": "RESET" }
+  ]
+}
+
+ACTIONS SPECIFICATION:
+- SET_TIER: value must be one of: "Wandering", "Curated", "Luxury".
+- SET_DURATION: value must be an integer between 1 and 10.
+- SET_STEP: value must be an integer between 1 and 6.
+- SET_DAY: value must be an integer between 1 and duration.
+- SET_MOODS: value must be an array containing subset of: "empires", "sea", "spice", "lights".
+- ADD_FILS: value must be an integer (positive or negative) to add to user's coins.
+- ADD_XP: value must be an integer to add to user's XP.
+- RESET: no value, resets progress.
+
+If no actions are requested, return an empty actions array: "actions": [].
+Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: contents,
+        systemInstruction: {
+          parts: [{ text: systemInstructionText }]
+        },
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const errText = await response.text()
+      throw new Error(`API_ERROR: ${response.status} - ${errText}`)
+    }
+
+    const data = await response.json()
+    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!textResult) {
+      throw new Error("EMPTY_RESPONSE")
+    }
+
+    try {
+      const parsed = JSON.parse(textResult.trim())
+      return {
+        text: parsed.text || "Processed request.",
+        actions: parsed.actions || []
+      }
+    } catch (e) {
+      // JSON block fallback search
+      const jsonMatch = textResult.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0].trim())
+          return {
+            text: parsed.text || "Processed request.",
+            actions: parsed.actions || []
+          }
+        } catch (inner) {
+          // ignore
+        }
+      }
+      return {
+        text: textResult,
+        actions: []
+      }
+    }
+  }
+
+  const sendMessage = async (text) => {
     if (!text.trim()) return
     const userMsg = { role: 'user', text }
+    
+    // Add user message to state
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setTyping(true)
 
-    setTimeout(() => {
-      const response = getResponse(text, activeSpotName)
-      setMessages(prev => [...prev, { role: 'bot', text: response.text }])
+    try {
+      if (deepSeekKey) {
+        // Send via DeepSeek API
+        const apiResponse = await callDeepSeekAPI(text, messages)
+        const appliedLabels = executeActions(apiResponse.actions)
+        setMessages(prev => [...prev, {
+          role: 'bot',
+          text: apiResponse.text,
+          actionsApplied: appliedLabels
+        }])
+      } else if (openRouterKey) {
+        // Send via OpenRouter API
+        const apiResponse = await callOpenRouterAPI(text, messages)
+        const appliedLabels = executeActions(apiResponse.actions)
+        setMessages(prev => [...prev, {
+          role: 'bot',
+          text: apiResponse.text,
+          actionsApplied: appliedLabels
+        }])
+      } else if (apiKey) {
+        // Send via Gemini API
+        const apiResponse = await callGeminiAPI(text, messages)
+        const appliedLabels = executeActions(apiResponse.actions)
+        setMessages(prev => [...prev, {
+          role: 'bot',
+          text: apiResponse.text,
+          actionsApplied: appliedLabels
+        }])
+      } else {
+        // Fallback to local rule parsing
+        const local = getLocalResponseAndActions(text, activeSpotName, selectedMoods)
+        const appliedLabels = executeActions(local.actions)
+        setMessages(prev => [...prev, {
+          role: 'bot',
+          text: local.text,
+          actionsApplied: appliedLabels.length > 0 ? appliedLabels : local.actionsApplied
+        }])
+      }
+    } catch (err) {
+      console.error("Chatbot processing error", err)
+      // Fallback on error
+      const local = getLocalResponseAndActions(text, activeSpotName, selectedMoods)
+      const appliedLabels = executeActions(local.actions)
+      
+      const errorNote = hasApiKey 
+        ? `\n\n*(Error communicating with ${apiProviderName}. Falling back to local offline rules.)*`
+        : ""
+
+      setMessages(prev => [...prev, {
+        role: 'bot',
+        text: local.text + errorNote,
+        actionsApplied: appliedLabels.length > 0 ? appliedLabels : local.actionsApplied
+      }])
+    } finally {
       setTyping(false)
-    }, 600 + Math.random() * 400)
+    }
   }
 
   const handleKey = (e) => {
@@ -311,6 +945,7 @@ export default function TourChatbot({ activeSpotName }) {
           justifyContent: 'center',
           cursor: 'pointer',
           fontSize: 20,
+          color: '#fff',
           transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
           transform: open ? 'scale(0.92)' : 'scale(1)',
         }}
@@ -328,9 +963,9 @@ export default function TourChatbot({ activeSpotName }) {
             bottom: '88px',
             right: '24px',
             zIndex: 499,
-            width: 'min(360px, calc(100vw - 48px))',
-            height: 'min(520px, calc(100vh - 120px))',
-            borderRadius: '20px',
+            width: 'min(370px, calc(100vw - 48px))',
+            height: 'min(540px, calc(100vh - 120px))',
+            borderRadius: '24px',
             background: '#FAF9F6',
             border: '1.5px solid rgba(209,26,56,0.18)',
             boxShadow: '0 20px 60px rgba(42,35,33,0.2), 0 4px 16px rgba(209,26,56,0.08)',
@@ -350,17 +985,29 @@ export default function TourChatbot({ activeSpotName }) {
             flexShrink: 0,
           }}>
             <div style={{
-              width: 34, height: 34, borderRadius: '50%',
+              width: 36, height: 36, borderRadius: '50%',
               background: 'rgba(255,255,255,0.18)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 17, border: '1.5px solid rgba(255,255,255,0.3)',
+              fontSize: 18, border: '1.5px solid rgba(255,255,255,0.3)',
             }}>🏛️</div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <div style={{ color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: '"Outfit", sans-serif', letterSpacing: 0.2 }}>
                 Bahrain Passage Guide
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 9.5, fontFamily: '"Outfit", sans-serif', letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 1 }}>
-                مرحباً · Your local companion
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 9,
+                padding: '2px 6px',
+                borderRadius: 4,
+                background: hasApiKey ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.15)',
+                color: hasApiKey ? '#86efac' : '#fca5a5',
+                fontWeight: 600,
+                marginTop: 2,
+                width: 'fit-content',
+              }}>
+                {hasApiKey ? `✨ ${apiProviderName} Online` : '🔌 Local Mode'}
               </div>
             </div>
             <div style={{
@@ -468,7 +1115,7 @@ export default function TourChatbot({ activeSpotName }) {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKey}
-              placeholder="Ask about any destination or feature..."
+              placeholder="Ask me to set budget, change duration, etc..."
               style={{
                 flex: 1,
                 background: '#FAF9F6',

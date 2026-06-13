@@ -240,7 +240,7 @@ export default function MoodSelector({ onConfirm }) {
             ⏳ How long is your Bahrain stay?
           </label>
           <div className="grid grid-cols-5 gap-2 mt-2">
-            {[1, 2, 3, 4, 5].map((d) => {
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((d) => {
               const active = duration === d
               return (
                 <button

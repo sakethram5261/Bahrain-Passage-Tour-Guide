@@ -36,6 +36,7 @@ const TABS = [
   { id: 'info',       label: 'Info'       },
   { id: 'itinerary',  label: 'Itinerary'  },
   { id: 'map',        label: 'Map'        },
+  { id: 'hotels',     label: 'Hotels'     },
   { id: 'souvenirs',  label: 'Souvenirs'  },
   { id: 'phrasebook', label: 'Phrases'    },
 ]
@@ -476,78 +477,18 @@ export default function JournalNotebook({ onBack }) {
           )}
         </div>
 
-        {/* Guide comments with collapsible tabs */}
-        <div className="jn-insider-box" style={{ background: '#fffdf9', border: '1px solid var(--jn-gold-muted)', padding: '15px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(193, 18, 47, 0.08)', paddingBottom: '6px' }}>
-              <span className="jn-tag jn-tag--red">🎙️ Narrator Guide</span>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--jn-font-sans)', color: 'var(--jn-ink-faint)', fontStyle: 'italic' }}>Tap to switch guide</span>
-            </div>
-            
-            {/* Swipeable track for guides selector */}
-            <div 
-              className="jn-guides-track"
-              style={{
-                display: 'flex',
-                gap: '8px',
-                overflowX: 'auto',
-                flexWrap: 'nowrap',
-                WebkitOverflowScrolling: 'touch',
-                paddingBottom: '6px',
-                scrollbarWidth: 'none',
-              }}
-            >
-              {guides.map(g => {
-                const isActive = activeGuide === g.id
-                return (
-                  <button
-                    key={g.id}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      e.preventDefault()
-                      setActiveGuide(g.id)
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      flex: '0 0 auto',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '8px 12px',
-                      minWidth: '95px',
-                      borderRadius: '10px',
-                      border: isActive ? '1.5px solid var(--jn-crimson)' : '1.5px solid rgba(193, 18, 47, 0.08)',
-                      background: isActive ? 'var(--jn-crimson-light)' : '#ffffff',
-                      color: isActive ? 'var(--jn-crimson)' : 'var(--jn-ink-muted)',
-                      boxShadow: isActive ? '0 4px 10px rgba(193, 18, 47, 0.12)' : 'none',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <span style={{ fontSize: '20px', marginBottom: '2px' }}>{g.emoji}</span>
-                    <span style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                      {g.name.split(' ')[0]}
-                    </span>
-                    <span style={{ fontSize: '9px', opacity: 0.7, marginTop: '2px' }}>
-                      {g.role || 'Guide'}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-          
-          <div style={{ marginTop: '10px', borderTop: '1px dashed rgba(193, 18, 47, 0.08)', paddingTop: '10px' }}>
-            <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--jn-ink-muted)' }}>
-              "{getGuideThoughts(activeSpot, activeGuide)}"
-            </p>
-          </div>
+        {/* What You Can Find Here */}
+        <div className="jn-insider-box" role="complementary" aria-label="What you can find here">
+          <span className="jn-tag jn-tag--red">🔍 What You Can Find Here</span>
+          <p className="jn-insider-text">{activeSpot.simpleTerms}</p>
         </div>
 
-        {/* Insider tip */}
-        <div className="jn-insider-box" role="complementary" aria-label="Local insider tip">
-          <span className="jn-tag jn-tag--red">✨ Local Insider Tip</span>
-          <p className="jn-insider-text">{activeSpot.insider}</p>
+        {/* Estimated Cost / Budget */}
+        <div className="jn-insider-box" style={{ background: '#fffdf9', border: '1px solid var(--jn-gold-muted)', padding: '15px' }} role="complementary" aria-label="Estimated Cost / Budget">
+          <span className="jn-tag jn-tag--green">💰 Estimated Cost / Budget</span>
+          <p className="jn-insider-text" style={{ fontWeight: 'bold', marginTop: '5px' }}>
+            {activeSpot.pathCost || activeSpot.budgetCost || 'Free Entry'}
+          </p>
         </div>
 
         {/* Journal reflections textarea */}
@@ -784,7 +725,7 @@ export default function JournalNotebook({ onBack }) {
             <div key={tabKey} className="jn-page-anim-wrap">
               {loading ? (
                 <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-                  <span className="jn-tag jn-tag--amber animate-pulse">⏳ Opening Ledger...</span>
+                  <span className="jn-tag jn-tag--amber animate-pulse">⏳ Loading...</span>
                 </div>
               ) : !hasSpots ? (
                 <div style={{ padding: '40px 20px', textAlign: 'center' }} className="space-y-4">
@@ -939,7 +880,7 @@ export default function JournalNotebook({ onBack }) {
                   {activeSpot && (
                     <div className="space-y-4">
                       <div className="jn-section-heading">
-                        <h2 className="jn-section-title">Journal Ledger</h2>
+                        <h2 className="jn-section-title">Proceed</h2>
                         <span className="jn-section-subtitle">Chronicle details & Riddle Quest</span>
                       </div>
                       <hr className="jn-divider" aria-hidden="true" />
@@ -1217,24 +1158,50 @@ export default function JournalNotebook({ onBack }) {
                     )}
                   </div>
 
-                  {/* Resident reputation */}
-                  <div className="jn-rep-panel">
-                    <span className="jn-subsection-title">Guild Reputation</span>
-                    <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', color: 'var(--jn-ink-faint)', margin: '4px 0 12px 0', fontStyle: 'italic' }}>
-                      Increases by buying souvenirs, solving riddles, and capturing spots.
-                    </p>
+                </div>
+              )}
+
+              {/* ─── SUB-TAB: HOTELS ─── */}
+              {activeTab === 'hotels' && (
+                <div className="space-y-4">
+                  <div className="jn-section-heading">
+                    <h2 className="jn-section-title">Authentic Hotel Stays</h2>
+                    <span className="jn-section-subtitle">Curated accommodations in Bahrain</span>
+                  </div>
+
+                  <hr className="jn-divider" aria-hidden="true" />
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {[
-                      { name: 'Jafar (Spice Merchant)', rep: (characterRep || {}).jafar  || 10, color: '#C1122F' },
-                      { name: 'Seyadi (Pearl Diver)',   rep: (characterRep || {}).seyadi || 10, color: '#d97706' },
-                      { name: 'Faisal (Falconer)',      rep: (characterRep || {}).faisal || 10, color: '#059669' },
-                    ].map(r => (
-                      <div key={r.name} className="jn-rep-row">
-                        <div className="jn-rep-meta">
-                          <span className="jn-rep-name">{r.name}</span>
-                          <span className="jn-rep-pct">{r.rep}%</span>
-                        </div>
-                        <div className="jn-rep-bar-track">
-                          <div className="jn-rep-bar-fill" style={{ width: `${r.rep}%`, background: r.color }} />
+                      { name: "The Merchant House", tier: "Heritage Boutique", cost: "From 80 BHD/night", desc: "Art-filled suite hotel nestled near Bab Al Bahrain and Manama Souq.", emoji: "🏨" },
+                      { name: "Four Seasons Bahrain Bay", tier: "Ultra Luxury", cost: "From 140 BHD/night", desc: "Private island resort featuring spectacular skyline views and warm sandy beaches.", emoji: "🏝️" },
+                      { name: "Al Areen Palace & Spa", tier: "Desert Sanctuary", cost: "From 110 BHD/night", desc: "Private pool villas in the Sakhir dunes, ideal for a quiet starlit getaway.", emoji: "🕌" },
+                      { name: "Muharraq Heritage Houses", tier: "Authentic / Budget", cost: "From 25 BHD/night", desc: "Traditional guest rooms inside restored pearling houses of historic Muharraq.", emoji: "⛵" },
+                      { name: "The K Hotel Juffair", tier: "Modern / Budget", cost: "From 35 BHD/night", desc: "Comfortable high-rise lodging close to Adliya Block 338 food and art hubs.", emoji: "🏢" }
+                    ].map((hotel, idx) => (
+                      <div
+                        key={idx}
+                        className="jn-phrase-card"
+                        style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px', cursor: 'default' }}
+                      >
+                        <span style={{ fontSize: '24px', padding: '6px', background: 'rgba(212,175,55,0.08)', borderRadius: '8px' }}>
+                          {hotel.emoji}
+                        </span>
+                        <div style={{ flex: 1 }}>
+                          <h4 className="jn-phrase-label" style={{ margin: 0, fontSize: '13px', fontWeight: 'bold' }}>
+                            {hotel.name}
+                          </h4>
+                          <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '8px', padding: '2px 6px', background: 'rgba(193, 18, 47, 0.08)', color: 'var(--jn-crimson)', borderRadius: '4px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                              {hotel.tier}
+                            </span>
+                            <span style={{ fontSize: '8px', padding: '2px 6px', background: 'rgba(46, 125, 50, 0.08)', color: '#2e7d32', borderRadius: '4px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                              💰 {hotel.cost}
+                            </span>
+                          </div>
+                          <p style={{ margin: '6px 0 0 0', fontSize: '10.5px', color: 'var(--jn-ink-muted)', lineHeight: 1.4 }}>
+                            {hotel.desc}
+                          </p>
                         </div>
                       </div>
                     ))}
