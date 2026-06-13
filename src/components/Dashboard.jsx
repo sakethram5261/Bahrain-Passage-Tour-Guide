@@ -8,6 +8,10 @@ import TourChatbot from './TourChatbot'
 import VirtualTour, { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
 import { Carousel_002 } from './v1/skiper48'
 import { RANKS, getRank, getNextRank, RIDDLES, getGuideThoughts, shopItems, getAlmanac, guides } from './DashboardData'
+import AIHotelPanel from './AIHotelPanel'
+import AIBudgetAdvisor from './AIBudgetAdvisor'
+import AISpotSuggestion from './AISpotSuggestion'
+import { callLocalAI, buildRiddleHintPrompt } from '../services/aiService'
 
 export default function Dashboard() {
   const { 
@@ -93,6 +97,10 @@ export default function Dashboard() {
   const [shopAlert, setShopAlert] = useState(null)
   const [isMapOpen, setIsMapOpen] = useState(false)
   const [riddleError, setRiddleError] = useState(null)
+
+  // AI Riddle Hint States
+  const [aiRiddleHint, setAiRiddleHint] = useState({})
+  const [aiHintLoading, setAiHintLoading] = useState(false)
 
   // Virtual Tour State
   const [showVirtualTour, setShowVirtualTour] = useState(false)
@@ -796,8 +804,43 @@ export default function Dashboard() {
                                 </button>
                               ))}
                               {riddleError && (
-                                <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-sans text-[9px] font-bold animate-scaleIn select-none">
-                                  ❌ {riddleError}
+                                <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-sans text-[9px] font-bold animate-scaleIn select-none space-y-2">
+                                  <p>❌ {riddleError}</p>
+                                  {!aiRiddleHint[activeSpot.id] && (
+                                    <button
+                                      disabled={aiHintLoading}
+                                      onClick={async () => {
+                                        if (goldFils < 50) {
+                                          setRiddleError('Not enough Fils for a hint! (Need 50 Fils)')
+                                          return
+                                        }
+                                        setAiHintLoading(true)
+                                        const { system, user } = buildRiddleHintPrompt(
+                                          RIDDLES[activeSpot.id].question,
+                                          RIDDLES[activeSpot.id].options
+                                        )
+                                        const hint = await callLocalAI(system, user,
+                                          'Look closely at the most ancient aspect of this location — the answer relates to what this place is most historically known for.',
+                                          { cacheKey: `hint:${activeSpot.id}`, maxTokens: 80 }
+                                        )
+                                        setGoldFils(prev => prev - 50)
+                                        setAiRiddleHint(prev => ({ ...prev, [activeSpot.id]: hint }))
+                                        setAiHintLoading(false)
+                                        setRiddleError(null)
+                                      }}
+                                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[8px] font-extrabold uppercase tracking-wide cursor-pointer transition-all disabled:opacity-50"
+                                    >
+                                      {aiHintLoading ? '...' : '🤖 Get AI Hint (50 Fils)'}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                              {aiRiddleHint[activeSpot.id] && (
+                                <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-300/40">
+                                  <p className="font-sans text-[7.5px] uppercase tracking-wider text-amber-700 font-extrabold mb-1">🤖 AI Hint</p>
+                                  <p className="font-serif text-[9.5px] italic text-bronze-charcoal leading-relaxed">
+                                    {aiRiddleHint[activeSpot.id]}
+                                  </p>
                                 </div>
                               )}
                             </div>
@@ -976,50 +1019,8 @@ export default function Dashboard() {
               )}
 
               {activeLeaf === 'hotels' && (
-                <div className="space-y-4">
-                  <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
-                    Curated Accommodations
-                  </span>
-                  <h3 className="font-serif text-2xl text-bronze-charcoal font-semibold mt-1">
-                    Authentic Hotel Stays
-                  </h3>
-                  <p className="font-sans text-xs text-bronze-muted leading-relaxed font-semibold">
-                    Hand-picked stays in the Kingdom. Choose between grand modern resorts, artistic city retreats, or heritage wind-tower houses.
-                  </p>
-                  <div className="grid grid-cols-1 gap-3 mt-4 max-h-[380px] overflow-y-auto antique-scrollbar pr-1">
-                    {[
-                      { name: "The Merchant House", tier: "Heritage Boutique", cost: "From 80 BHD/night", desc: "Art-filled suite hotel nestled near Bab Al Bahrain and Manama Souq.", emoji: "🏨" },
-                      { name: "Four Seasons Bahrain Bay", tier: "Ultra Luxury", cost: "From 140 BHD/night", desc: "Private island resort featuring spectacular skyline views and warm sandy beaches.", emoji: "🏝️" },
-                      { name: "Al Areen Palace & Spa", tier: "Desert Sanctuary", cost: "From 110 BHD/night", desc: "Private pool villas in the Sakhir dunes, ideal for a quiet starlit getaway.", emoji: "🕌" },
-                      { name: "Muharraq Heritage Houses", tier: "Authentic / Budget", cost: "From 25 BHD/night", desc: "Traditional guest rooms inside restored pearling houses of historic Muharraq.", emoji: "⛵" },
-                      { name: "The K Hotel Juffair", tier: "Modern / Budget", cost: "From 35 BHD/night", desc: "Comfortable high-rise lodging close to Adliya Block 338 food and art hubs.", emoji: "🏢" }
-                    ].map((hotel, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3.5 rounded-xl border border-red-500/10 bg-white shadow-sm flex items-start justify-between gap-3 stitch-border"
-                      >
-                        <span className="text-2xl p-2 bg-amber-500/5 border border-amber-500/10 rounded-xl shrink-0 select-none">
-                          {hotel.emoji}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <h5 className="font-serif text-[12px] font-bold text-bronze-charcoal leading-tight">
-                            {hotel.name}
-                          </h5>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <span className="px-1.5 py-0.5 rounded bg-amber-600/10 text-amber-700 text-[8px] font-sans font-bold uppercase tracking-wider">
-                              {hotel.tier}
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-700/10 text-emerald-800 text-[8px] font-sans font-bold uppercase tracking-wider">
-                              💰 {hotel.cost}
-                            </span>
-                          </div>
-                          <p className="font-sans text-[10px] text-bronze-muted mt-1.5 leading-relaxed font-semibold">
-                            {hotel.desc}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                <div className="max-h-[500px] overflow-y-auto antique-scrollbar pr-1">
+                  <AIHotelPanel moods={selectedMoods} tier={tier} duration={duration} />
                 </div>
               )}
 
@@ -1389,17 +1390,27 @@ export default function Dashboard() {
               )}
 
               {activeLeaf === 'hotels' && (
-                <div className="flex flex-col items-center justify-center p-6 text-center max-w-[280px] aged-paper-gradient border border-dashed border-amber-600/20 rounded-2xl shadow-sm mt-4 space-y-4">
-                  <span className="text-5xl mb-1 animate-pulse">🏨</span>
-                  <div className="space-y-1">
-                    <span className="font-sans text-[7.5px] tracking-[0.25em] text-bahrain-red uppercase font-black block">
-                      STAY IN BAHRAIN
-                    </span>
-                    <h5 className="font-serif text-xs font-bold text-bronze-charcoal">Bahrain Passage Stays</h5>
-                  </div>
+                <div className="flex flex-col items-center justify-center p-4 text-center max-w-[280px] aged-paper-gradient border border-dashed border-amber-600/20 rounded-2xl shadow-sm mt-4 space-y-3">
+                  <span className="text-4xl">🏨</span>
                   <p className="font-serif text-[10px] italic text-bronze-muted leading-relaxed">
-                    We recommend arranging bookings in advance to secure heritage stays or private villas, matching the dates of your customized {duration}-day itinerary.
+                    AI-personalized stays matched to your {duration}-day itinerary and travel style.
                   </p>
+                </div>
+              )}
+
+              {activeLeaf === 'chronicles' && hasSpots && activeSpot && (
+                <div className="w-full max-w-[320px] mt-2 space-y-3">
+                  <AIBudgetAdvisor
+                    goldFils={goldFils}
+                    currentDay={currentDayTab}
+                    totalDays={duration}
+                    tier={tier}
+                  />
+                  <AISpotSuggestion
+                    moods={selectedMoods}
+                    tier={tier}
+                    locations={locations}
+                  />
                 </div>
               )}
 

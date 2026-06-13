@@ -375,17 +375,60 @@ export default function TourChatbot({ activeSpotName }) {
   const deepSeekKey = import.meta.env.VITE_DEEPSEEK_API_KEY
   const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-  const hasApiKey = !!apiKey || !!openRouterKey || !!deepSeekKey
-  const apiProviderName = deepSeekKey ? 'DeepSeek AI' : openRouterKey ? 'OpenRouter AI' : apiKey ? 'Gemini AI' : 'Local Fallback'
+
+  const [provider, setProvider] = useState(() => {
+    if (deepSeekKey) return 'deepseek'
+    if (openRouterKey) return 'openrouter'
+    if (apiKey) return 'gemini'
+    return 'fallback'
+  })
+
+  const [ollamaAvailable, setOllamaAvailable] = useState(false)
+
+  useEffect(() => {
+    const checkOllama = async () => {
+      try {
+        const res = await fetch('http://localhost:11434/api/tags')
+        if (res.ok) {
+          setOllamaAvailable(true)
+          setProvider(prev => {
+            if (prev === 'fallback' || !deepSeekKey) {
+              return 'ollama'
+            }
+            return prev
+          })
+        }
+      } catch (err) {
+        // Not running
+      }
+    }
+    checkOllama()
+  }, [])
+
+  const hasApiKey = !!apiKey || !!openRouterKey || !!deepSeekKey || ollamaAvailable
+  const apiProviderName = provider === 'deepseek' ? 'DeepSeek AI' : provider === 'openrouter' ? 'OpenRouter AI' : provider === 'gemini' ? 'Gemini AI' : provider === 'ollama' ? 'Local Ollama' : 'Local Fallback'
 
   const [messages, setMessages] = useState([
     {
       role: 'bot',
-      text: hasApiKey 
-        ? `Marhaba! I'm your local guide — ask me about any Bahrain destination, or ask me to change budget level, stay duration, or vibes directly in chat! (Connected via ${apiProviderName}) 🇧🇭`
-        : "Marhaba! I'm your local guide. Ask me about any Bahrain destination or how the app works.\n\n*(Note: API key is missing. Add VITE_DEEPSEEK_API_KEY or VITE_OPENROUTER_API_KEY to .env.local to enable full generative AI replies. Running in local fallback mode.)*",
+      text: `Marhaba! I'm your local guide — ask me about any Bahrain destination, or ask me to change budget level, stay duration, or vibes directly in chat! 🇧🇭`
     },
   ])
+
+  useEffect(() => {
+    if (ollamaAvailable) {
+      setMessages(prev => {
+        if (prev.some(m => m.text.includes("Ollama"))) return prev
+        return [
+          ...prev,
+          {
+            role: 'bot',
+            text: `💡 **Tip:** Local Ollama was detected running on your computer! If you experience DeepSeek API errors (like Insufficient Balance), you can select **Local Ollama (qwen2.5-coder)** from the dropdown at the top of this chat box to run completely offline/free.`
+          }
+        ]
+      })
+    }
+  }, [ollamaAvailable])
   
   const [input, setInput] = useState('')
   const [typing, setTyping] = useState(false)
@@ -577,6 +620,126 @@ Always make sure the response is a valid JSON object. Do not include markdown co
     const textResult = data.choices?.[0]?.message?.content
     if (!textResult) {
       throw new Error("EMPTY_RESPONSE_FROM_DEEPSEEK")
+    }
+
+    try {
+      const parsed = JSON.parse(textResult.trim())
+      return {
+        text: parsed.text || "Processed request.",
+        actions: parsed.actions || []
+      }
+    } catch (e) {
+      const jsonMatch = textResult.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0].trim())
+          return {
+            text: parsed.text || "Processed request.",
+            actions: parsed.actions || []
+          }
+        } catch (inner) {
+          // ignore
+        }
+      }
+      return {
+        text: textResult,
+        actions: []
+      }
+    }
+  }
+
+  // Generative API fetch logic for Ollama
+  const callOllamaAPI = async (userText, chatHistory) => {
+    const messagesPayload = [
+      {
+        role: 'system',
+        content: `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
+You are embedded in a premium interactive travel journal app.
+The user can talk to you to get recommendations, ask about landmarks, or instruct you to update their trip parameters directly.
+
+Here is the current state of the user's trip:
+- Step in App: ${step} (1=Mood Selection, 4=Itinerary Generation/Sensory Hero, 5=Journal Left Page/Seal Day, 6=Full Journal)
+- Selected Vibes: ${JSON.stringify(selectedMoods)} (Possible: empires, sea, spice, lights)
+- Stay Duration: ${duration} days (Max 10)
+- Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
+- Current Day Viewed: ${currentDayTab}
+- Coins (Gold Fils): ${goldFils}
+- XP (Experience Points): ${xp}
+- Active Spot: ${activeSpotName || 'None'}
+- Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
+
+LANDMARK KNOWLEDGE BASE:
+${JSON.stringify(DESTINATIONS, null, 2)}
+
+DIRECTIONS:
+1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
+2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 gold fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
+3. You MUST respond with a valid JSON object matching the following structure:
+{
+  "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
+  "actions": [
+    { "type": "SET_TIER", "value": "Luxury" },
+    { "type": "SET_DURATION", "value": 5 },
+    { "type": "SET_STEP", "value": 5 },
+    { "type": "SET_DAY", "value": 2 },
+    { "type": "SET_MOODS", "value": ["empires", "sea"] },
+    { "type": "ADD_FILS", "value": 500 },
+    { "type": "ADD_XP", "value": 100 },
+    { "type": "RESET" }
+  ]
+}
+
+ACTIONS SPECIFICATION:
+- SET_TIER: value must be one of: "Wandering", "Curated", "Luxury".
+- SET_DURATION: value must be an integer between 1 and 10.
+- SET_STEP: value must be an integer between 1 and 6.
+- SET_DAY: value must be an integer between 1 and duration.
+- SET_MOODS: value must be an array containing subset of: "empires", "sea", "spice", "lights".
+- ADD_FILS: value must be an integer (positive or negative) to add to user's coins.
+- ADD_XP: value must be an integer to add to user's XP.
+- RESET: no value, resets progress.
+
+If no actions are requested, return an empty actions array: "actions": [].
+Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
+      }
+    ]
+
+    chatHistory.forEach(msg => {
+      messagesPayload.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.text
+      })
+    })
+
+    messagesPayload.push({
+      role: 'user',
+      content: userText
+    })
+
+    const url = 'http://localhost:11434/v1/chat/completions'
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'qwen2.5-coder:7b',
+        messages: messagesPayload,
+        response_format: {
+          type: 'json_object'
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const errText = await response.text()
+      throw new Error(`Ollama API_ERROR: ${response.status} - ${errText}`)
+    }
+
+    const data = await response.json()
+    const textResult = data.choices?.[0]?.message?.content
+    if (!textResult) {
+      throw new Error("EMPTY_RESPONSE_FROM_OLLAMA")
     }
 
     try {
@@ -855,52 +1018,41 @@ Always make sure the response is a valid JSON object. Do not include markdown co
     setTyping(true)
 
     try {
-      if (deepSeekKey) {
-        // Send via DeepSeek API
-        const apiResponse = await callDeepSeekAPI(text, messages)
-        const appliedLabels = executeActions(apiResponse.actions)
-        setMessages(prev => [...prev, {
-          role: 'bot',
-          text: apiResponse.text,
-          actionsApplied: appliedLabels
-        }])
-      } else if (openRouterKey) {
-        // Send via OpenRouter API
-        const apiResponse = await callOpenRouterAPI(text, messages)
-        const appliedLabels = executeActions(apiResponse.actions)
-        setMessages(prev => [...prev, {
-          role: 'bot',
-          text: apiResponse.text,
-          actionsApplied: appliedLabels
-        }])
-      } else if (apiKey) {
-        // Send via Gemini API
-        const apiResponse = await callGeminiAPI(text, messages)
-        const appliedLabels = executeActions(apiResponse.actions)
-        setMessages(prev => [...prev, {
-          role: 'bot',
-          text: apiResponse.text,
-          actionsApplied: appliedLabels
-        }])
+      let apiResponse
+      if (provider === 'deepseek') {
+        apiResponse = await callDeepSeekAPI(text, messages)
+      } else if (provider === 'openrouter') {
+        apiResponse = await callOpenRouterAPI(text, messages)
+      } else if (provider === 'gemini') {
+        apiResponse = await callGeminiAPI(text, messages)
+      } else if (provider === 'ollama') {
+        apiResponse = await callOllamaAPI(text, messages)
       } else {
-        // Fallback to local rule parsing
-        const local = getLocalResponseAndActions(text, activeSpotName, selectedMoods)
-        const appliedLabels = executeActions(local.actions)
-        setMessages(prev => [...prev, {
-          role: 'bot',
-          text: local.text,
-          actionsApplied: appliedLabels.length > 0 ? appliedLabels : local.actionsApplied
-        }])
+        throw new Error("LOCAL_FALLBACK_TRIGGERED")
       }
+
+      const appliedLabels = executeActions(apiResponse.actions)
+      setMessages(prev => [...prev, {
+        role: 'bot',
+        text: apiResponse.text,
+        actionsApplied: appliedLabels
+      }])
     } catch (err) {
       console.error("Chatbot processing error", err)
       // Fallback on error
       const local = getLocalResponseAndActions(text, activeSpotName, selectedMoods)
       const appliedLabels = executeActions(local.actions)
       
-      const errorNote = hasApiKey 
-        ? `\n\n*(Error communicating with ${apiProviderName}. Falling back to local offline rules.)*`
-        : ""
+      let errorNote = ""
+      if (provider === 'deepseek') {
+        errorNote = `\n\n*(Error communicating with DeepSeek AI: ${err.message || 'Insufficient Balance'}. You can change provider to Local Ollama or Offline Fallback in the dropdown above.)*`
+      } else if (provider === 'openrouter') {
+        errorNote = `\n\n*(Error communicating with OpenRouter AI: ${err.message || 'Unauthorized'}. You can change provider to Local Ollama or Offline Fallback in the dropdown above.)*`
+      } else if (provider === 'gemini') {
+        errorNote = `\n\n*(Error communicating with Gemini AI: ${err.message}.)*`
+      } else if (provider === 'ollama') {
+        errorNote = `\n\n*(Error communicating with Local Ollama: ${err.message}. Is Ollama running on http://localhost:11434?)*`
+      }
 
       setMessages(prev => [...prev, {
         role: 'bot',
@@ -994,26 +1146,41 @@ Always make sure the response is a valid JSON object. Do not include markdown co
               <div style={{ color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: '"Outfit", sans-serif', letterSpacing: 0.2 }}>
                 Bahrain Passage Guide
               </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                fontSize: 9,
-                padding: '2px 6px',
-                borderRadius: 4,
-                background: hasApiKey ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.15)',
-                color: hasApiKey ? '#86efac' : '#fca5a5',
-                fontWeight: 600,
-                marginTop: 2,
-                width: 'fit-content',
-              }}>
-                {hasApiKey ? `✨ ${apiProviderName} Online` : '🔌 Local Mode'}
-              </div>
+              <select
+                value={provider}
+                onChange={(e) => setProvider(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: 'rgba(255,255,255,0.16)',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  color: '#fff',
+                  fontSize: '9.5px',
+                  fontWeight: 600,
+                  padding: '2px 6px',
+                  borderRadius: '6px',
+                  marginTop: '4px',
+                  fontFamily: '"Outfit", sans-serif',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  width: 'fit-content',
+                  webkitAppearance: 'none',
+                  mozAppearance: 'none',
+                  appearance: 'none',
+                  textAlign: 'left',
+                }}
+              >
+                {deepSeekKey && <option value="deepseek" style={{ color: '#2A2321', background: '#fff' }}>🤖 DeepSeek AI</option>}
+                {openRouterKey && <option value="openrouter" style={{ color: '#2A2321', background: '#fff' }}>🌐 OpenRouter AI</option>}
+                {apiKey && <option value="gemini" style={{ color: '#2A2321', background: '#fff' }}>✨ Gemini AI</option>}
+                {ollamaAvailable && <option value="ollama" style={{ color: '#2A2321', background: '#fff' }}>💻 Local Ollama (qwen2.5)</option>}
+                <option value="fallback" style={{ color: '#2A2321', background: '#fff' }}>🔌 Offline Fallback</option>
+              </select>
             </div>
             <div style={{
-              width: 7, height: 7, borderRadius: '50%',
-              background: '#4ade80',
-              boxShadow: '0 0 5px rgba(74,222,128,0.7)',
+              width: 8, height: 8, borderRadius: '50%',
+              background: provider === 'fallback' ? '#fca5a5' : '#4ade80',
+              boxShadow: provider === 'fallback' ? '0 0 6px rgba(252,165,165,0.8)' : '0 0 6px rgba(74,222,128,0.8)',
+              flexShrink: 0,
             }} />
           </div>
 
