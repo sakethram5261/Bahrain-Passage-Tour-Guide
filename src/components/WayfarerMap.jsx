@@ -341,12 +341,12 @@ export default function WayfarerMap({ locations, onClose }) {
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3 bg-[#FAF9F6] border-b border-red-500/10 shrink-0">
         <div>
-          <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold block">
+          <span className="font-sans text-[11px] tracking-[0.25em] text-bahrain-red uppercase font-bold block">
             Wayfarer's Cartographic Chart
           </span>
           <h2 className="font-serif text-lg font-bold text-bronze-charcoal leading-tight">
             Day {currentDayTab} Route Map
-            <span className="ml-2 font-sans text-[9px] text-bronze-muted font-normal">
+            <span className="ml-2 font-sans text-[12.5px] text-bronze-muted font-normal">
               {activeSpots.length} stops
             </span>
           </h2>
@@ -380,10 +380,10 @@ export default function WayfarerMap({ locations, onClose }) {
                         : 'bg-red-500/5 text-bronze-charcoal hover:bg-red-500/10'
                     }`}
                   >
-                    <span className="font-sans text-[10px] font-extrabold uppercase tracking-wider">
+                    <span className="font-sans text-[13px] font-extrabold uppercase tracking-wider">
                       Day {day}
                     </span>
-                    <span className="text-[9px] opacity-70">{daySpots.length} stops {isOpen ? '▲' : '▼'}</span>
+                    <span className="text-[12px] opacity-70">{daySpots.length} stops {isOpen ? '▲' : '▼'}</span>
                   </button>
 
                   {isOpen && (
@@ -402,15 +402,15 @@ export default function WayfarerMap({ locations, onClose }) {
                                 : 'hover:bg-red-500/5 border border-transparent'
                             }`}
                           >
-                            <span className={`w-5 h-5 rounded-full text-[8px] font-extrabold flex items-center justify-center shrink-0 ${
+                            <span className={`w-5 h-5 rounded-full text-[11px] font-extrabold flex items-center justify-center shrink-0 ${
                               isSelected ? 'bg-bahrain-red text-white' : 'bg-red-500/10 text-bahrain-red'
                             }`}>
                               {idx + 1}
                             </span>
-                            <span className="font-serif text-[11px] text-bronze-charcoal font-semibold truncate flex-1 leading-tight">
+                            <span className="font-serif text-[13.5px] text-bronze-charcoal font-semibold truncate flex-1 leading-tight">
                               {spot.name.split('(')[0].trim()}
                             </span>
-                            <span className="text-[11px] shrink-0">
+                            <span className="text-[13px] shrink-0">
                               {hasPearl ? '💎' : scanned ? spot.keepsakeEmoji : ''}
                             </span>
                           </button>
@@ -428,17 +428,17 @@ export default function WayfarerMap({ locations, onClose }) {
             <div className="mt-auto p-3 border-t border-amber-600/15">
               <button
                 onClick={() => setShowClueScroll(prev => !prev)}
-                className="w-full px-3 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-sans text-[9px] uppercase tracking-widest font-black transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
+                className="w-full px-3 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-sans text-[12px] uppercase tracking-widest font-black transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
               >
                 <span className="chest-shake">📜</span>
                 {showClueScroll ? 'Close Scroll' : 'Pearl Hunt Clue'}
               </button>
               {showClueScroll && (
                 <div className="mt-2 p-3 bg-amber-50 border border-amber-400/30 rounded-xl fade-in">
-                  <p className="font-serif text-[10px] italic text-bronze-charcoal leading-relaxed">
+                  <p className="font-serif text-[13px] italic text-bronze-charcoal leading-relaxed">
                     "{currentClue}"
                   </p>
-                  <span className="font-sans text-[7px] text-amber-700/60 uppercase mt-1.5 block text-right">
+                  <span className="font-sans text-[10px] text-amber-700/60 uppercase mt-1.5 block text-right">
                     Click the correct map pin
                   </span>
                 </div>
@@ -458,13 +458,13 @@ export default function WayfarerMap({ locations, onClose }) {
                 <button
                   key={spot.id}
                   onClick={() => handleSpotClick(spot)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border shrink-0 text-[10px] font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border shrink-0 text-[13px] font-bold transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-bahrain-red text-white border-bahrain-red shadow-sm scale-105'
                       : 'bg-white text-bronze-charcoal border-red-500/10 hover:border-red-500/30'
                   }`}
                 >
-                  <span className={`w-3.5 h-3.5 rounded-full text-[7px] font-extrabold flex items-center justify-center ${
+                  <span className={`w-3.5 h-3.5 rounded-full text-[10px] font-extrabold flex items-center justify-center ${
                     isSelected ? 'bg-white text-bahrain-red' : 'bg-bahrain-red text-white'
                   }`}>{idx + 1}</span>
                   <span className="font-serif truncate max-w-[80px]">{spot.name.split('(')[0].trim()}</span>
@@ -703,9 +703,9 @@ export default function WayfarerMap({ locations, onClose }) {
                 style={{ left: Math.min(hoverPos.x + 14, (svgContainerRef.current?.clientWidth || 400) - 200), top: Math.max(hoverPos.y - 60, 4) }}
               >
                 <div className="bg-white/97 border border-bahrain-red/25 rounded-xl px-3 py-2 shadow-lg text-left min-w-[150px] max-w-[200px]">
-                  <div className="font-serif text-[11px] font-bold text-bronze-charcoal truncate">{hoveredSpot.name.split('(')[0]}</div>
-                  <div className="font-sans text-[9px] text-bahrain-red italic font-semibold mt-0.5">{hoveredSpot.arabic}</div>
-                  <div className="flex items-center gap-1 mt-1 text-[8px] text-bronze-muted font-sans uppercase">
+                  <div className="font-serif text-[13px] font-bold text-bronze-charcoal truncate">{hoveredSpot.name.split('(')[0]}</div>
+                  <div className="font-sans text-[12px] text-bahrain-red italic font-semibold mt-0.5">{hoveredSpot.arabic}</div>
+                  <div className="flex items-center gap-1 mt-1 text-[11px] text-bronze-muted font-sans uppercase">
                     <span>{CAT_ICON[hoveredSpot.category] || '📍'}</span>
                     <span>{hoveredSpot.period?.split(',')[0]}</span>
                   </div>
@@ -715,13 +715,13 @@ export default function WayfarerMap({ locations, onClose }) {
 
             {/* Pearl Alert banner */}
             {pearlAlert && (
-              <div className={`absolute bottom-24 left-3 right-3 md:bottom-4 z-40 p-3 rounded-2xl border text-[10px] font-bold shadow-lg fade-in flex justify-between items-center ${
+              <div className={`absolute bottom-24 left-3 right-3 md:bottom-4 z-40 p-3 rounded-2xl border text-[13px] font-bold shadow-lg fade-in flex justify-between items-center ${
                 pearlAlert.success
                   ? 'bg-emerald-500/95 border-emerald-400 text-white'
                   : 'bg-[#FAF9F6] border-rose-400/40 text-rose-800'
               }`}>
                 <span>{pearlAlert.text}</span>
-                <button onClick={() => setPearlAlert(null)} className="ml-2 shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-black/10 hover:bg-black/20 cursor-pointer">✕</button>
+                <button onClick={() => setPearlAlert(null)} className="ml-2 shrink-0 text-[12px] px-1.5 py-0.5 rounded bg-black/10 hover:bg-black/20 cursor-pointer">✕</button>
               </div>
             )}
 
@@ -736,7 +736,7 @@ export default function WayfarerMap({ locations, onClose }) {
             </div>
 
             {/* Map projection label */}
-            <div className="absolute bottom-1 left-2 font-mono text-[6.5px] tracking-widest text-bronze-muted/40 uppercase select-none">
+            <div className="absolute bottom-1 left-2 font-mono text-[10px] tracking-widest text-bronze-muted/40 uppercase select-none">
               Bahrain WGS84 · Mercator
             </div>
           </div>
@@ -754,7 +754,7 @@ export default function WayfarerMap({ locations, onClose }) {
                   </h4>
                   <span className="font-serif text-sm text-bahrain-red italic font-bold">{selectedSpot.arabic}</span>
                 </div>
-                <div className="flex items-center gap-2 mt-0.5 text-[8px] font-sans text-bronze-muted/70 font-bold uppercase tracking-wide flex-wrap">
+                <div className="flex items-center gap-2 mt-0.5 text-[11px] font-sans text-bronze-muted/70 font-bold uppercase tracking-wide flex-wrap">
                   <span>{selectedSpot.period}</span>
                   <span>•</span>
                   <span className="text-bahrain-red/80">{selectedSpot.coords}</span>
@@ -763,12 +763,12 @@ export default function WayfarerMap({ locations, onClose }) {
                     💰 {selectedSpot.pathCost || selectedSpot.budgetCost || 'Free'}
                   </span>
                 </div>
-                <p className="font-sans text-[11px] text-bronze-muted mt-1.5 leading-relaxed font-medium line-clamp-2">
+                <p className="font-sans text-[14px] text-bronze-muted mt-1.5 leading-relaxed font-medium line-clamp-2">
                   {selectedSpot.desc}
                 </p>
                 {/* AI Narration */}
                 {aiLoading && !aiNarration[selectedSpot.id] && (
-                  <p className="font-serif text-[10px] italic text-amber-700/60 mt-1.5 animate-pulse">
+                  <p className="font-serif text-[12px] italic text-amber-700/60 mt-1.5 animate-pulse">
                     Jafar is recalling a memory...
                   </p>
                 )}
@@ -793,13 +793,13 @@ export default function WayfarerMap({ locations, onClose }) {
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedSpot.name + ', Bahrain')}`}
                   target="_blank" rel="noopener noreferrer"
-                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[9px] uppercase tracking-wider font-extrabold rounded-xl transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-sm"
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-sm"
                 >
                   🧭 Maps
                 </a>
                 <button
                   onClick={handleClose}
-                  className="px-4 py-2 bg-bahrain-red hover:bg-red-800 text-white font-sans text-[9px] uppercase tracking-wider font-extrabold rounded-xl transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                  className="px-4 py-2 bg-bahrain-red hover:bg-red-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
                 >
                   📖 Proceed
                 </button>
@@ -818,7 +818,7 @@ export default function WayfarerMap({ locations, onClose }) {
               <div className="w-10 h-1 bg-bronze-muted/20 rounded-full mx-auto absolute left-1/2 -translate-x-1/2 top-3" />
               <button
                 onClick={() => setShowBottomSheet(false)}
-                className="ml-auto text-bronze-muted hover:text-bahrain-red text-[11px] font-bold cursor-pointer"
+                className="ml-auto text-bronze-muted hover:text-bahrain-red text-[13px] font-bold cursor-pointer"
               >
                 ✕
               </button>
@@ -830,7 +830,7 @@ export default function WayfarerMap({ locations, onClose }) {
               <div className="flex-1 min-w-0">
                 <h4 className="font-serif text-base font-bold text-bronze-charcoal">{selectedSpot.name}</h4>
                 <span className="font-serif text-sm text-bahrain-red italic font-bold">{selectedSpot.arabic}</span>
-                <div className="flex items-center gap-2 mt-1 text-[8px] text-bronze-muted font-bold uppercase tracking-wide">
+                <div className="flex items-center gap-2 mt-1 text-[11px] text-bronze-muted font-bold uppercase tracking-wide">
                   <span>{selectedSpot.period?.split(',')[0]}</span>
                   <span className="px-1.5 py-0.5 rounded bg-emerald-700/10 text-emerald-800">
                     💰 {selectedSpot.pathCost || 'Free'}
@@ -842,26 +842,26 @@ export default function WayfarerMap({ locations, onClose }) {
 
             {aiNarration[selectedSpot.id] && (
               <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-300/30">
-                <span className="font-sans text-[7.5px] uppercase tracking-wider text-amber-700 font-extrabold block mb-1">🗣️ Jafar's Recollection</span>
-                <p className="font-serif text-[11px] italic text-bronze-charcoal leading-relaxed">"{aiNarration[selectedSpot.id]}"</p>
+                <span className="font-sans text-[11px] uppercase tracking-wider text-amber-700 font-extrabold block mb-1">🗣️ Jafar's Recollection</span>
+                <p className="font-serif text-[13.5px] italic text-bronze-charcoal leading-relaxed">"{aiNarration[selectedSpot.id]}"</p>
               </div>
             )}
 
             {aiNavTip[selectedSpot.id] && (
-              <p className="font-sans text-[10px] text-blue-700/70 mt-2 font-semibold">🧭 {aiNavTip[selectedSpot.id]}</p>
+              <p className="font-sans text-[12px] text-blue-700/70 mt-2 font-semibold">🧭 {aiNavTip[selectedSpot.id]}</p>
             )}
 
             <div className="flex gap-3 mt-4">
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedSpot.name + ', Bahrain')}`}
                 target="_blank" rel="noopener noreferrer"
-                className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[10px] uppercase tracking-wider font-extrabold rounded-xl text-center transition-all shadow-sm"
+                className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl text-center transition-all shadow-sm"
               >
                 🧭 Google Maps
               </a>
               <button
                 onClick={handleClose}
-                className="flex-1 py-3 bg-bahrain-red hover:bg-red-800 text-white font-sans text-[10px] uppercase tracking-wider font-extrabold rounded-xl transition-all shadow-sm cursor-pointer"
+                className="flex-1 py-3 bg-bahrain-red hover:bg-red-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl transition-all shadow-sm cursor-pointer"
               >
                 📖 Proceed
               </button>

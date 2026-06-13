@@ -9,7 +9,7 @@ const TOURS = [
     arabic: 'قلعة البحرين',
     subtitle: 'Bahrain Fort — UNESCO World Heritage Site',
     period: '2300 BCE – Present',
-    videoId: 'KQe5Cf5-I6s',
+    videoId: 'S3GqOpeGU_c',
     description: "The ancient capital of Dilmun civilisation. Walk the 4,000-year-old archaeological strata revealing Dilmun, Assyrian, Achaemenid, Greek, Parthian, and Portuguese occupation layers.",
     highlight: "Look for the ancient freshwater spring channels along the northern wall — they're over 4,000 years old.",
     emoji: '🏯',
@@ -21,7 +21,7 @@ const TOURS = [
     arabic: 'باب البحرين',
     subtitle: 'The Gateway of Bahrain — est. 1949',
     period: '1949 – Present',
-    videoId: 'B8Mq_OXVDkU',
+    videoId: 's3w2zS7t9s0',
     description: "Pass through the iconic stone archway of Bab Al Bahrain into the labyrinthine merchant alleys of old Manama. The air is thick with cardamom, saffron, and frankincense.",
     highlight: "Turn left at the gate at 7 PM — vendors sell fresh jasmine flower strings in the spice alley.",
     emoji: '🏪',
@@ -33,7 +33,7 @@ const TOURS = [
     arabic: 'مسار اللؤلؤ',
     subtitle: 'UNESCO World Heritage — Pearl Civilisation',
     period: '19th century pearling era',
-    videoId: 'KGiVeA5Xbwg',
+    videoId: '_8g7700CAVg',
     description: "Walk the alleyways of Muharraq where generations of pearl merchants and divers shaped the global pearl trade. The route ends at Bu Maher Fort, where divers departed for the oyster beds.",
     highlight: "Look for mother-of-pearl flakes embedded in the plaster of the oldest doorposts along the path.",
     emoji: '🦪',
@@ -45,7 +45,7 @@ const TOURS = [
     arabic: 'شجرة الحياة',
     subtitle: 'The Desert Miracle — 400+ years old',
     period: '1582 – Present',
-    videoId: 'pKr6obBEsJY',
+    videoId: '2unv97IuhwI',
     description: "A solitary mesquite tree standing in the Sakhir desert with no visible water source. Its roots descend over 50 metres to reach subterranean aquifers, defying the hyper-saline desert sands.",
     highlight: "The Sakhir Bedouins say the tree's roots tap into the mythical underground rivers of Dilmun.",
     emoji: '🌳',
@@ -57,7 +57,7 @@ const TOURS = [
     arabic: 'مسجد الفاتح الكبير',
     subtitle: 'One of the world\'s largest mosques',
     period: '1988 – Present',
-    videoId: 'x8LCKhTHBn8',
+    videoId: 'sJ-F4B_V4Lk',
     description: "The Grand Mosque of Bahrain, one of the largest mosques in the world. Its white fiberglass dome (66m wide, 26,000 worshippers) is an architectural marvel visible across the capital.",
     highlight: "Non-Muslim visitors can join guided tours — the library inside holds an original handwritten Quran on deer skin.",
     emoji: '🕌',
@@ -69,7 +69,7 @@ const TOURS = [
     arabic: 'معبد بربر',
     subtitle: 'Sanctuary of Enki — 2200 BCE',
     period: 'c. 2200 – 2000 BCE',
-    videoId: 'hBKtS6XAXRI',
+    videoId: 'rQP8qpGYre0',
     description: "Three successive Bronze Age temples stacked on the same sacred site, dedicated to Enki, the Sumerian god of freshwater and wisdom. Groundwater still bubbles up through the ancient central well.",
     highlight: "Peer into the ancient central well — natural freshwater still rises from the earth, just as it did 4,200 years ago.",
     emoji: '🏺',
@@ -81,7 +81,7 @@ const TOURS = [
     arabic: 'جزيرة جرادة',
     subtitle: 'The Disappearing Island',
     period: 'Tidal phenomenon',
-    videoId: 'JQz5R56HkxQ',
+    videoId: 'raExvZPRIbg',
     description: "An ephemeral white sandbar that rises from the turquoise Gulf at low tide and completely vanishes under the sea twice daily. During the 3-hour low-tide window, the sand is pure white and utterly empty.",
     highlight: "Bring a pearl-opener and try the shallows — the sandy bottom hosts wild oysters and you might find a natural pearl.",
     emoji: '🏖️',
@@ -93,20 +93,35 @@ const TOURS = [
     arabic: 'منتزه العرين للحياة البرية',
     subtitle: 'Home of the Arabian Oryx',
     period: 'Est. 1976',
-    videoId: 'TRjdDsq-c9Q',
+    videoId: 'FqjR5T-5_iY',
     description: "A protected desert reserve that saved the Arabian Oryx from extinction in the 1970s. Herds of white Oryx with their distinctive long straight horns now roam the Sakhir landscape freely.",
     highlight: "Book the 9 AM shuttle cart — the Oryx herds feed in the morning before the desert heat sets in.",
     emoji: '🦌',
     color: '#3a5e1a',
   },
+  {
+    id: 'airport',
+    name: 'Bahrain International Airport',
+    arabic: 'مطار البحرين الدولي',
+    subtitle: 'Kingdom\'s New Terminal Gateway',
+    period: 'Opened 2021',
+    videoId: 'ZYV5roZhwSk',
+    description: "A world-class, ultra-modern gateway to the Gulf. The terminal features beautiful contemporary spaces, duty-free plazas, and state-of-the-art travel lounges.",
+    highlight: "Walk past the central art gallery inside Departures — it showcases sculptures and paintings by generations of Bahraini artists.",
+    emoji: '✈️',
+    color: '#D11A38',
+  }
 ]
 
 // ─── Spot to tour map (for triggering from Dashboard) ────────────────────────
 export const SPOT_TO_TOUR = {
+  'airport-arrival': 8,
+  'airport-departure': 8,
   'qal-at-al-bahrain': 0,
   'manama-souq': 1,
   'pearling-path': 2,
   'tree-of-life': 3,
+  'al-fateh-mosque': 4,
   'barbar-temple': 5,
   'jarada-island': 6,
   'al-areen': 7,
@@ -349,8 +364,30 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
             padding: '20px 28px 0',
             opacity: transitioning ? 0 : 1,
             transition: 'opacity 0.25s',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
           }}>
             <VideoEmbed videoId={tour.videoId} title={tour.name} />
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <a
+                href={`https://www.youtube.com/watch?v=${tour.videoId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontFamily: 'var(--jn-font-sans)',
+                  fontSize: '11px',
+                  color: 'var(--jn-crimson, #C1122F)',
+                  fontWeight: 600,
+                  textDecoration: 'underline',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                📺 Having trouble? Click here to watch directly on YouTube
+              </a>
+            </div>
           </div>
 
           {/* Description */}

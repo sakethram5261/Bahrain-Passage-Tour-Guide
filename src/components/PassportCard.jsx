@@ -101,14 +101,14 @@ export default function PassportCard({ onClose }) {
           {/* Header Title */}
           <div className="flex items-start justify-between border-b border-red-500/10 pb-2">
             <div>
-              <p className="text-[10px] tracking-[0.25em] uppercase font-bold text-bahrain-red">
+              <p className="text-[13px] tracking-[0.25em] uppercase font-bold text-bahrain-red">
                 Bahrain Passage
               </p>
-              <p className="text-bronze-muted/60 text-[9px] font-sans mt-0.5 uppercase tracking-wider font-bold">Explorer Passport</p>
+              <p className="text-bronze-muted/60 text-[12px] font-sans mt-0.5 uppercase tracking-wider font-bold">Explorer Passport</p>
             </div>
             <div className="text-right">
-              <p className="text-[8px] tracking-[0.2em] uppercase text-bronze-muted/70 font-sans font-bold">Kingdom of</p>
-              <p className="text-[8px] tracking-[0.15em] uppercase text-bahrain-red font-sans font-bold">Bahrain · مملكة البحرين</p>
+              <p className="text-[11px] tracking-[0.2em] uppercase text-bronze-muted/70 font-sans font-bold">Kingdom of</p>
+              <p className="text-[11px] tracking-[0.15em] uppercase text-bahrain-red font-sans font-bold">Bahrain · مملكة البحرين</p>
             </div>
           </div>
 
@@ -124,9 +124,9 @@ export default function PassportCard({ onClose }) {
               <div className="flex items-baseline gap-1.5 flex-wrap justify-between">
                 <div className="flex items-baseline gap-1">
                   <span className="font-serif text-base font-bold text-bronze-charcoal leading-none">{rank.label}</span>
-                  <span className="text-[9px] text-bahrain-red font-bold font-sans">({rank.arabic})</span>
+                  <span className="text-[12px] text-bahrain-red font-bold font-sans">({rank.arabic})</span>
                 </div>
-                <span className="font-sans text-[9px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded leading-none shrink-0">
+                <span className="font-sans text-[12px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded leading-none shrink-0">
                   🪙 {goldFils} fils
                 </span>
               </div>
@@ -138,7 +138,7 @@ export default function PassportCard({ onClose }) {
 
               {nextRank && (
                 <div className="mt-2 space-y-1">
-                  <div className="flex justify-between items-center text-[9px] font-bold">
+                  <div className="flex justify-between items-center text-[12px] font-bold">
                     <span className="text-bronze-muted/60 font-sans">Next: {nextRank.label}</span>
                     <span className="text-bahrain-red font-mono">{progress}%</span>
                   </div>
@@ -151,7 +151,7 @@ export default function PassportCard({ onClose }) {
                 </div>
               )}
               {!nextRank && (
-                <p className="text-[9px] font-bold mt-1.5 text-bahrain-red">✦ Absolute Legend Rank Achieved ✦</p>
+                <p className="text-[12px] font-bold mt-1.5 text-bahrain-red">✦ Absolute Legend Rank Achieved ✦</p>
               )}
             </div>
           </div>
@@ -170,14 +170,14 @@ export default function PassportCard({ onClose }) {
               <div key={stat.label} className="text-center bg-white/60 p-2 rounded-xl border border-red-500/5 shadow-xs">
                 <div className="text-base select-none">{stat.icon}</div>
                 <div className="font-mono font-bold text-[11px] text-bronze-charcoal mt-1 leading-none">{stat.value}</div>
-                <div className="text-[7.5px] text-bronze-muted/50 font-sans font-bold mt-1 uppercase tracking-wider">{stat.label}</div>
+                <div className="text-[11px] text-bronze-muted/50 font-sans font-bold mt-1 uppercase tracking-wider">{stat.label}</div>
               </div>
             ))}
           </div>
 
           {/* Authentic Ink Passport Stamps (Visual Trophies) */}
           <div className="bg-white/40 p-3 rounded-xl border border-red-500/5 space-y-1.5">
-            <p className="text-[8px] tracking-[0.2em] uppercase text-bronze-muted/50 font-sans font-extrabold">Official Visa Seals</p>
+            <p className="text-[12px] tracking-[0.2em] uppercase text-bronze-muted/50 font-sans font-extrabold">Official Visa Seals</p>
             {passportStamps && passportStamps.length > 0 ? (
               <div className="grid grid-cols-4 gap-2 max-h-[140px] overflow-y-auto pr-1">
                 {passportStamps.map(spotId => {
@@ -216,7 +216,7 @@ export default function PassportCard({ onClose }) {
                 })}
               </div>
             ) : (
-              <div className="py-3 text-center text-[9px] italic text-bronze-muted/40 font-semibold bg-white/30 rounded-lg">
+              <div className="py-3 text-center text-[12px] italic text-bronze-muted/40 font-semibold bg-white/30 rounded-lg">
                 No active visa stamps yet. Focus lens and snap polaroids to unlock!
               </div>
             )}
@@ -225,17 +225,17 @@ export default function PassportCard({ onClose }) {
           {/* Selected Vibes / Parameters */}
           {selectedMoods.length > 0 && (
             <div className="flex flex-wrap gap-1.5 items-center bg-white/40 p-2.5 rounded-xl border border-red-500/5">
-              <span className="text-[7.5px] uppercase tracking-wider font-sans font-extrabold text-bronze-muted/40">Vibes:</span>
+              <span className="text-[11px] uppercase tracking-wider font-sans font-extrabold text-bronze-muted/40">Vibes:</span>
               {selectedMoods.map(m => (
                 <span
                   key={m}
-                  className="text-[8px] px-2 py-0.5 rounded-full font-bold font-sans bg-bahrain-red/10 text-bahrain-red border border-bahrain-red/10"
+                  className="text-[11px] px-2 py-0.5 rounded-full font-bold font-sans bg-bahrain-red/10 text-bahrain-red border border-bahrain-red/10"
                 >
                   {MOOD_LABELS[m]}
                 </span>
               ))}
               <span
-                className="text-[8px] px-2 py-0.5 rounded-full font-sans bg-bronze-charcoal/10 text-bronze-charcoal font-bold"
+                className="text-[11px] px-2 py-0.5 rounded-full font-sans bg-bronze-charcoal/10 text-bronze-charcoal font-bold"
               >
                 {tier === 'Wandering' ? 'Budget' : tier === 'Curated' ? 'Curated' : 'Luxury'} · {duration}d
               </span>

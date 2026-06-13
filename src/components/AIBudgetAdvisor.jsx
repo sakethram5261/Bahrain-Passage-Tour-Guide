@@ -61,19 +61,19 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
       <div className={`px-4 py-3 bg-${budgetColor}-50 border-b border-${budgetColor}-200/30`}>
         <div className="flex items-center justify-between">
           <div>
-            <span className="font-sans text-[7.5px] tracking-widest uppercase text-bronze-muted/60 font-bold block">
+            <span className="font-sans text-[11px] tracking-widest uppercase text-bronze-muted/60 font-bold block">
               💰 Budget Pulse · Day {currentDay}
             </span>
             <div className="flex items-baseline gap-2 mt-0.5">
               <span className={`font-mono text-lg font-black text-${budgetColor}-700`}>
                 {goldFils.toLocaleString()}
               </span>
-              <span className="font-sans text-[9px] text-bronze-muted/60 font-semibold">Gold Fils remaining</span>
+              <span className="font-sans text-[13px] text-bronze-muted/60 font-semibold">Gold Fils remaining</span>
             </div>
           </div>
           <button
             onClick={() => setShowChat(prev => !prev)}
-            className="px-2.5 py-1.5 rounded-xl bg-bahrain-red/10 hover:bg-bahrain-red/20 text-bahrain-red text-[9px] font-extrabold uppercase tracking-wide cursor-pointer transition-all"
+            className="px-2.5 py-1.5 rounded-xl bg-bahrain-red/10 hover:bg-bahrain-red/20 text-bahrain-red text-[12.5px] font-extrabold uppercase tracking-wide cursor-pointer transition-all"
           >
             {showChat ? 'Close' : '🤖 Ask AI'}
           </button>
@@ -88,7 +88,7 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
                 style={{ width: `${Math.min(100, (currentDay / totalDays) * 100)}%` }}
               />
             </div>
-            <span className="font-sans text-[8px] text-bronze-muted/50 shrink-0">
+            <span className="font-sans text-[11px] text-bronze-muted/50 shrink-0">
               ~{filsPerDayLeft.toLocaleString()} Fils/day left
             </span>
           </div>
@@ -103,7 +103,7 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
             <div className="h-3 bg-bronze-muted/10 rounded flex-1" />
           </div>
         ) : (
-          <p className="font-serif text-[11px] italic text-bronze-charcoal leading-relaxed">
+          <p className="font-serif text-[13.5px] italic text-bronze-charcoal leading-relaxed">
             💡 {tip}
           </p>
         )}
@@ -114,13 +114,13 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
         <div className="border-t border-red-500/8">
           <div className="p-3 max-h-[160px] overflow-y-auto space-y-2" style={{ scrollbarWidth: 'none' }}>
             {chatMessages.length === 0 && (
-              <p className="font-serif text-[10px] italic text-bronze-muted/50 text-center py-2">
+              <p className="font-serif text-[13px] italic text-bronze-muted/50 text-center py-2">
                 Ask me anything about your budget, hotel costs, or spending tips...
               </p>
             )}
             {chatMessages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] px-3 py-2 rounded-xl text-[10.5px] leading-relaxed font-sans ${
+                <div className={`max-w-[85%] px-3 py-2 rounded-xl text-[13.5px] leading-relaxed font-sans ${
                   msg.role === 'user'
                     ? 'bg-bahrain-red text-white rounded-br-sm'
                     : 'bg-amber-50 border border-amber-200/40 text-bronze-charcoal rounded-bl-sm font-serif italic'
@@ -131,7 +131,7 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
             ))}
             {chatLoading && (
               <div className="flex justify-start">
-                <div className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200/40 text-[10px] text-bronze-muted/50 italic animate-pulse">
+                <div className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200/40 text-[12px] text-bronze-muted/50 italic animate-pulse">
                   Thinking...
                 </div>
               </div>
@@ -144,12 +144,12 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
               onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && sendChat()}
               placeholder='E.g. "Can I afford the Four Seasons?"'
-              className="flex-1 px-3 py-2 text-[10px] font-serif rounded-xl border border-red-500/10 bg-[#FAFAF7] focus:outline-none focus:border-bahrain-red/30 text-bronze-charcoal placeholder-bronze-muted/30"
+              className="flex-1 px-3 py-2 text-[15px] font-serif rounded-xl border border-red-500/10 bg-[#FAFAF7] focus:outline-none focus:border-bahrain-red/30 text-bronze-charcoal placeholder-bronze-muted/30"
             />
             <button
               onClick={sendChat}
               disabled={chatLoading || !chatInput.trim()}
-              className="px-3 py-2 rounded-xl bg-bahrain-red text-white text-[9px] font-extrabold cursor-pointer hover:bg-red-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-2 rounded-xl bg-bahrain-red text-white text-[12px] font-extrabold cursor-pointer hover:bg-red-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               →
             </button>

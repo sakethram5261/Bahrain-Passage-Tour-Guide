@@ -30,6 +30,7 @@ import {
   guides 
 } from './DashboardData'
 import { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
+import AIHotelPanel from './AIHotelPanel'
 
 /* ─── Tabs definition ──────────────────────────────────────────────────────── */
 const TABS = [
@@ -1164,48 +1165,7 @@ export default function JournalNotebook({ onBack }) {
               {/* ─── SUB-TAB: HOTELS ─── */}
               {activeTab === 'hotels' && (
                 <div className="space-y-4">
-                  <div className="jn-section-heading">
-                    <h2 className="jn-section-title">Authentic Hotel Stays</h2>
-                    <span className="jn-section-subtitle">Curated accommodations in Bahrain</span>
-                  </div>
-
-                  <hr className="jn-divider" aria-hidden="true" />
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {[
-                      { name: "The Merchant House", tier: "Heritage Boutique", cost: "From 80 BHD/night", desc: "Art-filled suite hotel nestled near Bab Al Bahrain and Manama Souq.", emoji: "🏨" },
-                      { name: "Four Seasons Bahrain Bay", tier: "Ultra Luxury", cost: "From 140 BHD/night", desc: "Private island resort featuring spectacular skyline views and warm sandy beaches.", emoji: "🏝️" },
-                      { name: "Al Areen Palace & Spa", tier: "Desert Sanctuary", cost: "From 110 BHD/night", desc: "Private pool villas in the Sakhir dunes, ideal for a quiet starlit getaway.", emoji: "🕌" },
-                      { name: "Muharraq Heritage Houses", tier: "Authentic / Budget", cost: "From 25 BHD/night", desc: "Traditional guest rooms inside restored pearling houses of historic Muharraq.", emoji: "⛵" },
-                      { name: "The K Hotel Juffair", tier: "Modern / Budget", cost: "From 35 BHD/night", desc: "Comfortable high-rise lodging close to Adliya Block 338 food and art hubs.", emoji: "🏢" }
-                    ].map((hotel, idx) => (
-                      <div
-                        key={idx}
-                        className="jn-phrase-card"
-                        style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px', cursor: 'default' }}
-                      >
-                        <span style={{ fontSize: '24px', padding: '6px', background: 'rgba(212,175,55,0.08)', borderRadius: '8px' }}>
-                          {hotel.emoji}
-                        </span>
-                        <div style={{ flex: 1 }}>
-                          <h4 className="jn-phrase-label" style={{ margin: 0, fontSize: '13px', fontWeight: 'bold' }}>
-                            {hotel.name}
-                          </h4>
-                          <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '8px', padding: '2px 6px', background: 'rgba(193, 18, 47, 0.08)', color: 'var(--jn-crimson)', borderRadius: '4px', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                              {hotel.tier}
-                            </span>
-                            <span style={{ fontSize: '8px', padding: '2px 6px', background: 'rgba(46, 125, 50, 0.08)', color: '#2e7d32', borderRadius: '4px', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                              💰 {hotel.cost}
-                            </span>
-                          </div>
-                          <p style={{ margin: '6px 0 0 0', fontSize: '10.5px', color: 'var(--jn-ink-muted)', lineHeight: 1.4 }}>
-                            {hotel.desc}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <AIHotelPanel moods={selectedMoods} tier={tier} duration={duration} />
                 </div>
               )}
 

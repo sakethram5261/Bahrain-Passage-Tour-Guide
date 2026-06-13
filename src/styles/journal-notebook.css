@@ -126,7 +126,7 @@
   padding: 3px 10px;
   border-radius: 20px;
   font-family: var(--jn-font-sans);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -182,7 +182,7 @@
 
 .jn-brand-arabic {
   font-family: var(--jn-font-sans);
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.5);
@@ -214,7 +214,7 @@
 
 .jn-nav-btn {
   font-family: var(--jn-font-sans);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -252,7 +252,7 @@
 
 .jn-xp-badge {
   font-family: var(--jn-font-mono);
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.12);
@@ -266,7 +266,7 @@
 .jn-level-badge {
   display: none;
   font-family: var(--jn-font-sans);
-  font-size: 9px;
+  font-size: 11.5px;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -677,7 +677,7 @@
 
 .jn-postmark-text {
   font-family: var(--jn-font-sans);
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -687,7 +687,7 @@
 
 .jn-postmark-sub {
   font-family: var(--jn-font-sans);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -708,7 +708,7 @@
 .jn-period-tag {
   display: block;
   font-family: var(--jn-font-sans);
-  font-size: 9px;
+  font-size: 11.5px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -728,7 +728,7 @@
 
 .jn-coords {
   font-family: var(--jn-font-mono);
-  font-size: 10px;
+  font-size: 12.5px;
   color: var(--jn-ink-faint);
   margin: 0;
   letter-spacing: 0.03em;
@@ -817,7 +817,7 @@
 
 .jn-section-subtitle {
   font-family: var(--jn-font-sans);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -908,7 +908,7 @@
 
 .jn-tl-time {
   font-family: var(--jn-font-mono);
-  font-size: 10px;
+  font-size: 12.5px;
   color: var(--jn-crimson);
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -916,7 +916,7 @@
 
 .jn-tl-stop-num {
   font-family: var(--jn-font-sans);
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -939,7 +939,7 @@
 
 .jn-tl-coords {
   font-family: var(--jn-font-mono);
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--jn-ink-faint);
   margin: 0 0 6px 0;
   letter-spacing: 0.02em;
@@ -947,7 +947,7 @@
 
 .jn-tl-note {
   font-family: var(--jn-font-sans);
-  font-size: 12px;
+  font-size: 13.5px;
   line-height: 1.6;
   color: var(--jn-ink-muted);
   margin: 0;
@@ -1151,7 +1151,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 900;
   color: var(--jn-ink-muted);
   cursor: pointer;
@@ -1243,7 +1243,7 @@
   background: var(--jn-crimson);
   color: #ffffff;
   font-family: var(--jn-font-sans);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 900;
   display: flex;
   align-items: center;
@@ -1254,7 +1254,7 @@
 
 .jn-error-hint {
   font-family: var(--jn-font-sans);
-  font-size: 11px;
+  font-size: 13px;
   color: #c62828;
   font-weight: 700;
   padding: 10px var(--jn-sp-md);
@@ -1294,7 +1294,7 @@
 
 .jn-action-btn {
   font-family: var(--jn-font-sans);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1540,7 +1540,7 @@
 
 .jn-fils-label {
   font-family: var(--jn-font-sans);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
   color: var(--jn-ink-muted);
@@ -1568,7 +1568,7 @@
 .jn-keepsake-cabinet-label {
   display: block;
   font-family: var(--jn-font-serif);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1620,7 +1620,7 @@
 
 .jn-keepsake-empty {
   font-family: var(--jn-font-serif);
-  font-size: 11px;
+  font-size: 13px;
   font-style: italic;
   color: rgba(255, 255, 255, 0.4);
   text-align: center;
@@ -1649,14 +1649,14 @@
 
 .jn-rep-name {
   font-family: var(--jn-font-sans);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--jn-ink);
 }
 
 .jn-rep-pct {
   font-family: var(--jn-font-mono);
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: bold;
   color: var(--jn-crimson);
 }
@@ -1732,7 +1732,7 @@
 
 .jn-phrase-desc {
   font-family: var(--jn-font-sans);
-  font-size: 11.5px;
+  font-size: 13.5px;
   color: var(--jn-ink-muted);
   margin: 0;
   line-height: 1.4;
@@ -1770,7 +1770,7 @@
 
 .jn-pronun-rule {
   font-family: var(--jn-font-sans);
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 800;
   color: var(--jn-ink);
   margin: 0 0 var(--jn-sp-xs) 0;
@@ -1778,7 +1778,7 @@
 
 .jn-pronun-note {
   font-family: var(--jn-font-sans);
-  font-size: 11px;
+  font-size: 13px;
   color: var(--jn-ink-muted);
   line-height: 1.5;
   margin: 0;
@@ -1836,7 +1836,7 @@
 }
 
 .jn-shop-eyebrow, .jn-ksake-from {
-  font-size: 8px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   font-weight: 800;
@@ -1856,7 +1856,7 @@
   background: transparent;
   border: 1px solid var(--jn-crimson-mid);
   color: var(--jn-crimson);
-  font-size: 8px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 800;
@@ -1873,7 +1873,7 @@
 .jn-shop-alert {
   padding: var(--jn-sp-sm);
   border-radius: var(--jn-r-sm);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   margin-bottom: var(--jn-sp-md);
   text-align: center;
@@ -1899,13 +1899,13 @@
   border: 1.5px solid var(--jn-gold-muted);
   padding: 8px 12px;
   border-radius: var(--jn-r-sm);
-  font-size: 11px;
+  font-size: 13px;
   margin-bottom: var(--jn-sp-md);
 }
 
 .jn-shop-intro, .jn-ksake-desc {
   font-family: var(--jn-font-serif);
-  font-size: 12px;
+  font-size: 13.5px;
   font-style: italic;
   line-height: 1.5;
   color: var(--jn-ink-muted);
@@ -1943,13 +1943,13 @@
 
 .jn-shop-item-name {
   font-weight: 700;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--jn-ink);
   margin: 0;
 }
 
 .jn-shop-item-desc {
-  font-size: 9px;
+  font-size: 11.5px;
   color: var(--jn-ink-faint);
   margin: 2px 0 0 0;
 }
@@ -1958,7 +1958,7 @@
   background: var(--jn-crimson);
   color: #ffffff;
   border: none;
-  font-size: 9px;
+  font-size: 11.5px;
   font-weight: 800;
   padding: 6px 10px;
   border-radius: var(--jn-r-sm);
@@ -2069,7 +2069,7 @@
 }
 
 .jn-map-preview-desc {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--jn-ink-muted);
   margin: 0 0 var(--jn-sp-sm) 0;
@@ -2092,7 +2092,7 @@
 }
 
 .jn-almanac-label {
-  font-size: 8px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--jn-ink-faint);
@@ -2108,7 +2108,7 @@
 }
 
 .jn-almanac-desc {
-  font-size: 9px;
+  font-size: 11.5px;
   color: var(--jn-ink-faint);
   line-height: 1.3;
 }

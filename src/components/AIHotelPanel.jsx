@@ -173,7 +173,7 @@ export default function AIHotelPanel({ moods, tier, duration }) {
   return (
     <div className="space-y-4">
       <div>
-        <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold block">
+        <span className="font-sans text-[11px] tracking-[0.25em] text-bahrain-red uppercase font-bold block">
           AI-Curated Accommodations
         </span>
         <h3 className="font-serif text-xl text-bronze-charcoal font-semibold mt-0.5">
@@ -192,19 +192,19 @@ export default function AIHotelPanel({ moods, tier, duration }) {
           onChange={e => setFilterQuery(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleFilter()}
           placeholder='Ask AI: "something near Muharraq..."'
-          className="flex-1 px-3 py-2 text-[10px] font-serif rounded-xl border border-red-500/15 bg-white focus:outline-none focus:border-bahrain-red/40 text-bronze-charcoal placeholder-bronze-muted/40"
+          className="flex-1 px-3 py-2 text-[15px] font-serif rounded-xl border border-red-500/15 bg-white focus:outline-none focus:border-bahrain-red/40 text-bronze-charcoal placeholder-bronze-muted/40"
         />
         <button
           onClick={handleFilter}
           disabled={filterLoading || !filterQuery.trim()}
-          className="px-3 py-2 rounded-xl bg-bahrain-red text-white text-[9px] font-extrabold uppercase tracking-wide cursor-pointer hover:bg-red-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+          className="px-3 py-2 rounded-xl bg-bahrain-red text-white text-[13px] font-extrabold uppercase tracking-wide cursor-pointer hover:bg-red-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
         >
           {filterLoading ? '...' : '🤖 Ask'}
         </button>
       </div>
 
       {filterResult && (
-        <div className="p-3 rounded-xl bg-amber-50 border border-amber-400/30 text-[10.5px] font-serif italic text-bronze-charcoal leading-relaxed">
+        <div className="p-3 rounded-xl bg-amber-50 border border-amber-400/30 text-[13.5px] font-serif italic text-bronze-charcoal leading-relaxed">
           🗣️ {filterResult}
         </div>
       )}
@@ -222,7 +222,7 @@ export default function AIHotelPanel({ moods, tier, duration }) {
               </div>
             </div>
           ))}
-          <p className="text-center text-[9px] font-serif italic text-bronze-muted/60 animate-pulse">
+          <p className="text-center text-[12px] font-serif italic text-bronze-muted/60 animate-pulse">
             AI is personalizing your stays...
           </p>
         </div>
@@ -248,30 +248,30 @@ export default function AIHotelPanel({ moods, tier, duration }) {
                     {hotel.emoji}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <h5 className="font-serif text-[12px] font-bold text-bronze-charcoal leading-tight">
+                    <h5 className="font-serif text-[14px] font-bold text-bronze-charcoal leading-tight">
                       {hotel.name}
                     </h5>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="px-1.5 py-0.5 rounded bg-amber-600/10 text-amber-700 text-[8px] font-sans font-bold uppercase tracking-wider">
+                      <span className="px-1.5 py-0.5 rounded bg-amber-600/10 text-amber-700 text-[11px] font-sans font-bold uppercase tracking-wider">
                         {hotel.tier}
                       </span>
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-700/10 text-emerald-800 text-[8px] font-sans font-bold uppercase tracking-wider">
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-700/10 text-emerald-800 text-[11px] font-sans font-bold uppercase tracking-wider">
                         💰 {hotel.cost}
                       </span>
                     </div>
                     {rec.reason && (
-                      <p className="font-serif text-[10px] italic text-bahrain-red/80 mt-1.5 leading-relaxed">
+                      <p className="font-serif text-[13px] italic text-bahrain-red/80 mt-1.5 leading-relaxed">
                         🤖 "{rec.reason}"
                       </p>
                     )}
                   </div>
-                  <span className="text-[10px] text-bronze-muted/40 shrink-0 mt-1">{isExpanded ? '▲' : '▼'}</span>
+                  <span className="text-[12px] text-bronze-muted/40 shrink-0 mt-1">{isExpanded ? '▲' : '▼'}</span>
                 </button>
 
                 {isExpanded && (
                   <div className="px-4 pb-3.5 border-t border-red-500/8 pt-3 space-y-2">
-                    <p className="font-sans text-[10.5px] text-bronze-muted leading-relaxed">{hotel.desc}</p>
-                    <div className="flex items-center gap-1.5 text-[8.5px] font-sans text-bronze-muted/70 font-semibold">
+                    <p className="font-sans text-[13.5px] text-bronze-muted leading-relaxed">{hotel.desc}</p>
+                    <div className="flex items-center gap-1.5 text-[11px] font-sans text-bronze-muted/70 font-semibold">
                       <span>📍 {hotel.neighborhood}</span>
                       <span>•</span>
                       <span>🚗 {hotel.dist}</span>
@@ -280,7 +280,7 @@ export default function AIHotelPanel({ moods, tier, duration }) {
                       href={hotel.bookingUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-extrabold uppercase tracking-wide transition-all cursor-pointer shadow-sm mt-1"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12.5px] font-extrabold uppercase tracking-wide transition-all cursor-pointer shadow-sm mt-1"
                     >
                       🔗 View on Booking.com
                     </a>

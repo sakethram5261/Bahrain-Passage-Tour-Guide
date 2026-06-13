@@ -307,7 +307,7 @@ function Bubble({ msg }) {
           ? 'linear-gradient(135deg, #D11A38, #A81028)'
           : '#fff',
         color: isUser ? '#fff' : '#2A2321',
-        fontSize: 12.5,
+        fontSize: 14,
         lineHeight: 1.55,
         fontFamily: '"Outfit", sans-serif',
         border: isUser ? 'none' : '1px solid rgba(209,26,56,0.1)',
@@ -332,7 +332,7 @@ function Bubble({ msg }) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 4,
-                fontSize: 10,
+                fontSize: 12,
                 background: isUser ? 'rgba(255,255,255,0.18)' : 'rgba(209,26,56,0.08)',
                 color: isUser ? '#fff' : '#D11A38',
                 padding: '2px 6px',
@@ -372,12 +372,20 @@ export default function TourChatbot({ activeSpotName }) {
   } = useVibe()
 
   const [open, setOpen] = useState(false)
-  const deepSeekKey = import.meta.env.VITE_DEEPSEEK_API_KEY
-  const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.VITE_DEEPSEEK_API_KEY
+  const rawDeepSeekKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
+  const rawOpenRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY || ''
+  
+  const isOpenRouter = (key) => key.startsWith('sk-or-v1-')
+  const isDeepSeek = (key) => key.startsWith('sk-') && !key.startsWith('sk-or-v1-')
+
+  const openRouterKey = isOpenRouter(rawOpenRouterKey) ? rawOpenRouterKey : ''
+  const deepSeekKey = isDeepSeek(rawDeepSeekKey) 
+    ? rawDeepSeekKey 
+    : (isDeepSeek(rawOpenRouterKey) ? rawOpenRouterKey : '')
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY
 
   const [provider, setProvider] = useState(() => {
-    // OpenRouter is the primary provider — it covers both VITE_OPENROUTER_API_KEY and VITE_DEEPSEEK_API_KEY
+    if (deepSeekKey) return 'deepseek'
     if (openRouterKey) return 'openrouter'
     if (apiKey) return 'gemini'
     return 'fallback'
@@ -594,7 +602,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         'Authorization': `Bearer ${deepSeekKey}`
       },
       body: JSON.stringify({
-        model: 'deepseek-v4-flash',
+        model: 'deepseek-chat',
         messages: messagesPayload,
         response_format: {
           type: 'json_object'
@@ -1145,7 +1153,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
                   background: 'rgba(255,255,255,0.16)',
                   border: '1px solid rgba(255,255,255,0.25)',
                   color: '#fff',
-                  fontSize: '9.5px',
+                  fontSize: '12.5px',
                   fontWeight: 600,
                   padding: '2px 6px',
                   borderRadius: '6px',
@@ -1238,7 +1246,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
                   background: 'rgba(209,26,56,0.06)',
                   border: '1px solid rgba(209,26,56,0.2)',
                   color: '#D11A38',
-                  fontSize: 10,
+                  fontSize: 12,
                   fontFamily: '"Outfit", sans-serif',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -1281,7 +1289,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
                 borderRadius: 12,
                 padding: '9px 13px',
                 color: '#2A2321',
-                fontSize: 12.5,
+                fontSize: 16,
                 fontFamily: '"Outfit", sans-serif',
                 outline: 'none',
                 transition: 'border-color 0.2s',

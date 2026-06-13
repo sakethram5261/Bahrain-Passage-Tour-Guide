@@ -114,7 +114,7 @@ export default function MoodSelector({ onConfirm }) {
         </svg>
 
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-7 pb-10">
-          <p className="font-sans text-[8.5px] tracking-[0.45em] uppercase font-bold text-white/65 mb-1.5">
+          <p className="font-sans text-[11.5px] tracking-[0.45em] uppercase font-bold text-white/65 mb-1.5">
             Kingdom of Bahrain · مملكة البحرين
           </p>
           <h1 className="font-serif text-3xl md:text-4xl font-semibold text-white leading-tight">
@@ -159,7 +159,7 @@ export default function MoodSelector({ onConfirm }) {
                   <div className="flex items-start justify-between">
                     <span className="text-2xl">{mood.icon}</span>
                     <div
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-all duration-200"
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0 transition-all duration-200"
                       style={{
                         background: active ? 'rgba(255,255,255,0.25)' : 'rgba(209,26,56,0.08)',
                         color: active ? '#fff' : 'rgba(209,26,56,0.4)',
@@ -179,14 +179,14 @@ export default function MoodSelector({ onConfirm }) {
                         {mood.label}
                       </span>
                       <span
-                        className="font-sans text-[10px]"
+                        className="font-sans text-[12px]"
                         style={{ color: active ? 'rgba(255,255,255,0.65)' : 'rgba(92,84,81,0.5)' }}
                       >
                         {mood.arabic}
                       </span>
                     </div>
                     <p
-                      className="text-[11px] mt-0.5 leading-snug font-sans"
+                      className="text-[13px] mt-0.5 leading-snug font-sans"
                       style={{ color: active ? 'rgba(255,255,255,0.8)' : '#5C5451' }}
                     >
                       {mood.tagline}
@@ -197,7 +197,7 @@ export default function MoodSelector({ onConfirm }) {
                     {mood.spots.slice(0, 2).map(s => (
                       <span
                         key={s}
-                        className="text-[9px] px-1.5 py-0.5 rounded font-sans font-semibold"
+                        className="text-[11.5px] px-1.5 py-0.5 rounded font-sans font-semibold"
                         style={{
                           background: active ? 'rgba(255,255,255,0.18)' : 'rgba(209,26,56,0.06)',
                           color: active ? 'rgba(255,255,255,0.9)' : '#D11A38',
@@ -236,7 +236,7 @@ export default function MoodSelector({ onConfirm }) {
             boxShadow: '0 2px 12px rgba(42,35,33,0.04), 0 1px 3px rgba(0,0,0,0.02)'
           }}
         >
-          <label className="font-serif text-[12.5px] font-extrabold text-[#2A2321] flex items-center justify-center md:justify-start gap-1.5">
+          <label className="font-serif text-[14.5px] font-extrabold text-[#2A2321] flex items-center justify-center md:justify-start gap-1.5">
             ⏳ How long is your Bahrain stay?
           </label>
           <div className="grid grid-cols-5 gap-2 mt-2">
@@ -265,7 +265,7 @@ export default function MoodSelector({ onConfirm }) {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setSelectedMoods(allSelected ? [] : ['empires', 'sea', 'spice', 'lights'])}
-            className="text-[10px] tracking-wider uppercase font-bold px-4 py-3 rounded-xl transition-all cursor-pointer shrink-0"
+            className="text-[12.5px] tracking-wider uppercase font-bold px-4 py-3 rounded-xl transition-all cursor-pointer shrink-0"
             style={{
               color: '#5C5451',
               border: '1.5px solid rgba(42,35,33,0.15)',
@@ -291,7 +291,7 @@ export default function MoodSelector({ onConfirm }) {
           </button>
         </div>
 
-        <p className="text-[10px] text-center font-sans" style={{ color: 'rgba(92,84,81,0.45)' }}>
+        <p className="text-[12px] text-center font-sans" style={{ color: 'rgba(92,84,81,0.45)' }}>
           Expertly curated · 18 local spots · Kingdom of Bahrain 🇧🇭
         </p>
       </div>

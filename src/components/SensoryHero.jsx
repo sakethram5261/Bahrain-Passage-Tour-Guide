@@ -162,7 +162,7 @@ export default function SensoryHero() {
     // Process directly via the localized catalog generator
     try {
       if (localCatalog && Array.isArray(localCatalog)) {
-        const filtered = localCatalog.filter(s => selectedMoods && selectedMoods.includes(s.mood))
+        const filtered = localCatalog.filter(s => selectedMoods && selectedMoods.includes(s.mood) && s.id !== 'airport-arrival' && s.id !== 'airport-departure')
         compiledSpots = filtered.map((item, idx) => {
           const targetDay = (idx % (duration || 1)) + 1
           return {
@@ -172,6 +172,27 @@ export default function SensoryHero() {
             pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
           }
         })
+
+        const arrivalSpot = localCatalog.find(s => s.id === 'airport-arrival')
+        const departureSpot = localCatalog.find(s => s.id === 'airport-departure')
+
+        if (arrivalSpot) {
+          compiledSpots.push({
+            ...arrivalSpot,
+            day: 1,
+            pathGuide: tier === 'Wandering' ? arrivalSpot.budgetGuide : arrivalSpot.premiumGuide,
+            pathCost: tier === 'Wandering' ? arrivalSpot.budgetCost : arrivalSpot.premiumCost
+          })
+        }
+
+        if (departureSpot) {
+          compiledSpots.push({
+            ...departureSpot,
+            day: duration || 1,
+            pathGuide: tier === 'Wandering' ? departureSpot.budgetGuide : departureSpot.premiumGuide,
+            pathCost: tier === 'Wandering' ? departureSpot.budgetCost : departureSpot.premiumCost
+          })
+        }
       }
     } catch (catalogErr) {
       console.error("Catalog filtering error handled safely:", catalogErr)
@@ -196,7 +217,14 @@ export default function SensoryHero() {
       }]
     }
 
-    compiledSpots.sort((a, b) => a.day - b.day)
+    compiledSpots.sort((a, b) => {
+      if (a.day !== b.day) return a.day - b.day
+      if (a.id === 'airport-arrival') return -1
+      if (b.id === 'airport-arrival') return 1
+      if (a.id === 'airport-departure') return 1
+      if (b.id === 'airport-departure') return -1
+      return 0
+    })
     setItinerarySpots(compiledSpots)
     setContentLoaded(true)
     setLoadingContent(false)

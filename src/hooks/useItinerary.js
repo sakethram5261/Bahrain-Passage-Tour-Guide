@@ -378,6 +378,46 @@ export const spotsCatalog = [
     keepsakeName: 'Carved Oryx Gazelle Ring',
     keepsakeEmoji: '💍',
     keepsakeDesc: 'A bone-carved finger ring decorated with traditional engravings, honoring the majestic Arabian Oryx of Al Areen.'
+  },
+  {
+    id: 'airport-arrival',
+    name: 'Bahrain Airport (Arrival)',
+    arabic: 'مطار البحرين الدولي - وصول',
+    mood: 'airport',
+    coords: '26.2708° N, 50.6336° E',
+    period: 'Modern Gateway',
+    desc: 'Step off your flight into the sensory warmth of Bahrain. Your journey starts at the island\'s state-of-the-art terminal.',
+    simpleTerms: 'What this offers: The starting point of your trip. Meet your local guide, clear customs, collect your local travel stipend, and catch your airport transit.',
+    insider: 'Visit the tourist information desk right outside baggage claim to pick up a free tourist SIM card.',
+    budgetGuide: 'Take the local red bus (A1 or A2) directly to Manama city center for under 300 Fils.',
+    premiumGuide: 'Your private chauffeur will meet you at arrivals with a cold towel, driving you in a premium sedan to your boutique stay.',
+    budgetCost: '300 Fils (Bus)',
+    premiumCost: '15 BHD (Chauffeur)',
+    category: 'culture',
+    keepsakeId: 'passport-seal-arrival',
+    keepsakeName: 'Arrival Passport Ink Stamp',
+    keepsakeEmoji: '✈️',
+    keepsakeDesc: 'A crisp red ink stamp in your traveler journal, sealing your official entry into the Kingdom of Bahrain.'
+  },
+  {
+    id: 'airport-departure',
+    name: 'Bahrain Airport (Departure)',
+    arabic: 'مطار البحرين الدولي - مغادرة',
+    mood: 'airport',
+    coords: '26.2708° N, 50.6336° E',
+    period: 'Modern Gateway',
+    desc: 'Prepare for your flight home and look back on your Bahrain journey as you return to the departures hall.',
+    simpleTerms: 'What this offers: The final point of your journey. Drop off souvenirs, enjoy duty-free shopping, and relax in the passenger lounge before boarding.',
+    insider: 'Be sure to complete your traveler journal reflection on the final page to claim your Dilmun Pearl digital badge.',
+    budgetGuide: 'Use the remaining Fils on your bus card or take a budget taxi back to the terminal.',
+    premiumGuide: 'Relax in the premium Dilmun Lounge with hot buffet dining, beverages, and quiet rest pods before boarding.',
+    budgetCost: '300 Fils (Bus)',
+    premiumCost: '18 BHD (Lounge Entry)',
+    category: 'culture',
+    keepsakeId: 'passport-seal-departure',
+    keepsakeName: 'Departure Passport Ink Stamp',
+    keepsakeEmoji: '🇧🇭',
+    keepsakeDesc: 'A beautiful gold-pressed departure seal signifying the completion of your Bahrain Passage journal.'
   }
 ]
 
@@ -443,16 +483,24 @@ export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durat
             })
             .filter(Boolean)
 
+          const sortedCurated = mapped.sort((a, b) => {
+            if (a.day !== b.day) return a.day - b.day
+            if (a.id === 'airport-arrival') return -1
+            if (b.id === 'airport-arrival') return 1
+            if (a.id === 'airport-departure') return 1
+            if (b.id === 'airport-departure') return -1
+            return 0
+          })
+
           if (active) {
-            setLocations(mapped.sort((a, b) => a.day - b.day))
             setError(null)
-            setLocations(mapped)
+            setLocations(sortedCurated)
             setLoading(false)
           }
           return
         }
 
-        const filtered = spotsCatalog.filter(s => selectedMoods.includes(s.mood))
+        const filtered = spotsCatalog.filter(s => selectedMoods.includes(s.mood) && s.id !== 'airport-arrival' && s.id !== 'airport-departure')
         
         const mapped = filtered.map((item, idx) => {
           const targetDay = (idx % durationFilter) + 1
@@ -465,7 +513,35 @@ export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durat
           }
         })
 
-        const sorted = mapped.sort((a, b) => a.day - b.day)
+        const arrivalSpot = spotsCatalog.find(s => s.id === 'airport-arrival')
+        const departureSpot = spotsCatalog.find(s => s.id === 'airport-departure')
+
+        if (arrivalSpot) {
+          mapped.push({
+            ...arrivalSpot,
+            day: 1,
+            pathGuide: tierFilter === 'Wandering' ? arrivalSpot.budgetGuide : arrivalSpot.premiumGuide,
+            pathCost: tierFilter === 'Wandering' ? arrivalSpot.budgetCost : arrivalSpot.premiumCost
+          })
+        }
+
+        if (departureSpot) {
+          mapped.push({
+            ...departureSpot,
+            day: durationFilter,
+            pathGuide: tierFilter === 'Wandering' ? departureSpot.budgetGuide : departureSpot.premiumGuide,
+            pathCost: tierFilter === 'Wandering' ? departureSpot.budgetCost : departureSpot.premiumCost
+          })
+        }
+
+        const sorted = mapped.sort((a, b) => {
+          if (a.day !== b.day) return a.day - b.day
+          if (a.id === 'airport-arrival') return -1
+          if (b.id === 'airport-arrival') return 1
+          if (a.id === 'airport-departure') return 1
+          if (b.id === 'airport-departure') return -1
+          return 0
+        })
 
         if (active) {
           setLocations(sorted)

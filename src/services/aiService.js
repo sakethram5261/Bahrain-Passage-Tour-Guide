@@ -46,17 +46,28 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
     return fallbackText
   }
 
+  // Auto-detect key type: OpenRouter vs direct DeepSeek
+  const isDeepSeekKey = OPENROUTER_KEY.startsWith('sk-') && !OPENROUTER_KEY.startsWith('sk-or-v1-')
+  const baseUrl = isDeepSeekKey ? 'https://api.deepseek.com/chat/completions' : OPENROUTER_BASE
+  const models = isDeepSeekKey ? ['deepseek-chat'] : [PRIMARY_MODEL, FALLBACK_MODEL]
+
   // Try primary model, then fallback model
-  for (const model of [PRIMARY_MODEL, FALLBACK_MODEL]) {
+  for (const model of models) {
     try {
-      const res = await fetch(OPENROUTER_BASE, {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENROUTER_KEY}`,
+      }
+
+      // OpenRouter specific headers
+      if (!isDeepSeekKey) {
+        headers['HTTP-Referer'] = 'https://bahrain-passage.app'
+        headers['X-Title'] = 'Bahrain Passage Tour Guide'
+      }
+
+      const res = await fetch(baseUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENROUTER_KEY}`,
-          'HTTP-Referer': 'https://bahrain-passage.app',
-          'X-Title': 'Bahrain Passage Tour Guide',
-        },
+        headers,
         body: JSON.stringify({
           model,
           messages: [
@@ -72,6 +83,15 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
       if (!res.ok) {
         const errText = await res.text().catch(() => '')
         console.warn(`[aiService] ${model} returned HTTP ${res.status}:`, errText.slice(0, 200))
+        
+        // Handle out of balance (402) or unauthorized (401)
+        if (res.status === 402) {
+          return `*(Notice: The configured DeepSeek key has run out of funds/balance. Please add credits to your DeepSeek account.)*`
+        }
+        if (res.status === 401) {
+          return `*(Notice: The configured API key is invalid or unauthorized.)*`
+        }
+
         // If 402 (payment required) or 401 (auth), no point retrying other model
         if (res.status === 401 || res.status === 402) break
         continue // try fallback model
