@@ -391,6 +391,7 @@ export default function TourChatbot({ activeSpotName }) {
     return 'fallback'
   })
 
+  const [apiError, setApiError] = useState(null)
   const [ollamaAvailable, setOllamaAvailable] = useState(false)
 
   useEffect(() => {
@@ -951,7 +952,7 @@ ACTIONS SPECIFICATION:
 If no actions are requested, return an empty actions array: "actions": [].
 Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`
     
     const response = await fetch(url, {
       method: 'POST',
@@ -1030,6 +1031,8 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         throw new Error("LOCAL_FALLBACK_TRIGGERED")
       }
 
+      setApiError(null)
+
       const appliedLabels = executeActions(apiResponse.actions)
       setMessages(prev => [...prev, {
         role: 'bot',
@@ -1042,20 +1045,26 @@ Always make sure the response is a valid JSON object. Do not include markdown co
       const local = getLocalResponseAndActions(text, activeSpotName, selectedMoods)
       const appliedLabels = executeActions(local.actions)
       
-      let errorNote = ""
-      if (provider === 'deepseek') {
-        errorNote = `\n\n*(Error communicating with DeepSeek AI: ${err.message || 'Insufficient Balance'}. You can change provider to Local Ollama or Offline Fallback in the dropdown above.)*`
-      } else if (provider === 'openrouter') {
-        errorNote = `\n\n*(Error communicating with OpenRouter AI: ${err.message || 'Unauthorized'}. You can change provider to Local Ollama or Offline Fallback in the dropdown above.)*`
-      } else if (provider === 'gemini') {
-        errorNote = `\n\n*(Error communicating with Gemini AI: ${err.message}.)*`
-      } else if (provider === 'ollama') {
-        errorNote = `\n\n*(Error communicating with Local Ollama: ${err.message}. Is Ollama running on http://localhost:11434?)*`
+      let errorFriendlyName = ""
+      if (err.message && err.message.includes("402")) {
+        errorFriendlyName = "Insufficient Balance (402)"
+      } else if (err.message && err.message.includes("401")) {
+        errorFriendlyName = "Invalid API Key / Unauthorized (401)"
+      } else {
+        errorFriendlyName = err.message || "Connection Error"
       }
+
+      setApiError({
+        provider: apiProviderName,
+        message: errorFriendlyName
+      })
+
+      // Auto-switch provider to fallback so the user is not stuck on a broken API key
+      setProvider('fallback')
 
       setMessages(prev => [...prev, {
         role: 'bot',
-        text: local.text + errorNote,
+        text: local.text,
         actionsApplied: appliedLabels.length > 0 ? appliedLabels : local.actionsApplied
       }])
     } finally {
@@ -1147,7 +1156,10 @@ Always make sure the response is a valid JSON object. Do not include markdown co
               </div>
               <select
                 value={provider}
-                onChange={(e) => setProvider(e.target.value)}
+                onChange={(e) => {
+                  setProvider(e.target.value)
+                  setApiError(null)
+                }}
                 onClick={(e) => e.stopPropagation()}
                 style={{
                   background: 'rgba(255,255,255,0.16)',
@@ -1182,6 +1194,42 @@ Always make sure the response is a valid JSON object. Do not include markdown co
               flexShrink: 0,
             }} />
           </div>
+
+          {/* API Error Banner */}
+          {apiError && (
+            <div style={{
+              background: '#FEE2E2',
+              borderBottom: '1px solid #FCA5A5',
+              padding: '8px 12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: '11.5px',
+              color: '#991B1B',
+              fontFamily: '"Outfit", sans-serif',
+              fontWeight: 500,
+              animation: 'chatMsgIn 0.2s ease-out',
+            }}>
+              <span style={{ fontSize: 13 }}>⚠️</span>
+              <div style={{ flex: 1 }}>
+                <strong>{apiError.provider} error:</strong> {apiError.message}. Auto-switched to Offline Fallback.
+              </div>
+              <button 
+                onClick={() => setApiError(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#991B1B',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: 12,
+                  padding: '2px 4px',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {/* Messages */}
           <div style={{

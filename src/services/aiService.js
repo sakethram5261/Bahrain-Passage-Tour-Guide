@@ -6,6 +6,7 @@
 
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1/chat/completions'
 const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.VITE_DEEPSEEK_API_KEY || ''
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || ''
 
 // Model to use via OpenRouter — qwen/qwen-2.5-72b-instruct is free and excellent
 // for narrative/storytelling tasks. Fallback to a smaller free model if needed.
@@ -41,75 +42,122 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
     return responseCache.get(cacheKey)
   }
 
-  if (!OPENROUTER_KEY) {
-    console.warn('[aiService] No API key found — returning static fallback')
-    return fallbackText
-  }
-
-  // Auto-detect key type: OpenRouter vs direct DeepSeek
-  const isDeepSeekKey = OPENROUTER_KEY.startsWith('sk-') && !OPENROUTER_KEY.startsWith('sk-or-v1-')
-  const baseUrl = isDeepSeekKey ? 'https://api.deepseek.com/chat/completions' : OPENROUTER_BASE
-  const models = isDeepSeekKey ? ['deepseek-chat'] : [PRIMARY_MODEL, FALLBACK_MODEL]
-
-  // Try primary model, then fallback model
-  for (const model of models) {
+  // Priority 1: Gemini Direct (if key available)
+  if (GEMINI_KEY) {
     try {
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_KEY}`,
+      const isJson = systemPrompt.toLowerCase().includes('json')
+      const bodyPayload = {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: userPrompt }]
+          }
+        ],
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        generationConfig: {
+          temperature: temperature,
+          maxOutputTokens: maxTokens
+        }
+      }
+      if (isJson) {
+        bodyPayload.generationConfig.responseMimeType = "application/json"
       }
 
-      // OpenRouter specific headers
-      if (!isDeepSeekKey) {
-        headers['HTTP-Referer'] = 'https://bahrain-passage.app'
-        headers['X-Title'] = 'Bahrain Passage Tour Guide'
-      }
-
-      const res = await fetch(baseUrl, {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`
+      const res = await fetch(url, {
         method: 'POST',
-        headers,
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature,
-          max_tokens: maxTokens,
-        }),
-        signal: AbortSignal.timeout(15000), // 15s max
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload),
+        signal: AbortSignal.timeout(15000)
       })
 
-      if (!res.ok) {
-        const errText = await res.text().catch(() => '')
-        console.warn(`[aiService] ${model} returned HTTP ${res.status}:`, errText.slice(0, 200))
-        
-        // Handle out of balance (402) or unauthorized (401)
-        if (res.status === 402) {
-          return `*(Notice: The configured DeepSeek key has run out of funds/balance. Please add credits to your DeepSeek account.)*`
+      if (res.ok) {
+        const data = await res.json()
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+        if (text) {
+          if (useCache) responseCache.set(cacheKey, text)
+          return text
         }
-        if (res.status === 401) {
-          return `*(Notice: The configured API key is invalid or unauthorized.)*`
-        }
-
-        // If 402 (payment required) or 401 (auth), no point retrying other model
-        if (res.status === 401 || res.status === 402) break
-        continue // try fallback model
-      }
-
-      const data = await res.json()
-      const text = data.choices?.[0]?.message?.content?.trim()
-      if (!text) continue
-
-      if (useCache) responseCache.set(cacheKey, text)
-      return text
-    } catch (err) {
-      if (err.name === 'TimeoutError') {
-        console.warn(`[aiService] ${model} timed out`)
       } else {
-        console.warn(`[aiService] ${model} error:`, err.message)
+        const errText = await res.text().catch(() => '')
+        console.warn(`[aiService] Gemini returned HTTP ${res.status}:`, errText.slice(0, 200))
+      }
+    } catch (err) {
+      console.warn(`[aiService] Gemini error:`, err.message)
+    }
+  }
+
+  // Priority 2: DeepSeek / OpenRouter
+  if (OPENROUTER_KEY) {
+    // Auto-detect key type: OpenRouter vs direct DeepSeek
+    const isDeepSeekKey = OPENROUTER_KEY.startsWith('sk-') && !OPENROUTER_KEY.startsWith('sk-or-v1-')
+    const baseUrl = isDeepSeekKey ? 'https://api.deepseek.com/chat/completions' : OPENROUTER_BASE
+    const models = isDeepSeekKey ? ['deepseek-chat'] : [PRIMARY_MODEL, FALLBACK_MODEL]
+
+    // Try primary model, then fallback model
+    for (const model of models) {
+      try {
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENROUTER_KEY}`,
+        }
+
+        // OpenRouter specific headers
+        if (!isDeepSeekKey) {
+          headers['HTTP-Referer'] = 'https://bahrain-passage.app'
+          headers['X-Title'] = 'Bahrain Passage Tour Guide'
+        }
+
+        const res = await fetch(baseUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+            temperature,
+            max_tokens: maxTokens,
+          }),
+          signal: AbortSignal.timeout(15000), // 15s max
+        })
+
+        if (!res.ok) {
+          const errText = await res.text().catch(() => '')
+          console.warn(`[aiService] ${model} returned HTTP ${res.status}:`, errText.slice(0, 200))
+          
+          // Handle out of balance (402) or unauthorized (401)
+          if (res.status === 402) {
+            return `*(Notice: The configured DeepSeek key has run out of funds/balance. Please add credits to your DeepSeek account.)*`
+          }
+          if (res.status === 401) {
+            return `*(Notice: The configured API key is invalid or unauthorized.)*`
+          }
+
+          // If 402 (payment required) or 401 (auth), no point retrying other model
+          if (res.status === 401 || res.status === 402) break
+          continue // try fallback model
+        }
+
+        const data = await res.json()
+        const text = data.choices?.[0]?.message?.content?.trim()
+        if (!text) continue
+
+        if (useCache) responseCache.set(cacheKey, text)
+        return text
+      } catch (err) {
+        if (err.name === 'TimeoutError') {
+          console.warn(`[aiService] ${model} timed out`)
+        } else {
+          console.warn(`[aiService] ${model} error:`, err.message)
+        }
       }
     }
+  } else {
+    console.warn('[aiService] No API key found — returning static fallback')
   }
 
   return fallbackText
