@@ -136,22 +136,32 @@ export default function MoodSelector({ onConfirm }) {
                 key={mood.id}
                 ref={el => cardsRef.current[i] = el}
                 onClick={() => toggle(mood.id)}
-                className="relative rounded-2xl p-4 text-left cursor-pointer group"
+                className="relative rounded-2xl p-4 text-left cursor-pointer group overflow-hidden"
                 style={{
-                  background: active ? '#D11A38' : '#FFFFFF',
-                  border: `2px solid ${active ? '#D11A38' : 'rgba(209,26,56,0.15)'}`,
+                  background: active 
+                    ? 'linear-gradient(135deg, #BA0C2F 0%, #8A0A22 100%)' 
+                    : 'linear-gradient(135deg, #FCFBF8 0%, #EFEBE4 100%)',
+                  border: `2px solid ${active ? '#BA0C2F' : 'rgba(139,90,75,0.15)'}`,
                   boxShadow: active
-                    ? '0 8px 32px rgba(209,26,56,0.3), 0 2px 8px rgba(0,0,0,0.1)'
-                    : '0 2px 12px rgba(42,35,33,0.06), 0 1px 3px rgba(0,0,0,0.04)',
+                    ? '0 12px 36px rgba(138,10,34,0.38), 0 2px 8px rgba(0,0,0,0.12)'
+                    : '0 4px 20px rgba(42,35,33,0.06), 0 1px 3px rgba(0,0,0,0.03)',
                   transform: active ? 'scale(1.02) translateY(-2px)' : 'scale(1)',
-                  transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
+                  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               >
+                {/* Inner stitch-border for antique travel ledger feel */}
+                <div
+                  className="absolute inset-1.5 rounded-[12px] pointer-events-none"
+                  style={{
+                    border: `1.2px dashed ${active ? 'rgba(255,255,255,0.25)' : 'rgba(193,18,47,0.15)'}`
+                  }}
+                />
+
                 {/* Hover effect for inactive */}
                 {!active && (
                   <div
                     className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
-                    style={{ background: 'rgba(209,26,56,0.03)', border: '2px solid rgba(209,26,56,0.3)' }}
+                    style={{ background: 'rgba(193,18,47,0.02)', border: '2px solid rgba(193,18,47,0.12)' }}
                   />
                 )}
 
@@ -159,11 +169,11 @@ export default function MoodSelector({ onConfirm }) {
                   <div className="flex items-start justify-between">
                     <span className="text-2xl">{mood.icon}</span>
                     <div
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0 transition-all duration-200"
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-all duration-200"
                       style={{
-                        background: active ? 'rgba(255,255,255,0.25)' : 'rgba(209,26,56,0.08)',
-                        color: active ? '#fff' : 'rgba(209,26,56,0.4)',
-                        border: active ? '1.5px solid rgba(255,255,255,0.4)' : '1.5px solid rgba(209,26,56,0.2)',
+                        background: active ? 'rgba(255,255,255,0.22)' : 'rgba(193,18,47,0.08)',
+                        color: active ? '#fff' : 'rgba(193,18,47,0.5)',
+                        border: active ? '1px solid rgba(255,255,255,0.45)' : '1px solid rgba(193,18,47,0.2)',
                       }}
                     >
                       {active ? '✓' : ''}
@@ -278,11 +288,18 @@ export default function MoodSelector({ onConfirm }) {
           <button
             onClick={handleConfirm}
             disabled={noneSelected}
-            className="flex-1 py-3 rounded-xl font-sans font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 py-3 rounded-xl font-sans font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
             style={{
-              background: noneSelected ? 'rgba(209,26,56,0.15)' : '#D11A38',
-              color: noneSelected ? '#D11A38' : '#fff',
-              boxShadow: noneSelected ? 'none' : '0 8px 24px rgba(209,26,56,0.35), inset 0 1px 0 rgba(255,255,255,0.15)',
+              background: noneSelected
+                ? 'rgba(209,26,56,0.1)'
+                : 'linear-gradient(135deg, #BA0C2F 0%, #8A0A22 100%)',
+              color: noneSelected ? 'rgba(209,26,56,0.45)' : '#fff',
+              border: noneSelected 
+                ? '1.5px dashed rgba(209,26,56,0.25)' 
+                : '2px solid #D4AF37',
+              boxShadow: noneSelected
+                ? 'none'
+                : '0 8px 24px rgba(138,10,34,0.4), 0 2px 6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
             }}
           >
             {noneSelected

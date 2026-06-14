@@ -75,20 +75,11 @@ export function VibeProvider({ children }) {
 
   // Pearl quest progress — global so it persists across tab switches
   const [pearlsCollected, setPearlsCollected] = useState(() => safeGetJSON('bp_pearlsCollected', []))
-
-  // Single shared system clock — avoids duplicate setInterval in SensoryHero + Dashboard
-  const [systemTime, setSystemTime] = useState(new Date())
-
   const aligned = step === 5
 
   useEffect(() => {
     setCurrentSpotIndex(0)
   }, [currentDayTab])
-
-  useEffect(() => {
-    const clockTimer = setInterval(() => setSystemTime(new Date()), 1000)
-    return () => clearInterval(clockTimer)
-  }, [])
 
   useEffect(() => {
     try {
@@ -311,7 +302,6 @@ export function VibeProvider({ children }) {
       awardReputation,
       pearlsCollected,
       setPearlsCollected,
-      systemTime,
     }}>
       {children}
     </VibeContext.Provider>

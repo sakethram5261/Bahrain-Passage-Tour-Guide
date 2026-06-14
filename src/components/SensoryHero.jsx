@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import gsap from 'gsap'
 import { useVibe } from '../hooks/useVibe'
+import NauticalChronometer from './NauticalChronometer'
 
 export default function SensoryHero() {
   const {
@@ -15,7 +16,6 @@ export default function SensoryHero() {
     soundVolume = 1,
     soundMuted = false,
     resetChronicle = () => {},
-    systemTime = new Date(),
   } = useVibe()
 
   const [animating, setAnimating] = useState(false)
@@ -272,12 +272,6 @@ export default function SensoryHero() {
       setShowPreviewOverview(true)
     }
   }, [logsComplete, contentLoaded])
-
-  // Calculate hands degrees for clock
-  const secondsAngle = systemTime && typeof systemTime.getSeconds === 'function' ? systemTime.getSeconds() * 6 : 0
-  const minutesAngle = systemTime && typeof systemTime.getMinutes === 'function' ? systemTime.getMinutes() * 6 + systemTime.getSeconds() * 0.1 : 0
-  const hoursAngle = systemTime && typeof systemTime.getHours === 'function' ? (systemTime.getHours() % 12) * 30 + systemTime.getMinutes() * 0.5 : 0
-
   return (
     <div 
       ref={containerRef}
@@ -339,15 +333,7 @@ export default function SensoryHero() {
               <path d="M 75,28 Q 90,32 86,48 Q 82,60 70,54" fill="none" stroke="#d4af37" strokeWidth="1" strokeLinecap="round" />
             </svg>
           </div>
-          <div className="hidden lg:block desktop-prop-watch" title="Nautical chronometer watch (synced to local time)">
-            <svg viewBox="0 0 100 100" className="w-full h-full">
-              <circle cx="50" cy="50" r="46" fill="none" stroke="#d4af37" strokeWidth="4" />
-              <circle cx="50" cy="50" r="46" fill="rgba(42,35,33,0.95)" />
-              <circle cx="50" cy="50" r="38" fill="#FAF9F6" stroke="#221c1a" strokeWidth="1.5" />
-              <line x1="50" y1="50" x2="50" y2="30" stroke="#1A1412" strokeWidth="2.8" strokeLinecap="round" transform={`rotate(${hoursAngle} 50 50)`} />
-              <line x1="50" y1="50" x2="50" y2="20" stroke="#3D3330" strokeWidth="1.8" strokeLinecap="round" transform={`rotate(${minutesAngle} 50 50)`} />
-            </svg>
-          </div>
+          <NauticalChronometer className="hidden lg:block desktop-prop-watch" showSeconds={false} />
         </>
       )}
 

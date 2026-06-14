@@ -1396,6 +1396,32 @@
     border-radius: var(--jn-r-xl);
     outline-offset: -12px;
     outline-width: 2px;
+    height: 82dvh;
+    max-height: 780px;
+  }
+
+  .jn-page {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(193, 18, 47, 0.25) transparent;
+  }
+
+  .jn-page::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .jn-page::-webkit-scrollbar-track {
+    background: rgba(139, 90, 43, 0.02);
+  }
+
+  .jn-page::-webkit-scrollbar-thumb {
+    background: rgba(193, 18, 47, 0.25);
+    border-radius: 3px;
+  }
+
+  .jn-page::-webkit-scrollbar-thumb:hover {
+    background: var(--jn-crimson);
   }
 
   /* Center spine on desktop */

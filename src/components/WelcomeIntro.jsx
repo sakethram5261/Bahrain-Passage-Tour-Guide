@@ -226,7 +226,7 @@ export default function WelcomeIntro({ onComplete }) {
 
       slotTlRef.current = gsap.to(flyObj, {
         index: SLOT_PHRASES.length,
-        duration: 2.5,
+        duration: 1.2,
         ease: 'power2.out',
         onUpdate: () => {
           if (skippedRef.current) return
@@ -266,7 +266,7 @@ export default function WelcomeIntro({ onComplete }) {
           )
         }
       })
-    }, 550)
+    }, 350)
     timersRef.current.push(startTimer)
 
     function onArabicLand() {
@@ -274,7 +274,7 @@ export default function WelcomeIntro({ onComplete }) {
 
       // Expand decorative line under Arabic
       if (arabicLineRef.current) {
-        gsap.to(arabicLineRef.current, { width: 80, duration: 0.7, ease: 'power3.out' })
+        gsap.to(arabicLineRef.current, { width: 80, duration: 0.5, ease: 'power3.out' })
       }
 
       // Hold Arabic, then morph transition
@@ -286,7 +286,7 @@ export default function WelcomeIntro({ onComplete }) {
           opacity: 0,
           filter: 'blur(10px)',
           scale: 0.96,
-          duration: 0.45,
+          duration: 0.35,
           ease: 'power2.inOut',
           onComplete: () => {
             if (skippedRef.current) return
@@ -295,7 +295,7 @@ export default function WelcomeIntro({ onComplete }) {
         })
 
         if (arabicLineRef.current) {
-          gsap.to(arabicLineRef.current, { opacity: 0, duration: 0.45, ease: 'power2.inOut' })
+          gsap.to(arabicLineRef.current, { opacity: 0, duration: 0.35, ease: 'power2.inOut' })
         }
 
         // Mount and fade in English scrambling text
@@ -303,7 +303,7 @@ export default function WelcomeIntro({ onComplete }) {
         gsap.set(morphView, { pointerEvents: 'auto' })
         gsap.to(morphView, {
           opacity: 1,
-          duration: 0.45,
+          duration: 0.35,
           delay: 0.05,
           ease: 'power2.out',
           onComplete: () => {
@@ -314,24 +314,24 @@ export default function WelcomeIntro({ onComplete }) {
               if (skippedRef.current) return
               if (taglineRef.current) {
                 gsap.to(taglineRef.current, {
-                  opacity: 0.72, y: 0, filter: 'blur(0px)',
-                  duration: 1.0, ease: 'power3.out',
+                  opacity: 0.8, y: 0, filter: 'blur(0px)',
+                  duration: 0.6, ease: 'power3.out',
                 })
               }
               if (morphLineRef.current) {
-                gsap.to(morphLineRef.current, { width: 110, duration: 0.9, delay: 0.4, ease: 'power3.out' })
+                gsap.to(morphLineRef.current, { width: 110, duration: 0.6, delay: 0.2, ease: 'power3.out' })
               }
-            }, 1750)
+            }, 800)
             timersRef.current.push(taglineTimer)
 
             // Exit intro to start app
             const exitTimer = setTimeout(() => {
               if (!skippedRef.current) exitIntro()
-            }, 1750 + 2000)
+            }, 800 + 1000)
             timersRef.current.push(exitTimer)
           }
         })
-      }, 1200)
+      }, 500)
       timersRef.current.push(holdTimer)
     }
 
@@ -354,12 +354,7 @@ export default function WelcomeIntro({ onComplete }) {
       ref={wrapRef}
       style={{
         position: 'fixed', inset: 0, zIndex: 9999,
-        background: '#FAF9F6',
-        backgroundImage: [
-          'radial-gradient(ellipse 80% 55% at 50% 42%, rgba(186,12,47,0.042) 0%, transparent 72%)',
-          'repeating-linear-gradient(90deg, rgba(186,12,47,0.010) 0px, rgba(186,12,47,0.010) 1px, transparent 1px, transparent 24px)',
-          'repeating-linear-gradient(0deg,  rgba(186,12,47,0.010) 0px, rgba(186,12,47,0.010) 1px, transparent 1px, transparent 24px)',
-        ].join(','),
+        background: '#0F0C0B',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
@@ -367,16 +362,41 @@ export default function WelcomeIntro({ onComplete }) {
         willChange: 'opacity, transform',
       }}
     >
-      {/* ── Ambient glow (mouse-reactive) ──────────────────────────────────── */}
+      {/* ── Image Background with Ken Burns effect ──────────────────────────── */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'url(/assets/images/bahrain_skyline.png)',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover',
+          zIndex: 0,
+          animation: 'kenBurnsIntro 16s ease-in-out infinite',
+        }}
+      />
+
+      {/* ── Cinematic Dark Overlay ─────────────────────────────────────────── */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(to bottom, rgba(15, 12, 11, 0.72), rgba(15, 12, 11, 0.85))',
+          zIndex: 1,
+        }}
+      />
+
+      {/* ── Ambient glow (mouse-reactive, gold) ────────────────────────────── */}
       <div
         ref={glowRef}
         style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 85% 65% at 50% 42%, rgba(186,12,47,0.06) 0%, transparent 72%)',
+          background: 'radial-gradient(ellipse 85% 65% at 50% 42%, rgba(212,175,55,0.06) 0%, transparent 72%)',
+          zIndex: 2,
         }}
       />
 
-      {/* ── Centered Vintage Compass Rose Watermark ───────────────────────── */}
+      {/* ── Centered Vintage Compass Rose Watermark (Subtle Gold/White) ─────── */}
       <svg
         ref={compassRef}
         viewBox="0 0 100 100"
@@ -387,10 +407,10 @@ export default function WelcomeIntro({ onComplete }) {
           transform: 'translate(-50%, -50%)',
           width: 'clamp(280px, 55vw, 400px)',
           height: 'clamp(280px, 55vw, 400px)',
-          opacity: 0.042,
+          opacity: 0.06,
           pointerEvents: 'none',
-          color: '#BA0C2F',
-          zIndex: 1,
+          color: '#D4AF37',
+          zIndex: 2,
           willChange: 'transform',
         }}
         fill="none"
@@ -403,14 +423,14 @@ export default function WelcomeIntro({ onComplete }) {
         <circle cx="50" cy="50" r="4" />
         <path d="M 50,5 L 50,95 M 5,50 L 95,50" strokeWidth="0.8" />
         <path d="M 18.2,18.2 L 81.8,81.8 M 18.2,81.8 L 81.8,18.2" strokeWidth="0.4" />
-        <path d="M 50,50 L 47,15 L 50,5 L 53,15 Z" fill="rgba(186,12,47,0.2)" />
-        <path d="M 50,50 L 85,47 L 95,50 L 85,53 Z" fill="rgba(186,12,47,0.2)" />
-        <path d="M 50,50 L 47,85 L 50,95 L 53,85 Z" fill="rgba(186,12,47,0.2)" />
-        <path d="M 50,50 L 15,47 L 5,50 L 15,53 Z" fill="rgba(186,12,47,0.2)" />
-        <path d="M 50,50 L 58,28 L 75,25 L 72,32 Z" fill="rgba(186,12,47,0.1)" strokeWidth="0.3" />
-        <path d="M 50,50 L 72,68 L 75,75 L 58,72 Z" fill="rgba(186,12,47,0.1)" strokeWidth="0.3" />
-        <path d="M 50,50 L 42,72 L 25,75 L 28,68 Z" fill="rgba(186,12,47,0.1)" strokeWidth="0.3" />
-        <path d="M 50,50 L 28,32 L 25,25 L 42,28 Z" fill="rgba(186,12,47,0.1)" strokeWidth="0.3" />
+        <path d="M 50,50 L 47,15 L 50,5 L 53,15 Z" fill="rgba(212,175,55,0.2)" />
+        <path d="M 50,50 L 85,47 L 95,50 L 85,53 Z" fill="rgba(212,175,55,0.2)" />
+        <path d="M 50,50 L 47,85 L 50,95 L 53,85 Z" fill="rgba(212,175,55,0.2)" />
+        <path d="M 50,50 L 15,47 L 5,50 L 15,53 Z" fill="rgba(212,175,55,0.2)" />
+        <path d="M 50,50 L 58,28 L 75,25 L 72,32 Z" fill="rgba(212,175,55,0.1)" strokeWidth="0.3" />
+        <path d="M 50,50 L 72,68 L 75,75 L 58,72 Z" fill="rgba(212,175,55,0.1)" strokeWidth="0.3" />
+        <path d="M 50,50 L 42,72 L 25,75 L 28,68 Z" fill="rgba(212,175,55,0.1)" strokeWidth="0.3" />
+        <path d="M 50,50 L 28,32 L 25,25 L 42,28 Z" fill="rgba(212,175,55,0.1)" strokeWidth="0.3" />
         {Array.from({ length: 36 }).map((_, i) => {
           const angle = i * 10
           const rad = (angle * Math.PI) / 180
@@ -423,7 +443,7 @@ export default function WelcomeIntro({ onComplete }) {
       </svg>
 
       {/* ── Bahrain flag: top serrated band ────────────────────────────────── */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2 }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3 }}>
         <div style={{
           height: 7,
           background: 'linear-gradient(90deg, #8c0820, #BA0C2F 28%, #d41737 52%, #BA0C2F 76%, #8c0820)',
@@ -432,18 +452,30 @@ export default function WelcomeIntro({ onComplete }) {
         <svg viewBox="0 0 1200 14" preserveAspectRatio="none" style={{ width: '100%', height: 14, display: 'block' }}>
           <path
             d="M0,0 L50,11 L100,0 L150,11 L200,0 L250,11 L300,0 L350,11 L400,0 L450,11 L500,0 L550,11 L600,0 L650,11 L700,0 L750,11 L800,0 L850,11 L900,0 L950,11 L1000,0 L1050,11 L1100,0 L1150,11 L1200,0 L1200,14 L0,14 Z"
-            fill="#FAF9F6"
+            fill="url(#goldGrad)"
           />
+          <defs>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#1C1816" />
+              <stop offset="100%" stopColor="#0F0C0B" />
+            </linearGradient>
+          </defs>
         </svg>
       </div>
 
       {/* ── Bahrain flag: bottom serrated band ─────────────────────────────── */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2 }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 3 }}>
         <svg viewBox="0 0 1200 14" preserveAspectRatio="none" style={{ width: '100%', height: 14, display: 'block', transform: 'scaleY(-1)' }}>
           <path
             d="M0,0 L50,11 L100,0 L150,11 L200,0 L250,11 L300,0 L350,11 L400,0 L450,11 L500,0 L550,11 L600,0 L650,11 L700,0 L750,11 L800,0 L850,11 L900,0 L950,11 L1000,0 L1050,11 L1100,0 L1150,11 L1200,0 L1200,14 L0,14 Z"
-            fill="#FAF9F6"
+            fill="url(#goldGradBottom)"
           />
+          <defs>
+            <linearGradient id="goldGradBottom" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#1C1816" />
+              <stop offset="100%" stopColor="#0F0C0B" />
+            </linearGradient>
+          </defs>
         </svg>
         <div style={{
           height: 7,
@@ -460,6 +492,8 @@ export default function WelcomeIntro({ onComplete }) {
         justifyContent: 'center',
         width: '100%',
         overflow: 'visible',
+        position: 'relative',
+        zIndex: 3,
       }}>
         {/* 1. Main Text Container - perfectly still */}
         <div style={{
@@ -488,11 +522,11 @@ export default function WelcomeIntro({ onComplete }) {
               style={{
                 fontSize: 'clamp(2rem,7.2vw,3.4rem)',
                 fontWeight: 800,
-                color: '#BA0C2F',
+                color: '#FAF9F6',
                 textAlign: 'center',
                 userSelect: 'none',
                 fontFamily: '"Playfair Display","Georgia",serif',
-                textShadow: '0 4px 28px rgba(186,12,47,0.10)',
+                textShadow: '0 4px 28px rgba(255, 255, 255, 0.15)',
                 willChange: 'transform, filter, opacity',
               }}
             >
@@ -521,17 +555,17 @@ export default function WelcomeIntro({ onComplete }) {
                 fontFamily: '"Playfair Display","Georgia",serif',
                 fontSize: 'clamp(2rem,7.2vw,3.4rem)',
                 fontWeight: 800,
-                color: '#BA0C2F',
+                color: '#FAF9F6',
                 letterSpacing: '0.025em',
                 whiteSpace: 'nowrap',
-                textShadow: '0 4px 28px rgba(186,12,47,0.10)',
+                textShadow: '0 4px 28px rgba(255, 255, 255, 0.15)',
                 userSelect: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
                 {ENGLISH_FINAL.split('').map((c, i) => (
-                  <ScrambleLetter key={i} char={c} delay={180 + i * 48} duration={700} />
+                  <ScrambleLetter key={i} char={c} delay={80 + i * 20} duration={400} />
                 ))}
               </div>
             )}
@@ -555,7 +589,7 @@ export default function WelcomeIntro({ onComplete }) {
               position: 'absolute',
               height: 1.5,
               width: 0,
-              background: 'linear-gradient(90deg, transparent, rgba(186,12,47,0.42), transparent)',
+              background: 'linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.5), transparent)',
               borderRadius: 1,
             }}
           />
@@ -567,7 +601,7 @@ export default function WelcomeIntro({ onComplete }) {
               position: 'absolute',
               height: 1,
               width: 0,
-              background: 'linear-gradient(90deg, transparent, rgba(186,12,47,0.38), transparent)',
+              background: 'linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent)',
               borderRadius: 1,
             }}
           />
@@ -599,7 +633,7 @@ export default function WelcomeIntro({ onComplete }) {
                 key={i}
                 style={{
                   width: 5, height: 5, borderRadius: '50%',
-                  background: '#BA0C2F', display: 'inline-block',
+                  background: '#D4AF37', display: 'inline-block',
                   animation: `introDot 1.3s ease-in-out ${i * 0.26}s infinite`,
                 }}
               />
@@ -614,7 +648,7 @@ export default function WelcomeIntro({ onComplete }) {
               fontFamily: '"Playfair Display","Georgia",serif',
               fontStyle: 'italic',
               fontSize: 'clamp(0.68rem,1.85vw,0.82rem)',
-              color: '#BA0C2F',
+              color: '#FAF9F6',
               opacity: 0,
               letterSpacing: '0.32em',
               textTransform: 'uppercase',
@@ -637,10 +671,10 @@ export default function WelcomeIntro({ onComplete }) {
           position: 'absolute',
           bottom: '2.4rem',
           right: '2.4rem',
-          background: 'rgba(250,249,246,0.6)',
-          border: '1px solid rgba(186,12,47,0.25)',
+          background: 'rgba(15, 12, 11, 0.4)',
+          border: '1px solid rgba(250, 249, 246, 0.25)',
           borderRadius: '100px',
-          color: '#BA0C2F',
+          color: '#FAF9F6',
           opacity: 0.55,
           fontSize: '0.72rem',
           fontFamily: '"Playfair Display","Georgia",serif',
@@ -658,14 +692,14 @@ export default function WelcomeIntro({ onComplete }) {
         }}
         onMouseEnter={e => {
           e.currentTarget.style.opacity     = '1'
-          e.currentTarget.style.borderColor = 'rgba(186,12,47,0.6)'
-          e.currentTarget.style.background  = 'rgba(250,249,246,0.85)'
+          e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.6)'
+          e.currentTarget.style.background  = 'rgba(15, 12, 11, 0.75)'
           e.currentTarget.style.transform   = 'translateY(-2px)'
         }}
         onMouseLeave={e => {
           e.currentTarget.style.opacity     = '0.55'
-          e.currentTarget.style.borderColor = 'rgba(186,12,47,0.25)'
-          e.currentTarget.style.background  = 'rgba(250,249,246,0.6)'
+          e.currentTarget.style.borderColor = 'rgba(250, 249, 246, 0.25)'
+          e.currentTarget.style.background  = 'rgba(15, 12, 11, 0.4)'
           e.currentTarget.style.transform   = 'none'
         }}
       >
@@ -677,6 +711,17 @@ export default function WelcomeIntro({ onComplete }) {
         @keyframes introDot {
           0%, 100% { opacity: 0.18; transform: scale(0.75) translateY(0);    }
           50%       { opacity: 0.80; transform: scale(1.25) translateY(-3px); }
+        }
+        @keyframes kenBurnsIntro {
+          0% {
+            transform: scale(1) translate(0, 0);
+          }
+          50% {
+            transform: scale(1.08) translate(-1%, -0.5%);
+          }
+          100% {
+            transform: scale(1) translate(0, 0);
+          }
         }
       `}</style>
     </div>

@@ -332,6 +332,13 @@
   perspective: 1200px;
 }
 
+@media (min-width: 768px) {
+  .journal-binder-wrapper {
+    padding-right: 56px;
+    padding-left: 8px;
+  }
+}
+
 .journal-open-book {
   background: #FAF9F6;
   border-radius: 28px;

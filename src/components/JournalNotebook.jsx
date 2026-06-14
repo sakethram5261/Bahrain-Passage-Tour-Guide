@@ -14,6 +14,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import gsap from 'gsap'
 import { useVibe } from '../hooks/useVibe'
 import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
 import WayfarerMap from './WayfarerMap'
@@ -205,6 +206,11 @@ export default function JournalNotebook({ onBack }) {
   const prevRankIdRef = useRef(null)
   const rank = getRank(xp)
 
+  const stampRef = useRef(null)
+  const inkRef = useRef(null)
+  const shockwaveRef = useRef(null)
+  const boxRef = useRef(null)
+
   /* ── Spring XP display ───────────────────────────────────────────────────── */
   const displayXP = useSpring(xp, 120, 18)
 
@@ -278,6 +284,99 @@ export default function JournalNotebook({ onBack }) {
     }
   }, [rank, soundMuted, soundVolume])
 
+  const triggerCoinFlyout = (startX, startY) => {
+    const statsEl = document.querySelector('.jn-xp-pill') || document.querySelector('.jn-header-right')
+    if (!statsEl) return
+
+    const rect = statsEl.getBoundingClientRect()
+    const targetX = rect.left + rect.width / 2
+    const targetY = rect.top + rect.height / 2
+
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => {
+        const coin = document.createElement('div')
+        coin.innerHTML = '🪙'
+        coin.style.position = 'fixed'
+        coin.style.left = `${startX}px`
+        coin.style.top = `${startY}px`
+        coin.style.zIndex = '9999'
+        coin.style.pointerEvents = 'none'
+        coin.style.fontSize = '18px'
+        document.body.appendChild(coin)
+
+        const midX = startX + (targetX - startX) * 0.4 + (Math.random() - 0.5) * 120
+        const midY = startY + (targetY - startY) * 0.4 - 100 - Math.random() * 50
+
+        gsap.timeline({
+          onComplete: () => {
+            coin.remove()
+            gsap.fromTo(statsEl, { scale: 1.05 }, { scale: 1, duration: 0.2, ease: 'power2.out' })
+          }
+        })
+        .to(coin, {
+          x: midX - startX,
+          y: midY - startY,
+          scale: 1.3,
+          duration: 0.35,
+          ease: 'power1.out'
+        })
+        .to(coin, {
+          x: targetX - startX,
+          y: targetY - startY,
+          scale: 0.7,
+          opacity: 0.5,
+          duration: 0.45,
+          ease: 'power2.in'
+        })
+      }, i * 75)
+    }
+  }
+
+  useEffect(() => {
+    if (stamping && stampRef.current && inkRef.current && shockwaveRef.current) {
+      gsap.set(stampRef.current, { y: -180, scale: 2, rotation: -15, opacity: 0 })
+      gsap.set(inkRef.current, { opacity: 0, scale: 0.9 })
+      gsap.set(shockwaveRef.current, { scale: 0.2, opacity: 0 })
+
+      const tl = gsap.timeline()
+
+      tl.to(stampRef.current, {
+        y: 0,
+        scale: 1,
+        rotation: 5,
+        opacity: 1,
+        duration: 0.32,
+        ease: 'back.in(1.2)'
+      })
+      
+      tl.add(() => {
+        if (boxRef.current) {
+          const shakeTl = gsap.timeline()
+          shakeTl.to(boxRef.current, { y: -4, duration: 0.05 })
+                 .to(boxRef.current, { y: 3, duration: 0.05 })
+                 .to(boxRef.current, { y: -2, duration: 0.05 })
+                 .to(boxRef.current, { y: 1, duration: 0.05 })
+                 .to(boxRef.current, { y: 0, duration: 0.05 })
+        }
+        gsap.to(inkRef.current, { opacity: 0.92, scale: 1, duration: 0.05 })
+        gsap.fromTo(shockwaveRef.current, 
+          { scale: 0.8, opacity: 1 }, 
+          { scale: 2.8, opacity: 0, duration: 0.45, ease: 'power2.out' }
+        )
+      })
+
+      tl.to(stampRef.current, {
+        y: -180,
+        scale: 1.3,
+        rotation: -8,
+        opacity: 0,
+        duration: 0.42,
+        delay: 0.25,
+        ease: 'power3.out'
+      })
+    }
+  }, [stamping])
+
   /* ── Reflection Note Debounce ────────────────────────────────────────────── */
   const [localReflection, setLocalReflection] = useState('')
   const reflectionDebounceRef = useRef(null)
@@ -320,8 +419,12 @@ export default function JournalNotebook({ onBack }) {
   /* ── Day Sealing ─────────────────────────────────────────────────────────── */
   const isDayCompleted = completedDays.includes(currentDayTab)
   
-  const handleSealDay = () => {
+  const handleSealDay = (e) => {
     setStamping(true)
+    
+    const rect = e?.currentTarget?.getBoundingClientRect()
+    const startX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2
+    const startY = rect ? rect.top + rect.height / 2 : window.innerHeight / 2
     
     if (!soundMuted) {
       try {
@@ -343,6 +446,10 @@ export default function JournalNotebook({ onBack }) {
         }
       } catch (_) {}
     }
+
+    setTimeout(() => {
+      triggerCoinFlyout(startX, startY)
+    }, 350)
 
     setTimeout(() => {
       completeDay(currentDayTab)
@@ -367,6 +474,11 @@ export default function JournalNotebook({ onBack }) {
 
     setRiddleAnswer(idx)
     if (idx === riddle.correct) {
+      const activeEl = document.activeElement
+      const rect = activeEl ? activeEl.getBoundingClientRect() : null
+      const startX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2
+      const startY = rect ? rect.top + rect.height / 2 : window.innerHeight / 2
+
       try {
         const AC = window.AudioContext || window.webkitAudioContext
         if (AC && !soundMuted) {
@@ -385,6 +497,10 @@ export default function JournalNotebook({ onBack }) {
           osc.stop(ctx.currentTime + 0.3)
         }
       } catch (_) {}
+      
+      setTimeout(() => {
+        triggerCoinFlyout(startX, startY)
+      }, 100)
       
       setTimeout(() => {
         solveRiddle(activeSpot.id)
@@ -751,14 +867,27 @@ export default function JournalNotebook({ onBack }) {
                   
                   <hr className="jn-divider" aria-hidden="true" />
                   
-                  <div style={{ position: 'relative', overflow: 'hidden' }} className="jn-insider-box">
+                  <div ref={boxRef} style={{ position: 'relative', overflow: 'hidden' }} className="jn-insider-box">
                     
                     {stamping && (
                       <div style={{ position: 'absolute', inset: 0, background: 'rgba(250,249,246,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                        <div style={{ width: '130px', height: '130px', borderRadius: '50%', border: '4px double var(--jn-crimson)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transform: 'rotate(-5deg)', color: 'var(--jn-crimson)' }}>
+                        {/* Shockwave ring */}
+                        <div ref={shockwaveRef} className="jn-stamp-shockwave" style={{ position: 'absolute', width: '80px', height: '80px', borderRadius: '50%', border: '4px solid var(--jn-gold)', opacity: 0, pointerEvents: 'none', zIndex: 5 }} />
+
+                        {/* Ink imprint */}
+                        <div ref={inkRef} style={{ width: '130px', height: '130px', borderRadius: '50%', border: '4px double var(--jn-crimson)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transform: 'rotate(-5deg)', color: 'var(--jn-crimson)', opacity: 0 }}>
                           <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Sealing</span>
                           <span style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '8px', fontWeight: 'bold', textTransform: 'uppercase', marginTop: '2px' }}>Day {currentDayTab} Entry</span>
                           <span style={{ fontSize: '6px', marginTop: '4px' }}>AUTHENTICATED</span>
+                        </div>
+
+                        {/* Physical stamp handle */}
+                        <div ref={stampRef} style={{ position: 'absolute', pointerEvents: 'none', zIndex: 20, transform: 'scale(2) translateY(-200px)' }}>
+                          <svg width="80" height="120" viewBox="0 0 80 120" style={{ filter: 'drop-shadow(0 15px 10px rgba(0,0,0,0.35))' }}>
+                            <path d="M40,10 C25,10 20,30 30,50 L34,80 L46,80 L50,50 C60,30 55,10 40,10 Z" fill="#8B5A2B" stroke="#5C3815" strokeWidth="2" />
+                            <rect x="25" y="80" width="30" height="15" rx="3" fill="#D4AF37" stroke="#AA7C11" strokeWidth="1.5" />
+                            <ellipse cx="40" cy="95" rx="20" ry="8" fill="#AA7C11" />
+                          </svg>
                         </div>
                       </div>
                     )}
