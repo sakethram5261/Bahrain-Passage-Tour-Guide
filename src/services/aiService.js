@@ -10,8 +10,8 @@ const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || ''
 
 // Model to use via OpenRouter — qwen/qwen-2.5-72b-instruct is free and excellent
 // for narrative/storytelling tasks. Fallback to a smaller free model if needed.
-const PRIMARY_MODEL = 'qwen/qwen-2.5-72b-instruct'
-const FALLBACK_MODEL = 'mistralai/mistral-7b-instruct'
+const PRIMARY_MODEL = 'google/gemini-2.5-flash:free'
+const FALLBACK_MODEL = 'qwen/qwen-2.5-72b-instruct:free'
 
 // In-memory response cache to avoid duplicate API calls
 const responseCache = new Map()

@@ -385,9 +385,9 @@ export default function TourChatbot({ activeSpotName }) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY
 
   const [provider, setProvider] = useState(() => {
+    if (apiKey) return 'gemini'
     if (deepSeekKey) return 'deepseek'
     if (openRouterKey) return 'openrouter'
-    if (apiKey) return 'gemini'
     return 'fallback'
   })
 
@@ -846,7 +846,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         'X-Title': 'Bahrain Passage'
       },
       body: JSON.stringify({
-        model: 'qwen/qwen-2.5-72b-instruct',
+        model: 'google/gemini-2.5-flash:free',
         messages: messagesPayload,
         response_format: {
           type: 'json_object'
@@ -893,10 +893,21 @@ Always make sure the response is a valid JSON object. Do not include markdown co
 
   // Generative API fetch logic
   const callGeminiAPI = async (userText, chatHistory) => {
-    const contents = chatHistory.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text }]
-    }))
+    // Gemini requires the first message in the contents to be from user.
+    // We filter chatHistory to start at the first message sent by the user.
+    const contents = []
+    let foundUser = false
+    for (const msg of chatHistory) {
+      if (msg.role === 'user') {
+        foundUser = true
+      }
+      if (foundUser) {
+        contents.push({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.text }]
+        })
+      }
+    }
     
     contents.push({
       role: 'user',
