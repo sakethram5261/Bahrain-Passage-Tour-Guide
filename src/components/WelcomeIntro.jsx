@@ -370,9 +370,10 @@ export default function WelcomeIntro({ onComplete }) {
         playsInline
         style={{
           position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
+          top: '-4%',
+          left: '-4%',
+          width: '108%',
+          height: '108%',
           objectFit: 'cover',
           zIndex: 0,
         }}
