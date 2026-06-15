@@ -32,7 +32,7 @@ import {
   guides 
 } from './DashboardData'
 import { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
-import AIHotelPanel from './AIHotelPanel'
+import AIHotelPanel, { HOTELS_DB } from './AIHotelPanel'
 
 
 /* ─── Tabs definition ──────────────────────────────────────────────────────── */
@@ -202,8 +202,18 @@ export default function JournalNotebook({ onBack }) {
   const [shopOpen,        setShopOpen]        = useState(false)
   const [shopAlert,       setShopAlert]       = useState(null)
   const [selectedKsake,   setSelectedKsake]   = useState(null)
-  const [riddleModalOpen, setRiddleModalOpen] = useState(false)
+  const [riddleModalOpen, riddleSetModalOpen] = useState(false) // renamed target to prevent duplicate issue
   const [imageErrors,     setImageErrors]     = useState({})
+  const [baseCampPromptOpen, setBaseCampPromptOpen] = useState(false)
+
+  useEffect(() => {
+    if (!selectedHotel) {
+      const timer = setTimeout(() => {
+        setBaseCampPromptOpen(true)
+      }, 800)
+      return () => clearTimeout(timer)
+    }
+  }, [selectedHotel])
 
   // Stamping and rank-up states
   const [stamping, setStamping] = useState(false)
@@ -563,6 +573,7 @@ export default function JournalNotebook({ onBack }) {
         setLensOpenSpot(null)
         setShopOpen(false)
         setSelectedKsake(null)
+        setBaseCampPromptOpen(false)
       }
     }
     document.addEventListener('keydown', h)
@@ -707,6 +718,37 @@ export default function JournalNotebook({ onBack }) {
             )}
           </div>
         )}
+
+        {/* Next Itinerary Item Button */}
+        <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px dashed rgba(186,12,47,0.15)', display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            onClick={() => {
+              const nextIndex = currentSpotIndex + 1
+              setCurrentSpotIndex(nextIndex)
+              playTypewriterClick(1.05)
+              if (window.innerWidth < 768) {
+                setActiveTab('info')
+              }
+              setTimeout(() => {
+                const el = document.getElementById('panel-tabs') || window
+                el.scrollTo({ top: 0, behavior: 'smooth' })
+              }, 50)
+            }}
+            className="jn-action-btn jn-action-btn--primary"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 20px',
+              fontSize: '12px',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}
+          >
+            {currentSpotIndex === activeSpots.length - 1 ? 'Go to Sealing Chamber 🔒' : 'Next Itinerary Item ➜'}
+          </button>
+        </div>
       </div>
     )
   }
@@ -940,6 +982,39 @@ export default function JournalNotebook({ onBack }) {
                             <span style={{ fontSize: '5px', marginTop: '2px' }}>PASSPORT OK</span>
                           </div>
                         </div>
+
+                        {/* Next day button */}
+                        {currentDayTab < duration && (
+                          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px', borderTop: '1px dashed rgba(186,12,47,0.15)', paddingTop: '20px' }}>
+                            <button
+                              onClick={() => {
+                                setCurrentDayTab(currentDayTab + 1)
+                                setCurrentSpotIndex(0)
+                                playTypewriterClick(1.1)
+                                if (window.innerWidth < 768) {
+                                  setActiveTab('info')
+                                }
+                                setTimeout(() => {
+                                  const el = document.getElementById('panel-tabs') || window
+                                  el.scrollTo({ top: 0, behavior: 'smooth' })
+                                }, 50)
+                              }}
+                              className="jn-action-btn jn-action-btn--primary animate-pulse"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '10px 20px',
+                                fontSize: '12px',
+                                fontWeight: 800,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em',
+                              }}
+                            >
+                              Start Day {currentDayTab + 1} Journey ➜
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1519,6 +1594,132 @@ export default function JournalNotebook({ onBack }) {
       {mapOpen && (
         <div className="jn-map-fullscreen" role="dialog" aria-modal="true" aria-label="Wayfarer Map">
           <WayfarerMap locations={locations} onClose={() => setMapOpen(false)} />
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          BASE CAMP PROMPT POPUP
+          ═══════════════════════════════════════════════════════════════════════ */}
+      {baseCampPromptOpen && !selectedHotel && (
+        <div
+          className="jn-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Establish Base Camp Stay"
+          onClick={(e) => { if (e.target === e.currentTarget) setBaseCampPromptOpen(false) }}
+        >
+          <div className="jn-ksake-modal" style={{ maxWidth: '460px' }}>
+            <button 
+              className="jn-ksake-close" 
+              onClick={() => setBaseCampPromptOpen(false)} 
+              aria-label="Close base camp selection"
+              style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', fontSize: '14px', cursor: 'pointer', color: 'var(--jn-ink-muted)' }}
+            >
+              ✕ Skip
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+              <div style={{ fontSize: '32px' }}>🏨</div>
+              <div>
+                <span className="jn-shop-eyebrow" style={{ color: 'var(--jn-crimson)', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Welcome to Bahrain</span>
+                <h4 className="jn-ksake-name" style={{ margin: 0, fontSize: '18px', fontWeight: 800, fontFamily: 'var(--jn-font-serif)', color: 'var(--jn-ink)' }}>Establish your Base Camp</h4>
+              </div>
+            </div>
+            <p className="jn-ksake-desc" style={{ fontSize: '12.5px', color: 'var(--jn-ink-muted)', marginBottom: '16px', lineHeight: 1.55 }}>
+              Before starting your chronicle, select a recommended hotel matching your <strong>{tier}</strong> budget and vibe to serve as your journey's central base.
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto', paddingRight: '4px' }}>
+              {(HOTELS_DB.filter(h => h.tierFit.includes(tier) || h.moodFit.some(m => selectedMoods.includes(m))).length > 0
+                ? HOTELS_DB.filter(h => h.tierFit.includes(tier) || h.moodFit.some(m => selectedMoods.includes(m)))
+                : HOTELS_DB
+              ).map(hotel => (
+                <button
+                  key={hotel.id}
+                  onClick={() => {
+                    setSelectedHotel(hotel)
+                    awardXP(50, 'Established Base Camp')
+                    setBaseCampPromptOpen(false)
+                    try {
+                      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+                      const osc = ctx.createOscillator()
+                      const gain = ctx.createGain()
+                      osc.type = 'sine'
+                      osc.frequency.setValueAtTime(587.33, ctx.currentTime)
+                      osc.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.15)
+                      gain.gain.setValueAtTime(0, ctx.currentTime)
+                      gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.02)
+                      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5)
+                      osc.connect(gain)
+                      gain.connect(ctx.destination)
+                      osc.start()
+                      osc.stop(ctx.currentTime + 0.5)
+                    } catch {}
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '10px',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    background: '#fffdf9',
+                    border: '1.5px solid rgba(139,90,43,0.15)',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--jn-crimson)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(139,90,43,0.15)'; e.currentTarget.style.transform = 'translateY(0)' }}
+                >
+                  <span style={{ fontSize: '22px', padding: '6px', borderRadius: '8px', background: '#FAF6EE', border: '1px solid rgba(139,90,75,0.1)', flexShrink: 0 }}>{hotel.emoji}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h5 style={{ margin: 0, fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontWeight: 700, color: '#2A2321' }}>{hotel.name}</h5>
+                      <span style={{ fontSize: '9px', fontWeight: 700, color: '#059669', background: 'rgba(16,185,129,0.08)', padding: '1px 5px', borderRadius: '999px' }}>💰 {hotel.cost.replace('From ', '')}</span>
+                    </div>
+                    <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#5C5451', lineHeight: 1.4 }}>{hotel.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => {
+                  setBaseCampPromptOpen(false)
+                  setActiveTab('hotels')
+                }}
+                style={{
+                  flex: 1,
+                  padding: '9px 12px',
+                  borderRadius: '10px',
+                  background: 'transparent',
+                  border: '1px solid var(--jn-crimson)',
+                  color: 'var(--jn-crimson)',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                }}
+              >
+                🗺️ Browse All Hotels
+              </button>
+              <button
+                onClick={() => setBaseCampPromptOpen(false)}
+                style={{
+                  padding: '9px 16px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)',
+                  color: '#fff',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Decide Later
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
