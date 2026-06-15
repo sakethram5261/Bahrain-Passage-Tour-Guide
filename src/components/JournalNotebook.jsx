@@ -949,7 +949,7 @@ export default function JournalNotebook({ onBack }) {
                 <div className="space-y-5">
                   {/* Hero postcard stamp */}
                   <figure className="jn-hero-stamp" aria-label={`${activeSpot.name} vintage postage stamp`}>
-                    {imageErrors[activeSpot.id] ? (
+                    {!activeSpot.image || imageErrors[activeSpot.id] ? (
                       <div className="jn-hero-fallback-stamp">
                         <div style={{ fontSize: '48px', marginBottom: '8px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' }}>
                           {activeSpot.keepsakeEmoji || '🗺️'}
@@ -1018,7 +1018,7 @@ export default function JournalNotebook({ onBack }) {
                   {activeSpot && (
                     <div className="space-y-4">
                       <div className="jn-section-heading">
-                        <h2 className="jn-section-title">Proceed</h2>
+                        <h2 className="jn-section-title">Observation Log</h2>
                         <span className="jn-section-subtitle">Chronicle details & Riddle Quest</span>
                       </div>
                       <hr className="jn-divider" aria-hidden="true" />

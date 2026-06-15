@@ -485,26 +485,32 @@ export default function WelcomeIntro({ onComplete }) {
       </div>
 
       {/* ── Text stages container ───────────────────────────────────────────── */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        overflow: 'visible',
-        position: 'relative',
-        zIndex: 3,
-      }}>
-        {/* 1. Main Text Container - perfectly still */}
-        <div style={{
-          position: 'relative',
-          height: 110,
-          width: '100%',
+      <div 
+        className="jn-intro-text-container"
+        style={{
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
+          width: '100%',
           overflow: 'visible',
-        }}>
+          position: 'relative',
+          zIndex: 3,
+        }}
+      >
+        {/* 1. Main Text Container - perfectly still */}
+        <div 
+          className="jn-intro-main-text-box"
+          style={{
+            position: 'relative',
+            height: 110,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'visible',
+          }}
+        >
           {/* Stage 1 & 2: Slot Text / Arabic */}
           <div
             ref={slotViewRef}
@@ -608,15 +614,18 @@ export default function WelcomeIntro({ onComplete }) {
         </div>
 
         {/* 3. Bottom Stable Area: Loading Dots / Tagline */}
-        <div style={{
-          position: 'relative',
-          height: 60,
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: '0.5rem',
-        }}>
+        <div 
+          className="jn-intro-bottom-stable"
+          style={{
+            position: 'relative',
+            height: 60,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: '0.5rem',
+          }}
+        >
           {/* Loading dots */}
           <div
             ref={loadingDotsRef}
@@ -708,6 +717,21 @@ export default function WelcomeIntro({ onComplete }) {
 
       {/* ── Keyframes ──────────────────────────────────────────────────────── */}
       <style>{`
+        .jn-intro-text-container {
+          transform: translateY(-10px);
+        }
+        @media (max-width: 768px) {
+          .jn-intro-text-container {
+            transform: translateY(-50px) !important;
+          }
+          .jn-intro-main-text-box {
+            height: 80px !important;
+          }
+          .jn-intro-bottom-stable {
+            margin-top: 0.1rem !important;
+            height: 50px !important;
+          }
+        }
         @keyframes introDot {
           0%, 100% { opacity: 0.18; transform: scale(0.75) translateY(0);    }
           50%       { opacity: 0.80; transform: scale(1.25) translateY(-3px); }
