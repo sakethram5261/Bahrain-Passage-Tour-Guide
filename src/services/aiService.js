@@ -138,16 +138,11 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
           const errText = await res.text().catch(() => '')
           console.warn(`[aiService] ${model} returned HTTP ${res.status}:`, errText.slice(0, 200))
           
-          // Handle out of balance (402) or unauthorized (401)
-          if (res.status === 402) {
-            return `*(Notice: The configured DeepSeek key has run out of funds/balance. Please add credits to your DeepSeek account.)*`
+          // If 402 (payment required) or 401 (auth), log warning and immediately break to return static fallback
+          if (res.status === 401 || res.status === 402) {
+            console.warn(`[aiService] API key unauthorized or out of funds (HTTP ${res.status}). Falling back to static content.`)
+            break
           }
-          if (res.status === 401) {
-            return `*(Notice: The configured API key is invalid or unauthorized.)*`
-          }
-
-          // If 402 (payment required) or 401 (auth), no point retrying other model
-          if (res.status === 401 || res.status === 402) break
           continue // try fallback model
         }
 

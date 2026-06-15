@@ -284,6 +284,62 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
         </div>
       )}
 
+      {/* ── Concierge Desk Search ── */}
+      <div style={{
+        padding: '16px', borderRadius: '16px',
+        background: 'radial-gradient(circle at 100% 0%, #FFFDF9 0%, #FAF6EE 100%)',
+        border: '1.5px solid rgba(139,90,43,0.2)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)', border: '2px solid #D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>👳‍♂️</div>
+          <div>
+            <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontWeight: 700, color: '#2A2321', margin: 0, lineHeight: 1.2 }}>Concierge Desk</h4>
+            <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '10px', color: 'rgba(92,84,81,0.7)', margin: 0 }}>Jafar · Chief Travel Advisor</p>
+          </div>
+        </div>
+        <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '12px', fontStyle: 'italic', color: '#5C5451', marginBottom: '12px', lineHeight: 1.55 }}>
+          "Describe your perfect stay—beachfront calm, heritage walls, or Souq proximity—and I shall find your base camp."
+        </p>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input
+            type="text"
+            value={filterQuery}
+            onChange={e => setFilterQuery(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleFilter()}
+            placeholder='e.g. "beachfront sunset" or "near Manama Souq"...'
+            style={{
+              flex: 1, padding: '9px 14px', borderRadius: '12px', fontFamily: 'var(--jn-font-serif)',
+              fontSize: '13px', border: '1px solid rgba(209,26,56,0.15)', background: 'rgba(255,255,255,0.9)',
+              outline: 'none', color: '#2A2321', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)',
+            }}
+          />
+          <button
+            onClick={handleFilter}
+            disabled={filterLoading || !filterQuery.trim()}
+            style={{
+              padding: '9px 16px', borderRadius: '12px', flexShrink: 0,
+              background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)',
+              color: '#fff', border: 'none', fontSize: '11px', fontWeight: 700,
+              letterSpacing: '0.05em', cursor: filterLoading || !filterQuery.trim() ? 'not-allowed' : 'pointer',
+              opacity: filterLoading || !filterQuery.trim() ? 0.5 : 1,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {filterLoading ? '...' : '🤖 Match'}
+          </button>
+        </div>
+      </div>
+
+      {filterResult && (
+        <div style={{
+          padding: '12px 16px', borderRadius: '12px', background: '#FFFDF9',
+          borderLeft: '3px solid #D4AF37', fontSize: '13px', fontFamily: 'var(--jn-font-serif)',
+          fontStyle: 'italic', lineHeight: 1.6, color: '#2A2321',
+        }}>
+          🗣️ {filterResult}
+        </div>
+      )}
+
       {/* ── AI Recommendations: Loading skeleton ── */}
       {loading && (
         <div className="space-y-3">
@@ -301,7 +357,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
         <div className="space-y-3">
           {displayHotels.length === 0 && (
             <p style={{ textAlign: 'center', color: 'var(--jn-ink-faint)', fontFamily: 'var(--jn-font-serif)', fontSize: '13px', padding: '20px 0', fontStyle: 'italic' }}>
-              No AI recommendations yet. Try the search below!
+              No AI recommendations yet. Try the search above!
             </p>
           )}
           {displayHotels.map((rec, idx) => {
@@ -389,201 +445,6 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                         }}
                       >
                         🏨 Book on Booking.com
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* ── Concierge Desk Search ── */}
-      <div style={{
-        padding: '16px', borderRadius: '16px',
-        background: 'radial-gradient(circle at 100% 0%, #FFFDF9 0%, #FAF6EE 100%)',
-        border: '1.5px solid rgba(139,90,43,0.2)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)', border: '2px solid #D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>👳‍♂️</div>
-          <div>
-            <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontWeight: 700, color: '#2A2321', margin: 0, lineHeight: 1.2 }}>Concierge Desk</h4>
-            <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '10px', color: 'rgba(92,84,81,0.7)', margin: 0 }}>Jafar · Chief Travel Advisor</p>
-          </div>
-        </div>
-        <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '12px', fontStyle: 'italic', color: '#5C5451', marginBottom: '12px', lineHeight: 1.55 }}>
-          "Describe your perfect stay—beachfront calm, heritage walls, or Souq proximity—and I shall find your base camp."
-        </p>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input
-            type="text"
-            value={filterQuery}
-            onChange={e => setFilterQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleFilter()}
-            placeholder='e.g. "beachfront sunset" or "near Manama Souq"...'
-            style={{
-              flex: 1, padding: '9px 14px', borderRadius: '12px', fontFamily: 'var(--jn-font-serif)',
-              fontSize: '13px', border: '1px solid rgba(209,26,56,0.15)', background: 'rgba(255,255,255,0.9)',
-              outline: 'none', color: '#2A2321', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)',
-            }}
-          />
-          <button
-            onClick={handleFilter}
-            disabled={filterLoading || !filterQuery.trim()}
-            style={{
-              padding: '9px 16px', borderRadius: '12px', flexShrink: 0,
-              background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)',
-              color: '#fff', border: 'none', fontSize: '11px', fontWeight: 700,
-              letterSpacing: '0.05em', cursor: filterLoading || !filterQuery.trim() ? 'not-allowed' : 'pointer',
-              opacity: filterLoading || !filterQuery.trim() ? 0.5 : 1,
-              transition: 'all 0.2s ease',
-            }}
-          >
-            {filterLoading ? '...' : '🤖 Match'}
-          </button>
-        </div>
-      </div>
-
-      {filterResult && (
-        <div style={{
-          padding: '12px 16px', borderRadius: '12px', background: '#FFFDF9',
-          borderLeft: '3px solid #D4AF37', fontSize: '13px', fontFamily: 'var(--jn-font-serif)',
-          fontStyle: 'italic', lineHeight: 1.6, color: '#2A2321',
-        }}>
-          🗣️ {filterResult}
-        </div>
-      )}
-
-      {/* Loading skeleton */}
-      {loading && (
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="p-3.5 rounded-xl border border-red-500/8 bg-white animate-pulse flex gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 shrink-0" />
-              <div className="flex-1 space-y-2">
-                <div className="h-3 bg-bronze-muted/15 rounded w-3/4" />
-                <div className="h-2 bg-bronze-muted/10 rounded w-1/2" />
-                <div className="h-2 bg-bronze-muted/10 rounded w-full" />
-              </div>
-            </div>
-          ))}
-          <p className="text-center text-[11px] font-serif italic text-bronze-muted/60 animate-pulse">
-            AI is consulting the registrar logs...
-          </p>
-        </div>
-      )}
-
-      {/* Hotel cards */}
-      {!loading && (
-        <div className="space-y-3 pb-2">
-          {displayHotels.map((rec, idx) => {
-            const hotel = getHotelData(rec.name) || HOTELS_DB[idx] || HOTELS_DB[0]
-            const isExpanded = expandedId === hotel.id
-            const isHighlighted = highlightedId === hotel.id
-            const isBaseCamp = selectedHotel?.id === hotel.id
-
-            return (
-              <div
-                key={hotel.id}
-                id={`hotel-card-${hotel.id}`}
-                className={`rounded-xl border transition-all overflow-hidden relative ${
-                  isHighlighted 
-                    ? 'border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.5)] scale-[1.01]' 
-                    : isBaseCamp
-                      ? 'border-[#BA0C2F] shadow-sm'
-                      : 'border-red-500/10 shadow-sm hover:border-red-500/20'
-                }`}
-                style={{
-                  background: isBaseCamp 
-                    ? 'linear-gradient(135deg, #FFFDF9 0%, #FAF7EE 100%)' 
-                    : '#FFFDF9',
-                  transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                }}
-              >
-                {/* Inner vintage stitch dashed border */}
-                <div
-                  className="absolute inset-1.5 pointer-events-none rounded-lg"
-                  style={{
-                    border: isBaseCamp 
-                      ? '1.5px dashed rgba(186, 12, 47, 0.25)' 
-                      : '1px dashed rgba(139, 90, 43, 0.12)',
-                  }}
-                />
-
-                <button
-                  onClick={() => setExpandedId(isExpanded ? null : hotel.id)}
-                  className="w-full p-4 flex items-start gap-3.5 text-left cursor-pointer transition-all relative z-10"
-                >
-                  <span className={`text-2xl p-2 rounded-xl shrink-0 transition-colors ${
-                    isBaseCamp 
-                      ? 'bg-[#BA0C2F]/10 border border-[#BA0C2F]/20' 
-                      : 'bg-[#FAF6EE] border border-[#8B5A4B]/15'
-                  }`}>
-                    {hotel.emoji}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h5 className="font-serif text-[14px] font-extrabold text-[#2A2321] leading-tight">
-                      {hotel.name}
-                    </h5>
-                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                      <span className="px-1.5 py-0.5 rounded bg-[#FAF6EE] text-[#8B5A4B] text-[10px] font-sans font-bold uppercase tracking-wider border border-[#8B5A4B]/15">
-                        {hotel.tier}
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-700/10 text-emerald-800 text-[10px] font-sans font-bold uppercase tracking-wider border border-emerald-700/10">
-                        💰 {hotel.cost}
-                      </span>
-                    </div>
-                    {rec.reason && (
-                      <p className="font-serif text-[12.5px] italic text-[#BA0C2F]/85 mt-2 leading-relaxed">
-                        🤖 "{rec.reason}"
-                      </p>
-                    )}
-                  </div>
-                  <span className="text-[10px] text-bronze-muted/40 shrink-0 mt-1">{isExpanded ? '▲' : '▼'}</span>
-                </button>
-
-                {isExpanded && (
-                  <div className="px-4 pb-4 border-t border-dashed border-red-500/10 pt-3.5 space-y-3.5 relative z-10 ml-[52px]">
-                    <p className="font-sans text-[12.5px] text-[#5C5451] leading-relaxed font-medium">{hotel.desc}</p>
-                    <div className="flex items-center gap-1.5 text-[10.5px] font-sans text-bronze-muted/70 font-bold">
-                      <span>📍 {hotel.neighborhood}</span>
-                      <span>•</span>
-                      <span>🚗 {hotel.dist}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-3.5 pt-1 flex-wrap">
-                      {/* Set Base Camp Button */}
-                      {isBaseCamp ? (
-                        <button
-                          disabled={true}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] text-white text-[11.5px] font-extrabold uppercase tracking-wide shadow-md"
-                          style={{ border: '1.5px solid #D4AF37' }}
-                        >
-                          ✓ Base Camp Active
-                        </button>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setSelectedHotel(hotel)
-                            awardXP(50, 'Established Base Camp')
-                            playCampStampSound()
-                          }}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FAF6EE] hover:bg-[#F3EFE4] text-[#BA0C2F] border border-[#BA0C2F]/35 hover:border-[#BA0C2F]/60 text-[11.5px] font-extrabold uppercase tracking-wide transition-all cursor-pointer shadow-sm active:scale-95"
-                        >
-                          🔑 Set as Base Camp
-                        </button>
-                      )}
-
-                      {/* View Booking.com Button */}
-                      <a
-                        href={hotel.bookingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FFFDF9] hover:bg-[#FAF6EE] text-bronze-charcoal border border-[#D4AF37] text-[11px] font-extrabold uppercase tracking-wide transition-all cursor-pointer shadow-sm hover:shadow-md"
-                      >
-                        🗺️ Booking Link
                       </a>
                     </div>
                   </div>
