@@ -351,7 +351,7 @@ function Bubble({ msg }) {
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export default function TourChatbot({ activeSpotName }) {
+export default function TourChatbot({ activeSpotName, embedded = false, onClose }) {
   const {
     step,
     setStep,
@@ -1098,50 +1098,61 @@ Always make sure the response is a valid JSON object. Do not include markdown co
 
   return (
     <>
-      {/* Floating trigger button */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        title="Ask your local guide"
-        style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 250,
-          width: 52,
-          height: 52,
-          borderRadius: '50%',
-          background: open
-            ? '#2A2321'
-            : 'radial-gradient(circle, #e6b800 0%, #b38600 100%)',
-          border: open ? '2px solid rgba(212,175,55,0.4)' : '2.5px double #ffffff',
-          boxShadow: open
-            ? '0 4px 15px rgba(0,0,0,0.3)'
-            : '0 8px 20px rgba(179,134,0,0.4), inset 0 2px 2px rgba(255,255,255,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          fontSize: 20,
-          color: '#fff',
-          transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
-          transform: open ? 'scale(0.92)' : 'scale(1)',
-        }}
-        onMouseEnter={e => { if (!open) e.currentTarget.style.transform = 'scale(1.1)' }}
-        onMouseLeave={e => { if (!open) e.currentTarget.style.transform = 'scale(1)' }}
-      >
-        {open ? '✕' : '🏛️'}
-      </button>
-
-      {/* Chat panel — journal cream palette */}
-      {open && (
-        <div
+      {/* Floating trigger button — only in standalone (non-embedded) mode */}
+      {!embedded && (
+        <button
+          onClick={() => setOpen(o => !o)}
+          title="Ask your local guide"
           style={{
             position: 'fixed',
-            bottom: '88px',
+            bottom: '24px',
             right: '24px',
-            zIndex: 249,
-            width: 'min(370px, calc(100vw - 48px))',
-            height: 'min(540px, calc(100vh - 120px))',
+            zIndex: 250,
+            width: 52,
+            height: 52,
+            borderRadius: '50%',
+            background: open
+              ? '#2A2321'
+              : 'radial-gradient(circle, #e6b800 0%, #b38600 100%)',
+            border: open ? '2px solid rgba(212,175,55,0.4)' : '2.5px double #ffffff',
+            boxShadow: open
+              ? '0 4px 15px rgba(0,0,0,0.3)'
+              : '0 8px 20px rgba(179,134,0,0.4), inset 0 2px 2px rgba(255,255,255,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: 20,
+            color: '#fff',
+            transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
+            transform: open ? 'scale(0.92)' : 'scale(1)',
+          }}
+          onMouseEnter={e => { if (!open) e.currentTarget.style.transform = 'scale(1.1)' }}
+          onMouseLeave={e => { if (!open) e.currentTarget.style.transform = 'scale(1)' }}
+        >
+          {open ? '✕' : '🏛️'}
+        </button>
+      )}
+
+      {/* Chat panel — shown always in embedded mode, or when open in standalone mode */}
+      {(embedded || open) && (
+        <div
+          style={{
+            ...(embedded ? {
+              // Embedded: fill the parent container (no position:fixed, full height)
+              position: 'relative',
+              width: '100%',
+              height: 'min(480px, calc(100vh - 220px))',
+            } : {
+              // Standalone: floating fixed panel
+              position: 'fixed',
+              bottom: '88px',
+              right: '24px',
+              zIndex: 249,
+              width: 'min(370px, calc(100vw - 48px))',
+              height: 'min(540px, calc(100vh - 120px))',
+              animation: 'chatPanelUp 0.35s cubic-bezier(0.16,1,0.3,1) both',
+            }),
             borderRadius: '24px',
             background: '#FCFBF8',
             border: '4px double rgba(193,18,47,0.3)',
@@ -1149,7 +1160,6 @@ Always make sure the response is a valid JSON object. Do not include markdown co
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            animation: 'chatPanelUp 0.35s cubic-bezier(0.16,1,0.3,1) both',
           }}
         >
           {/* Header */}
@@ -1210,6 +1220,29 @@ Always make sure the response is a valid JSON object. Do not include markdown co
               boxShadow: provider === 'fallback' ? '0 0 6px rgba(252,165,165,0.8)' : '0 0 6px rgba(74,222,128,0.8)',
               flexShrink: 0,
             }} />
+            {onClose && (
+              <button
+                onClick={onClose}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  cursor: 'pointer',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: '8px',
+                  transition: 'color 0.2s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)'}
+              >
+                ✕
+              </button>
+            )}
           </div>
 
           {/* API Error Banner */}

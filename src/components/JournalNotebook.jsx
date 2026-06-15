@@ -21,6 +21,7 @@ import WayfarerMap from './WayfarerMap'
 import VirtualTour from './VirtualTour'
 import WayfarerLens from './WayfarerLens'
 import PassportCard from './PassportCard'
+import TourChatbot from './TourChatbot'
 import { 
   shopItems, 
   getAlmanac, 
@@ -33,15 +34,17 @@ import {
 import { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
 import AIHotelPanel from './AIHotelPanel'
 
+
 /* ─── Tabs definition ──────────────────────────────────────────────────────── */
 const TABS = [
-  { id: 'info',       label: 'Info'       },
-  { id: 'itinerary',  label: 'Itinerary'  },
-  { id: 'map',        label: 'Map'        },
-  { id: 'hotels',     label: 'Hotels'     },
-  { id: 'souvenirs',  label: 'Souvenirs'  },
-  { id: 'phrasebook', label: 'Phrases'    },
+  { id: 'info',       label: 'Today',    emoji: '📅' },
+  { id: 'itinerary',  label: 'Route',    emoji: '📍' },
+  { id: 'map',        label: 'Map',      emoji: '🗺️' },
+  { id: 'hotels',     label: 'Hotels',   emoji: '🏨' },
+  { id: 'souvenirs',  label: 'Souvenirs',emoji: '🪙' },
+  { id: 'phrasebook', label: 'Phrases',  emoji: '📜' },
 ]
+
 
 const LEAF_TO_TAB = {
   chronicles: 'info',
@@ -189,7 +192,9 @@ export default function JournalNotebook({ onBack }) {
   const [activeTab,    setActiveTab]    = useState('info')
   const [tabKey,       setTabKey]       = useState(0)       // bumped on every switch → remount → fresh anim
   const [menuOpen,     setMenuOpen]     = useState(false)
+  const [chatOpen,     setChatOpen]     = useState(false)   // AI chatbot panel
   
+
   // Modals & overlay states
   const [mapOpen,         setMapOpen]         = useState(false)
   const [tourOpen,        setTourOpen]        = useState(false)
@@ -712,8 +717,10 @@ export default function JournalNotebook({ onBack }) {
   return (
     <div className="jn-root" role="main" aria-label="Bahrain Passage Journal Notebook">
 
+
       {/* ── Fixed crimson header ────────────────────────────────────────────── */}
       <header className="jn-header" role="banner">
+        {/* Row 1: Brand + Controls */}
         <div className="jn-header-inner">
           <div className="jn-brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', position: 'relative' }}>
             <span className="jn-brand-title" style={{ position: 'relative', paddingBottom: '6px' }}>
@@ -736,54 +743,72 @@ export default function JournalNotebook({ onBack }) {
             </span>
           </div>
 
-          <nav className="jn-desktop-nav" aria-label="Desktop sections">
-            {TABS.map(t => (
-              <button
-                key={t.id}
-                className={`jn-nav-btn ${activeTab === t.id ? 'jn-nav-btn--active' : ''}`}
-                onClick={(e) => switchTab(t.id, e)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </nav>
+          {/* Trip status pill (desktop only) */}
+          <div className="hidden" style={{ display: 'none' }} />
 
           <div className="jn-header-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {/* Passport card trigger */}
-            <button
-              onClick={() => setShowPassportCard(true)}
-              className="jn-action-btn jn-action-btn--ghost"
-              style={{ padding: '6px 12px', fontSize: '10px', height: 'auto', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
-              title="View Explorer Passport"
-            >
-              <span>Passport</span>
-              <span className="jn-level-badge">{rank.label}</span>
-            </button>
-
-            {/* XP progress */}
+            {/* XP progress pill */}
             <div className="jn-xp-pill" aria-label={`${displayXP} XP earned`} style={{ margin: 0 }}>
               <span className="jn-xp-icon">⚡</span>
               <span className="jn-xp-num">{displayXP} XP</span>
             </div>
-            
+
+            {/* Passport card trigger */}
             <button
-              id="jn-menu-btn"
-              className={`jn-menu-btn ${menuOpen ? 'jn-menu-btn--open' : ''}`}
-              onClick={() => setMenuOpen(v => !v)}
-              aria-label="Toggle navigation menu"
-              aria-expanded={menuOpen}
-              aria-controls="jn-mobile-menu"
+              onClick={() => setShowPassportCard(true)}
+              className="jn-action-btn jn-action-btn--ghost"
+              style={{ padding: '6px 10px', fontSize: '10px', height: 'auto', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
+              title="View Explorer Passport"
             >
-              <span /><span /><span />
+              <span>🗺️</span>
+              <span className="jn-level-badge">{rank.label}</span>
             </button>
+
+            {/* Edit trip / back */}
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="jn-action-btn jn-action-btn--ghost"
+                style={{ padding: '6px 10px', fontSize: '10px', height: 'auto', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                title="Adjust vibe settings"
+              >
+                ← Edit
+              </button>
+            )}
           </div>
+        </div>
+
+        {/* Row 2: Full-width tab bar */}
+        <div style={{ padding: '0 12px 10px 12px' }}>
+          <nav className="tab-bar" role="tablist" aria-label="Journal sections">
+            {TABS.map(t => (
+              <button
+                key={t.id}
+                id={`tab-${t.id}`}
+                role="tab"
+                aria-selected={activeTab === t.id}
+                aria-controls={`panel-${t.id}`}
+                className={`tab-pill ${activeTab === t.id ? 'active' : ''}`}
+                onClick={(e) => switchTab(t.id, e)}
+              >
+                <span>{t.emoji}</span>
+                <span>{t.label}</span>
+                {t.id === 'souvenirs' && collectedKeepsakes.length > 0 && (
+                  <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '999px', padding: '0 5px', fontSize: '0.6rem', fontWeight: 800 }}>
+                    {collectedKeepsakes.length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
         </div>
 
         {/* Decorative diamond border */}
         <div className="jn-header-diamonds" aria-hidden="true" />
       </header>
 
-      {/* ── Slim mobile menu: Virtual Tour + back only ── */}
+
+      {/* ── Mobile menu: back only, no separate overlay needed ── */}
       {menuOpen && (
         <div
           id="jn-mobile-menu"
@@ -806,28 +831,9 @@ export default function JournalNotebook({ onBack }) {
       )}
       {menuOpen && <div className="jn-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
 
-      {/* ── Scrollable tab strip (never cramped — swipe to see all 5) ── */}
-      <div className="jn-mobile-tabs-wrap">
-        <nav
-          className="jn-mobile-tabs"
-          role="tablist"
-          aria-label="Journal sections"
-        >
-          {TABS.map(t => (
-            <button
-              key={t.id}
-              id={`tab-${t.id}`}
-              role="tab"
-              aria-selected={activeTab === t.id}
-              aria-controls={`panel-${t.id}`}
-              className={`jn-tab ${activeTab === t.id ? 'jn-tab--active' : ''}`}
-              onClick={(e) => switchTab(t.id, e)}
-            >
-              <span className="jn-tab-label">{t.label}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
+      {/* ── No separate mobile-tab strip needed — tabs are in header ── */}
+
+
 
       {/* ── Main content area with binder ring system ───────────────────────── */}
       <div className="jn-body">
@@ -1045,14 +1051,15 @@ export default function JournalNotebook({ onBack }) {
 
                     <hr className="jn-divider" aria-hidden="true" />
 
-                    {/* Day chapter tabs */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0' }}>
-                      <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 'bold', color: 'var(--jn-ink-faint)' }}>Chapter Day:</span>
-                      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
+                    {/* Day chapter tabs — using clean day-badge utility classes */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, color: 'var(--jn-ink-faint)', flexShrink: 0 }}>Day:</span>
+                      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', flexWrap: 'wrap' }}>
                         {Array.from({ length: duration }, (_, idx) => {
                           const d = idx + 1
                           const unlocked = unlockedDays.includes(d)
                           const active = currentDayTab === d
+                          const completed = completedDays.includes(d)
                           return (
                             <button
                               key={d}
@@ -1063,27 +1070,15 @@ export default function JournalNotebook({ onBack }) {
                                 playTypewriterClick(1.0)
                               }}
                               title={!unlocked ? `Complete Day ${d - 1} to unlock Day ${d}` : `Go to Day ${d}`}
-                              style={{
-                                width: '36px',
-                                height: '36px',
-                                borderRadius: '50%',
-                                fontSize: '13px',
-                                fontWeight: 'bold',
-                                border: active ? '1px solid var(--jn-crimson)' : '1px solid rgba(0,0,0,0.08)',
-                                background: active ? 'var(--jn-crimson)' : unlocked ? '#ffffff' : 'rgba(0,0,0,0.03)',
-                                color: active ? '#ffffff' : unlocked ? 'var(--jn-ink-muted)' : 'rgba(0,0,0,0.2)',
-                                cursor: unlocked ? 'pointer' : 'not-allowed',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
+                              className={`day-badge ${active ? 'active' : ''} ${!unlocked ? 'locked' : ''} ${completed && !active ? 'completed' : ''}`}
                             >
-                              {unlocked ? d : '🔒'}
+                              {!unlocked ? '🔒' : completed ? '✓' : d}
                             </button>
                           )
                         })}
                       </div>
                     </div>
+
 
                     {/* Progress strip */}
                     {hasSpots && (() => {
@@ -1372,9 +1367,15 @@ export default function JournalNotebook({ onBack }) {
               {/* ─── SUB-TAB: HOTELS ─── */}
               {activeTab === 'hotels' && (
                 <div className="space-y-4">
-                  <AIHotelPanel moods={selectedMoods} tier={tier} duration={duration} />
+                  <div className="jn-section-heading">
+                    <h2 className="jn-section-title">Stay & Hotels</h2>
+                    <span className="jn-section-subtitle">AI-matched to your vibe</span>
+                  </div>
+                  <hr className="jn-divider" aria-hidden="true" />
+                  <AIHotelPanel moods={selectedMoods} tier={tier} duration={duration} autoLoad={true} />
                 </div>
               )}
+
 
               {/* ─── SUB-TAB: PHRASEBOOK ─── */}
               {activeTab === 'phrasebook' && (
@@ -1675,6 +1676,62 @@ export default function JournalNotebook({ onBack }) {
           </div>
         </>
       )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          AI GUIDE CHATBOT — Floating Action Button + Panel
+          ═══════════════════════════════════════════════════════════════════════ */}
+      <>
+        {/* Floating chat button */}
+        <button
+          onClick={() => setChatOpen(v => !v)}
+          aria-label={chatOpen ? 'Close AI Guide' : 'Open AI Guide'}
+          style={{
+            position: 'fixed',
+            bottom: '90px',
+            right: '20px',
+            zIndex: 200,
+            width: '52px',
+            height: '52px',
+            borderRadius: '50%',
+            background: chatOpen ? '#2A2321' : 'linear-gradient(135deg, #D11A38, #A81028)',
+            color: '#fff',
+            border: '2px solid rgba(255,255,255,0.15)',
+            boxShadow: '0 8px 24px rgba(209,26,56,0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '22px',
+            cursor: 'pointer',
+            transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
+            transform: chatOpen ? 'scale(0.92)' : 'scale(1)',
+          }}
+        >
+          {chatOpen ? '✕' : '🤖'}
+        </button>
+
+        {/* Chatbot panel — slides up when open */}
+        {chatOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: '155px',
+              right: '16px',
+              width: 'min(380px, calc(100vw - 32px))',
+              zIndex: 199,
+              borderRadius: '20px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(209,26,56,0.12)',
+              animation: 'slideInRight 0.3s cubic-bezier(0.16,1,0.3,1) both',
+            }}
+          >
+            <TourChatbot
+              activeSpotName={activeSpot?.name}
+              embedded={true}
+              onClose={() => setChatOpen(false)}
+            />
+          </div>
+        )}
+      </>
 
     </div>
   )

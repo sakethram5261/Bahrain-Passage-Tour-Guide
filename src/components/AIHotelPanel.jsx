@@ -118,10 +118,10 @@ export const HOTELS_DB = [
   },
 ]
 
-export default function AIHotelPanel({ moods, tier, duration }) {
+export default function AIHotelPanel({ moods, tier, duration, autoLoad = true }) {
   const { selectedHotel, setSelectedHotel, awardXP } = useVibe()
   const [recommendations, setRecommendations] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(autoLoad)
   const [filterQuery, setFilterQuery] = useState('')
   const [filterResult, setFilterResult] = useState(null)
   const [filterLoading, setFilterLoading] = useState(false)
@@ -129,7 +129,7 @@ export default function AIHotelPanel({ moods, tier, duration }) {
   const [highlightedId, setHighlightedId] = useState(null)
 
   useEffect(() => {
-    loadRecommendations()
+    if (autoLoad) loadRecommendations()
   }, [])
 
   const loadRecommendations = async () => {
@@ -231,61 +231,214 @@ export default function AIHotelPanel({ moods, tier, duration }) {
 
   return (
     <div className="space-y-4">
-      {/* Title block with antique traveler styling */}
-      <div>
-        <span className="font-sans text-[11px] tracking-[0.25em] text-[#BA0C2F] uppercase font-bold block">
-          AI-Curated Accommodations
-        </span>
-        <h3 className="font-serif text-xl text-[#2A2321] font-extrabold mt-0.5">
-          Your Perfect Stays
-        </h3>
-        <p className="font-sans text-xs text-[#5C5451] leading-relaxed font-semibold mt-1">
-          Matched to your {Array.isArray(moods) ? moods.join(', ') : 'travel'} vibes and {tier} budget.
-        </p>
-      </div>
 
-      {/* Thematic Concierge Desk Search Box */}
-      <div 
-        className="p-4 rounded-2xl border relative overflow-hidden"
-        style={{
-          background: 'radial-gradient(circle at 100% 0%, #FFFDF9 0%, #FAF6EE 100%)',
-          border: '1.5px solid rgba(139, 90, 43, 0.2)',
-          boxShadow: '0 4px 15px rgba(42,35,33,0.04)'
-        }}
-      >
-        <div className="absolute top-2 right-3 text-sm opacity-15">⚜️</div>
-        
-        <div className="flex gap-3 items-center mb-2.5">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#BA0C2F] to-[#8A0A22] border-2 border-[#D4AF37] flex items-center justify-center text-lg shadow-sm">
-            👳‍♂️
-          </div>
-          <div>
-            <h4 className="font-serif text-[13px] font-bold text-[#2A2321] leading-tight">
-              Concierge Desk
+      {/* ── Selected Hotel – Prominent Base Camp Banner ── */}
+      {selectedHotel && (
+        <div style={{
+          background: 'linear-gradient(135deg, #D11A38 0%, #8A0A22 100%)',
+          borderRadius: '16px',
+          padding: '16px',
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          boxShadow: '0 8px 24px rgba(209,26,56,0.25)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          <div style={{ fontSize: '30px', flexShrink: 0 }}>{selectedHotel.emoji}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>Your Base Camp ✓</span>
+            <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '16px', fontWeight: 700, margin: '2px 0 4px', color: '#fff' }}>
+              {selectedHotel.name}
             </h4>
-            <p className="font-sans text-[10px] text-bronze-muted/70 font-semibold leading-none mt-0.5">
-              Jafar · Chief Travel Advisor
+            <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', opacity: 0.8, margin: 0 }}>
+              {selectedHotel.neighborhood} &middot; {selectedHotel.cost}
             </p>
           </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
+            <a
+              href={selectedHotel.bookingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                padding: '6px 12px', borderRadius: '999px',
+                background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+                color: '#fff', fontSize: '10px', fontWeight: 700, textDecoration: 'none',
+                whiteSpace: 'nowrap', letterSpacing: '0.04em',
+              }}
+            >
+              📱 Book Now
+            </a>
+            <button
+              onClick={() => setSelectedHotel(null)}
+              style={{
+                background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)',
+                fontSize: '10px', cursor: 'pointer', padding: '0', textAlign: 'center',
+              }}
+            >
+              Change hotel
+            </button>
+          </div>
         </div>
+      )}
 
-        <p className="font-serif text-[11.5px] italic text-[#5C5451] leading-relaxed mb-3">
-          "Tell me what you desire for your stay—be it beachfront peace, heritage walls, or proximity to the souq—and I shall find your base camp."
+      {/* ── AI Recommendations: Loading skeleton ── */}
+      {loading && (
+        <div className="space-y-3">
+          <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', color: 'var(--jn-ink-faint)', fontStyle: 'italic', textAlign: 'center', padding: '4px 0' }}>
+            ⏳ Consulting the registrar for your ideal stay…
+          </p>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="skeleton" style={{ height: '80px', borderRadius: '12px' }} />
+          ))}
+        </div>
+      )}
+
+      {/* ── AI-Recommended Hotel Cards ── */}
+      {!loading && (
+        <div className="space-y-3">
+          {displayHotels.length === 0 && (
+            <p style={{ textAlign: 'center', color: 'var(--jn-ink-faint)', fontFamily: 'var(--jn-font-serif)', fontSize: '13px', padding: '20px 0', fontStyle: 'italic' }}>
+              No AI recommendations yet. Try the search below!
+            </p>
+          )}
+          {displayHotels.map((rec, idx) => {
+            const hotel = getHotelData(rec.name) || HOTELS_DB[idx] || HOTELS_DB[0]
+            const isExpanded = expandedId === hotel.id
+            const isHighlighted = highlightedId === hotel.id
+            const isBaseCamp = selectedHotel?.id === hotel.id
+            return (
+              <div
+                key={hotel.id}
+                id={`hotel-card-${hotel.id}`}
+                className={`hotel-card ${isBaseCamp ? 'selected' : ''}`}
+                style={isHighlighted ? { boxShadow: '0 0 0 2px #D4AF37, 0 8px 24px rgba(212,175,55,0.25)', transform: 'scale(1.01)' } : {}}
+              >
+                <button
+                  onClick={() => setExpandedId(isExpanded ? null : hotel.id)}
+                  style={{ width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                    <span style={{
+                      fontSize: '24px', padding: '8px', borderRadius: '12px', flexShrink: 0,
+                      background: isBaseCamp ? 'rgba(209,26,56,0.08)' : '#FAF6EE',
+                      border: isBaseCamp ? '1px solid rgba(209,26,56,0.2)' : '1px solid rgba(139,90,75,0.1)',
+                    }}>{hotel.emoji}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h5 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '15px', fontWeight: 700, color: '#2A2321', margin: '0 0 6px', lineHeight: 1.2 }}>
+                        {hotel.name}
+                        {isBaseCamp && <span style={{ fontSize: '10px', background: '#D11A38', color: '#fff', padding: '1px 6px', borderRadius: '999px', marginLeft: '8px', fontWeight: 700, fontFamily: 'var(--jn-font-sans)', letterSpacing: '0.04em' }}>✓ Selected</span>}
+                      </h5>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: rec.reason ? '8px' : 0 }}>
+                        <span style={{ padding: '2px 8px', borderRadius: '999px', background: '#FAF6EE', border: '1px solid rgba(139,90,75,0.15)', fontSize: '10px', fontFamily: 'var(--jn-font-sans)', fontWeight: 700, color: '#8B5A4B' }}>
+                          {hotel.tier}
+                        </span>
+                        <span style={{ padding: '2px 8px', borderRadius: '999px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', fontSize: '10px', fontFamily: 'var(--jn-font-sans)', fontWeight: 700, color: '#059669' }}>
+                          💰 {hotel.cost}
+                        </span>
+                      </div>
+                      {rec.reason && (
+                        <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '12px', fontStyle: 'italic', color: '#BA0C2F', margin: 0, lineHeight: 1.5 }}>
+                          “{rec.reason}”
+                        </p>
+                      )}
+                    </div>
+                    <span style={{ color: 'rgba(92,84,81,0.4)', fontSize: '10px', flexShrink: 0, marginTop: '4px' }}>{isExpanded ? '▲' : '▼'}</span>
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div style={{ borderTop: '1px dashed rgba(209,26,56,0.12)', marginTop: '12px', paddingTop: '12px' }}>
+                    <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '13px', color: '#5C5451', lineHeight: 1.65, margin: '0 0 10px' }}>{hotel.desc}</p>
+                    <div style={{ display: 'flex', gap: '8px', fontSize: '11px', fontFamily: 'var(--jn-font-sans)', fontWeight: 700, color: 'rgba(92,84,81,0.75)', marginBottom: '14px', flexWrap: 'wrap' }}>
+                      <span>📍 {hotel.neighborhood}</span>
+                      <span>&bull;</span>
+                      <span>🚗 {hotel.dist}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {isBaseCamp ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '999px', background: '#D11A38', color: '#fff', fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em' }}>
+                          ✓ Your Base Camp
+                        </span>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedHotel(hotel); awardXP(50, 'Established Base Camp'); playCampStampSound() }}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '6px',
+                            padding: '7px 14px', borderRadius: '999px',
+                            background: 'rgba(209,26,56,0.06)', border: '1.5px solid rgba(209,26,56,0.25)',
+                            color: '#D11A38', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                            letterSpacing: '0.04em', transition: 'all 0.2s ease',
+                          }}
+                        >
+                          🔑 Set as Base Camp
+                        </button>
+                      )}
+                      <a
+                        href={hotel.bookingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '6px',
+                          padding: '7px 14px', borderRadius: '999px',
+                          background: '#FAF6EE', border: '1px solid rgba(212,175,55,0.4)',
+                          color: '#2A2321', fontSize: '11px', fontWeight: 700,
+                          textDecoration: 'none', letterSpacing: '0.04em',
+                        }}
+                      >
+                        🏨 Book on Booking.com
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Concierge Desk Search ── */}
+      <div style={{
+        padding: '16px', borderRadius: '16px',
+        background: 'radial-gradient(circle at 100% 0%, #FFFDF9 0%, #FAF6EE 100%)',
+        border: '1.5px solid rgba(139,90,43,0.2)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)', border: '2px solid #D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>👳‍♂️</div>
+          <div>
+            <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontWeight: 700, color: '#2A2321', margin: 0, lineHeight: 1.2 }}>Concierge Desk</h4>
+            <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '10px', color: 'rgba(92,84,81,0.7)', margin: 0 }}>Jafar · Chief Travel Advisor</p>
+          </div>
+        </div>
+        <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '12px', fontStyle: 'italic', color: '#5C5451', marginBottom: '12px', lineHeight: 1.55 }}>
+          "Describe your perfect stay—beachfront calm, heritage walls, or Souq proximity—and I shall find your base camp."
         </p>
-
-        <div className="flex gap-2 relative z-10">
+        <div style={{ display: 'flex', gap: '8px' }}>
           <input
             type="text"
             value={filterQuery}
             onChange={e => setFilterQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleFilter()}
             placeholder='e.g. "beachfront sunset" or "near Manama Souq"...'
-            className="flex-1 px-3.5 py-2 text-[13px] font-serif rounded-xl border border-red-500/15 bg-white/90 focus:outline-none focus:border-bahrain-red/40 text-bronze-charcoal placeholder-[#5C5451]/30 shadow-inner"
+            style={{
+              flex: 1, padding: '9px 14px', borderRadius: '12px', fontFamily: 'var(--jn-font-serif)',
+              fontSize: '13px', border: '1px solid rgba(209,26,56,0.15)', background: 'rgba(255,255,255,0.9)',
+              outline: 'none', color: '#2A2321', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)',
+            }}
           />
           <button
             onClick={handleFilter}
             disabled={filterLoading || !filterQuery.trim()}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] border border-[#BA0C2F] text-white text-[11px] font-extrabold uppercase tracking-wide cursor-pointer hover:opacity-95 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-sm"
+            style={{
+              padding: '9px 16px', borderRadius: '12px', flexShrink: 0,
+              background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)',
+              color: '#fff', border: 'none', fontSize: '11px', fontWeight: 700,
+              letterSpacing: '0.05em', cursor: filterLoading || !filterQuery.trim() ? 'not-allowed' : 'pointer',
+              opacity: filterLoading || !filterQuery.trim() ? 0.5 : 1,
+              transition: 'all 0.2s ease',
+            }}
           >
             {filterLoading ? '...' : '🤖 Match'}
           </button>
@@ -293,15 +446,11 @@ export default function AIHotelPanel({ moods, tier, duration }) {
       </div>
 
       {filterResult && (
-        <div 
-          className="p-3 rounded-xl border text-[12.5px] font-serif italic text-[#2A2321] leading-relaxed relative animate-fadeIn"
-          style={{
-            background: '#FFFDF9',
-            borderLeft: '4px solid #D4AF37',
-            borderColor: 'rgba(212,175,55,0.25)'
-          }}
-        >
-          <div className="absolute top-1.5 right-2 text-[10px] text-bahrain-red font-sans font-bold uppercase tracking-widest opacity-40">Advisor</div>
+        <div style={{
+          padding: '12px 16px', borderRadius: '12px', background: '#FFFDF9',
+          borderLeft: '3px solid #D4AF37', fontSize: '13px', fontFamily: 'var(--jn-font-serif)',
+          fontStyle: 'italic', lineHeight: 1.6, color: '#2A2321',
+        }}>
           🗣️ {filterResult}
         </div>
       )}

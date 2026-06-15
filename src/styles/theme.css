@@ -822,58 +822,57 @@
   }
 }
 
-/* Font Legibility & Contrast Overrides inside the Journal */
+/* ── Clean Typographic Hierarchy (no !important nukes) ────────────────────── */
 .journal-page-left, .journal-page-right {
-  color: #0d0a09 !important;
+  color: #1a1210;
+}
+
+.journal-page-left h2,
+.journal-page-right h2 {
+  color: #0d0a09;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.25;
+  font-family: var(--font-serif);
 }
 
 .journal-page-left h3,
 .journal-page-right h3 {
-  color: #0d0a09 !important;
-  font-weight: 800 !important;
+  color: #0d0a09;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .journal-page-left h4,
 .journal-page-right h4 {
-  color: #0d0a09 !important;
-  font-weight: 800 !important;
+  color: #1a1210;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .journal-page-left p,
 .journal-page-right p {
-  color: #14100e !important;
-  font-weight: 700 !important;
-  font-size: 13.5px !important;
-  line-height: 1.62 !important;
+  color: #2a2321;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  font-weight: 400;
 }
 
-.journal-page-left span,
-.journal-page-right span {
-  font-weight: 800 !important;
-}
-
-.journal-page-left .text-bahrain-red,
-.journal-page-right .text-bahrain-red {
-  color: #C1122F !important;
-}
-
-.journal-page-left .text-bronze-muted,
-.journal-page-right .text-bronze-muted {
-  color: #3b2f2b !important;
-  font-weight: 700 !important;
+.journal-page-left .caption,
+.journal-page-right .caption {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5C5451;
 }
 
 .journal-page-left textarea,
 .journal-page-right textarea {
-  color: #0d0a09 !important;
-  font-weight: 700 !important;
-  font-size: 13.5px !important;
-}
-
-.journal-page-left label,
-.journal-page-right label {
-  color: #0d0a09 !important;
-  font-weight: 800 !important;
+  color: #1a1210;
+  font-size: 0.875rem;
+  line-height: 1.6;
 }
 
 /* Steaming Tea and Ticking Watch Props */
@@ -1068,10 +1067,220 @@
   animation: rankPulse 2s ease-in-out infinite;
 }
 
+/* ── Tab Navigation Pill Bar ──────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: rgba(250, 249, 246, 0.95);
+  border-radius: 999px;
+  border: 1px solid rgba(209, 26, 56, 0.1);
+  box-shadow: 0 1px 4px rgba(42, 35, 33, 0.06), inset 0 1px 0 rgba(255,255,255,0.8);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
+.tab-bar::-webkit-scrollbar { display: none; }
 
+.tab-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #5C5451;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 36px;
+}
 
+.tab-pill:hover {
+  background: rgba(209, 26, 56, 0.06);
+  color: #D11A38;
+}
 
+.tab-pill.active {
+  background: #D11A38;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(209, 26, 56, 0.3);
+}
 
+/* ── Hotel & Spot Cards ───────────────────────────────────────────────────── */
+.hotel-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(209, 26, 56, 0.1);
+  border-radius: 16px;
+  padding: 1rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
 
+.hotel-card:hover {
+  border-color: rgba(209, 26, 56, 0.28);
+  box-shadow: 0 8px 24px rgba(209, 26, 56, 0.08);
+  transform: translateY(-2px);
+}
 
+.hotel-card.selected {
+  border-color: #D11A38;
+  background: rgba(209, 26, 56, 0.03);
+  box-shadow: 0 0 0 2px rgba(209, 26, 56, 0.12), 0 8px 24px rgba(209, 26, 56, 0.1);
+}
+
+.spot-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid rgba(209, 26, 56, 0.08);
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spot-card:hover {
+  box-shadow: 0 8px 24px rgba(42, 35, 33, 0.08);
+  transform: translateY(-1px);
+}
+
+/* ── Day Badge Pills ──────────────────────────────────────────────────────── */
+.day-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid rgba(209, 26, 56, 0.15);
+  background: #ffffff;
+  color: #2A2321;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.day-badge:hover {
+  border-color: rgba(209, 26, 56, 0.4);
+  background: rgba(209, 26, 56, 0.05);
+}
+
+.day-badge.active {
+  background: #D11A38;
+  border-color: #D11A38;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(209, 26, 56, 0.3);
+}
+
+.day-badge.locked {
+  background: rgba(209, 26, 56, 0.04);
+  border-style: dashed;
+  color: rgba(42, 35, 33, 0.3);
+  cursor: not-allowed;
+}
+
+.day-badge.completed {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #059669;
+}
+
+/* ── Slide-in animation for tab transitions ───────────────────────────────── */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-18px); }
+  to   { opacity: 1; transform: translateX(0);     }
+}
+
+.tab-slide-in-right {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.tab-slide-in-left {
+  animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Skeleton loading pulse ───────────────────────────────────────────────── */
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1;   }
+}
+
+.skeleton {
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f0ede8 25%, #faf9f6 50%, #f0ede8 75%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}
+
+/* ── Premium CTA button ───────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #D11A38, #A81028);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(209, 26, 56, 0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(209, 26, 56, 0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(209, 26, 56, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Ghost / outline button ───────────────────────────────────────────────── */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  background: transparent;
+  color: #D11A38;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: 1.5px solid rgba(209, 26, 56, 0.25);
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.btn-ghost:hover {
+  background: rgba(209, 26, 56, 0.06);
+  border-color: rgba(209, 26, 56, 0.45);
+}
