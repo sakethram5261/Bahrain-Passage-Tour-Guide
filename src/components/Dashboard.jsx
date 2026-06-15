@@ -57,6 +57,8 @@ export default function Dashboard() {
     unlockKeepsake,
     saveLensStory,
     setStep,
+    selectedHotel,
+    setSelectedHotel,
   } = useVibe()
 
   const rank = getRank(xp)
@@ -1187,6 +1189,46 @@ export default function Dashboard() {
                         </span>
                         
                         <div className="space-y-2 mt-1">
+                          {/* 1. Departure Base Camp Stop */}
+                          {selectedHotel ? (
+                            <button
+                              onClick={() => handleLeafSwitch('hotels')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF9] text-left transition-all hover:border-[#D4AF37]/60"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-xs shrink-0">🏡</span>
+                                <div className="flex flex-col min-w-0">
+                                  <span className="font-serif text-[10px] font-bold text-bronze-charcoal truncate">
+                                    Base Camp Departure
+                                  </span>
+                                  <span className="font-sans text-[8px] text-bronze-muted/70 truncate">
+                                    {selectedHotel.name} ({selectedHotel.neighborhood.split(',')[0]})
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="font-mono text-[7px] text-bahrain-red/60 uppercase tracking-widest font-bold">Start</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleLeafSwitch('hotels')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl border border-dashed border-[#BA0C2F]/20 bg-[#FAF9F6]/50 text-left transition-all hover:bg-[#BA0C2F]/5"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-xs shrink-0">🏨</span>
+                                <div className="flex flex-col min-w-0">
+                                  <span className="font-serif text-[10px] font-bold text-[#BA0C2F] underline truncate font-extrabold">
+                                    Select Base Camp
+                                  </span>
+                                  <span className="font-sans text-[8px] text-bronze-muted/50 truncate font-semibold">
+                                    Tap to find AI accommodations
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="font-mono text-[7px] text-[#BA0C2F]/60 uppercase tracking-widest font-bold">Stay</span>
+                            </button>
+                          )}
+
+                          {/* 2. Destination Stops */}
                           {activeSpots.map((spot, idx) => {
                             const isSelected = activeSpot && activeSpot.id === spot.id
                             const scanned = hasKeepsake(spot.id)
@@ -1213,11 +1255,32 @@ export default function Dashboard() {
                                   </span>
                                 </div>
                                 <span className="font-mono text-[7px] text-bronze-muted/40 tracking-wider">
-                                  {spot.coords}
+                                  {spot.coords.split(',')[0]}
                                 </span>
                               </button>
                             )
                           })}
+
+                          {/* 3. Overnight Return Stay */}
+                          {hasSpots && selectedHotel && (
+                            <button
+                              onClick={() => handleLeafSwitch('hotels')}
+                              className="w-full flex items-center justify-between p-2 rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF9] text-left transition-all hover:border-[#D4AF37]/60"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-xs shrink-0">🛌</span>
+                                <div className="flex flex-col min-w-0">
+                                  <span className="font-serif text-[10px] font-bold text-bronze-charcoal truncate font-extrabold">
+                                    Overnight Rest
+                                  </span>
+                                  <span className="font-sans text-[8px] text-bronze-muted/70 truncate font-semibold">
+                                    Return to {selectedHotel.name}
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="font-mono text-[7px] text-bronze-muted/40 uppercase tracking-widest font-bold">End</span>
+                            </button>
+                          )}
                         </div>
                       </div>
 

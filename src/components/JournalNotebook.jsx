@@ -172,6 +172,8 @@ export default function JournalNotebook({ onBack }) {
     showPassportCard = false,
     setShowPassportCard = () => {},
     passportStamps = [],
+    selectedHotel,
+    setSelectedHotel,
   } = useVibe() || {}
 
   /* ── Dynamic itinerary loading ──────────────────────────────────────────── */
@@ -1110,6 +1112,56 @@ export default function JournalNotebook({ onBack }) {
 
                     {/* Itinerary timeline stops */}
                     <ol className="jn-timeline" aria-label="Day itinerary stops">
+                      {/* 1. Departure Base Camp Stop */}
+                      {selectedHotel ? (
+                        <li
+                          className="jn-timeline-item"
+                          onClick={() => {
+                            setActiveTab('hotels')
+                            playTypewriterClick(0.9)
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="jn-tl-node" aria-hidden="true">
+                            <span className="jn-tl-emoji">🏡</span>
+                            <div className="jn-tl-connector" />
+                          </div>
+                          <div className="jn-tl-content">
+                            <div className="jn-tl-meta">
+                              <span className="jn-tl-stop-num">Base Camp Departure</span>
+                            </div>
+                            <h3 className="jn-tl-stop-name" style={{ color: 'var(--jn-ink)' }}>
+                              Start at {selectedHotel.name}
+                            </h3>
+                            <p className="jn-tl-note" style={{ fontSize: '11px' }}>📍 {selectedHotel.neighborhood}</p>
+                          </div>
+                        </li>
+                      ) : (
+                        <li
+                          className="jn-timeline-item"
+                          onClick={() => {
+                            setActiveTab('hotels')
+                            playTypewriterClick(0.9)
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="jn-tl-node" aria-hidden="true">
+                            <span className="jn-tl-emoji">🏨</span>
+                            <div className="jn-tl-connector" style={{ borderLeft: '2px dashed rgba(186,12,47,0.25)', background: 'transparent' }} />
+                          </div>
+                          <div className="jn-tl-content" style={{ opacity: 0.85 }}>
+                            <div className="jn-tl-meta">
+                              <span className="jn-tl-stop-num" style={{ color: '#BA0C2F', fontWeight: 'bold' }}>Stay Accommodation</span>
+                            </div>
+                            <h3 className="jn-tl-stop-name" style={{ color: 'var(--jn-crimson)', textDecoration: 'underline' }}>
+                              Establish Base Camp stay
+                            </h3>
+                            <p className="jn-tl-note" style={{ fontSize: '11px', color: 'var(--jn-ink-faint)' }}>Tap to select an AI recommended hotel</p>
+                          </div>
+                        </li>
+                      )}
+
+                      {/* 2. Destination Stops */}
                       {activeSpots.map((stop, idx) => {
                         const isSelected = activeSpot && activeSpot.id === stop.id
                         const hasPic = !!capturedPhotos[stop.id]
@@ -1129,7 +1181,7 @@ export default function JournalNotebook({ onBack }) {
                           >
                             <div className="jn-tl-node" aria-hidden="true">
                               <span className="jn-tl-emoji">{hasPic ? '📸' : idx + 1}</span>
-                              {idx < activeSpots.length - 1 && <div className="jn-tl-connector" />}
+                              <div className="jn-tl-connector" />
                             </div>
                             <div className="jn-tl-content">
                               <div className="jn-tl-meta">
@@ -1146,7 +1198,7 @@ export default function JournalNotebook({ onBack }) {
                         )
                       })}
 
-                      {/* Seal day timeline node */}
+                      {/* 3. Seal Day Stop */}
                       {hasSpots && (
                         <li
                           className={`jn-timeline-item ${isSealStep ? 'jn-timeline-item--active' : ''}`}
@@ -1161,6 +1213,7 @@ export default function JournalNotebook({ onBack }) {
                         >
                           <div className="jn-tl-node" aria-hidden="true">
                             <span className="jn-tl-emoji">{isDayCompleted ? '✓' : '🔒'}</span>
+                            {selectedHotel && <div className="jn-tl-connector" />}
                           </div>
                           <div className="jn-tl-content">
                             <div className="jn-tl-meta">
@@ -1170,6 +1223,31 @@ export default function JournalNotebook({ onBack }) {
                             <p className="jn-tl-note" style={{ fontSize: '11px' }}>
                               {isDayCompleted ? '✓ Entry fully sealed & passkey active' : 'Authenticate entry with the border stamp'}
                             </p>
+                          </div>
+                        </li>
+                      )}
+
+                      {/* 4. Overnight Return Stay */}
+                      {hasSpots && selectedHotel && (
+                        <li
+                          className="jn-timeline-item"
+                          onClick={() => {
+                            setActiveTab('hotels')
+                            playTypewriterClick(1.2)
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="jn-tl-node" aria-hidden="true">
+                            <span className="jn-tl-emoji">🛌</span>
+                          </div>
+                          <div className="jn-tl-content">
+                            <div className="jn-tl-meta">
+                              <span className="jn-tl-stop-num">Overnight Rest</span>
+                            </div>
+                            <h3 className="jn-tl-stop-name" style={{ color: 'var(--jn-ink)' }}>
+                              Return to {selectedHotel.name}
+                            </h3>
+                            <p className="jn-tl-note" style={{ fontSize: '11px' }}>Rest and reflect on your Day {currentDayTab} passage</p>
                           </div>
                         </li>
                       )}

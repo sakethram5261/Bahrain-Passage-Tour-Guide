@@ -75,6 +75,7 @@ export function VibeProvider({ children }) {
 
   // Pearl quest progress — global so it persists across tab switches
   const [pearlsCollected, setPearlsCollected] = useState(() => safeGetJSON('bp_pearlsCollected', []))
+  const [selectedHotel, setSelectedHotel] = useState(() => safeGetJSON('bp_selectedHotel', null))
   const aligned = step === 5
 
   useEffect(() => {
@@ -109,6 +110,7 @@ export function VibeProvider({ children }) {
       localStorage.setItem('bp_characterRep', JSON.stringify(characterRep))
       localStorage.setItem('bp_passportStamps', JSON.stringify(passportStamps))
       localStorage.setItem('bp_pearlsCollected', JSON.stringify(pearlsCollected))
+      localStorage.setItem('bp_selectedHotel', selectedHotel ? JSON.stringify(selectedHotel) : '')
     } catch (e) {
       console.error("Error writing to localStorage", e)
     }
@@ -117,7 +119,7 @@ export function VibeProvider({ children }) {
     currentDayTab, curatedItinerary, itinerarySpots, capturedPhotos, lensStories,
     activeGuide, collectedKeepsakes, journalReflections, soundVolume, soundMuted,
     activeLeaf, xp, xpLog, solvedRiddles, goldFils, characterRep, passportStamps,
-    pearlsCollected
+    pearlsCollected, selectedHotel
   ])
 
   const awardXP = useCallback((amount, reason) => {
@@ -302,6 +304,8 @@ export function VibeProvider({ children }) {
       awardReputation,
       pearlsCollected,
       setPearlsCollected,
+      selectedHotel,
+      setSelectedHotel,
     }}>
       {children}
     </VibeContext.Provider>

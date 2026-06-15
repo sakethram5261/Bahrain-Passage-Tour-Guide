@@ -19,6 +19,7 @@ const CAT_ICON = {
   culture: '🏺',
   desert: '🌿',
   modern: '✨',
+  hotel: '🏡',
 }
 
 // Dilmun Pearl Hunt clues
@@ -103,6 +104,7 @@ export default function WayfarerMap({ locations, onClose }) {
     pearlsCollected,
     setPearlsCollected,
     duration,
+    selectedHotel,
   } = useVibe()
 
   // ── Local state ───────────────────────────────────────────────────────────
@@ -590,6 +592,41 @@ export default function WayfarerMap({ locations, onClose }) {
                   <text x="34" y="-4" fill="#C1122F" fontSize="11" fontWeight="bold" fontFamily="serif" stroke="none">N</text>
                 </g>
 
+                {/* Hotel Base Camp routes */}
+                {selectedHotel && activeSpots.length > 0 && (() => {
+                  const hotelCoords = parseCoordsStr(selectedHotel.coords)
+                  const firstSpotCoords = parseCoordsStr(activeSpots[0].coords)
+                  const lastSpotCoords = parseCoordsStr(activeSpots[activeSpots.length - 1].coords)
+                  return (
+                    <>
+                      {/* Departure route: Hotel -> First Spot */}
+                      <line
+                        x1={hotelCoords.x}
+                        y1={hotelCoords.y}
+                        x2={firstSpotCoords.x}
+                        y2={firstSpotCoords.y}
+                        fill="none"
+                        stroke="#b38600"
+                        strokeWidth={2.5/zoom}
+                        strokeDasharray={`4,4`}
+                        opacity="0.8"
+                      />
+                      {/* Return route: Last Spot -> Hotel */}
+                      <line
+                        x1={lastSpotCoords.x}
+                        y1={lastSpotCoords.y}
+                        x2={hotelCoords.x}
+                        y2={hotelCoords.y}
+                        fill="none"
+                        stroke="#b38600"
+                        strokeWidth={2/zoom}
+                        strokeDasharray={`4,4`}
+                        opacity="0.5"
+                      />
+                    </>
+                  )
+                })()}
+
                 {/* Active route polyline */}
                 {activeSpots.length > 1 && (
                   <polyline
@@ -678,6 +715,41 @@ export default function WayfarerMap({ locations, onClose }) {
                     </g>
                   )
                 })}
+
+                {/* Selected Hotel Base Camp Marker */}
+                {selectedHotel && (() => {
+                  const hotelCoords = parseCoordsStr(selectedHotel.coords)
+                  return (
+                    <g
+                      transform={`translate(${hotelCoords.x},${hotelCoords.y}) scale(${1.25/zoom})`}
+                      onMouseEnter={() => setHoveredSpot({
+                        ...selectedHotel,
+                        category: 'hotel',
+                        arabic: 'المقر الرئيسي (الفندق)',
+                        period: selectedHotel.neighborhood
+                      })}
+                      onMouseLeave={() => setHoveredSpot(null)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {/* Pulse ring */}
+                      <circle cx="0" cy="0" r="14" className="map-pulse"
+                        fill="rgba(212,175,55,0.06)" stroke="rgba(212,175,55,0.45)" strokeWidth="1.5" />
+
+                      {/* Main gold key circle */}
+                      <circle cx="0" cy="0" r="9" fill="#FFFDF9" stroke="#D4AF37" strokeWidth="1.8" />
+                      <text x="0" y="3" textAnchor="middle" fontSize="9" style={{ pointerEvents: 'none' }}>🔑</text>
+
+                      {/* Label text */}
+                      <text x="0" y="-13"
+                        textAnchor="middle" fontSize="6.5"
+                        fontWeight="900" fontFamily="serif" fill="#BA0C2F"
+                        style={{ pointerEvents: 'none' }}
+                      >
+                        BASE CAMP
+                      </text>
+                    </g>
+                  )
+                })()}
 
                 {/* Border frame (inside transform) */}
                 <rect x="1" y="1" width={MAP_W-2} height={MAP_H-2}
