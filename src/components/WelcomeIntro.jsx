@@ -368,15 +368,7 @@ export default function WelcomeIntro({ onComplete }) {
         muted
         loop
         playsInline
-        style={{
-          position: 'absolute',
-          top: '-4%',
-          left: '-4%',
-          width: '108%',
-          height: '108%',
-          objectFit: 'cover',
-          zIndex: 0,
-        }}
+        className="jn-welcome-video"
         poster="/assets/images/bahrain_skyline.png"
       >
         <source src="/assets/videos/bahrain_timelapse.mp4" type="video/mp4" />
@@ -723,10 +715,23 @@ export default function WelcomeIntro({ onComplete }) {
 
       {/* ── Keyframes ──────────────────────────────────────────────────────── */}
       <style>{`
+        .jn-welcome-video {
+          position: absolute;
+          top: -4%;
+          left: -4%;
+          width: 108%;
+          height: 108%;
+          object-fit: cover;
+          z-index: 0;
+          object-position: center;
+        }
         .jn-intro-text-container {
           transform: translateY(-10px);
         }
         @media (max-width: 768px) {
+          .jn-welcome-video {
+            object-position: 20% center !important;
+          }
           .jn-intro-text-container {
             transform: translateY(-50px) !important;
           }
