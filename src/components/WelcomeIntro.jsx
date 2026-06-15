@@ -719,8 +719,10 @@ export default function WelcomeIntro({ onComplete }) {
           position: absolute;
           top: -4%;
           left: -4%;
-          width: 108%;
-          height: 108%;
+          width: 108% !important;
+          height: 108% !important;
+          max-width: none !important;
+          max-height: none !important;
           object-fit: cover;
           z-index: 0;
           object-position: center;
