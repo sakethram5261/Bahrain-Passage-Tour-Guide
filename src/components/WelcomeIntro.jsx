@@ -362,19 +362,24 @@ export default function WelcomeIntro({ onComplete }) {
         willChange: 'opacity, transform',
       }}
     >
-      {/* ── Image Background with Ken Burns effect ──────────────────────────── */}
-      <div
+      {/* ── Background Video / Image Fallback ─────────────────────────────── */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: 'url(/assets/images/bahrain_skyline.png)',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'cover',
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
           zIndex: 0,
-          animation: 'kenBurnsIntro 16s ease-in-out infinite',
         }}
-      />
+        poster="/assets/images/bahrain_skyline.png"
+      >
+        <source src="/assets/videos/bahrain_timelapse.mp4" type="video/mp4" />
+      </video>
 
       {/* ── Cinematic Dark Overlay ─────────────────────────────────────────── */}
       <div
