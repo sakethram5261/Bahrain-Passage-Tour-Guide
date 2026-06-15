@@ -850,6 +850,9 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         messages: messagesPayload,
         response_format: {
           type: 'json_object'
+        },
+        reasoning: {
+          effort: 'none'
         }
       })
     })
@@ -976,7 +979,10 @@ Always make sure the response is a valid JSON object. Do not include markdown co
           parts: [{ text: systemInstructionText }]
         },
         generationConfig: {
-          responseMimeType: "application/json"
+          responseMimeType: "application/json",
+          thinkingConfig: {
+            thinkingBudget: 0
+          }
         }
       })
     })

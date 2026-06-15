@@ -187,7 +187,7 @@ export default function AIHotelPanel({ moods, tier, duration }) {
       const result = await callLocalAI(
         `You are a Bahrain hotel concierge. Based on the traveler's request, recommend the BEST hotel from the list in this exact format: "HOTEL: [name] | REASON: [1 sentence]"`,
         `Traveler says: "${filterQuery}"\n\nHotels:\n${hotelList}`,
-        `I recommend The Merchant House as the best fit for your needs.`,
+        `HOTEL: The Merchant House | REASON: Highly recommended for food lovers and travelers seeking Bab Al Bahrain heritage.`,
         { useCache: false, maxTokens: 80 }
       )
       

@@ -58,7 +58,10 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
         },
         generationConfig: {
           temperature: temperature,
-          maxOutputTokens: maxTokens
+          maxOutputTokens: maxTokens,
+          thinkingConfig: {
+            thinkingBudget: 0
+          }
         }
       }
       if (isJson) {
@@ -110,18 +113,24 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
           headers['X-Title'] = 'Bahrain Passage Tour Guide'
         }
 
+        const requestBody = {
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature,
+          max_tokens: maxTokens,
+        }
+
+        if (model.toLowerCase().includes('gemini')) {
+          requestBody.reasoning = { effort: 'none' }
+        }
+
         const res = await fetch(baseUrl, {
           method: 'POST',
           headers,
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature,
-            max_tokens: maxTokens,
-          }),
+          body: JSON.stringify(requestBody),
           signal: AbortSignal.timeout(15000), // 15s max
         })
 
