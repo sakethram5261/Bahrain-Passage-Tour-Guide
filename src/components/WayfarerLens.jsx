@@ -12,7 +12,8 @@ export default function WayfarerLens({ spot, onClose }) {
     saveLensStory, 
     lensStories, 
     activeGuide, 
-    unlockKeepsake 
+    unlockKeepsake,
+    capturedPhotos = {}
   } = useVibe()
   
   const videoRef = useRef(null)
@@ -99,7 +100,7 @@ export default function WayfarerLens({ spot, onClose }) {
       
       osc.start()
       osc.stop(audioCtx.currentTime + duration)
-    } catch(e){}
+    } catch { /* ignore */ }
   }
 
   const handleCapture = async () => {
@@ -111,7 +112,7 @@ export default function WayfarerLens({ spot, onClose }) {
       const shutterSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav')
       shutterSfx.volume = 0.25
       shutterSfx.play().catch(() => {})
-    } catch(e){}
+    } catch { /* ignore */ }
 
     // Play physical camera flash animation
     gsap.fromTo(flashRef.current,
@@ -399,6 +400,22 @@ export default function WayfarerLens({ spot, onClose }) {
               <h4 className="font-serif text-2xl text-bronze-charcoal font-semibold mb-3">
                 {spot.name}
               </h4>
+
+              {/* Polaroid chemical noise and gradual color bleed visual */}
+              <div className="w-full h-36 rounded-xl overflow-hidden relative border-4 border-white shadow-md bg-zinc-900 mb-4 flex items-center justify-center">
+                <img 
+                  src={capturedPhotos[spot.id] || spot.image} 
+                  alt={spot.name} 
+                  className="w-full h-full object-cover jn-photo-developing"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+                <div className="absolute bottom-1 right-2 border border-white/45 rounded-full w-8 h-8 rotate-12 flex flex-col items-center justify-center text-white/50 text-[3.5px] font-serif leading-none font-bold select-none pointer-events-none">
+                  <span>SEALED</span>
+                </div>
+              </div>
 
               {/* Photo Clarity Rank badge */}
               {photoRank && (

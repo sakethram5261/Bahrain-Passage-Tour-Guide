@@ -1,15 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { VibeContext } from './VibeContext'
-import { RANKS, getRank, getNextRank } from '../components/DashboardData'
-
-export { RANKS, getRank, getNextRank }
 
 const safeGetJSON = (key, defaultValue) => {
   try {
     const item = localStorage.getItem(key)
     if (!item) return defaultValue
     return JSON.parse(item)
-  } catch (e) {
+  } catch {
     return defaultValue
   }
 }
@@ -20,7 +17,7 @@ const safeGetNum = (key, defaultValue) => {
     if (!item) return defaultValue
     const val = Number(item)
     return isNaN(val) ? defaultValue : val
-  } catch (e) {
+  } catch {
     return defaultValue
   }
 }
@@ -29,7 +26,7 @@ const safeGetStr = (key, defaultValue) => {
   try {
     const item = localStorage.getItem(key)
     return item !== null ? item : defaultValue
-  } catch (e) {
+  } catch {
     return defaultValue
   }
 }
@@ -79,48 +76,134 @@ export function VibeProvider({ children }) {
   const aligned = step === 5
 
   useEffect(() => {
-    setCurrentSpotIndex(0)
+    queueMicrotask(() => {
+      setCurrentSpotIndex(0)
+    })
+  }, [currentDayTab])
+
+  // Prune completed and unlocked days if duration is decreased, preventing zombie days
+  useEffect(() => {
+    queueMicrotask(() => {
+      setUnlockedDays(prev => {
+        const filtered = prev.filter(d => d <= duration)
+        return filtered.length === 0 ? [1] : filtered
+      })
+      setCompletedDays(prev => prev.filter(d => d <= duration))
+      if (currentDayTab > duration) {
+        setCurrentDayTab(1)
+        setCurrentSpotIndex(0)
+      }
+    })
+  }, [duration, currentDayTab])
+
+  // Optimized single-variable localStorage synchronization hooks
+  useEffect(() => {
+    try { localStorage.setItem('bp_step', step) } catch (e) { console.error(e) }
+  }, [step])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_selectedMoods', JSON.stringify(selectedMoods)) } catch (e) { console.error(e) }
+  }, [selectedMoods])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_tier', tier) } catch (e) { console.error(e) }
+  }, [tier])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_duration', duration) } catch (e) { console.error(e) }
+  }, [duration])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_pace', pace) } catch (e) { console.error(e) }
+  }, [pace])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_progress', progress) } catch (e) { console.error(e) }
+  }, [progress])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_unlockedDays', JSON.stringify(unlockedDays)) } catch (e) { console.error(e) }
+  }, [unlockedDays])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_completedDays', JSON.stringify(completedDays)) } catch (e) { console.error(e) }
+  }, [completedDays])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_currentDayTab', currentDayTab) } catch (e) { console.error(e) }
   }, [currentDayTab])
 
   useEffect(() => {
-    try {
-      localStorage.setItem('bp_step', step)
-      localStorage.setItem('bp_selectedMoods', JSON.stringify(selectedMoods))
-      localStorage.setItem('bp_tier', tier)
-      localStorage.setItem('bp_duration', duration)
-      localStorage.setItem('bp_pace', pace)
-      localStorage.setItem('bp_progress', progress)
-      localStorage.setItem('bp_unlockedDays', JSON.stringify(unlockedDays))
-      localStorage.setItem('bp_completedDays', JSON.stringify(completedDays))
-      localStorage.setItem('bp_currentDayTab', currentDayTab)
-      localStorage.setItem('bp_curatedItinerary', curatedItinerary ? JSON.stringify(curatedItinerary) : '')
-      localStorage.setItem('bp_itinerarySpots', JSON.stringify(itinerarySpots))
-      localStorage.setItem('bp_capturedPhotos', JSON.stringify(capturedPhotos))
-      localStorage.setItem('bp_lensStories', JSON.stringify(lensStories))
-      localStorage.setItem('bp_activeGuide', activeGuide)
-      localStorage.setItem('bp_collectedKeepsakes', JSON.stringify(collectedKeepsakes))
-      localStorage.setItem('bp_journalReflections', JSON.stringify(journalReflections))
-      localStorage.setItem('bp_soundVolume', soundVolume)
-      localStorage.setItem('bp_soundMuted', soundMuted ? '1' : '0')
-      localStorage.setItem('bp_activeLeaf', activeLeaf)
-      localStorage.setItem('bp_xp', xp)
-      localStorage.setItem('bp_xpLog', JSON.stringify(xpLog))
-      localStorage.setItem('bp_solvedRiddles', JSON.stringify(solvedRiddles))
-      localStorage.setItem('bp_goldFils', goldFils)
-      localStorage.setItem('bp_characterRep', JSON.stringify(characterRep))
-      localStorage.setItem('bp_passportStamps', JSON.stringify(passportStamps))
-      localStorage.setItem('bp_pearlsCollected', JSON.stringify(pearlsCollected))
-      localStorage.setItem('bp_selectedHotel', selectedHotel ? JSON.stringify(selectedHotel) : '')
-    } catch (e) {
-      console.error("Error writing to localStorage", e)
-    }
-  }, [
-    step, selectedMoods, tier, duration, pace, progress, unlockedDays, completedDays,
-    currentDayTab, curatedItinerary, itinerarySpots, capturedPhotos, lensStories,
-    activeGuide, collectedKeepsakes, journalReflections, soundVolume, soundMuted,
-    activeLeaf, xp, xpLog, solvedRiddles, goldFils, characterRep, passportStamps,
-    pearlsCollected, selectedHotel
-  ])
+    try { localStorage.setItem('bp_curatedItinerary', curatedItinerary ? JSON.stringify(curatedItinerary) : '') } catch (e) { console.error(e) }
+  }, [curatedItinerary])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_itinerarySpots', JSON.stringify(itinerarySpots)) } catch (e) { console.error(e) }
+  }, [itinerarySpots])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_capturedPhotos', JSON.stringify(capturedPhotos)) } catch (e) { console.error(e) }
+  }, [capturedPhotos])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_lensStories', JSON.stringify(lensStories)) } catch (e) { console.error(e) }
+  }, [lensStories])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_activeGuide', activeGuide) } catch (e) { console.error(e) }
+  }, [activeGuide])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_collectedKeepsakes', JSON.stringify(collectedKeepsakes)) } catch (e) { console.error(e) }
+  }, [collectedKeepsakes])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_journalReflections', JSON.stringify(journalReflections)) } catch (e) { console.error(e) }
+  }, [journalReflections])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_soundVolume', soundVolume) } catch (e) { console.error(e) }
+  }, [soundVolume])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_soundMuted', soundMuted ? '1' : '0') } catch (e) { console.error(e) }
+  }, [soundMuted])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_activeLeaf', activeLeaf) } catch (e) { console.error(e) }
+  }, [activeLeaf])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_xp', xp) } catch (e) { console.error(e) }
+  }, [xp])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_xpLog', JSON.stringify(xpLog)) } catch (e) { console.error(e) }
+  }, [xpLog])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_solvedRiddles', JSON.stringify(solvedRiddles)) } catch (e) { console.error(e) }
+  }, [solvedRiddles])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_goldFils', goldFils) } catch (e) { console.error(e) }
+  }, [goldFils])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_characterRep', JSON.stringify(characterRep)) } catch (e) { console.error(e) }
+  }, [characterRep])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_passportStamps', JSON.stringify(passportStamps)) } catch (e) { console.error(e) }
+  }, [passportStamps])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_pearlsCollected', JSON.stringify(pearlsCollected)) } catch (e) { console.error(e) }
+  }, [pearlsCollected])
+
+  useEffect(() => {
+    try { localStorage.setItem('bp_selectedHotel', selectedHotel ? JSON.stringify(selectedHotel) : '') } catch (e) { console.error(e) }
+  }, [selectedHotel])
 
   const awardXP = useCallback((amount, reason) => {
     setXp(prev => prev + amount)
@@ -171,7 +254,7 @@ export function VibeProvider({ children }) {
     }
   }
 
-  const markSpotVisited = useCallback((spotId) => {
+  const markSpotVisited = useCallback(() => {
     awardXP(25, 'Spot explored')
     setGoldFils(prev => prev + 80) // Exploratory fils stipend
   }, [awardXP])
@@ -241,10 +324,58 @@ export function VibeProvider({ children }) {
     }
   }
 
+  const transitionSetStep = useCallback((val) => {
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        setStep(val)
+      })
+    } else {
+      setStep(val)
+    }
+  }, [])
+
+  const playOrganicPageSwish = useCallback(() => {
+    if (soundMuted) return
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext
+      if (!AudioContext) return
+      const ctx = new AudioContext()
+      
+      const bufferSize = ctx.sampleRate * 0.35 // 350ms swish duration
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+      const data = buffer.getChannelData(0)
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1
+      }
+      
+      const noise = ctx.createBufferSource()
+      noise.buffer = buffer
+      
+      const filter = ctx.createBiquadFilter()
+      filter.type = 'bandpass'
+      const baseFreq = 400 + Math.random() * 80
+      filter.frequency.setValueAtTime(baseFreq, ctx.currentTime)
+      filter.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.3)
+      filter.Q.setValueAtTime(3.0, ctx.currentTime)
+      
+      const gain = ctx.createGain()
+      gain.gain.setValueAtTime(0, ctx.currentTime)
+      gain.gain.linearRampToValueAtTime(0.08 * soundVolume, ctx.currentTime + 0.05)
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35)
+      
+      noise.connect(filter)
+      filter.connect(gain)
+      gain.connect(ctx.destination)
+      
+      noise.start()
+    } catch { /* ignore */ }
+  }, [soundMuted, soundVolume])
+
   return (
     <VibeContext.Provider value={{ 
       step, 
-      setStep, 
+      setStep: transitionSetStep, 
+      playOrganicPageSwish, 
       selectedMoods,
       setSelectedMoods,
       tier, 

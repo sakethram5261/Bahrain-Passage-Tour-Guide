@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useVibe } from '../hooks/useVibe'
 import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
 import WayfarerLens from './WayfarerLens'
@@ -6,8 +6,14 @@ import WayfarerMap from './WayfarerMap'
 import PassportCard from './PassportCard'
 import TourChatbot from './TourChatbot'
 import VirtualTour, { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
-import { Carousel_002 } from './v1/skiper48'
-import { RANKS, getRank, getNextRank, RIDDLES, getGuideThoughts, shopItems, getAlmanac, guides } from './DashboardData'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { EffectCards, Navigation, Pagination, Autoplay } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/effect-cards'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
+import { getRank, getNextRank, RIDDLES, shopItems, getAlmanac } from './DashboardData'
+
 import AIHotelPanel from './AIHotelPanel'
 import AIBudgetAdvisor from './AIBudgetAdvisor'
 import AISpotSuggestion from './AISpotSuggestion'
@@ -19,15 +25,12 @@ export default function Dashboard() {
     selectedMoods, 
     tier, 
     duration, 
-    resetChronicle, 
     unlockedDays, 
     completedDays, 
     completeDay,
     currentDayTab, 
     setCurrentDayTab, 
     curatedItinerary,
-    activeGuide,
-    setActiveGuide,
     collectedKeepsakes,
     soundVolume,
     setSoundVolume,
@@ -48,9 +51,6 @@ export default function Dashboard() {
     solveRiddle,
     goldFils,
     setGoldFils,
-    characterRep,
-    setCharacterRep,
-    passportStamps,
     spendFils,
     awardReputation,
     awardXP,
@@ -58,8 +58,8 @@ export default function Dashboard() {
     saveLensStory,
     setStep,
     selectedHotel,
-    setSelectedHotel,
   } = useVibe()
+
 
   const rank = getRank(xp)
   const nextRank = getNextRank(xp)
@@ -73,7 +73,7 @@ export default function Dashboard() {
     return `${dd}.${mm}.${yyyy}`
   })()
 
-  const { locations, loading } = useItinerary(selectedMoods, tier, duration, curatedItinerary)
+  const { locations } = useItinerary(selectedMoods, tier, duration, curatedItinerary)
   
   // Move declarations above effects to prevent temporary dead zone issues
   const activeSpots = locations.filter(s => s.day === currentDayTab)
@@ -87,7 +87,7 @@ export default function Dashboard() {
   const [activeScanSpot, setActiveScanSpot] = useState(null)
   const [selectedKeepsake, setSelectedKeepsake] = useState(null)
   const [stamping, setStamping] = useState(false)
-  const [flippingLeaf, setFlippingLeaf] = useState(null)
+  const [flippingLeaf] = useState(null)
 
   // Rank Celebration Modal States
   const prevRankIdRef = useRef(null)
@@ -178,7 +178,7 @@ export default function Dashboard() {
           playString(392.00, 0.08, 0.4) 
           playString(523.25, 0.16, 0.8) 
         }
-      } catch (_) {}
+      } catch { /* ignore */ }
       
       solveRiddle(activeSpot.id)
     } else {
@@ -228,15 +228,15 @@ export default function Dashboard() {
           playNote(392.00, 0.2, 0.6) 
           playNote(523.25, 0.3, 1.2) 
         }
-      } catch (_) {}
+      } catch { /* ignore */ }
       
       prevRankIdRef.current = rank.id
     }
   }, [xp, rank, soundMuted, soundVolume])
 
-  const triggerPageTurnAnimation = (updateFn, direction = 'right') => {
+  const triggerPageTurnAnimation = useCallback((updateFn, _direction = 'right') => {
     updateFn();
-  }
+  }, [])
 
   const handleNextStep = () => {
     if (currentSpotIndex < totalSteps - 1) {
@@ -283,31 +283,7 @@ export default function Dashboard() {
     }, direction)
   }
 
-  const playBookPageFlip = () => {
-    if (soundMuted) return
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext
-      if (!AudioContext) return
-      const audioCtx = new AudioContext()
-      
-      const osc = audioCtx.createOscillator()
-      const gainNode = audioCtx.createGain()
-      osc.type = 'triangle'
-      osc.frequency.setValueAtTime(180, audioCtx.currentTime)
-      osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.35)
-      
-      gainNode.gain.setValueAtTime(0, audioCtx.currentTime)
-      gainNode.gain.linearRampToValueAtTime(0.06 * soundVolume, audioCtx.currentTime + 0.05)
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.32)
-      
-      osc.connect(gainNode)
-      gainNode.connect(audioCtx.destination)
-      osc.start()
-      osc.stop(audioCtx.currentTime + 0.35)
-    } catch (e) {}
-  }
-
-  const handleSealDay = () => {
+  const handleSealDay = useCallback(() => {
     setStamping(true)
     
     if (!soundMuted) {
@@ -328,16 +304,16 @@ export default function Dashboard() {
           osc.start()
           osc.stop(audioCtx.currentTime + 0.3)
         }
-      } catch (e) {}
+      } catch { /* ignore */ }
     }
 
     setTimeout(() => {
       completeDay(currentDayTab)
       setStamping(false)
     }, 1100)
-  }
+  }, [soundMuted, soundVolume, currentDayTab, completeDay])
 
-  const playTypewriterClick = () => {
+  const playTypewriterClick = useCallback(() => {
     if (soundMuted) return
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext
@@ -368,10 +344,10 @@ export default function Dashboard() {
       
       osc.start()
       osc.stop(audioCtx.currentTime + 0.035)
-    } catch (e) {}
-  }
+    } catch { /* ignore */ }
+  }, [soundMuted, soundVolume])
 
-  const playGlossarySound = (arabicText, freqOffset = 0) => {
+  const playGlossarySound = useCallback((arabicText, freqOffset = 0) => {
     if (soundMuted) return
     try {
       window.speechSynthesis.cancel()
@@ -407,23 +383,12 @@ export default function Dashboard() {
       
       playString(146.83 + freqOffset, 0.0, 0.22) 
       playString(220.00 + freqOffset * 1.5, 0.04, 0.16) 
-    } catch (e) {}
-  }
+    } catch { /* ignore */ }
+  }, [soundMuted, soundVolume])
 
   const almanac = getAlmanac(currentDayTab)
 
-  const romanNumerals = { 
-    1: 'Page I', 
-    2: 'Page II', 
-    3: 'Page III', 
-    4: 'Page IV', 
-    5: 'Page V',
-    6: 'Page VI',
-    7: 'Page VII',
-    8: 'Page VIII',
-    9: 'Page IX',
-    10: 'Page X'
-  }
+
   return (
     <div className="min-h-screen wood-desk-backdrop py-6 px-4 md:px-8 flex flex-col items-center justify-start md:justify-center font-sans relative select-none">
       
@@ -1610,6 +1575,81 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function Carousel_002({
+  images = [],
+  showPagination = true,
+  showNavigation = true,
+  loop = true,
+  autoplay = true,
+  spaceBetween = 40
+}) {
+  if (!images || images.length === 0) {
+    return (
+      <div className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-[#a19688]/40 bg-[#FCFBF8] flex flex-col items-center justify-center text-center p-6 text-[#9c8e88]/60 select-none">
+        <span className="text-3xl animate-bounce">📸</span>
+        <span className="font-serif text-[11px] font-bold mt-2">Album Empty</span>
+        <span className="font-sans text-[8.5px] mt-0.5 leading-relaxed">Focus your Wayfarer Lens on chronicle spots and snap photos to print cards here!</span>
+      </div>
+    )
+  }
+
+  const autoplayConfig = autoplay 
+    ? { delay: 3500, disableOnInteraction: false, pauseOnMouseEnter: true }
+    : false
+
+  return (
+    <div className="w-full max-w-[280px] mx-auto py-4 select-none relative skiper-cards-carousel relative">
+      <Swiper
+        effect={'cards'}
+        grabCursor={true}
+        modules={[EffectCards, Navigation, Pagination, Autoplay]}
+        loop={loop && images.length > 1}
+        autoplay={images.length > 1 ? autoplayConfig : false}
+        spaceBetween={spaceBetween}
+        pagination={showPagination && images.length > 1 ? { clickable: true } : false}
+        navigation={showNavigation && images.length > 1 ? true : false}
+        className="mySwiper w-full aspect-[4/3] overflow-visible"
+      >
+        {images.map((img, idx) => (
+          <SwiperSlide 
+            key={idx} 
+            className="rounded-xl overflow-hidden shadow-2xl bg-white border border-[#a19688]/20 p-2.5 pb-8 relative flex flex-col justify-between"
+            style={{ boxSizing: 'border-box' }}
+          >
+            {/* Absolute photo corners in physical album style */}
+            <div className="absolute top-2 left-2 w-2.5 h-2.5 border-t-2 border-l-2 border-black z-20" />
+            <div className="absolute top-2 right-2 w-2.5 h-2.5 border-t-2 border-r-2 border-black z-20" />
+            <div className="absolute bottom-8 left-2 w-2.5 h-2.5 border-b-2 border-l-2 border-black z-20" />
+            <div className="absolute bottom-8 right-2 w-2.5 h-2.5 border-b-2 border-r-2 border-black z-20" />
+
+            <div className="w-full h-[calc(100%-8px)] rounded overflow-hidden relative bg-bahrain-dark flex items-center justify-center">
+              <img 
+                src={img.src} 
+                alt={img.alt || 'Passport snapshot'} 
+                className="w-full h-full object-cover relative z-10"
+              />
+            </div>
+            
+            {/* Postmark stamp simulation on slide */}
+            <div className="absolute bottom-1 right-2 scale-[0.65] origin-bottom-right pointer-events-none select-none opacity-90 z-20">
+              <div className="border-2 border-double border-bahrain-red/60 rounded-full w-14 h-14 rotate-12 flex flex-col items-center justify-center text-bahrain-red font-serif text-[4.5px] font-bold">
+                <span className="uppercase tracking-widest leading-none">PASSPORT</span>
+                <span className="uppercase text-[3.5px] mt-0.5 leading-none">SEALED</span>
+              </div>
+            </div>
+
+            <div className="absolute bottom-1 left-3 right-3 text-left">
+              <span className="font-serif text-[8.5px] text-bronze-charcoal font-bold tracking-tight block truncate">
+                {img.alt}
+              </span>
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
     </div>
   )
 }

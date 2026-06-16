@@ -1,17 +1,11 @@
 /**
  * aiService.js — Shared AI utility for Bahrain Passage Tour Guide
- * Primary: OpenRouter API (free tier, publicly deployed)
- * Fallback: static text strings (works even with no internet)
+ *
+ * All external AI API calls go through the server-side proxy at /api/ai.
+ * No API keys are read or bundled here — the proxy holds them securely.
+ *
+ * Fallback: static text strings (works even with no internet / no server)
  */
-
-const OPENROUTER_BASE = 'https://openrouter.ai/api/v1/chat/completions'
-const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.VITE_DEEPSEEK_API_KEY || ''
-const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || ''
-
-// Model to use via OpenRouter — qwen/qwen-2.5-72b-instruct is free and excellent
-// for narrative/storytelling tasks. Fallback to a smaller free model if needed.
-const PRIMARY_MODEL = 'google/gemini-2.5-flash:free'
-const FALLBACK_MODEL = 'qwen/qwen-2.5-72b-instruct:free'
 
 // In-memory response cache to avoid duplicate API calls
 const responseCache = new Map()
@@ -21,19 +15,20 @@ function hashKey(systemPrompt, userPrompt) {
 }
 
 /**
- * Call OpenRouter AI with system + user prompts.
+ * Call the server-side AI proxy with system + user prompts.
  * Returns AI response string, or fallbackText if the call fails.
  *
  * @param {string} systemPrompt  — Role/instructions for the model
  * @param {string} userPrompt    — The actual user query
  * @param {string} fallbackText  — Static text to return if AI unavailable
- * @param {object} options       — { maxTokens, temperature, cacheKey, useCache }
+ * @param {object} options       — { maxTokens, temperature, cacheKey, useCache, useJson }
  */
 export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', options = {}) {
   const {
-    maxTokens = 150,
+    maxTokens   = 150,
     temperature = 0.75,
-    useCache = true,
+    useCache    = true,
+    useJson     = false,
   } = options
 
   const cacheKey = options.cacheKey || hashKey(systemPrompt, userPrompt)
@@ -42,126 +37,38 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
     return responseCache.get(cacheKey)
   }
 
-  // Priority 1: Gemini Direct (if key available)
-  if (GEMINI_KEY) {
-    try {
-      const isJson = systemPrompt.toLowerCase().includes('json')
-      const bodyPayload = {
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: userPrompt }]
-          }
-        ],
-        systemInstruction: {
-          parts: [{ text: systemPrompt }]
-        },
-        generationConfig: {
-          temperature: temperature,
-          maxOutputTokens: maxTokens,
-          thinkingConfig: {
-            thinkingBudget: 0
-          }
-        }
-      }
-      if (isJson) {
-        bodyPayload.generationConfig.responseMimeType = "application/json"
-      }
+  try {
+    const response = await fetch('/api/ai', {
+      method:  'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-passage-client': 'bahrain-journey-ledger-v5'
+      },
+      body: JSON.stringify({ systemPrompt, userPrompt, maxTokens, temperature, useJson }),
+      signal: AbortSignal.timeout(9000), // slightly longer than server timeout
+    })
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyPayload),
-        signal: AbortSignal.timeout(15000)
-      })
-
-      if (res.ok) {
-        const data = await res.json()
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
-        if (text) {
-          if (useCache) responseCache.set(cacheKey, text)
-          return text
-        }
-      } else {
-        const errText = await res.text().catch(() => '')
-        console.warn(`[aiService] Gemini returned HTTP ${res.status}:`, errText.slice(0, 200))
+    if (response.ok) {
+      const data = await response.json()
+      if (data.text) {
+        if (useCache) responseCache.set(cacheKey, data.text)
+        return data.text
       }
-    } catch (err) {
-      console.warn(`[aiService] Gemini error:`, err.message)
+      // Server said fallback: true — use static text silently
+      if (data.fallback) return fallbackText
+    } else {
+      const errText = await response.text().catch(() => '')
+      console.warn(`[aiService] Proxy returned HTTP ${response.status}:`, errText.slice(0, 200))
     }
-  }
-
-  // Priority 2: DeepSeek / OpenRouter
-  if (OPENROUTER_KEY) {
-    // Auto-detect key type: OpenRouter vs direct DeepSeek
-    const isDeepSeekKey = OPENROUTER_KEY.startsWith('sk-') && !OPENROUTER_KEY.startsWith('sk-or-v1-')
-    const baseUrl = isDeepSeekKey ? 'https://api.deepseek.com/chat/completions' : OPENROUTER_BASE
-    const models = isDeepSeekKey ? ['deepseek-chat'] : [PRIMARY_MODEL, FALLBACK_MODEL]
-
-    // Try primary model, then fallback model
-    for (const model of models) {
-      try {
-        const headers = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENROUTER_KEY}`,
-        }
-
-        // OpenRouter specific headers
-        if (!isDeepSeekKey) {
-          headers['HTTP-Referer'] = 'https://bahrain-passage.app'
-          headers['X-Title'] = 'Bahrain Passage Tour Guide'
-        }
-
-        const requestBody = {
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature,
-          max_tokens: maxTokens,
-        }
-
-        if (model.toLowerCase().includes('gemini')) {
-          requestBody.reasoning = { effort: 'none' }
-        }
-
-        const res = await fetch(baseUrl, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(requestBody),
-          signal: AbortSignal.timeout(15000), // 15s max
-        })
-
-        if (!res.ok) {
-          const errText = await res.text().catch(() => '')
-          console.warn(`[aiService] ${model} returned HTTP ${res.status}:`, errText.slice(0, 200))
-          
-          // If 402 (payment required) or 401 (auth), log warning and immediately break to return static fallback
-          if (res.status === 401 || res.status === 402) {
-            console.warn(`[aiService] API key unauthorized or out of funds (HTTP ${res.status}). Falling back to static content.`)
-            break
-          }
-          continue // try fallback model
-        }
-
-        const data = await res.json()
-        const text = data.choices?.[0]?.message?.content?.trim()
-        if (!text) continue
-
-        if (useCache) responseCache.set(cacheKey, text)
-        return text
-      } catch (err) {
-        if (err.name === 'TimeoutError') {
-          console.warn(`[aiService] ${model} timed out`)
-        } else {
-          console.warn(`[aiService] ${model} error:`, err.message)
-        }
-      }
+  } catch (err) {
+    if (err.name === 'TimeoutError') {
+      console.warn('[aiService] Proxy request timed out')
+    } else if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      // Dev mode without a server — silently fall through to static content
+      console.warn('[aiService] Proxy not available (dev mode?) — using static fallback')
+    } else {
+      console.warn('[aiService] Proxy error:', err.message)
     }
-  } else {
-    console.warn('[aiService] No API key found — returning static fallback')
   }
 
   return fallbackText
@@ -187,7 +94,7 @@ Keep responses to exactly 2 sentences. Never use generic tourist language.`,
 
 export function buildHotelAdvisorPrompt(moods, tier, duration, hotels) {
   const tierLabel = { budget: 'budget-conscious', Wandering: 'budget-conscious', curated: 'mid-range', Curated: 'mid-range', luxury: 'luxury-seeking', Luxury: 'luxury-seeking' }[tier] || 'balanced'
-  const moodList = Array.isArray(moods) ? moods.join(', ') : moods
+  const moodList  = Array.isArray(moods) ? moods.join(', ') : moods
   const hotelList = hotels.map((h, i) => `${i + 1}. ${h.name} (${h.tier}, ${h.cost}): ${h.desc}`).join('\n')
 
   return {

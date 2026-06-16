@@ -441,8 +441,10 @@ export function useItinerary(selectedMoods = [], tierFilter = 'Wandering', durat
 
   useEffect(() => {
     if (injectedSpots && injectedSpots.length > 0) {
-      setLocations(injectedSpots)
-      setLoading(false)
+      queueMicrotask(() => {
+        setLocations(injectedSpots)
+        setLoading(false)
+      })
       return
     }
 

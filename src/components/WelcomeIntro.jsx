@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { gsap } from 'gsap'
+import gsap from 'gsap'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -43,12 +43,12 @@ function ScrambleLetter({ char, delay, duration = 700 }) {
     if (!el) return
 
     if (char === ' ') {
-      el.style.cssText = 'display:inline-block;opacity:1;filter:blur(0px);transform:translateY(0px);white-space:pre;will-change:transform,filter,opacity'
+      el.style.cssText = 'display:inline-block;opacity:1;filter:blur(0px);transform:translateY(0px);white-space:pre'
       el.textContent = '\u00A0'
       return
     }
 
-    el.style.cssText = 'display:inline-block;opacity:0;filter:blur(6px);transform:translateY(18px);will-change:transform,filter,opacity'
+    el.style.cssText = 'display:inline-block;opacity:0;filter:blur(6px);transform:translateY(18px)'
     el.textContent = MIXED_CHARS[0]
 
     let rafId
@@ -91,7 +91,6 @@ function ScrambleLetter({ char, delay, duration = 700 }) {
         filter: 'blur(6px)',
         transform: 'translateY(18px)',
         whiteSpace: 'normal',
-        willChange: 'transform, filter, opacity',
         transition: 'none',
       }}
     >
@@ -359,7 +358,6 @@ export default function WelcomeIntro({ onComplete }) {
         alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
         opacity: 0,
-        willChange: 'opacity, transform',
       }}
     >
       {/* ── Background Video / Image Fallback ─────────────────────────────── */}
@@ -409,7 +407,6 @@ export default function WelcomeIntro({ onComplete }) {
           pointerEvents: 'none',
           color: '#D4AF37',
           zIndex: 2,
-          willChange: 'transform',
         }}
         fill="none"
         stroke="currentColor"
@@ -518,7 +515,6 @@ export default function WelcomeIntro({ onComplete }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              willChange: 'opacity, transform',
             }}
           >
             <div
@@ -531,7 +527,6 @@ export default function WelcomeIntro({ onComplete }) {
                 userSelect: 'none',
                 fontFamily: '"Playfair Display","Georgia",serif',
                 textShadow: '0 4px 28px rgba(255, 255, 255, 0.15)',
-                willChange: 'transform, filter, opacity',
               }}
             >
               {SLOT_PHRASES[0]}
@@ -550,7 +545,6 @@ export default function WelcomeIntro({ onComplete }) {
               opacity: 0,
               pointerEvents: 'none',
               overflow: 'visible',
-              willChange: 'opacity, transform',
             }}
           >
             {showMorphLetters && (
@@ -632,7 +626,6 @@ export default function WelcomeIntro({ onComplete }) {
               display: 'flex',
               gap: '0.5rem',
               alignItems: 'center',
-              willChange: 'opacity, transform',
             }}
           >
             {[0, 1, 2].map(i => (

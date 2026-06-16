@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { callLocalAI, buildHiddenGemPrompt } from '../services/aiService'
 import { spotsCatalog } from '../hooks/useItinerary'
 
@@ -7,12 +7,9 @@ export default function AISpotSuggestion({ moods, tier, locations }) {
   const [loading, setLoading] = useState(true)
   const [dismissed, setDismissed] = useState(false)
 
-  useEffect(() => {
+  // Declare before the effect that references it
+  const loadSuggestion = useCallback(async () => {
     if (!locations || locations.length === 0) return
-    loadSuggestion()
-  }, [])
-
-  const loadSuggestion = async () => {
     setLoading(true)
     const existingNames = [...new Set(locations.map(s => s.name.split('(')[0].trim()))]
     const { system, user } = buildHiddenGemPrompt(moods, tier, existingNames)
@@ -23,7 +20,7 @@ export default function AISpotSuggestion({ moods, tier, locations }) {
     )
 
     // Parse "PLACE: X | REASON: Y" format
-    const placeMatch = raw.match(/PLACE:\s*(.+?)\s*\|/)
+    const placeMatch  = raw.match(/PLACE:\s*(.+?)\s*\|/)
     const reasonMatch = raw.match(/REASON:\s*(.+)/)
 
     if (placeMatch && reasonMatch) {
@@ -51,7 +48,14 @@ export default function AISpotSuggestion({ moods, tier, locations }) {
       }
     }
     setLoading(false)
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moods, tier, locations])
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      loadSuggestion()
+    })
+  }, [loadSuggestion])
 
   if (dismissed || (!loading && !suggestion)) return null
 

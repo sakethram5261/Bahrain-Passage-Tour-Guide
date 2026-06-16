@@ -141,7 +141,9 @@ function VideoEmbed({ videoId, title }) {
 
   // Reset loaded state when videoId changes
   useEffect(() => {
-    setLoaded(false)
+    queueMicrotask(() => {
+      setLoaded(false)
+    })
     const timer = setTimeout(() => {
       setLoaded(true)
     }, 1200) // Fallback timer if onLoad doesn't fire

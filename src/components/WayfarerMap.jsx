@@ -73,9 +73,16 @@ function toSvg(lat, lon) {
 }
 
 function parseCoordsStr(str) {
+  if (!str) return { x: 280, y: 185 }
   try {
-    const parts = str.replace(/[°NE]/g, '').split(',')
-    return toSvg(parseFloat(parts[0]), parseFloat(parts[1]))
+    const cleaned = str.replace(/[^\d.,-]/g, '')
+    const parts = cleaned.split(',')
+    const lat = parseFloat(parts[0])
+    const lon = parseFloat(parts[1])
+    if (isNaN(lat) || isNaN(lon)) {
+      return { x: 280, y: 185 }
+    }
+    return toSvg(lat, lon)
   } catch {
     return { x: 280, y: 185 }
   }
@@ -96,7 +103,6 @@ export default function WayfarerMap({ locations, onClose }) {
     setCurrentSpotIndex,
     collectedKeepsakes,
     setActiveLeaf,
-    goldFils,
     setGoldFils,
     awardXP,
     passportStamps,
@@ -119,6 +125,30 @@ export default function WayfarerMap({ locations, onClose }) {
   const dragStart = useRef({ x: 0, y: 0 })
   const dragMoved = useRef(0)
   const svgContainerRef = useRef(null)
+  const [containerWidth, setContainerWidth] = useState(400)
+
+  // Momentum references
+  const velocity = useRef({ x: 0, y: 0 })
+  const lastTime = useRef(0)
+  const lastPos = useRef({ x: 0, y: 0 })
+  const momentumFrame = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (momentumFrame.current) cancelAnimationFrame(momentumFrame.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!svgContainerRef.current) return
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setContainerWidth(entry.contentRect.width)
+      }
+    })
+    resizeObserver.observe(svgContainerRef.current)
+    return () => resizeObserver.disconnect()
+  }, [])
 
   // Pearl Hunt
   const [pearlChestAnim, setPearlChestAnim] = useState(null)
@@ -157,7 +187,9 @@ export default function WayfarerMap({ locations, onClose }) {
   // Sync selected spot when day/index changes
   useEffect(() => {
     const spot = activeSpots[currentSpotIndex] || activeSpots[0] || null
-    setSelectedSpot(spot)
+    queueMicrotask(() => {
+      setSelectedSpot(spot)
+    })
   }, [currentSpotIndex, currentDayTab, locations])
 
   // ── Zoom helpers ──────────────────────────────────────────────────────────
@@ -189,37 +221,100 @@ export default function WayfarerMap({ locations, onClose }) {
     })
   }, [pan, clampPan])
 
+  // Track zoom ref to prevent stale closure inside startMomentum animation frames
+  const zoomRef = useRef(zoom)
+  useEffect(() => {
+    zoomRef.current = zoom
+  }, [zoom])
+
+  const startMomentum = () => {
+    const decay = 0.94 // Deceleration coefficient
+    let vx = velocity.current.x
+    let vy = velocity.current.y
+
+    const step = () => {
+      if (Math.abs(vx) < 0.08 && Math.abs(vy) < 0.08) return
+      vx *= decay
+      vy *= decay
+      setPan(prev => clampPan(prev.x + vx, prev.y + vy, zoomRef.current))
+      momentumFrame.current = requestAnimationFrame(step)
+    }
+
+    if (Math.abs(vx) > 0.4 || Math.abs(vy) > 0.4) {
+      momentumFrame.current = requestAnimationFrame(step)
+    }
+  }
+
   // Drag handlers
   const onMouseDown = (e) => {
     if (e.button !== 0) return
     isDragging.current = true
     dragStart.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }
     dragMoved.current = 0
+    velocity.current = { x: 0, y: 0 }
+    lastTime.current = performance.now()
+    lastPos.current = { x: e.clientX, y: e.clientY }
+    if (momentumFrame.current) cancelAnimationFrame(momentumFrame.current)
   }
+
   const onMouseMove = (e) => {
     if (!isDragging.current) return
     const nx = e.clientX - dragStart.current.x
     const ny = e.clientY - dragStart.current.y
-    const d = Math.hypot(nx - pan.x, ny - pan.y)
-    dragMoved.current = d
+    dragMoved.current = Math.hypot(nx - pan.x, ny - pan.y)
+
+    const now = performance.now()
+    const dt = now - lastTime.current
+    if (dt > 0) {
+      const dx = e.clientX - lastPos.current.x
+      const dy = e.clientY - lastPos.current.y
+      velocity.current = { x: (dx / dt) * 16, y: (dy / dt) * 16 }
+    }
+    lastTime.current = now
+    lastPos.current = { x: e.clientX, y: e.clientY }
+
     setPan(clampPan(nx, ny, zoom))
   }
-  const onMouseUp = () => { isDragging.current = false }
+
+  const onMouseUp = () => {
+    isDragging.current = false
+    startMomentum()
+  }
 
   const onTouchStart = (e) => {
     if (e.touches.length !== 1) return
     isDragging.current = true
     dragStart.current = { x: e.touches[0].clientX - pan.x, y: e.touches[0].clientY - pan.y }
     dragMoved.current = 0
+    velocity.current = { x: 0, y: 0 }
+    lastTime.current = performance.now()
+    lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    if (momentumFrame.current) cancelAnimationFrame(momentumFrame.current)
   }
+
   const onTouchMove = (e) => {
     if (!isDragging.current || e.touches.length !== 1) return
     const nx = e.touches[0].clientX - dragStart.current.x
     const ny = e.touches[0].clientY - dragStart.current.y
     dragMoved.current = Math.hypot(nx - pan.x, ny - pan.y)
+
+    const now = performance.now()
+    const dt = now - lastTime.current
+    if (dt > 0) {
+      const dx = e.touches[0].clientX - lastPos.current.x
+      const dy = e.touches[0].clientY - lastPos.current.y
+      velocity.current = { x: (dx / dt) * 16, y: (dy / dt) * 16 }
+    }
+    lastTime.current = now
+    lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+
     setPan(clampPan(nx, ny, zoom))
   }
-  const onTouchEnd = () => { isDragging.current = false }
+
+  const onTouchEnd = () => {
+    isDragging.current = false
+    startMomentum()
+  }
 
   const zoomIn = (e) => { e.stopPropagation(); setZoom(z => { const n = Math.min(z * 1.3, MAX_ZOOM); setPan(clampPan(pan.x, pan.y, n)); return n }) }
   const zoomOut = (e) => { e.stopPropagation(); setZoom(z => { const n = Math.max(z / 1.3, MIN_ZOOM); const c = clampPan(pan.x, pan.y, n); setPan(c); return n }) }
@@ -251,8 +346,10 @@ export default function WayfarerMap({ locations, onClose }) {
   // When spot is selected, load AI content
   useEffect(() => {
     if (selectedSpot) {
-      loadAiNarration(selectedSpot)
-      loadAiNavTip(selectedSpot)
+      queueMicrotask(() => {
+        loadAiNarration(selectedSpot)
+        loadAiNavTip(selectedSpot)
+      })
     }
   }, [selectedSpot?.id])
 
@@ -296,7 +393,7 @@ export default function WayfarerMap({ locations, onClose }) {
         gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5)
         osc.connect(gain); gain.connect(ctx.destination)
         osc.start(); osc.stop(ctx.currentTime + 0.5)
-      } catch {}
+      } catch { /* ignore */ }
       setTimeout(() => setPearlChestAnim(null), 3500)
       handleSpotClick(spot)
     } else {
@@ -772,7 +869,7 @@ export default function WayfarerMap({ locations, onClose }) {
             {hoveredSpot && !showBottomSheet && (
               <div
                 className="absolute pointer-events-none z-30 fade-in"
-                style={{ left: Math.min(hoverPos.x + 14, (svgContainerRef.current?.clientWidth || 400) - 200), top: Math.max(hoverPos.y - 60, 4) }}
+                style={{ left: Math.min(hoverPos.x + 14, containerWidth - 200), top: Math.max(hoverPos.y - 60, 4) }}
               >
                 <div className="bg-white/97 border border-bahrain-red/25 rounded-xl px-3 py-2 shadow-lg text-left min-w-[150px] max-w-[200px]">
                   <div className="font-serif text-[13px] font-bold text-bronze-charcoal truncate">{hoveredSpot.name.split('(')[0]}</div>

@@ -400,12 +400,11 @@ export default function TourChatbot({ activeSpotName, embedded = false, onClose 
       try {
         const res = await fetch('http://localhost:11434/api/tags')
         if (res.ok) setOllamaAvailable(true)
-      } catch {}
+      } catch { /* ignore */ }
     }
     checkOllama()
   }, [])
 
-  const hasApiKey = !!openRouterKey || !!apiKey || ollamaAvailable
   const apiProviderName = provider === 'deepseek' ? 'DeepSeek AI' : provider === 'openrouter' ? 'OpenRouter AI' : provider === 'gemini' ? 'Gemini AI' : provider === 'ollama' ? 'Local Ollama' : 'Local Fallback'
 
   const [messages, setMessages] = useState([
@@ -417,15 +416,17 @@ export default function TourChatbot({ activeSpotName, embedded = false, onClose 
 
   useEffect(() => {
     if (ollamaAvailable) {
-      setMessages(prev => {
-        if (prev.some(m => m.text.includes("Ollama"))) return prev
-        return [
-          ...prev,
-          {
-            role: 'bot',
-            text: `💡 **Tip:** Local Ollama was detected running on your computer! If you experience DeepSeek API errors (like Insufficient Balance), you can select **Local Ollama (qwen2.5-coder)** from the dropdown at the top of this chat box to run completely offline/free.`
-          }
-        ]
+      queueMicrotask(() => {
+        setMessages(prev => {
+          if (prev.some(m => m.text.includes("Ollama"))) return prev
+          return [
+            ...prev,
+            {
+              role: 'bot',
+              text: `💡 **Tip:** Local Ollama was detected running on your computer! If you experience DeepSeek API errors (like Insufficient Balance), you can select **Local Ollama (qwen2.5-coder)** from the dropdown at the top of this chat box to run completely offline/free.`
+            }
+          ]
+        })
       })
     }
   }, [ollamaAvailable])
@@ -628,7 +629,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         text: parsed.text || "Processed request.",
         actions: parsed.actions || []
       }
-    } catch (e) {
+    } catch {
       const jsonMatch = textResult.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         try {
@@ -637,7 +638,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
             text: parsed.text || "Processed request.",
             actions: parsed.actions || []
           }
-        } catch (inner) {
+        } catch {
           // ignore
         }
       }
@@ -748,7 +749,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         text: parsed.text || "Processed request.",
         actions: parsed.actions || []
       }
-    } catch (e) {
+    } catch {
       const jsonMatch = textResult.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         try {
@@ -757,7 +758,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
             text: parsed.text || "Processed request.",
             actions: parsed.actions || []
           }
-        } catch (inner) {
+        } catch {
           // ignore
         }
       }
@@ -874,7 +875,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         text: parsed.text || "Processed request.",
         actions: parsed.actions || []
       }
-    } catch (e) {
+    } catch {
       const jsonMatch = textResult.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         try {
@@ -883,7 +884,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
             text: parsed.text || "Processed request.",
             actions: parsed.actions || []
           }
-        } catch (inner) {
+        } catch {
           // ignore
         }
       }
@@ -1004,7 +1005,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         text: parsed.text || "Processed request.",
         actions: parsed.actions || []
       }
-    } catch (e) {
+    } catch {
       // JSON block fallback search
       const jsonMatch = textResult.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
@@ -1014,7 +1015,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
             text: parsed.text || "Processed request.",
             actions: parsed.actions || []
           }
-        } catch (inner) {
+        } catch {
           // ignore
         }
       }
@@ -1062,7 +1063,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
       const local = getLocalResponseAndActions(text, activeSpotName, selectedMoods)
       const appliedLabels = executeActions(local.actions)
       
-      let errorFriendlyName = ""
+      let errorFriendlyName
       if (err.message && err.message.includes("402")) {
         errorFriendlyName = "Insufficient Balance (402)"
       } else if (err.message && err.message.includes("401")) {

@@ -71,6 +71,39 @@ export default function MoodSelector({ onConfirm }) {
     })
   }
 
+  const handleMouseMove = (e, cardEl) => {
+    if (!cardEl) return
+    const rect = cardEl.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    cardEl.style.setProperty('--x', `${x}px`)
+    cardEl.style.setProperty('--y', `${y}px`)
+
+    const xc = rect.width / 2
+    const yc = rect.height / 2
+    const angleX = (yc - y) / 7
+    const angleY = (x - xc) / 7
+
+    gsap.to(cardEl, {
+      rotateX: angleX,
+      rotateY: angleY,
+      scale: 1.025,
+      duration: 0.3,
+      ease: 'power1.out',
+    })
+  }
+
+  const handleMouseLeave = (cardEl, active) => {
+    if (!cardEl) return
+    gsap.to(cardEl, {
+      rotateX: 0,
+      rotateY: 0,
+      scale: active ? 1.02 : 1.0,
+      duration: 0.3,
+      ease: 'power1.out',
+    })
+  }
+
   const allSelected = selectedMoods.length === 4
   const noneSelected = selectedMoods.length === 0
 
@@ -136,8 +169,14 @@ export default function MoodSelector({ onConfirm }) {
                 key={mood.id}
                 ref={el => cardsRef.current[i] = el}
                 onClick={() => toggle(mood.id)}
-                className="relative rounded-2xl p-4 text-left cursor-pointer group overflow-hidden"
+                onMouseMove={(e) => handleMouseMove(e, cardsRef.current[i])}
+                onMouseLeave={() => handleMouseLeave(cardsRef.current[i], active)}
+                className={`relative rounded-2xl p-4 text-left cursor-pointer group overflow-hidden ${
+                  active ? 'jn-vibe-card-active-glow' : 'jn-vibe-card-glow'
+                }`}
                 style={{
+                  perspective: '1000px',
+                  transformStyle: 'preserve-3d',
                   background: active 
                     ? 'linear-gradient(135deg, #BA0C2F 0%, #8A0A22 100%)' 
                     : 'linear-gradient(135deg, #FCFBF8 0%, #EFEBE4 100%)',
@@ -145,15 +184,15 @@ export default function MoodSelector({ onConfirm }) {
                   boxShadow: active
                     ? '0 12px 36px rgba(138,10,34,0.38), 0 2px 8px rgba(0,0,0,0.12)'
                     : '0 4px 20px rgba(42,35,33,0.06), 0 1px 3px rgba(0,0,0,0.03)',
-                  transform: active ? 'scale(1.02) translateY(-2px)' : 'scale(1)',
-                  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                  transition: 'border 0.25s, box-shadow 0.25s, background 0.25s',
                 }}
               >
                 {/* Inner stitch-border for antique travel ledger feel */}
                 <div
                   className="absolute inset-1.5 rounded-[12px] pointer-events-none"
                   style={{
-                    border: `1.2px dashed ${active ? 'rgba(255,255,255,0.25)' : 'rgba(193,18,47,0.15)'}`
+                    border: `1.2px dashed ${active ? 'rgba(255,255,255,0.25)' : 'rgba(193,18,47,0.15)'}`,
+                    transform: 'translateZ(10px)',
                   }}
                 />
 
@@ -165,7 +204,7 @@ export default function MoodSelector({ onConfirm }) {
                   />
                 )}
 
-                <div className="relative z-10 flex flex-col gap-2">
+                <div className="relative z-10 flex flex-col gap-2" style={{ transform: 'translateZ(20px)' }}>
                   <div className="flex items-start justify-between">
                     <span className="text-2xl">{mood.icon}</span>
                     <div

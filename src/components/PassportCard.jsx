@@ -1,15 +1,15 @@
-import { useRef, useEffect } from 'react'
+import { useRef } from 'react'
 import { useVibe } from '../hooks/useVibe'
-import { getRank, getNextRank, RANKS } from '../context/VibeProvider'
+import { getRank, getNextRank } from './DashboardData'
 import { spotsCatalog } from '../hooks/useItinerary'
 
 const MOOD_LABELS = { empires: 'Empires', sea: 'Sea', spice: 'Spice', lights: 'Lights' }
 
 export default function PassportCard({ onClose }) {
   const {
-    xp, xpLog, selectedMoods, tier, duration,
+    xp, selectedMoods, tier, duration,
     completedDays, collectedKeepsakes, capturedPhotos,
-    journalReflections, passportStamps, goldFils
+    journalReflections, goldFils, passportStamps
   } = useVibe()
 
   const cardRef = useRef(null)
@@ -20,15 +20,6 @@ export default function PassportCard({ onClose }) {
   const reflectionsWritten = Object.values(journalReflections).filter(r => r && r.trim().length > 5).length
   const keepsakesCollected = collectedKeepsakes.length
   const totalKeepsakes = spotsCatalog.length
- 
-  const rankColors = {
-    wanderer: '#5C5451',
-    nomad: '#A81028',
-    merchant: '#D11A38',
-    chronicler: '#C1122F',
-    pearldiver: '#0F172A',
-    dilmun: '#7F1D1D',
-  }
 
   const rankEmoji = {
     wanderer: '🧭',
@@ -39,7 +30,6 @@ export default function PassportCard({ onClose }) {
     dilmun: '💎',
   }
 
-  const color = rankColors[rank.id] || '#D11A38'
   const emoji = rankEmoji[rank.id] || '🧭'
 
   const handleShare = async () => {
@@ -47,12 +37,12 @@ export default function PassportCard({ onClose }) {
     if (navigator.share) {
       try {
         await navigator.share({ title: 'My Bahrain Passage', text })
-      } catch (_) {}
+      } catch { /* ignore */ }
     } else {
       try {
         await navigator.clipboard.writeText(text)
         alert('Copied to clipboard!')
-      } catch (_) {}
+      } catch { /* ignore */ }
     }
   }
 

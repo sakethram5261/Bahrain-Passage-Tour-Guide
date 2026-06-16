@@ -33,3 +33,7 @@ dist-ssr
 
 # Runway Local MCP Server
 runway-api-mcp-server/
+
+# IDE files
+.antigravity/
+

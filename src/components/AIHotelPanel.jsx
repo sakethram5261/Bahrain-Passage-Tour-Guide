@@ -1,122 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useVibe } from '../hooks/useVibe'
 import { callLocalAI, buildHotelAdvisorPrompt } from '../services/aiService'
+import { HOTELS_DB } from '../data/hotelsData'
 
-// Extended hotel database
-export const HOTELS_DB = [
-  {
-    id: 'merchant-house',
-    name: 'The Merchant House',
-    tier: 'Heritage Boutique',
-    cost: 'From 80 BHD/night',
-    emoji: '🏛️',
-    neighborhood: 'Bab Al Bahrain, Manama',
-    dist: 'Next to Manama Souq',
-    desc: 'Art-filled suite hotel in a restored heritage building near Bab Al Bahrain. Exposed coral walls, arched windows, and handmade Gulf furniture.',
-    moodFit: ['spice', 'culture', 'empires'],
-    tierFit: ['Curated', 'Luxury'],
-    bookingUrl: 'https://www.booking.com/hotel/bh/the-merchant-house.html',
-    coords: '26.2375° N, 50.5728° E'
-  },
-  {
-    id: 'four-seasons',
-    name: 'Four Seasons Bahrain Bay',
-    tier: 'Ultra Luxury',
-    cost: 'From 140 BHD/night',
-    emoji: '🏝️',
-    neighborhood: 'Bahrain Bay, Manama',
-    dist: '10 min from National Museum',
-    desc: 'Private island resort featuring spectacular bay views, private beach, award-winning spa, and the best sunset terrace in the kingdom.',
-    moodFit: ['lights', 'sea', 'modern'],
-    tierFit: ['Luxury'],
-    bookingUrl: 'https://www.booking.com/hotel/bh/four-seasons-bahrain-bay.html',
-    coords: '26.2505° N, 50.5822° E'
-  },
-  {
-    id: 'al-areen-palace',
-    name: 'Al Areen Palace & Spa',
-    tier: 'Desert Sanctuary',
-    cost: 'From 110 BHD/night',
-    emoji: '🕌',
-    neighborhood: 'Sakhir Desert',
-    dist: '5 min from Tree of Life',
-    desc: 'Private pool villas nestled in the Sakhir dunes. Ideal for starlit silence, Arabian spa treatments, and access to Al Areen Wildlife Reserve.',
-    moodFit: ['desert', 'empires'],
-    tierFit: ['Luxury', 'Curated'],
-    bookingUrl: 'https://www.booking.com/hotel/bh/al-areen-palace-spa.html',
-    coords: '26.0042° N, 50.4912° E'
-  },
-  {
-    id: 'muharraq-heritage',
-    name: 'Muharraq Heritage Houses',
-    tier: 'Authentic / Budget',
-    cost: 'From 25 BHD/night',
-    emoji: '⛵',
-    neighborhood: 'Muharraq Historic District',
-    dist: 'Walking to Pearling Path',
-    desc: 'Restored pearling-era merchant houses turned guesthouses. Coral-stone walls, wooden mashrabiya screens, and a resident cook serving traditional breakfast.',
-    moodFit: ['sea', 'culture', 'empires', 'spice'],
-    tierFit: ['Wandering', 'Curated'],
-    bookingUrl: 'https://www.booking.com/searchresults.html?ss=Muharraq+heritage+hotel',
-    coords: '26.2498° N, 50.6115° E'
-  },
-  {
-    id: 'k-hotel-juffair',
-    name: 'The K Hotel Juffair',
-    tier: 'Modern / Budget',
-    cost: 'From 35 BHD/night',
-    emoji: '🏢',
-    neighborhood: 'Juffair, Manama',
-    dist: '15 min from Block 338',
-    desc: 'Comfortable modern high-rise with rooftop pool and city views. Excellent base for exploring Adliya arts scene and the city\'s modern waterfront.',
-    moodFit: ['lights', 'modern'],
-    tierFit: ['Wandering', 'Curated'],
-    bookingUrl: 'https://www.booking.com/hotel/bh/k-hotel.html',
-    coords: '26.2162° N, 50.6068° E'
-  },
-  {
-    id: 'ramee-grand',
-    name: 'Ramee Grand Hotel & Spa',
-    tier: 'Mid-Range',
-    cost: 'From 55 BHD/night',
-    emoji: '🌟',
-    neighborhood: 'Seef District',
-    dist: '20 min from Bahrain Fort',
-    desc: 'Elegant full-service hotel with a large outdoor pool and excellent location between Manama souqs and the modern Seef Mall.',
-    moodFit: ['culture', 'spice', 'empires'],
-    tierFit: ['Curated', 'Wandering'],
-    bookingUrl: 'https://www.booking.com/hotel/bh/ramee-grand.html',
-    coords: '26.2325° N, 50.5398° E'
-  },
-  {
-    id: 'sofitel',
-    name: 'Sofitel Bahrain Zallaq Thalassa',
-    tier: 'Beachfront Luxury',
-    cost: 'From 120 BHD/night',
-    emoji: '🌊',
-    neighborhood: 'Zallaq Beach',
-    dist: 'Near Al Areen wildlife reserve',
-    desc: 'French-accented beachfront resort with a private sea corridor, thalassotherapy spa, and spectacular Gulf of Bahrain sunsets from your terrace.',
-    moodFit: ['sea', 'desert'],
-    tierFit: ['Luxury'],
-    bookingUrl: 'https://www.booking.com/hotel/bh/sofitel-bahrain.html',
-    coords: '26.0545° N, 50.4820° E'
-  },
-  {
-    id: 'gulf-hotel',
-    name: 'Gulf Hotel Bahrain',
-    tier: 'Classic Grande',
-    cost: 'From 70 BHD/night',
-    emoji: '🏨',
-    neighborhood: 'Adliya, Manama',
-    dist: 'Walking to Block 338',
-    desc: 'A Bahrain landmark since 1969 — grand lobbies, nine restaurants, and a lush pool garden. Located steps from the bohemian Adliya art district.',
-    moodFit: ['lights', 'spice', 'culture'],
-    tierFit: ['Curated', 'Luxury'],
-    bookingUrl: 'https://www.booking.com/hotel/bh/gulf-hotel.html',
-    coords: '26.2198° N, 50.5878° E'
-  },
-]
+// Re-export so existing importers (JournalNotebook) don't break
+export { HOTELS_DB }
+
 
 export default function AIHotelPanel({ moods, tier, duration, autoLoad = true }) {
   const { selectedHotel, setSelectedHotel, awardXP } = useVibe()
@@ -128,11 +17,8 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
   const [expandedId, setExpandedId] = useState(null)
   const [highlightedId, setHighlightedId] = useState(null)
 
-  useEffect(() => {
-    if (autoLoad) loadRecommendations()
-  }, [])
-
-  const loadRecommendations = async () => {
+  // Declare before the effect that calls it to avoid temporal dead zone
+  const loadRecommendations = useCallback(async () => {
     setLoading(true)
     const { system, user } = buildHotelAdvisorPrompt(moods, tier, duration, HOTELS_DB)
     const raw = await callLocalAI(system, user, '', {
@@ -144,7 +30,9 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
     try {
       const jsonMatch = raw.match(/\[[\s\S]*\]/)
       if (jsonMatch) parsed = JSON.parse(jsonMatch[0])
-    } catch {}
+    } catch (parseErr) {
+      console.warn('[AIHotelPanel] Could not parse AI hotel JSON:', parseErr.message)
+    }
 
     if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
       // Fallback: score by matching moods and tier
@@ -158,7 +46,18 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
       setRecommendations(parsed.slice(0, 3))
     }
     setLoading(false)
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moods, tier, duration])
+
+  useEffect(() => {
+    if (autoLoad) {
+      queueMicrotask(() => {
+        loadRecommendations()
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
 
   const playCampStampSound = () => {
     try {
@@ -175,7 +74,9 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
       gain.connect(ctx.destination)
       osc.start()
       osc.stop(ctx.currentTime + 0.5)
-    } catch {}
+    } catch (audioErr) {
+      console.warn('[AIHotelPanel] Audio playback failed:', audioErr.message)
+    }
   }
 
   const handleFilter = async () => {

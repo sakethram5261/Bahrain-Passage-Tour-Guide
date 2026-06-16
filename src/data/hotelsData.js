@@ -1,0 +1,118 @@
+/**
+ * hotelsData.js — Bahrain hotel database (server-side data, not a component)
+ * Separated from AIHotelPanel to satisfy react-refresh/only-export-components rule.
+ */
+export const HOTELS_DB = [
+  {
+    id: 'merchant-house',
+    name: 'The Merchant House',
+    tier: 'Heritage Boutique',
+    cost: 'From 80 BHD/night',
+    emoji: '🏛️',
+    neighborhood: 'Bab Al Bahrain, Manama',
+    dist: 'Next to Manama Souq',
+    desc: 'Art-filled suite hotel in a restored heritage building near Bab Al Bahrain. Exposed coral walls, arched windows, and handmade Gulf furniture.',
+    moodFit: ['spice', 'culture', 'empires'],
+    tierFit: ['Curated', 'Luxury'],
+    bookingUrl: 'https://www.booking.com/hotel/bh/the-merchant-house.html',
+    coords: '26.2375° N, 50.5728° E'
+  },
+  {
+    id: 'four-seasons',
+    name: 'Four Seasons Bahrain Bay',
+    tier: 'Ultra Luxury',
+    cost: 'From 140 BHD/night',
+    emoji: '🏝️',
+    neighborhood: 'Bahrain Bay, Manama',
+    dist: '10 min from National Museum',
+    desc: 'Private island resort featuring spectacular bay views, private beach, award-winning spa, and the best sunset terrace in the kingdom.',
+    moodFit: ['lights', 'sea', 'modern'],
+    tierFit: ['Luxury'],
+    bookingUrl: 'https://www.booking.com/hotel/bh/four-seasons-bahrain-bay.html',
+    coords: '26.2505° N, 50.5822° E'
+  },
+  {
+    id: 'al-areen-palace',
+    name: 'Al Areen Palace & Spa',
+    tier: 'Desert Sanctuary',
+    cost: 'From 110 BHD/night',
+    emoji: '🕌',
+    neighborhood: 'Sakhir Desert',
+    dist: '5 min from Tree of Life',
+    desc: 'Private pool villas nestled in the Sakhir dunes. Ideal for starlit silence, Arabian spa treatments, and access to Al Areen Wildlife Reserve.',
+    moodFit: ['desert', 'empires'],
+    tierFit: ['Luxury', 'Curated'],
+    bookingUrl: 'https://www.booking.com/hotel/bh/al-areen-palace-spa.html',
+    coords: '26.0042° N, 50.4912° E'
+  },
+  {
+    id: 'muharraq-heritage',
+    name: 'Muharraq Heritage Houses',
+    tier: 'Authentic / Budget',
+    cost: 'From 25 BHD/night',
+    emoji: '⛵',
+    neighborhood: 'Muharraq Historic District',
+    dist: 'Walking to Pearling Path',
+    desc: 'Restored pearling-era merchant houses turned guesthouses. Coral-stone walls, wooden mashrabiya screens, and a resident cook serving traditional breakfast.',
+    moodFit: ['sea', 'culture', 'empires', 'spice'],
+    tierFit: ['Wandering', 'Curated'],
+    bookingUrl: 'https://www.booking.com/searchresults.html?ss=Muharraq+heritage+hotel',
+    coords: '26.2498° N, 50.6115° E'
+  },
+  {
+    id: 'k-hotel-juffair',
+    name: 'The K Hotel Juffair',
+    tier: 'Modern / Budget',
+    cost: 'From 35 BHD/night',
+    emoji: '🏢',
+    neighborhood: 'Juffair, Manama',
+    dist: '15 min from Block 338',
+    desc: "Comfortable modern high-rise with rooftop pool and city views. Excellent base for exploring Adliya arts scene and the city's modern waterfront.",
+    moodFit: ['lights', 'modern'],
+    tierFit: ['Wandering', 'Curated'],
+    bookingUrl: 'https://www.booking.com/hotel/bh/k-hotel.html',
+    coords: '26.2162° N, 50.6068° E'
+  },
+  {
+    id: 'ramee-grand',
+    name: 'Ramee Grand Hotel & Spa',
+    tier: 'Mid-Range',
+    cost: 'From 55 BHD/night',
+    emoji: '🌟',
+    neighborhood: 'Seef District',
+    dist: '20 min from Bahrain Fort',
+    desc: 'Elegant full-service hotel with a large outdoor pool and excellent location between Manama souqs and the modern Seef Mall.',
+    moodFit: ['culture', 'spice', 'empires'],
+    tierFit: ['Curated', 'Wandering'],
+    bookingUrl: 'https://www.booking.com/hotel/bh/ramee-grand.html',
+    coords: '26.2325° N, 50.5398° E'
+  },
+  {
+    id: 'sofitel',
+    name: 'Sofitel Bahrain Zallaq Thalassa',
+    tier: 'Beachfront Luxury',
+    cost: 'From 120 BHD/night',
+    emoji: '🌊',
+    neighborhood: 'Zallaq Beach',
+    dist: 'Near Al Areen wildlife reserve',
+    desc: 'French-accented beachfront resort with a private sea corridor, thalassotherapy spa, and spectacular Gulf of Bahrain sunsets from your terrace.',
+    moodFit: ['sea', 'desert'],
+    tierFit: ['Luxury'],
+    bookingUrl: 'https://www.booking.com/hotel/bh/sofitel-bahrain.html',
+    coords: '26.0545° N, 50.4820° E'
+  },
+  {
+    id: 'gulf-hotel',
+    name: 'Gulf Hotel Bahrain',
+    tier: 'Classic Grande',
+    cost: 'From 70 BHD/night',
+    emoji: '🏨',
+    neighborhood: 'Adliya, Manama',
+    dist: 'Walking to Block 338',
+    desc: 'A Bahrain landmark since 1969 — grand lobbies, nine restaurants, and a lush pool garden. Located steps from the bohemian Adliya art district.',
+    moodFit: ['lights', 'spice', 'culture'],
+    tierFit: ['Curated', 'Luxury'],
+    bookingUrl: 'https://www.booking.com/hotel/bh/gulf-hotel.html',
+    coords: '26.2198° N, 50.5878° E'
+  },
+]

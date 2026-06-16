@@ -13,26 +13,27 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import gsap from 'gsap'
 import { useVibe } from '../hooks/useVibe'
 import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
-import WayfarerMap from './WayfarerMap'
 import VirtualTour from './VirtualTour'
 import WayfarerLens from './WayfarerLens'
 import PassportCard from './PassportCard'
-import TourChatbot from './TourChatbot'
+import MapSkeleton from './skeletons/MapSkeleton'
 import { 
   shopItems, 
   getAlmanac, 
   getRank, 
-  getNextRank, 
-  RIDDLES, 
-  getGuideThoughts, 
-  guides 
+  RIDDLES 
 } from './DashboardData'
 import { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
 import AIHotelPanel, { HOTELS_DB } from './AIHotelPanel'
+import LangToggle from './LangToggle'
+import { useLang } from '../context/LangContext'
+
+const WayfarerMap = lazy(() => import('./WayfarerMap'))
+const TourChatbot = lazy(() => import('./TourChatbot'))
 
 
 /* ─── Tabs definition ──────────────────────────────────────────────────────── */
@@ -46,20 +47,7 @@ const TABS = [
 ]
 
 
-const LEAF_TO_TAB = {
-  chronicles: 'info',
-  cartography: 'map',
-  keepsakes: 'souvenirs',
-  lexicon: 'phrasebook'
-}
 
-const TAB_TO_LEAF = {
-  info: 'chronicles',
-  itinerary: 'chronicles',
-  map: 'cartography',
-  souvenirs: 'keepsakes',
-  phrasebook: 'lexicon'
-}
 
 const PHRASES = [
   { label: 'Karak',  arabic: 'كَرَّكْ',  desc: "Bahrain's signature robust spiced condensed-milk tea.", pitchOffset: 0 },
@@ -78,15 +66,18 @@ function useSpring(target, stiffness = 180, damping = 22) {
   const rafId    = useRef(null)
 
   const animate = useCallback(() => {
-    const dt    = 1 / 60
-    const force = stiffness * (target - current.current)
-    velocity.current += force * dt
-    velocity.current *= 1 - damping * dt
-    current.current  += velocity.current * dt
-    setValue(current.current)
-    if (Math.abs(target - current.current) > 0.01 || Math.abs(velocity.current) > 0.01) {
-      rafId.current = requestAnimationFrame(animate)
+    const tick = () => {
+      const dt    = 1 / 60
+      const force = stiffness * (target - current.current)
+      velocity.current += force * dt
+      velocity.current *= 1 - damping * dt
+      current.current  += velocity.current * dt
+      setValue(current.current)
+      if (Math.abs(target - current.current) > 0.01 || Math.abs(velocity.current) > 0.01) {
+        rafId.current = requestAnimationFrame(tick)
+      }
     }
+    tick()
   }, [target, stiffness, damping])
 
   useEffect(() => {
@@ -117,7 +108,7 @@ function playPhrase(phraseText) {
       osc.start()
       osc.stop(ctx.currentTime + 0.22)
     }
-  } catch (_) {}
+  } catch { /* ignore */ }
 
   // 2. Perform high-fidelity browser speech synthesis in Arabic
   try {
@@ -154,30 +145,27 @@ export default function JournalNotebook({ onBack }) {
     currentSpotIndex = 0,
     setCurrentSpotIndex = () => {},
     capturedPhotos = {},
-    saveCapturedPhoto = () => {},
     collectedKeepsakes = [],
-    unlockKeepsake = () => {},
     solvedRiddles = {},
     solveRiddle = () => {},
     goldFils = 0,
     spendFils = () => {},
-    characterRep = {},
     awardReputation = () => {},
     xp = 0,
     awardXP = () => {},
     soundVolume = 0.5,
     soundMuted = false,
-    setStep = () => {},
-    activeGuide = 'jafar',
-    setActiveGuide = () => {},
     journalReflections = {},
     saveJournalReflection = () => {},
     showPassportCard = false,
     setShowPassportCard = () => {},
-    passportStamps = [],
     selectedHotel,
     setSelectedHotel,
+    playOrganicPageSwish,
   } = useVibe() || {}
+
+  /* ── Language + Toast context ──────────────────────────────────────────── */
+  const { lang, isRTL } = useLang()
 
   /* ── Dynamic itinerary loading ──────────────────────────────────────────── */
   const { locations = [], loading = false } = useItinerary(selectedMoods, tier, duration, curatedItinerary)
@@ -185,14 +173,16 @@ export default function JournalNotebook({ onBack }) {
   // Filter spots active on the current selected day tab
   const activeSpots = locations.filter(s => s.day === currentDayTab)
   const hasSpots = activeSpots.length > 0
-  const isSealStep = hasSpots && currentSpotIndex === activeSpots.length
-  const activeSpot = !isSealStep && hasSpots ? activeSpots[currentSpotIndex] : null
+  const isSealStep = hasSpots && currentSpotIndex >= activeSpots.length
+  const safeSpotIndex = currentSpotIndex >= activeSpots.length ? 0 : currentSpotIndex
+  const activeSpot = !isSealStep && hasSpots ? activeSpots[safeSpotIndex] : null
 
   /* ── Local UI state ──────────────────────────────────────────────────────── */
   const [activeTab,    setActiveTab]    = useState('info')
   const [tabKey,       setTabKey]       = useState(0)       // bumped on every switch → remount → fresh anim
   const [menuOpen,     setMenuOpen]     = useState(false)
   const [chatOpen,     setChatOpen]     = useState(false)   // AI chatbot panel
+  const [turningPage,  setTurningPage]  = useState(null)
   
 
   // Modals & overlay states
@@ -201,10 +191,11 @@ export default function JournalNotebook({ onBack }) {
   const [lensOpenSpot,    setLensOpenSpot]    = useState(null)
   const [shopOpen,        setShopOpen]        = useState(false)
   const [shopAlert,       setShopAlert]       = useState(null)
-  const [selectedKsake,   setSelectedKsake]   = useState(null)
-  const [riddleModalOpen, riddleSetModalOpen] = useState(false) // renamed target to prevent duplicate issue
+  const [riddleModalOpen, setRiddleModalOpen] = useState(false)
   const [imageErrors,     setImageErrors]     = useState({})
   const [baseCampPromptOpen, setBaseCampPromptOpen] = useState(false)
+  const [quickInfoOpen, setQuickInfoOpen] = useState(false)
+  const [selectedKsake, setSelectedKsake] = useState(null)
 
   useEffect(() => {
     if (!selectedHotel) {
@@ -261,7 +252,7 @@ export default function JournalNotebook({ onBack }) {
       
       osc.start()
       osc.stop(ctx.currentTime + 0.04)
-    } catch (_) {}
+    } catch { /* ignore */ }
   }
 
   /* ── Rank up detection ───────────────────────────────────────────────────── */
@@ -297,7 +288,7 @@ export default function JournalNotebook({ onBack }) {
           playNote(392.00, 0.3, 0.2) // G4
           playNote(523.25, 0.45, 0.5) // C5
         }
-      } catch (_) {}
+      } catch { /* ignore */ }
     }
   }, [rank, soundMuted, soundVolume])
 
@@ -399,11 +390,13 @@ export default function JournalNotebook({ onBack }) {
   const reflectionDebounceRef = useRef(null)
 
   useEffect(() => {
-    if (activeSpot) {
-      setLocalReflection(journalReflections[activeSpot.id] || '')
-    } else {
-      setLocalReflection('')
-    }
+    queueMicrotask(() => {
+      if (activeSpot) {
+        setLocalReflection(journalReflections[activeSpot.id] || '')
+      } else {
+        setLocalReflection('')
+      }
+    })
   }, [activeSpot?.id, journalReflections])
 
   const handleReflectionChange = (e) => {
@@ -428,8 +421,20 @@ export default function JournalNotebook({ onBack }) {
       e.preventDefault()
     }
     if (tab === activeTab) return
-    setActiveTab(tab)
-    setTabKey(k => k + 1)
+
+    if (playOrganicPageSwish) {
+      playOrganicPageSwish()
+    }
+
+    const direction = (activeTab === 'info') ? 'left' : (tab === 'info') ? 'right' : 'left'
+    setTurningPage(direction)
+
+    setTimeout(() => {
+      setActiveTab(tab)
+      setTabKey(k => k + 1)
+      setTurningPage(null)
+    }, 650)
+
     setMenuOpen(false)
   }
 
@@ -461,7 +466,7 @@ export default function JournalNotebook({ onBack }) {
           osc.start()
           osc.stop(ctx.currentTime + 0.3)
         }
-      } catch (_) {}
+      } catch { /* ignore */ }
     }
 
     setTimeout(() => {
@@ -479,9 +484,11 @@ export default function JournalNotebook({ onBack }) {
   const [riddleError, setRiddleError] = useState(null)
 
   useEffect(() => {
-    setRiddleAnswer(null)
-    setRiddleError(null)
-    setRiddleModalOpen(false)
+    queueMicrotask(() => {
+      setRiddleAnswer(null)
+      setRiddleError(null)
+      setRiddleModalOpen(false)
+    })
   }, [activeSpot?.id])
 
   const handleAnswerRiddle = (idx) => {
@@ -513,7 +520,7 @@ export default function JournalNotebook({ onBack }) {
           osc.start()
           osc.stop(ctx.currentTime + 0.3)
         }
-      } catch (_) {}
+      } catch { /* ignore */ }
       
       setTimeout(() => {
         triggerCoinFlyout(startX, startY)
@@ -540,7 +547,7 @@ export default function JournalNotebook({ onBack }) {
           osc.start()
           osc.stop(ctx.currentTime + 0.25)
         }
-      } catch (_) {}
+      } catch { /* ignore */ }
       
       setRiddleError("Wrong answer, traveler! Read the guide comments closely.")
       setTimeout(() => {
@@ -746,7 +753,7 @@ export default function JournalNotebook({ onBack }) {
               letterSpacing: '0.05em',
             }}
           >
-            {currentSpotIndex === activeSpots.length - 1 ? 'Go to Sealing Chamber 🔒' : 'Next Itinerary Item ➜'}
+            {currentSpotIndex === activeSpots.length - 1 ? 'Go to Sealing Chamber 🔒' : `Next Itinerary Item ${isRTL ? '←' : '➜'}`}
           </button>
         </div>
       </div>
@@ -795,6 +802,9 @@ export default function JournalNotebook({ onBack }) {
               <span className="jn-xp-num">{displayXP} XP</span>
             </div>
 
+            {/* Lang toggle */}
+            <LangToggle style={{ fontSize: 10, padding: '4px 8px' }} />
+
             {/* Passport card trigger */}
             <button
               onClick={() => setShowPassportCard(true)}
@@ -814,7 +824,7 @@ export default function JournalNotebook({ onBack }) {
                 style={{ padding: '6px 10px', fontSize: '10px', height: 'auto', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
                 title="Adjust vibe settings"
               >
-                ← Edit
+                {isRTL ? 'Edit ➜' : '← Edit'}
               </button>
             )}
           </div>
@@ -866,7 +876,7 @@ export default function JournalNotebook({ onBack }) {
           )}
           {onBack && (
             <button className="jn-mob-nav-btn jn-mob-nav-btn--back" onClick={onBack}>
-              ← Adjust Vibe Settings
+              {isRTL ? 'Adjust Vibe Settings ➜' : '← Adjust Vibe Settings'}
             </button>
           )}
         </div>
@@ -884,7 +894,9 @@ export default function JournalNotebook({ onBack }) {
           
           {/* ════════════════════ LEFT PAGE: INFO & LANDMARK ════════════════════ */}
           <div 
-            className={`jn-page jn-page--left ${activeTab === 'info' ? 'jn-page--visible' : 'jn-page--hidden'}`}
+            className={`jn-page jn-page--left jn-page-tactile ${
+              activeTab === 'info' ? 'jn-page--visible' : 'jn-page--hidden'
+            } ${turningPage === 'left' ? 'jn-page-turning-left' : ''}`}
             id="panel-info" 
             role="tabpanel" 
             aria-labelledby="tab-info"
@@ -924,11 +936,14 @@ export default function JournalNotebook({ onBack }) {
                         {/* Shockwave ring */}
                         <div ref={shockwaveRef} className="jn-stamp-shockwave" style={{ position: 'absolute', width: '80px', height: '80px', borderRadius: '50%', border: '4px solid var(--jn-gold)', opacity: 0, pointerEvents: 'none', zIndex: 5 }} />
 
-                        {/* Ink imprint */}
-                        <div ref={inkRef} style={{ width: '130px', height: '130px', borderRadius: '50%', border: '4px double var(--jn-crimson)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transform: 'rotate(-5deg)', color: 'var(--jn-crimson)', opacity: 0 }}>
-                          <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Sealing</span>
-                          <span style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '8px', fontWeight: 'bold', textTransform: 'uppercase', marginTop: '2px' }}>Day {currentDayTab} Entry</span>
-                          <span style={{ fontSize: '6px', marginTop: '4px' }}>AUTHENTICATED</span>
+                        {/* Dilmun Wax Seal Imprint */}
+                        <div 
+                          ref={inkRef} 
+                          className="jn-wax-seal" 
+                          style={{ opacity: 0 }}
+                        >
+                          <span style={{ fontSize: '7px', fontWeight: 900 }}>Dilmun Seal</span>
+                          <div className="jn-wax-seal-label">Day {currentDayTab}</div>
                         </div>
 
                         {/* Physical stamp handle */}
@@ -959,7 +974,7 @@ export default function JournalNotebook({ onBack }) {
                         </button>
                       </div>
                     ) : (
-                      <div className="space-y-4 text-left">
+                      <div className={`space-y-4 ${isRTL ? 'text-right' : 'text-left'}`}>
                         <span className="jn-tag jn-tag--green" style={{ display: 'inline-flex' }}>✓ Day {currentDayTab} Passkey Active</span>
                         <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '16px', color: 'var(--jn-ink)', fontWeight: 'bold' }}>
                           Traditional Insider Passkey:
@@ -1011,7 +1026,7 @@ export default function JournalNotebook({ onBack }) {
                                 letterSpacing: '0.05em',
                               }}
                             >
-                              Start Day {currentDayTab + 1} Journey ➜
+                              Start Day {currentDayTab + 1} Journey {isRTL ? '←' : '➜'}
                             </button>
                           </div>
                         )}
@@ -1080,7 +1095,9 @@ export default function JournalNotebook({ onBack }) {
 
           {/* ════════════════════ RIGHT PAGE: TAB STRIP SELECTIVE ════════════════ */}
           <div 
-            className={`jn-page jn-page--right ${activeTab !== 'info' ? 'jn-page--visible' : 'jn-page--hidden'}`}
+            className={`jn-page jn-page--right jn-page-tactile ${
+              activeTab !== 'info' ? 'jn-page--visible' : 'jn-page--hidden'
+            } ${turningPage === 'right' ? 'jn-page-turning-right' : ''}`}
             id="panel-tabs" 
             role="tabpanel"
           >
@@ -1593,7 +1610,9 @@ export default function JournalNotebook({ onBack }) {
           ═══════════════════════════════════════════════════════════════════════ */}
       {mapOpen && (
         <div className="jn-map-fullscreen" role="dialog" aria-modal="true" aria-label="Wayfarer Map">
-          <WayfarerMap locations={locations} onClose={() => setMapOpen(false)} />
+          <Suspense fallback={<MapSkeleton label="Loading live route chart..." height="100%" />}>
+            <WayfarerMap locations={locations} onClose={() => setMapOpen(false)} />
+          </Suspense>
         </div>
       )}
 
@@ -1653,7 +1672,7 @@ export default function JournalNotebook({ onBack }) {
                       gain.connect(ctx.destination)
                       osc.start()
                       osc.stop(ctx.currentTime + 0.5)
-                    } catch {}
+                    } catch { /* ignore */ }
                   }}
                   style={{
                     display: 'flex',
@@ -1663,7 +1682,7 @@ export default function JournalNotebook({ onBack }) {
                     borderRadius: '12px',
                     background: '#fffdf9',
                     border: '1.5px solid rgba(139,90,43,0.15)',
-                    textAlign: 'left',
+                    textAlign: isRTL ? 'right' : 'left',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                   }}
@@ -1925,15 +1944,168 @@ export default function JournalNotebook({ onBack }) {
               animation: 'slideInRight 0.3s cubic-bezier(0.16,1,0.3,1) both',
             }}
           >
-            <TourChatbot
-              activeSpotName={activeSpot?.name}
-              embedded={true}
-              onClose={() => setChatOpen(false)}
-            />
+            <Suspense fallback={<MapSkeleton label="Connecting with concierge..." height={350} />}>
+              <TourChatbot
+                activeSpotName={activeSpot?.name}
+                embedded={true}
+                onClose={() => setChatOpen(false)}
+              />
+            </Suspense>
           </div>
         )}
       </>
 
+      {/* ⚡ Quick Info FAB */}
+      <button
+        id="quick-info-fab"
+        onClick={() => setQuickInfoOpen(true)}
+        aria-label="Quick map & current spot info"
+        title="Quick Info"
+        style={{
+          position: 'fixed',
+          bottom: 160,
+          right: 16,
+          width: 44,
+          height: 44,
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #D4AF37 0%, #a88020 100%)',
+          border: '2px solid rgba(255,255,255,0.3)',
+          color: '#fff',
+          fontSize: 18,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 197,
+          boxShadow: '0 4px 16px rgba(212,175,55,0.4)',
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(212,175,55,0.6)' }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,175,55,0.4)' }}
+      >
+        ⚡
+      </button>
+
+      {/* Quick Info Sheet */}
+      {quickInfoOpen && activeSpot && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Quick info: ${activeSpot.name}`}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9000,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+          }}
+          onClick={e => { if (e.target === e.currentTarget) setQuickInfoOpen(false) }}
+        >
+          {/* Backdrop */}
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,12,11,0.55)', backdropFilter: 'blur(4px)' }} />
+
+          {/* Sheet */}
+          <div style={{
+            position: 'relative',
+            zIndex: 1,
+            width: '100%',
+            maxWidth: 560,
+            background: '#FAF9F6',
+            borderRadius: '24px 24px 0 0',
+            padding: '24px 20px 40px',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
+            animation: 'slideUpFade 0.35s cubic-bezier(0.16,1,0.3,1) both',
+          }}>
+            {/* Handle */}
+            <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(42,35,33,0.15)', margin: '0 auto 20px' }} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <div>
+                <p style={{ fontFamily: 'sans-serif', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#BA0C2F', fontWeight: 800, margin: '0 0 4px' }}>
+                  ⚡ Quick Info · Day {currentDayTab}
+                </p>
+                <h2 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 22, fontWeight: 700, color: '#2A2321', margin: 0, lineHeight: 1.2 }}>
+                  {lang === 'ar' && activeSpot.arabic ? activeSpot.arabic : activeSpot.name}
+                </h2>
+                {lang === 'ar' && activeSpot.arabic && (
+                  <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: 'rgba(92,84,81,0.6)', margin: '2px 0 0' }}>{activeSpot.name}</p>
+                )}
+              </div>
+              <button
+                onClick={() => setQuickInfoOpen(false)}
+                aria-label="Close quick info"
+                style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'rgba(92,84,81,0.4)', padding: '0 0 0 12px', lineHeight: 1 }}
+              >×</button>
+            </div>
+
+            {/* Info pills */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+              {activeSpot.coords && (
+                <span style={{ padding: '4px 10px', borderRadius: 999, background: '#FAF6EE', border: '1px solid rgba(139,90,75,0.15)', fontSize: 11, fontFamily: 'sans-serif', fontWeight: 700, color: '#8B5A4B' }}>
+                  📍 {activeSpot.coords}
+                </span>
+              )}
+              {(activeSpot.pathCost || activeSpot.budgetCost) && (
+                <span style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', fontSize: 11, fontFamily: 'sans-serif', fontWeight: 700, color: '#059669' }}>
+                  💰 {activeSpot.pathCost || activeSpot.budgetCost}
+                </span>
+              )}
+              {activeSpot.category && (
+                <span style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(209,26,56,0.06)', border: '1px solid rgba(209,26,56,0.15)', fontSize: 11, fontFamily: 'sans-serif', fontWeight: 700, color: '#BA0C2F' }}>
+                  {activeSpot.category}
+                </span>
+              )}
+            </div>
+
+            {/* Description */}
+            {activeSpot.simpleTerms && (
+              <p style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 13, fontStyle: 'italic', color: '#5C5451', lineHeight: 1.65, marginBottom: 20 }}>
+                {activeSpot.simpleTerms}
+              </p>
+            )}
+
+            {/* Insider tip */}
+            {activeSpot.insider && (
+              <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.2)', marginBottom: 20 }}>
+                <p style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 12, fontStyle: 'italic', color: '#2A2321', lineHeight: 1.6, margin: 0 }}>
+                  💡 {activeSpot.insider}
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 10 }}>
+              {activeSpot.coords && (
+                <a
+                  href={`https://maps.google.com/?q=${encodeURIComponent(activeSpot.coords + ' Bahrain')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    flex: 1, padding: '12px 16px', borderRadius: 12,
+                    background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)',
+                    color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: 'sans-serif',
+                    textAlign: 'center', textDecoration: 'none', letterSpacing: '0.04em',
+                  }}
+                >
+                  🗺️ Get Directions
+                </a>
+              )}
+              <button
+                onClick={() => { setMapOpen(true); setQuickInfoOpen(false) }}
+                style={{
+                  flex: 1, padding: '12px 16px', borderRadius: 12,
+                  background: '#FAF6EE', border: '1px solid rgba(212,175,55,0.3)',
+                  color: '#2A2321', fontSize: 12, fontWeight: 700, fontFamily: 'sans-serif',
+                  cursor: 'pointer', letterSpacing: '0.04em',
+                }}
+              >
+                🧭 Open Map
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

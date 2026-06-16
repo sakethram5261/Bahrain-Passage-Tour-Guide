@@ -2179,3 +2179,145 @@
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   SENSORY & TACTILE STYLES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* 3D Page Turn Mechanics */
+.jn-book {
+  perspective: 1500px;
+  transform-style: preserve-3d;
+}
+
+.jn-page-turning-left {
+  transform-origin: left center;
+  animation: jnPageFlipLeft 0.65s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+}
+
+.jn-page-turning-right {
+  transform-origin: right center;
+  animation: jnPageFlipRight 0.65s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+}
+
+@keyframes jnPageFlipLeft {
+  0% {
+    transform: rotateY(0deg);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  50% {
+    box-shadow: 0 25px 40px rgba(0,0,0,0.22);
+  }
+  100% {
+    transform: rotateY(-180deg);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+}
+
+@keyframes jnPageFlipRight {
+  0% {
+    transform: rotateY(0deg);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  50% {
+    box-shadow: 0 25px 40px rgba(0,0,0,0.22);
+  }
+  100% {
+    transform: rotateY(180deg);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+}
+
+/* Organic Paper Texture & uneven deckled edges */
+.jn-page-tactile {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.025'/%3E%3C/svg%3E") !important;
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 Q1,1.5 3,0 T6,0 T9,0 T12,0.5 T15,0 T18,0 T21,0.5 T24,0 T27,0 T30,0.5 T33,0 T36,0 T39,0.5 T42,0 T45,0 T48,0.5 T51,0 T54,0 T57,0.5 T60,0 T63,0 T66,0.5 T69,0 T72,0 T75,0.5 T78,0 T81,0 T84,0.5 T87,0 T90,0 T93,0.5 T96,0 T99,0 L100,100 L0,100 Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+}
+
+/* Dilmun Wax Seal Sealing stamp */
+.jn-wax-seal {
+  width: 72px;
+  height: 72px;
+  background: radial-gradient(circle, #D11A38 60%, #8A081D 100%);
+  border-radius: 50%;
+  box-shadow: 
+    inset 0 4px 10px rgba(255,255,255,0.35),
+    0 6px 16px rgba(138,8,29,0.45);
+  border: 2px dashed rgba(255,255,255,0.4);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: serif;
+  font-weight: 900;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  pointer-events: none;
+}
+
+.jn-wax-seal-label {
+  font-size: 5.5px;
+  border: 1px solid rgba(255,255,255,0.4);
+  padding: 1px 3px;
+  border-radius: 2px;
+  margin-top: 2px;
+  font-family: sans-serif;
+  letter-spacing: 0.1em;
+}
+
+.animate-stamp-impact {
+  animation: jnStampImpact 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes jnStampImpact {
+  0% { transform: translate(-50%, -50%) scale(3.5) rotate(-25deg); opacity: 0; filter: blur(5px); }
+  100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; filter: blur(0px); }
+}
+
+/* Polaroid Photo chemical noise and development curves */
+.jn-photo-developing {
+  animation: jnDevelopPhoto 3.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes jnDevelopPhoto {
+  0% {
+    filter: grayscale(1) contrast(3.5) brightness(0.35) blur(1.5px);
+    opacity: 0.5;
+  }
+  40% {
+    filter: grayscale(0.75) contrast(2) brightness(0.65) blur(0.5px);
+    opacity: 0.85;
+  }
+  100% {
+    filter: grayscale(0) contrast(1) brightness(1) blur(0px);
+    opacity: 1;
+  }
+}
+
+/* Spotlight glow moving effect on selector cards */
+.jn-vibe-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle 140px at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.12), transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.jn-vibe-card-active-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle 140px at var(--x, 50%) var(--y, 50%), rgba(212,175,55,0.15), transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+

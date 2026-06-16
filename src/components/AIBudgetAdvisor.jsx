@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { callLocalAI, buildBudgetAdvisorPrompt } from '../services/aiService'
 
 export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier }) {
@@ -12,14 +12,8 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
 
   const prevDayRef = useRef(null)
 
-  useEffect(() => {
-    // Only refresh on day change
-    if (prevDayRef.current === currentDay) return
-    prevDayRef.current = currentDay
-    loadTip()
-  }, [currentDay, goldFils])
-
-  const loadTip = async () => {
+  // Declare loadTip as a stable callback before the effect that calls it
+  const loadTip = useCallback(async () => {
     setLoading(true)
     const { system, user } = buildBudgetAdvisorPrompt(goldFils, currentDay, totalDays, tier)
     const text = await callLocalAI(system, user,
@@ -28,7 +22,15 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
     )
     setTip(text)
     setLoading(false)
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDay, goldFils, totalDays, tier])
+
+  useEffect(() => {
+    // Only refresh on day change
+    if (prevDayRef.current === currentDay) return
+    prevDayRef.current = currentDay
+    loadTip()
+  }, [currentDay, loadTip])
 
   const sendChat = async () => {
     if (!chatInput.trim()) return
