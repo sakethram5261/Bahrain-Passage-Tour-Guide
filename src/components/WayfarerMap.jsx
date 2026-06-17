@@ -550,14 +550,14 @@ export default function WayfarerMap({ locations, onClose }) {
         <div className="flex-1 flex flex-col overflow-hidden">
 
           {/* Mobile: horizontal stops strip */}
-          <div className="flex md:hidden items-center gap-2 px-3 py-2 bg-[#FCFBF8] border-b border-red-500/8 overflow-x-auto scrollbar-none shrink-0">
+          <div className="flex md:hidden items-center gap-2 px-3 py-2 bg-[#FCFBF8] border-b border-red-500/8 overflow-x-auto scrollbar-none shrink-0 snap-x snap-mandatory overscroll-x-contain" style={{ scrollbarWidth: 'none', scrollPadding: '0 12px' }}>
             {activeSpots.map((spot, idx) => {
               const isSelected = selectedSpot?.id === spot.id
               return (
                 <button
                   key={spot.id}
                   onClick={() => handleSpotClick(spot)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border shrink-0 text-[13px] font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border shrink-0 text-[13px] font-bold transition-all cursor-pointer snap-start ${
                     isSelected
                       ? 'bg-bahrain-red text-white border-bahrain-red shadow-sm scale-105'
                       : 'bg-white text-bronze-charcoal border-red-500/10 hover:border-red-500/30'

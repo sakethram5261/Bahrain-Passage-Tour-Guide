@@ -312,7 +312,10 @@ export default function MoodSelector({ onConfirm }) {
               style={{
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch',
+                overscrollBehaviorX: 'contain',
+                scrollPadding: '0 12px',
+                paddingLeft: '4px',
+                paddingRight: '16px',
               }}
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((d) => {

@@ -563,7 +563,7 @@ export default function Dashboard() {
             })}
           </div>
 
-          <div className="flex md:hidden justify-around bg-[#FCFBF8] border-b border-red-500/10 py-3 rounded-t-[24px] px-2 w-full select-none z-40 overflow-x-auto gap-1">
+          <div className="flex md:hidden justify-around bg-[#FCFBF8] border-b border-red-500/10 py-3 rounded-t-[24px] px-2 w-full select-none z-40 overflow-x-auto gap-1 snap-x snap-mandatory overscroll-x-contain" style={{ scrollbarWidth: 'none', scrollPadding: '0 8px' }}>
             {[
               { id: 'chronicles', label: "Today's", emoji: '📖' },
               { id: 'cartography', label: 'Map', emoji: '🗺️' },
@@ -576,7 +576,7 @@ export default function Dashboard() {
                 <button
                   key={tab.id}
                   onClick={() => handleLeafSwitch(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold tracking-tight transition-all active:scale-95 cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold tracking-tight transition-all active:scale-95 cursor-pointer snap-start flex-shrink-0 ${
                     active ? 'bg-bahrain-red text-white shadow-sm font-extrabold' : 'bg-transparent text-bronze-charcoal hover:bg-red-500/5'
                   }`}
                 >

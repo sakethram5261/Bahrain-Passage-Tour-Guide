@@ -36,16 +36,6 @@ const WayfarerMap = lazy(() => import('./WayfarerMap'))
 const TourChatbot = lazy(() => import('./TourChatbot'))
 
 
-const getMoodBadge = (moodId) => {
-  switch (moodId?.toLowerCase()) {
-    case 'empires': return { label: 'Empires', emoji: '🏛️', color: 'var(--jn-gold)', bg: 'rgba(212,175,55,0.08)' }
-    case 'sea': return { label: 'Sea Passage', emoji: '🌊', color: '#007799', bg: 'rgba(0,119,153,0.08)' }
-    case 'spice': return { label: 'Spice Route', emoji: '☕', color: '#d16a1a', bg: 'rgba(209,106,26,0.08)' }
-    case 'lights': return { label: 'Modern Lights', emoji: '✨', color: '#8a2be2', bg: 'rgba(138,43,226,0.08)' }
-    default: return { label: 'Bahrain Passage', emoji: '🇧🇭', color: 'var(--jn-crimson)', bg: 'rgba(193,18,47,0.08)' }
-  }
-}
-
 /* ─── Tabs definition ──────────────────────────────────────────────────────── */
 const TABS = [
   { id: 'info',       label: 'Today',    emoji: '📅' },
@@ -1012,65 +1002,9 @@ export default function JournalNotebook({ onBack }) {
                 </div>
               ) : activeSpot ? (
                 /* ─── ACTIVE SPOT SHOWN ─── */
-                <div className="space-y-5 relative">
-                  {/* Subtle Compass Rose watermark in bottom-left corner of the page */}
-                  <svg
-                    viewBox="0 0 100 100"
-                    style={{
-                      position: 'absolute',
-                      bottom: '-10px',
-                      left: '-10px',
-                      width: '120px',
-                      height: '120px',
-                      opacity: 0.05,
-                      pointerEvents: 'none',
-                      color: 'var(--jn-crimson)',
-                      zIndex: 0,
-                    }}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="0.8"
-                    aria-hidden="true"
-                  >
-                    <circle cx="50" cy="50" r="42" strokeDasharray="2,2" />
-                    <circle cx="50" cy="50" r="30" />
-                    <path d="M 50,2 L 50,98 M 2,50 L 98,50" />
-                    <path d="M 50,50 L 47,15 L 50,5 L 53,15 Z" fill="currentColor" />
-                    <path d="M 50,50 L 85,47 L 95,50 L 85,53 Z" fill="currentColor" />
-                    <path d="M 50,50 L 47,85 L 50,95 L 53,85 Z" fill="currentColor" />
-                    <path d="M 50,50 L 15,47 L 5,50 L 15,53 Z" fill="currentColor" />
-                  </svg>
-
+                <div className="space-y-5">
                   {/* Hero postcard stamp */}
-                  <figure className="jn-hero-stamp relative" aria-label={`${activeSpot.name} vintage postage stamp`}>
-                    {/* Approved entry stamp badge */}
-                    <div 
-                      className="jn-entry-stamp-badge"
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        left: '12px',
-                        border: '2px solid #BA0C2F',
-                        color: '#BA0C2F',
-                        padding: '3px 8px',
-                        borderRadius: '4px',
-                        fontFamily: 'var(--jn-font-sans)',
-                        fontSize: '9px',
-                        fontWeight: '900',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.1em',
-                        transform: 'rotate(-8deg)',
-                        background: 'rgba(250, 249, 246, 0.95)',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                        zIndex: 10,
-                        pointerEvents: 'none',
-                        borderStyle: 'double',
-                        borderWidth: '3px',
-                      }}
-                    >
-                      PASSPORT · ENTRY APPROVED
-                    </div>
-
+                  <figure className="jn-hero-stamp" aria-label={`${activeSpot.name} vintage postage stamp`}>
                     {!activeSpot.image || imageErrors[activeSpot.id] ? (
                       <div className="jn-hero-fallback-stamp">
                         <div style={{ fontSize: '48px', marginBottom: '8px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' }}>
@@ -1104,39 +1038,19 @@ export default function JournalNotebook({ onBack }) {
                   </figure>
 
                   {/* Title block */}
-                  <div className="jn-spot-header relative z-10">
+                  <div className="jn-spot-header">
                     <div>
                       <span className="jn-period-tag">{activeSpot.period}</span>
                       <h2 className="jn-spot-name">{activeSpot.name}</h2>
                       <p className="jn-coords" aria-label={`GPS: ${activeSpot.coords}`}>📍 {activeSpot.coords}</p>
-                      
-                      {/* Mood Tag Badge */}
-                      <div className="mt-2.5 flex items-center gap-2">
-                        {(() => {
-                          const badge = getMoodBadge(activeSpot.mood);
-                          return (
-                            <span 
-                              className="jn-tag font-sans text-[10.5px] font-black uppercase tracking-wider px-3 py-1 rounded-full border flex items-center gap-1.5"
-                              style={{
-                                color: badge.color,
-                                background: badge.bg,
-                                borderColor: `${badge.color}25`,
-                              }}
-                            >
-                              <span>{badge.emoji}</span>
-                              <span>{badge.label}</span>
-                            </span>
-                          )
-                        })()}
-                      </div>
                     </div>
                     <span className="jn-arabic" lang="ar">{activeSpot.arabic}</span>
                   </div>
 
-                  <hr className="jn-divider relative z-10" aria-hidden="true" />
+                  <hr className="jn-divider" aria-hidden="true" />
 
                   {/* On desktop: hide details on left page (rendered on right page instead) */}
-                  <div className="jn-desktop-hidden-details relative z-10">
+                  <div className="jn-desktop-hidden-details">
                     {renderSpotDetails()}
                   </div>
                 </div>
@@ -1254,7 +1168,7 @@ export default function JournalNotebook({ onBack }) {
                       {/* 1. Departure Base Camp Stop */}
                       {selectedHotel ? (
                         <li
-                          className="jn-timeline-item jn-timeline-item--done"
+                          className="jn-timeline-item"
                           onClick={() => {
                             setActiveTab('hotels')
                             playTypewriterClick(0.9)
@@ -1304,11 +1218,10 @@ export default function JournalNotebook({ onBack }) {
                       {activeSpots.map((stop, idx) => {
                         const isSelected = activeSpot && activeSpot.id === stop.id
                         const hasPic = !!capturedPhotos[stop.id]
-                        const isDone = idx < currentSpotIndex
                         return (
                           <li
                             key={stop.id}
-                            className={`jn-timeline-item ${isSelected ? 'jn-timeline-item--active' : ''} ${isDone ? 'jn-timeline-item--done' : ''}`}
+                            className={`jn-timeline-item ${isSelected ? 'jn-timeline-item--active' : ''}`}
                             onClick={() => {
                               setCurrentSpotIndex(idx)
                               playTypewriterClick(0.95 + idx * 0.05)
@@ -1341,7 +1254,7 @@ export default function JournalNotebook({ onBack }) {
                       {/* 3. Seal Day Stop */}
                       {hasSpots && (
                         <li
-                          className={`jn-timeline-item ${isSealStep ? 'jn-timeline-item--active' : ''} ${isDayCompleted ? 'jn-timeline-item--done' : ''}`}
+                          className={`jn-timeline-item ${isSealStep ? 'jn-timeline-item--active' : ''}`}
                           onClick={() => {
                             setCurrentSpotIndex(activeSpots.length)
                             playTypewriterClick(1.2)
@@ -1370,7 +1283,7 @@ export default function JournalNotebook({ onBack }) {
                       {/* 4. Overnight Return Stay */}
                       {hasSpots && selectedHotel && (
                         <li
-                          className="jn-timeline-item jn-timeline-item--upcoming"
+                          className="jn-timeline-item"
                           onClick={() => {
                             setActiveTab('hotels')
                             playTypewriterClick(1.2)
@@ -1962,14 +1875,14 @@ export default function JournalNotebook({ onBack }) {
             position: 'fixed',
             bottom: '90px',
             right: '20px',
-            zIndex: 10000,
+            zIndex: 200,
             width: '52px',
             height: '52px',
             borderRadius: '50%',
             background: chatOpen ? '#2A2321' : 'linear-gradient(135deg, #D11A38, #A81028)',
             color: '#fff',
-            border: '2px solid rgba(255,255,255,0.2)',
-            boxShadow: '0 10px 30px rgba(168,16,40,0.45), 0 4px 10px rgba(0,0,0,0.15), inset 0 2px 2px rgba(255,255,255,0.3)',
+            border: '2px solid rgba(255,255,255,0.15)',
+            boxShadow: '0 8px 24px rgba(209,26,56,0.4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1990,10 +1903,10 @@ export default function JournalNotebook({ onBack }) {
               bottom: '155px',
               right: '16px',
               width: 'min(380px, calc(100vw - 32px))',
-              zIndex: 9999,
+              zIndex: 199,
               borderRadius: '20px',
               overflow: 'hidden',
-              boxShadow: '0 25px 55px rgba(42,35,33,0.35), 0 0 0 1px rgba(209,26,56,0.15)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(209,26,56,0.12)',
               animation: 'slideInRight 0.3s cubic-bezier(0.16,1,0.3,1) both',
             }}
           >
@@ -2022,19 +1935,19 @@ export default function JournalNotebook({ onBack }) {
           height: 44,
           borderRadius: '50%',
           background: 'linear-gradient(135deg, #D4AF37 0%, #a88020 100%)',
-          border: '2px solid rgba(255,255,255,0.35)',
+          border: '2px solid rgba(255,255,255,0.3)',
           color: '#fff',
           fontSize: 18,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
-          zIndex: 9998,
-          boxShadow: '0 10px 25px rgba(168,16,40,0.15), 0 6px 18px rgba(212,175,55,0.55), inset 0 2px 2px rgba(255,255,255,0.5)',
+          zIndex: 197,
+          boxShadow: '0 4px 16px rgba(212,175,55,0.4)',
           transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(212,175,55,0.7)' }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(168,16,40,0.15), 0 6px 18px rgba(212,175,55,0.55)' }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(212,175,55,0.6)' }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,175,55,0.4)' }}
       >
         ⚡
       </button>
