@@ -7,9 +7,8 @@ import PassportCard from './PassportCard'
 import TourChatbot from './TourChatbot'
 import VirtualTour, { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { EffectCards, Navigation, Pagination, Autoplay } from 'swiper/modules'
+import { Navigation, Pagination, Autoplay, Mousewheel } from 'swiper/modules'
 import 'swiper/css'
-import 'swiper/css/effect-cards'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 import { getRank, getNextRank, RIDDLES, shopItems, getAlmanac } from './DashboardData'
@@ -1604,9 +1603,9 @@ function Carousel_002({
   return (
     <div className="w-full max-w-[280px] mx-auto py-4 select-none relative skiper-cards-carousel relative">
       <Swiper
-        effect={'cards'}
         grabCursor={true}
-        modules={[EffectCards, Navigation, Pagination, Autoplay]}
+        modules={[Navigation, Pagination, Autoplay, Mousewheel]}
+        mousewheel={{ forceToAxis: true, releaseOnEdges: true }}
         loop={loop && images.length > 1}
         autoplay={images.length > 1 ? autoplayConfig : false}
         spaceBetween={spaceBetween}

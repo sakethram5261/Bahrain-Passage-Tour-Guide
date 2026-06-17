@@ -1,0 +1,16 @@
+commit ed0ab24030d4fe9164d18c67dd290b1011672f22
+Author: saketh <sakethram5261@gmail.com>
+Date:   Wed Jun 17 01:09:58 2026 +0300
+
+    feat: redesign travel card carousel with Bahrain red-and-white theme, add full-bleed place images, fix action buttons and swipe gestures
+
+diff --git a/src/components/Timeline.jsx b/src/components/Timeline.jsx
+index 07335b5..bffa56e 100644
+--- a/src/components/Timeline.jsx
++++ b/src/components/Timeline.jsx
+@@ -1,4 +1,4 @@
+-import { useRef, useState, useEffect } from 'react'
++import { useRef, useState } from 'react'
+ import gsap from 'gsap'
+ import { useGSAP } from '@gsap/react'
+ import { useVibe } from '../hooks/useVibe'

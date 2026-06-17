@@ -1,0 +1,1104 @@
+commit ed0ab24030d4fe9164d18c67dd290b1011672f22
+Author: saketh <sakethram5261@gmail.com>
+Date:   Wed Jun 17 01:09:58 2026 +0300
+
+    feat: redesign travel card carousel with Bahrain red-and-white theme, add full-bleed place images, fix action buttons and swipe gestures
+
+diff --git a/src/components/SensoryHero.jsx b/src/components/SensoryHero.jsx
+index 50f46ba..50acc50 100644
+--- a/src/components/SensoryHero.jsx
++++ b/src/components/SensoryHero.jsx
+@@ -1,16 +1,45 @@
+-import { useRef, useState, useEffect } from 'react'
+-import gsap from 'gsap'
++import { useRef, useState, useEffect, useCallback } from 'react'
+ import { useVibe } from '../hooks/useVibe'
+ import NauticalChronometer from './NauticalChronometer'
+ 
+-export default function SensoryHero() {
++const CARD_VIDEOS = [
++  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_030111_a9e15665-d379-4a7f-8116-695bbe452ad1.mp4',
++  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260429_171347_f640c30d-ec21-426a-98bc-77e07c2c60cb.mp4',
++  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260503_104800_bc43ae09-f494-43e3-97d7-2f8c1692cfd7.mp4',
++  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260423_161253_c72b1869-400f-45ed-ac0c-52f68c2ed5bd.mp4',
++  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_115655_b4d9cd77-feed-43cd-a198-af78ebdf1f7a.mp4',
++  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_024928_1efd0b0d-6c02-45a8-8847-1030900c4f63.mp4',
++  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_024928_1efd0b0d-6c02-45a8-8847-1030900c4f63.mp4'
++]
++
++const BAHRAIN_CARD_GRADIENTS = [
++  'linear-gradient(135deg, #A80D27 0%, #5C000E 100%)', // Bahrain Crimson
++  'linear-gradient(135deg, #aa7c11 0%, #543d08 100%)', // Dilmun Gold
++  'linear-gradient(135deg, #1e3a8a 0%, #172554 100%)', // Persian Gulf Blue
++  'linear-gradient(135deg, #065f46 0%, #022c22 100%)', // Oasis Green
++  'linear-gradient(135deg, #4f46e5 0%, #1e1b4b 100%)', // Twilight Indigo
++  'linear-gradient(135deg, #7c3aed 0%, #2e1065 100%)', // Royal Purple
++]
++
++const guidePhrases = [
++  `Greetings wayfarer! Your local guide deck is assembling...`,
++  `Merchant Jafar is curating aromatic souq spices for Day 1...`,
++  `Priestess Ninsun is matching Dilmun temple relics with historical records...`,
++  `Architect Al-Farsi is outlining coastal fort maps in Muharraq...`,
++  `Scanning Jarada disappearing island marine sandbar low-tide coordinates...`,
++  `Syncing local sea taxi and boat ferry timetables from Sitra port...`,
++  `Optimizing desert walking paths to avoid Sakhir desert midday heat...`,
++  `Confirming fresh Arabic coffee dallah balances at Haji's Traditional Cafe...`,
++  `Aligning custom entry visa seals in your travel passport...`,
++  `Guide alignment fully calibrated. Click below to unroll your ledger leaves!`
++]
++
++export default function SensoryHero({ onBack }) {
+   const {
+     setStep = () => {},
+     selectedMoods = [],
+     tier = 'Wandering',
+     duration = 1,
+-    pace = 'balanced',
+-    setCuratedItinerary = () => {},
+     itinerarySpots = [],
+     setItinerarySpots = () => {},
+     soundVolume = 1,
+@@ -18,78 +47,348 @@ export default function SensoryHero() {
+     resetChronicle = () => {},
+   } = useVibe()
+ 
+-  const [animating, setAnimating] = useState(false)
+-  const [loadingContent, setLoadingContent] = useState(false)
+-  const [coverOpened, setCoverOpened] = useState(true)
++  const [coverOpened] = useState(true)
+   const [showPreviewOverview, setShowPreviewOverview] = useState(false)
+   const [carouselIndex, setCarouselIndex] = useState(0)
+   const [terminalLogs, setTerminalLogs] = useState([])
+-  const [activeLogIndex, setActiveLogIndex] = useState(0)
+   const [logsComplete, setLogsComplete] = useState(false)
+   const [contentLoaded, setContentLoaded] = useState(false)
+-  const [imageErrors, setImageErrors] = useState({})
+   const [sealing, setSealing] = useState(false) 
+-  const [confirmRemove, setConfirmRemove] = useState(null) // idx of spot to confirm-remove
++  const [flippedIndex, setFlippedIndex] = useState(null)
+ 
+-  // Swipe gesture tracking references
+-  const touchStartX = useRef(0)
+-  const touchStartY = useRef(0)
++  // Swipe & Drag gesture tracking references
++  const isDragging = useRef(false)
++  const dragStartX = useRef(0)
++  const dragStartY = useRef(0)
++  const dragStartProgress = useRef(0)
++  const dragType = useRef(null)
++  const swipeOffsetX = useRef(0)
++
++  // 3D Cylinder References
++  const cardsRefs = useRef([])
++  const progress = useRef(0)
++  const targetProgress = useRef(0)
++  const mouse = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 })
++  const frameId = useRef(0)
++  const isHovered = useRef(false)
++  const lastIndexRef = useRef(0)
++
++  // Responsive state containing card dimensions
++  const [metrics, setMetrics] = useState({
++    cardW: 336,
++    cardH: 211, // 1.59 standard credit card ratio
++  })
+ 
+   // Carousel item switching handlers
+   const handleNextSpot = () => {
+     if (!itinerarySpots || itinerarySpots.length === 0) return
+     playTypewriterClick(1.05)
+-    setCarouselIndex((prev) => (prev + 1) % itinerarySpots.length)
++    setFlippedIndex(null)
++    targetProgress.current = Math.round(targetProgress.current) + 1
+   }
+ 
+   const handlePrevSpot = () => {
+     if (!itinerarySpots || itinerarySpots.length === 0) return
+     playTypewriterClick(0.95)
+-    setCarouselIndex((prev) => (prev - 1 + itinerarySpots.length) % itinerarySpots.length)
+-  }
+-
+-  // Touch handlers for direct swipe interaction using changedTouches for bulletproof mobile swipe behavior
+-  const handleTouchStart = (e) => {
+-    touchStartX.current = e.changedTouches[0].clientX
+-    touchStartY.current = e.changedTouches[0].clientY
++    setFlippedIndex(null)
++    targetProgress.current = Math.round(targetProgress.current) - 1
+   }
+ 
+-  const handleTouchEnd = (e) => {
+-    const endX = e.changedTouches[0].clientX
+-    const endY = e.changedTouches[0].clientY
++  // Shortest-path circular navigation helper
++  const goToIndex = (targetIdx) => {
++    if (!itinerarySpots || itinerarySpots.length === 0) return
++    const cardCount = itinerarySpots.length
++    const curProgress = progress.current
+     
+-    const diffX = touchStartX.current - endX
+-    const diffY = touchStartY.current - endY
++    // Find current active index as rounded modulo
++    let curActive = Math.round(curProgress) % cardCount
++    if (curActive < 0) curActive += cardCount
+     
+-    const swipeThreshold = 40 
++    // Shortest path difference
++    let diff = targetIdx - curActive
++    const half = cardCount / 2
++    while (diff > half) diff -= cardCount
++    while (diff < -half) diff += cardCount
+     
+-    // Only trigger if horizontal movement is primary
+-    if (Math.abs(diffX) > Math.abs(diffY)) {
+-      if (Math.abs(diffX) > swipeThreshold) {
+-        if (diffX > 0) {
+-          handleNextSpot()
+-        } else {
+-          handlePrevSpot()
+-        }
++    setFlippedIndex(null)
++    targetProgress.current = Math.round(curProgress) + diff
++  }
++
++  // Touch/Mouse drag handlers for 3D cylinder layout & swipe-to-delete gesture
++  const handleDragStart = (clientX, clientY) => {
++    isDragging.current = true
++    dragStartX.current = clientX
++    dragStartY.current = clientY
++    dragStartProgress.current = targetProgress.current
++    swipeOffsetX.current = 0
++    dragType.current = null
++  }
++
++  const handleDragMove = (clientX, clientY) => {
++    if (!isDragging.current) return
++    const diffX = clientX - dragStartX.current
++    const diffY = clientY - dragStartY.current
++
++    if (dragType.current === null) {
++      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
++        dragType.current = 'horizontal'
++      } else if (Math.abs(diffY) > 10) {
++        dragType.current = 'vertical'
+       }
+     }
++
++    if (dragType.current === 'vertical') {
++      // Swipe up/down to scroll vertical cylinder
++      targetProgress.current = dragStartProgress.current - (diffY / 180)
++    } else if (dragType.current === 'horizontal') {
++      // Swipe left/right on active card to delete
++      swipeOffsetX.current = diffX
++    }
+   }
+ 
+-  // Reset image load errors when switching slides (no longer needed with per-spot imageErrors)
++  const handleDragEnd = () => {
++    if (!isDragging.current) return
++    isDragging.current = false
++
++    if (dragType.current === 'vertical') {
++      targetProgress.current = Math.round(targetProgress.current)
++    } else if (dragType.current === 'horizontal') {
++      // Threshold check to delete active spot
++      if (Math.abs(swipeOffsetX.current) > 120) {
++        playTypewriterClick(0.75)
++        const remaining = itinerarySpots.filter((_, sIdx) => sIdx !== carouselIndex)
++        setItinerarySpots(remaining)
++      }
++      swipeOffsetX.current = 0
++    }
++    dragType.current = null
++  }
+ 
+-  // Bulletproof safety check to prevent carouselIndex out of bounds
++  // Register window mouse listeners to catch releases outside the container
+   useEffect(() => {
+-    if (itinerarySpots && itinerarySpots.length > 0 && (carouselIndex >= itinerarySpots.length || carouselIndex < 0)) {
+-      setCarouselIndex(0)
++    const handleWindowMouseMove = (e) => {
++      if (isDragging.current) {
++        handleDragMove(e.clientX, e.clientY)
++      }
++    }
++
++    const handleWindowMouseUp = () => {
++      if (isDragging.current) {
++        handleDragEnd()
++      }
++    }
++
++    window.addEventListener('mousemove', handleWindowMouseMove)
++    window.addEventListener('mouseup', handleWindowMouseUp)
++
++    return () => {
++      window.removeEventListener('mousemove', handleWindowMouseMove)
++      window.removeEventListener('mouseup', handleWindowMouseUp)
+     }
+   }, [itinerarySpots, carouselIndex])
+ 
++  // Card flipping click handler
++  const handleCardClick = (idx) => {
++    // Only allow flipping of the active card
++    if (idx !== carouselIndex) {
++      goToIndex(idx)
++      return
++    }
++    playTypewriterClick(1.1)
++    if (flippedIndex === idx) {
++      setFlippedIndex(null)
++    } else {
++      setFlippedIndex(idx)
++    }
++  }
++
++  // Track mouse coordinates for interactive 3D parallax tilt with inertia damping
++  useEffect(() => {
++    const handleMouseMove = (e) => {
++      // Screen-space cursor offset relative to window center, clamped to [-1.0, 1.0] range
++      const rx = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2)
++      const ry = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2)
++      mouse.current.targetX = Math.max(-1, Math.min(1, rx))
++      mouse.current.targetY = Math.max(-1, Math.min(1, ry))
++    }
++
++    const handleMouseLeave = () => {
++      // Return gently to center orientation when mouse focus is lost or moves away
++      mouse.current.targetX = 0
++      mouse.current.targetY = 0
++    }
++
++    window.addEventListener('mousemove', handleMouseMove)
++    document.addEventListener('mouseleave', handleMouseLeave)
++
++    return () => {
++      window.removeEventListener('mousemove', handleMouseMove)
++      document.removeEventListener('mouseleave', handleMouseLeave)
++    }
++  }, [])
++
++  // Calculate card sizing dynamically
++  useEffect(() => {
++    const handleResize = () => {
++      const w = window.innerWidth
++      const h = window.innerHeight
++
++      // Calculate Card Metrics (shrink cards if height is small to save space)
++      let cardW = Math.round(w * 0.16 + 130)
++      
++      const heightFactor = Math.min(1.0, Math.max(0.65, h / 850))
++      cardW = Math.round(cardW * heightFactor)
++      
++      cardW = Math.min(336, Math.max(150, cardW))
++      const cardH = Math.round(cardW / 1.5925) // Standard credit card ratio
++
++      setMetrics({ cardW, cardH })
++    }
++
++    handleResize()
++    window.addEventListener('resize', handleResize)
++    return () => window.removeEventListener('resize', handleResize)
++  }, [])
++
++  // Safely clean up / clamp refs on array size changes
++  useEffect(() => {
++    const cardCount = itinerarySpots.length
++    cardsRefs.current = cardsRefs.current.slice(0, cardCount)
++    progress.current = 0
++    targetProgress.current = 0
++    lastIndexRef.current = 0
++    queueMicrotask(() => {
++      setCarouselIndex(0)
++      setFlippedIndex(null)
++    })
++  }, [itinerarySpots.length])
++
++  // 60fps render loop to compute 3D transformation values in a vertical cylinder
++  const renderLoop = useCallback(() => {
++    const cardCount = itinerarySpots.length
++    if (cardCount === 0) return
++
++    // Slow idle drift if cursor is not hovering, card is not flipped, and user is not dragging
++    if (!isHovered.current && flippedIndex === null && !isDragging.current) {
++      targetProgress.current += 0.0006
++    }
++
++    // Interpolate mouse tracking with inertia damping
++    mouse.current.x += (mouse.current.targetX - mouse.current.x) * 0.08
++    mouse.current.y += (mouse.current.targetY - mouse.current.y) * 0.08
++
++    // Interpolate continuous progress with spring physics
++    progress.current += (targetProgress.current - progress.current) * 0.08
++
++    const cards = cardsRefs.current
++    const continuousProgress = progress.current
++    const roundedIndex = Math.round(continuousProgress)
++    const diffFromRound = continuousProgress - roundedIndex
++    
++    // Magnetic central snap calculation
++    const easedDiff = Math.sign(diffFromRound) * Math.pow(Math.abs(diffFromRound) * 2, 4.2) / 2
++    const virtualActiveIndex = roundedIndex + easedDiff
++
++    // Throttled state update for metadata panel below
++    let activeIdx = roundedIndex % cardCount
++    if (activeIdx < 0) activeIdx += cardCount
++    if (activeIdx !== lastIndexRef.current) {
++      lastIndexRef.current = activeIdx
++      setCarouselIndex(activeIdx)
++    }
++
++    const lerp = (start, end, amt) => (1 - amt) * start + amt * end
++
++    for (let i = 0; i < cardCount; i++) {
++      const card = cards[i]
++      if (!card) continue
++
++      // Solve circular wrapping
++      let offset = i - virtualActiveIndex
++      const halfCount = cardCount / 2
++      while (offset > halfCount) offset -= cardCount
++      while (offset < -halfCount) offset += cardCount
++
++      const absOffset = Math.abs(offset)
++      const sign = Math.sign(offset)
++
++      // Hide off-screen elements smoothly and limit clipping
++      if (absOffset > 2.2) {
++        card.style.visibility = 'hidden'
++        card.style.opacity = '0'
++        continue
++      } else {
++        card.style.visibility = 'visible'
++      }
++
++      let y = 0
++      let z = 0
++      let rot = 0
++      let opacity = 1
++
++      if (absOffset <= 1) {
++        const t = absOffset
++        y = sign * t * 130
++        z = lerp(350, 150, t)
++        rot = sign * t * 45
++        opacity = 1
++      } else {
++        const t = Math.min(absOffset - 1, 1.2)
++        y = sign * (130 + t * 90)
++        z = lerp(150, -50, t)
++        rot = sign * (45 + t * 45)
++        opacity = lerp(1, 0, t)
++      }
++
++      const localCardRotation = -sign * rot
++      const centerFactor = Math.max(0, 1 - absOffset)
++
++      const maxTiltY = 12
++      const maxTiltX = 10
++
++      const activeTiltX = -mouse.current.y * maxTiltX * centerFactor
++      const activeTiltY = mouse.current.x * maxTiltY * centerFactor
++
++      // 180deg flip around the X-axis for details disclosure
++      const isFlipped = flippedIndex === i
++      const flipAngle = isFlipped ? 180 : 0
++
++      const totalRotX = localCardRotation + activeTiltX + flipAngle
++      const totalRotY = activeTiltY
++
++      card.style.zIndex = Math.round(z).toString()
++      
++      let translateX = 0
++      let cardOpacity = opacity
++
++      // If active card is being swiped horizontally, apply translation & fade out
++      if (absOffset < 0.5 && dragType.current === 'horizontal') {
++        translateX = swipeOffsetX.current
++        cardOpacity = opacity * Math.max(0, 1 - Math.abs(swipeOffsetX.current) / 320)
++      }
++
++      card.style.opacity = cardOpacity.toFixed(3)
++      card.style.transform = `translateX(${translateX.toFixed(1)}px) translateY(${y.toFixed(1)}px) translateZ(${z.toFixed(1)}px) rotateX(${totalRotX.toFixed(1)}deg) rotateY(${totalRotY.toFixed(1)}deg) rotateZ(-3deg)`
++    }
++  }, [itinerarySpots, flippedIndex, metrics])
++
++  // 60fps Animation tick
++  useEffect(() => {
++    const tick = () => {
++      renderLoop()
++      frameId.current = requestAnimationFrame(tick)
++    }
++
++    frameId.current = requestAnimationFrame(tick)
++    return () => cancelAnimationFrame(frameId.current)
++  }, [renderLoop])
++
+   const containerRef = useRef(null)
+   const contentRef = useRef(null)
+   const logsEndRef = useRef(null)
+ 
+   // Synthesis of Typewriter mechanical key clicking sounds
+-  const playTypewriterClick = (pitchMultiplier = 1.0) => {
++  const playTypewriterClick = useCallback((pitchMultiplier = 1.0) => {
+     if (soundMuted) return
+     try {
+       const AudioContext = window.AudioContext || window.webkitAudioContext
+@@ -119,33 +418,11 @@ export default function SensoryHero() {
+       
+       osc.start()
+       osc.stop(audioCtx.currentTime + 0.04)
+-    } catch (e) {}
+-  }
+-
+-  const guidePhrases = [
+-    `Greetings wayfarer! Your local guide deck is assembling...`,
+-    `Merchant Jafar is curating aromatic souq spices for Day 1...`,
+-    `Priestess Ninsun is matching Dilmun temple relics with historical records...`,
+-    `Architect Al-Farsi is outlining coastal fort maps in Muharraq...`,
+-    `Scanning Jarada disappearing island marine sandbar low-tide coordinates...`,
+-    `Syncing local sea taxi and boat ferry timetables from Sitra port...`,
+-    `Optimizing desert walking paths to avoid Sakhir desert midday heat...`,
+-    `Confirming fresh Arabic coffee dallah balances at Haji's Traditional Cafe...`,
+-    `Aligning custom entry visa seals in your travel passport...`,
+-    `Guide alignment fully calibrated. Click below to unroll your ledger leaves!`
+-  ]
+-
+-  useEffect(() => {
+-    if (coverOpened) {
+-      compileItinerary()
+-    }
+-  }, [coverOpened])
++    } catch { /* ignore */ }
++  }, [soundMuted, soundVolume])
+ 
+   // Compile itinerary
+-  const compileItinerary = async () => {
+-    setLoadingContent(true)
+-    
+-    let parsed = null 
++  const compileItinerary = useCallback(async () => {
+     let compiledSpots = []
+ 
+     // Safely extract spots catalog dynamically to completely break circular dependency loops
+@@ -225,31 +502,38 @@ export default function SensoryHero() {
+       if (b.id === 'airport-departure') return -1
+       return 0
+     })
+-    setItinerarySpots(compiledSpots)
+-    setContentLoaded(true)
+-    setLoadingContent(false)
+-  }
++    queueMicrotask(() => {
++      setItinerarySpots(compiledSpots)
++      setContentLoaded(true)
++    })
++  }, [selectedMoods, duration, tier, setItinerarySpots])
++
++  useEffect(() => {
++    if (coverOpened) {
++      compileItinerary()
++    }
++  }, [coverOpened, compileItinerary])
+ 
+   // Type out guide notes in real-time
+   useEffect(() => {
+     if (!coverOpened) return
+     let active = true
+-    setActiveLogIndex(0)
+-    setTerminalLogs([guidePhrases[0]])
++    let activeLogIndex = 0
++    queueMicrotask(() => {
++      setTerminalLogs([guidePhrases[0]])
++    })
+ 
+     const interval = setInterval(() => {
+       if (active) {
+-        setActiveLogIndex(prev => {
+-          const next = prev + 1
+-          if (next < guidePhrases.length) {
+-            playTypewriterClick(1.0 + Math.random() * 0.25)
+-            setTerminalLogs(logs => [...logs, guidePhrases[next]])
+-            return next
+-          }
++        const next = activeLogIndex + 1
++        if (next < guidePhrases.length) {
++          playTypewriterClick(1.0 + Math.random() * 0.25)
++          setTerminalLogs(logs => [...logs, guidePhrases[next]])
++          activeLogIndex = next
++        } else {
+           clearInterval(interval)
+           setLogsComplete(true)
+-          return prev
+-        })
++        }
+       }
+     }, 450)
+ 
+@@ -257,7 +541,7 @@ export default function SensoryHero() {
+       active = false
+       clearInterval(interval)
+     }
+-  }, [coverOpened])
++  }, [coverOpened, playTypewriterClick])
+ 
+   // Scroll terminal logs automatically
+   useEffect(() => {
+@@ -269,15 +553,20 @@ export default function SensoryHero() {
+   // Transition to the card carousel overview cleanly when loading finishes
+   useEffect(() => {
+     if (logsComplete && contentLoaded) {
+-      setShowPreviewOverview(true)
++      queueMicrotask(() => {
++        setShowPreviewOverview(true)
++      })
+     }
+   }, [logsComplete, contentLoaded])
+   return (
+     <div 
+       ref={containerRef}
+-      className="fixed inset-0 z-50 flex flex-col items-center justify-center wood-desk-backdrop overflow-y-auto px-4 py-6"
++      className={`fixed inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto px-4 py-6 transition-colors duration-700 ${
++        showPreviewOverview ? 'bg-[#FAF9F6]' : 'wood-desk-backdrop'
++      }`}
+     >
+       <style>{`
++        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+         @keyframes rotateCompass {
+           0% { transform: rotate(0deg); }
+           100% { transform: rotate(360deg); }
+@@ -301,7 +590,7 @@ export default function SensoryHero() {
+       `}</style>
+ 
+       {/* 1. TACTILE DESKTOP PROPS */}
+-      {coverOpened && (
++      {coverOpened && !showPreviewOverview && (
+         <>
+           <div className="hidden lg:block desktop-prop-quill">
+             <svg viewBox="0 0 120 180" className="w-full h-auto">
+@@ -343,7 +632,7 @@ export default function SensoryHero() {
+         <div 
+           key="carousel-screen"
+           ref={contentRef}
+-          className="relative w-full max-w-md mx-auto select-none animate-screenEntry flex flex-col gap-5 justify-center"
++          className="relative w-full max-w-md mx-auto select-none animate-screenEntry flex flex-col gap-5 justify-center z-10"
+           style={{
+             transformStyle: 'preserve-3d',
+             perspective: '1200px',
+@@ -354,14 +643,14 @@ export default function SensoryHero() {
+             <>
+               <button
+                 onClick={handlePrevSpot}
+-                className="hidden lg:flex absolute left-[-64px] top-[40%] -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white border border-[#A80D27]/18 text-[#A80D27] shadow-md hover:bg-[#FAF8F5] transition-all hover:scale-105 active:scale-95 cursor-pointer z-40 font-bold"
++                className="hidden lg:flex absolute left-[-80px] top-[140px] w-12 h-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer z-40 font-bold"
+                 title="Previous Stop"
+               >
+                 ❮
+               </button>
+               <button
+                 onClick={handleNextSpot}
+-                className="hidden lg:flex absolute right-[-64px] top-[40%] -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white border border-[#A80D27]/18 text-[#A80D27] shadow-md hover:bg-[#FAF8F5] transition-all hover:scale-105 active:scale-95 cursor-pointer z-40 font-bold"
++                className="hidden lg:flex absolute right-[-80px] top-[140px] w-12 h-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer z-40 font-bold"
+                 title="Next Stop"
+               >
+                 ❯
+@@ -369,159 +658,323 @@ export default function SensoryHero() {
+             </>
+           )}
+ 
+-          {/* Floating tactile card wrapper */}
++          {/* Interactive 3D Card Viewport Container */}
+           <div
+-            className="relative rounded-[24px] overflow-hidden flex flex-col border border-amber-600/30 select-none w-full"
+-            onTouchStart={handleTouchStart}
+-            onTouchEnd={handleTouchEnd}
+-            style={{
+-              boxShadow: '0 25px 55px -12px rgba(0,0,0,0.3), 0 8px 18px -6px rgba(0,0,0,0.2)',
+-              touchAction: 'pan-y'
++            className="relative w-full h-[320px] sm:h-[350px] flex items-center justify-center overflow-visible select-none pointer-events-auto cursor-grab active:cursor-grabbing"
++            onMouseEnter={() => { isHovered.current = true }}
++            onMouseLeave={() => { isHovered.current = false }}
++            onMouseDown={(e) => {
++              if (e.button !== 0) return
++              handleDragStart(e.clientX, e.clientY)
+             }}
++            onTouchStart={(e) => {
++              const t = e.touches[0]
++              handleDragStart(t.clientX, t.clientY)
++            }}
++            onTouchMove={(e) => {
++              const t = e.touches[0]
++              handleDragMove(t.clientX, t.clientY)
++            }}
++            onTouchEnd={handleDragEnd}
+           >
++            <div
++              className="relative w-full h-full flex items-center justify-center pointer-events-none"
++              style={{
++                perspective: '1350px',
++              }}
++            >
++              <div
++                className="absolute pointer-events-auto"
++                style={{
++                  width: `${metrics.cardW}px`,
++                  height: `${metrics.cardH}px`,
++                  transformStyle: 'preserve-3d',
++                }}
++              >
++                {itinerarySpots.map((spot, i) => {
++                  const zLayers = [-1.47, -0.73, 0, 0.73, 1.47]
++                  const cardGradient = BAHRAIN_CARD_GRADIENTS[i % BAHRAIN_CARD_GRADIENTS.length]
++                  const videoSrc = CARD_VIDEOS[i % CARD_VIDEOS.length]
++
++                  return (
++                    <div
++                      key={spot.id}
++                      ref={(el) => { cardsRefs.current[i] = el }}
++                      className="absolute inset-0 transition-opacity duration-300"
++                      onClick={() => handleCardClick(i)}
++                      style={{
++                        width: `${metrics.cardW}px`,
++                        height: `${metrics.cardH}px`,
++                        transformStyle: 'preserve-3d',
++                        backfaceVisibility: 'visible',
++                        cursor: 'pointer'
++                      }}
++                    >
++                      {zLayers.map((zOffset, layerIdx) => {
++                        const isFrontFace = layerIdx === zLayers.length - 1
++                        const isBackFace = layerIdx === 0
++
++                        // Middle structure edge layer
++                        if (!isFrontFace && !isBackFace) {
++                          return (
++                            <div
++                              key={layerIdx}
++                              className="absolute inset-0 rounded-[16px] pointer-events-none overflow-hidden border border-white/5"
++                              style={{
++                                background: '#1c1c1e',
++                                transform: `translateZ(${zOffset}px)`,
++                                boxShadow: '0 0 4px rgba(255,255,255,0.05)'
++                              }}
++                            />
++                          )
++                        }
++
++                        // Front Face of Card
++                        if (isFrontFace) {
++                          return (
++                            <div
++                              key={layerIdx}
++                              className="absolute inset-0 rounded-[16px] border border-white/25 pointer-events-none overflow-hidden select-none"
++                              style={{
++                                background: 'linear-gradient(135deg, #BA0C2F 0%, #7A0019 100%)',
++                                transform: `translateZ(${zOffset}px)`,
++                                backfaceVisibility: 'hidden',
++                                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.25), 0 10px 25px rgba(0,0,0,0.35)',
++                              }}
++                            >
++                              {/* Background Place Image */}
++                              <img
++                                src={spot.image || 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?q=80&w=600&auto=format&fit=crop'}
++                                alt={spot.name}
++                                className="absolute inset-0 w-full h-full object-cover rounded-[16px] opacity-75"
++                              />
++                              {/* Crimson Gradient Overlay for contrast and red theme blending */}
++                              <div className="absolute inset-0 bg-gradient-to-tr from-black/85 via-black/40 to-[#A80D27]/85 rounded-[16px]" />
++
++                              {/* Bahrain Flag Serrated Border on Left */}
++                              <svg className="absolute inset-y-0 left-0 w-[20px] h-full" viewBox="0 0 24 100" preserveAspectRatio="none" fill="none">
++                                <path d="M0,0 L24,0 L12,10 L24,20 L12,30 L24,40 L12,50 L24,60 L12,70 L24,80 L12,90 L24,100 L0,100 Z" fill="white" />
++                              </svg>
++
++                              {/* Card details overlay */}
++                              <div className="absolute inset-0 pl-8 pr-4 py-4 sm:pl-10 sm:pr-5 sm:py-5 text-white h-full w-full font-sans z-10 flex flex-col justify-between">
++                                {/* Top Header */}
++                                <div className="flex justify-between items-start">
++                                  <div className="flex flex-col text-left">
++                                    <span className="font-mono text-[7.5px] tracking-[0.25em] text-white/60 uppercase font-black">
++                                      BAHRAIN PASSAGE
++                                    </span>
++                                    <span className="font-serif text-[11px] sm:text-[13px] font-black tracking-tight leading-tight mt-0.5 max-w-[170px] text-white drop-shadow-md">
++                                      {spot.keepsakeEmoji || '📍'} {spot.name}
++                                    </span>
++                                  </div>
++
++                                  {/* Travel Compass Emblem */}
++                                  <div className="opacity-90 shrink-0 text-white">
++                                    <svg
++                                      className="w-6 h-6 animate-pulseGold"
++                                      viewBox="0 0 24 24"
++                                      fill="none"
++                                      stroke="currentColor"
++                                      strokeWidth="1.5"
++                                      xmlns="http://www.w3.org/2000/svg"
++                                    >
++                                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeDasharray="3 3" />
++                                      <path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z" fill="rgba(255,255,255,0.2)" />
++                                    </svg>
++                                  </div>
++                                </div>
++
++                                {/* Middle Accent - travel stamp overlay */}
++                                <div className="flex items-center justify-between mt-auto mb-1.5 pointer-events-none">
++                                  <div className="flex items-center gap-3">
++                                    <span className="font-mono text-[8px] tracking-[0.1em] text-white/50 bg-white/10 px-2 py-0.5 rounded uppercase">
++                                      STAMP CALIBRATED
++                                    </span>
++                                  </div>
++                                </div>
++
++                                {/* Bottom area */}
++                                <div className="flex justify-between items-end">
++                                  <span className="font-serif text-[11px] sm:text-xs italic text-white/95 drop-shadow font-semibold">
++                                    {spot.arabic}
++                                  </span>
++
++                                  {/* Intersecting Travel Rings */}
++                                  <div className="flex -space-x-3 items-center opacity-90">
++                                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white/20 backdrop-blur-[1px] border border-white/15" />
++                                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white/35 backdrop-blur-[1px] border border-white/15" />
++                                  </div>
++                                </div>
++                              </div>
++                            </div>
++                          )
++                        }
++
++                        // Back Face of Card
++                        if (isBackFace) {
++                          return (
++                            <div
++                              key={layerIdx}
++                              className="absolute inset-0 rounded-[16px] border border-[#A80D27]/30 pointer-events-none overflow-hidden select-none"
++                              style={{
++                                background: '#FFFFFF',
++                                transform: `translateZ(${zOffset}px) rotateX(180deg)`,
++                                backfaceVisibility: 'hidden',
++                                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 10px 25px rgba(0,0,0,0.15)',
++                              }}
++                            >
++                              {/* Bahrain Flag Serrated Border on Left (Crimson red color) */}
++                              <svg className="absolute inset-y-0 left-0 w-[20px] h-full" viewBox="0 0 24 100" preserveAspectRatio="none" fill="none">
++                                <path d="M0,0 L24,0 L12,10 L24,20 L12,30 L24,40 L12,50 L24,60 L12,70 L24,80 L12,90 L24,100 L0,100 Z" fill="#A80D27" />
++                              </svg>
++
++                              {/* Details in JetBrains Mono & Serif */}
++                              <div
++                                className="absolute inset-0 pl-8 pr-4 py-4 sm:pl-10 sm:pr-5 sm:py-5 z-20 flex flex-col justify-between text-left text-bronze-charcoal"
++                                style={{ fontFamily: '"JetBrains Mono", monospace' }}
++                              >
++                                {/* Coordinates as Card Identifier */}
++                                <div className="font-mono text-[9px] sm:text-[10px] font-bold tracking-[0.05em] text-[#A80D27] select-none">
++                                  {spot.coords || '26.2285° N, 50.5860° E'}
++                                </div>
++
++                                {/* Middle traveler stamp watermark */}
++                                <div className="my-auto opacity-10 flex justify-center items-center select-none">
++                                  <svg className="w-16 h-16" viewBox="0 0 100 100" fill="none" stroke="#A80D27" strokeWidth="2">
++                                    <circle cx="50" cy="50" r="40" strokeDasharray="4 4" />
++                                    <path d="M50 20 L50 80 M20 50 L80 50" />
++                                  </svg>
++                                </div>
++
++                                {/* Name and CVV details */}
++                                <div className="font-mono text-[6.5px] sm:text-[7.5px] font-bold text-bronze-muted/80 tracking-wide flex items-center justify-between select-none">
++                                  <div className="flex items-center gap-1.5 uppercase max-w-[180px] truncate">
++                                    <span>{spot.name}</span>
++                                    <span className="text-bronze-muted/40 font-light">•</span>
++                                    <span className="italic font-serif text-[#A80D27]">{spot.arabic}</span>
++                                  </div>
++                                  <span className="font-bold text-[#A80D27]">DAY {spot.day || 1}</span>
++                                </div>
++                              </div>
++                            </div>
++                          )
++                        }
++
++                        return null
++                      })}
++                    </div>
++                  )
++                })}
++              </div>
++            </div>
++          </div>
++
++          {/* Details Panel of Selected Spot */}
++          <div className="w-full relative z-10 select-none animate-slideUpFade">
+             {!itinerarySpots || itinerarySpots.length === 0 ? (
+-              <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 min-h-[420px]" style={{ background: '#FAF8F5' }}>
++              <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 min-h-[200px] bg-[#FAF8F5] rounded-[24px] border border-amber-600/30">
+                 <span className="text-4xl animate-bounce">📭</span>
+-                <button onClick={() => resetChronicle()} className="px-5 py-2 rounded-xl border border-red-500/25 bg-white font-sans text-[10px] uppercase tracking-widest font-black text-bahrain-red cursor-pointer">
++                <button
++                  onClick={() => resetChronicle()}
++                  className="px-5 py-2 rounded-xl border border-red-500/25 bg-white font-sans text-[10px] uppercase tracking-widest font-black text-bahrain-red cursor-pointer"
++                >
+                   🔄 Reset Settings
+                 </button>
+               </div>
+             ) : (
+-              <div 
+-                className="flex transition-transform duration-500 ease-out w-full"
+-                style={{
+-                  transform: `translateX(-${carouselIndex * 100}%)`
+-                }}
+-              >
+-                {itinerarySpots.map((spot, idx) => {
+-                  const hasPicError = imageErrors[spot.id]
+-                  return (
+-                    <div 
+-                      key={spot.id} 
+-                      className="w-full shrink-0 flex flex-col bg-[#FAF8F5]"
+-                      style={{ flex: '0 0 100%' }}
+-                    >
+-                      <div className="relative h-52 overflow-hidden bg-zinc-950 flex items-center justify-center shrink-0">
+-                        {!hasPicError ? (
+-                          <img 
+-                            src={spot.image} 
+-                            alt={spot.name} 
+-                            onError={() => setImageErrors(prev => ({ ...prev, [spot.id]: true }))}
+-                            className="w-full h-full object-cover opacity-90 transition-transform duration-[1200ms] hover:scale-105" 
+-                          />
+-                        ) : (
+-                          <div 
+-                            className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none"
+-                            style={{
+-                              background: 'radial-gradient(circle, #FAF8F5 0%, #EFEBE4 100%)',
+-                              borderBottom: '1px solid rgba(168,13,39,0.1)'
+-                            }}
++              (() => {
++                const spot = itinerarySpots[carouselIndex]
++                if (!spot) return null
++                return (
++                  <div
++                    className="relative rounded-[24px] overflow-hidden flex flex-col border border-amber-600/25 bg-[#FAF8F5]/95 backdrop-blur-md select-none w-full"
++                    style={{
++                      boxShadow: '0 20px 40px -10px rgba(0,0,0,0.4), 0 5px 15px rgba(0,0,0,0.2)'
++                    }}
++                  >
++                    <div className="p-5 flex flex-col justify-between relative min-h-[240px] text-left">
++                      <div>
++                        <div className="flex justify-between items-center mb-2">
++                          <span
++                            className="font-serif text-[10px] tracking-widest uppercase font-bold text-white py-1 px-3 rounded-full shrink-0"
++                            style={{ background: 'linear-gradient(to right, #A80D27, #800A1E)' }}
+                           >
+-                            <div className="absolute inset-0 opacity-[0.04]" style={{
+-                              backgroundImage: 'radial-gradient(#A80D27 1.5px, transparent 1.5px)',
+-                              backgroundSize: '16px 16px'
+-                            }} />
+-                            <div className="w-16 h-16 rounded-full border border-dashed border-[#A80D27]/25 flex items-center justify-center mb-2 animate-rotateCompass bg-white/20">
+-                              <span className="text-xl">🧭</span>
+-                            </div>
+-                            <span className="font-mono text-[9px] text-[#A80D27] tracking-wider uppercase font-bold">
+-                              {spot.coords || '26.2285° N, 50.5860° E'}
++                            Day {spot.day || 1} Stop
++                          </span>
++                          <span className="font-mono text-[8.5px] text-bronze-muted/65 tracking-wider uppercase font-bold">
++                            {spot.period}
++                          </span>
++                        </div>
++
++                        <h4 className="font-serif text-lg md:text-xl font-black text-bronze-charcoal tracking-tight leading-tight flex items-start gap-2">
++                          <span className="text-xl shrink-0">{spot.keepsakeEmoji || '📍'}</span>
++                          <span>{spot.name}</span>
++                        </h4>
++
++                        <div className="flex items-center gap-2 mt-1">
++                          <span className="font-serif text-xs italic text-[#A80D27] font-bold shrink-0">
++                            {spot.arabic}
++                          </span>
++                          <span className="h-[1px] flex-1 bg-red-500/10" />
++                          <span className="font-mono text-[8.5px] text-bronze-muted/50 tracking-wider">
++                            {spot.coords}
++                          </span>
++                        </div>
++
++                        <div className="bg-[#FCFBF8] border border-dashed border-[#A80D27]/18 rounded-xl p-3.5 mt-3 space-y-2.5 shadow-inner aged-paper-gradient">
++                          <div>
++                            <span className="font-sans text-[8.5px] tracking-[0.12em] text-[#A80D27] uppercase font-black block mb-0.5">
++                              🗺️ Curated Local Guide Plan
+                             </span>
++                            <p className="font-serif text-[10.5px] leading-relaxed text-bronze-charcoal font-semibold select-text">
++                              {spot.pathGuide}
++                            </p>
+                           </div>
+-                        )}
+-                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
+-                        <span className="absolute top-4 left-4 font-serif text-[10px] tracking-widest uppercase font-bold text-white py-1 px-3 rounded-full" style={{ background: 'linear-gradient(to right, #A80D27, #800A1E)' }}>
+-                          Day {spot.day || 1} Stop
+-                        </span>
+-                      </div>
+-
+-                      <div className="p-6 pb-20 flex flex-col justify-between bg-[#FAF8F5] relative min-h-[260px] text-left flex-1">
+-                        <div>
+-                          <h4 
+-                            className="font-serif text-xl md:text-2xl font-black text-bronze-charcoal tracking-tight leading-tight flex items-start gap-2.5"
+-                          >
+-                            <span className="text-2xl shrink-0">{spot.keepsakeEmoji || '📍'}</span>
+-                            <span>{spot.name}</span>
+-                          </h4>
+-                          <div className="flex items-center gap-2 mt-1.5">
+-                            <span className="font-serif text-xs italic text-[#A80D27] font-bold shrink-0">{spot.arabic}</span>
+-                            <span className="h-[1px] flex-1 bg-red-500/10" />
+-                            <span className="font-mono text-[8px] text-bronze-muted/50 tracking-wider uppercase font-bold shrink-0">{spot.period}</span>
++                          <div className="pt-1.5 border-t border-red-500/5">
++                            <span className="font-sans text-[8.5px] tracking-[0.12em] text-amber-600 uppercase font-black block mb-0.5">
++                              🔍 What You Can Find Here
++                            </span>
++                            <p className="font-serif text-[10.5px] text-bronze-charcoal leading-relaxed font-semibold select-text">
++                              {spot.simpleTerms}
++                            </p>
+                           </div>
+-                          <div className="bg-[#FCFBF8] border border-dashed border-[#A80D27]/18 rounded-xl p-4 mt-4 space-y-3 shadow-inner aged-paper-gradient">
+-                            <div>
+-                              <span className="font-sans text-[10px] tracking-[0.12em] text-[#A80D27] uppercase font-black block mb-0.5">
+-                                🗺️ Curated Local Guide Plan
+-                              </span>
+-                              <p className="font-serif text-[11px] leading-relaxed text-bronze-charcoal font-semibold select-text">
+-                                {spot.pathGuide}
+-                              </p>
+-                            </div>
+-                            <div className="pt-2 border-t border-red-500/5">
+-                              <span className="font-sans text-[10px] tracking-[0.12em] text-amber-600 uppercase font-black block mb-0.5">
+-                                🔍 What You Can Find Here
+-                              </span>
+-                              <p className="font-serif text-[11px] text-bronze-charcoal leading-relaxed font-semibold select-text">
+-                                {spot.simpleTerms}
+-                              </p>
+-                            </div>
+-                            <div className="pt-2 border-t border-red-500/5">
+-                              <span className="font-sans text-[10px] tracking-[0.12em] text-emerald-600 uppercase font-black block mb-0.5">
+-                                💰 Estimated Cost / Budget
+-                              </span>
+-                              <p className="font-serif text-[11px] text-bronze-charcoal leading-relaxed font-semibold select-text">
+-                                {spot.pathCost || spot.budgetCost || 'Free Entry'}
+-                              </p>
+-                            </div>
++                          <div className="pt-1.5 border-t border-red-500/5 flex justify-between items-center">
++                            <span className="font-sans text-[8.5px] tracking-[0.12em] text-emerald-600 uppercase font-black shrink-0">
++                              💰 Estimated Cost
++                            </span>
++                            <span className="font-serif text-[10.5px] text-emerald-700 font-bold select-text">
++                              {spot.pathCost || spot.budgetCost || 'Free Entry'}
++                            </span>
+                           </div>
+                         </div>
+-                        {confirmRemove === idx ? (
+-                           <div className="absolute bottom-5 right-5 flex gap-2 z-30">
+-                             <button
+-                               onClick={() => setConfirmRemove(null)}
+-                               className="px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-600 font-sans text-[9px] uppercase tracking-wider font-extrabold cursor-pointer active:scale-95"
+-                             >
+-                               Cancel
+-                             </button>
+-                             <button
+-                               onClick={() => {
+-                                 playTypewriterClick(0.75)
+-                                 const remaining = itinerarySpots.filter((_, sIdx) => sIdx !== idx)
+-                                 setItinerarySpots(remaining)
+-                                 setConfirmRemove(null)
+-                                 if (carouselIndex >= remaining.length && remaining.length > 0) setCarouselIndex(remaining.length - 1)
+-                               }}
+-                               className="px-3 py-1.5 rounded-lg border border-[#A80D27]/40 bg-red-500/10 text-[#A80D27] font-sans text-[9px] uppercase tracking-wider font-extrabold cursor-pointer active:scale-95"
+-                             >
+-                               Remove
+-                             </button>
+-                           </div>
+-                         ) : (
+-                           <button
+-                             onClick={() => setConfirmRemove(idx)}
+-                             className="absolute bottom-5 right-5 px-3 py-1.5 rounded-lg border border-[#A80D27]/15 hover:border-[#A80D27]/35 bg-red-500/5 hover:bg-red-500/10 text-[#A80D27] font-sans text-[8.5px] uppercase tracking-wider font-extrabold cursor-pointer flex items-center gap-1 active:scale-95 z-30"
+-                           >
+-                             🗑️ Remove Stop
+-                           </button>
+-                         )}
++                      </div>
++
++                      <div className="flex justify-between items-center mt-4 pt-3 border-t border-red-500/5">
++                        <span className="text-[9px] font-sans font-bold text-bronze-muted/60 tracking-wider uppercase font-semibold">
++                          💡 Tap active card to view details
++                        </span>
++                        <span className="text-[9px] font-sans font-bold text-[#A80D27]/80 tracking-wider uppercase flex items-center gap-1">
++                          ↔️ Swipe card left/right to delete
++                        </span>
+                       </div>
+                     </div>
+-                  )
+-                })}
+-              </div>
++                  </div>
++                )
++              })()
+             )}
+           </div>
+ 
+           {/* Indicators list & Action Buttons */}
+           {itinerarySpots && itinerarySpots.length > 0 && (
+-            <div className="flex flex-col items-center gap-3 mt-1 select-none w-full animate-fadeIn shrink-0">
++            <div className="flex flex-col items-center gap-3 mt-1 select-none w-full animate-fadeIn shrink-0 z-10">
+               <div className="flex items-center gap-2">
+                 {itinerarySpots.map((_, idx) => (
+                   <button
+                     key={idx}
+                     onClick={() => {
+                       playTypewriterClick(1.0)
+-                      setCarouselIndex(idx)
++                      goToIndex(idx)
+                     }}
+                     className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                       idx === carouselIndex 
+@@ -532,11 +985,17 @@ export default function SensoryHero() {
+                 ))}
+               </div>
+ 
+-              <span className="lg:hidden text-[9.5px] font-sans font-bold text-bronze-muted/50 tracking-wider uppercase mt-0.5">
+-                Swipe Card or Tap Dots to Explore
+-              </span>
+-
+-              <div className="mt-3 w-full flex justify-center">
++              <div className="mt-2 w-full flex items-center justify-center gap-3">
++                <button
++                  onClick={() => {
++                    playTypewriterClick(0.85)
++                    if (onBack) onBack()
++                  }}
++                  className="px-5 py-2.5 rounded-xl bg-white border border-[#A80D27]/15 hover:bg-[#A80D27]/5 text-bronze-charcoal font-bold text-xs tracking-wider transition-all cursor-pointer active:scale-95 select-none"
++                >
++                  ❮ Back
++                </button>
++                
+                 <button
+                   disabled={sealing}
+                   onClick={() => {
+@@ -556,20 +1015,14 @@ export default function SensoryHero() {
+                       setSealing(false)
+                     }, 580)
+                   }}
+-                  className={`group relative flex flex-col items-center justify-center transition-transform duration-300 py-1 px-8 ${sealing ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:scale-105 active:scale-95'}`}
++                  className={`group relative py-2.5 px-6 rounded-xl bg-gradient-to-b from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-xs uppercase tracking-widest font-black flex items-center gap-2 border border-red-400/20 shadow-lg cursor-pointer transition-all hover:scale-105 active:scale-95 ${sealing ? 'cursor-not-allowed opacity-70' : ''}`}
++                  style={{
++                    boxShadow: '0 8px 20px rgba(138,10,34,0.25), inset 0 1px 1px rgba(255,255,255,0.2)'
++                  }}
+                 >
+-                  <div className="absolute inset-0 bg-[#A80D27] rounded-full filter blur-[10px] opacity-15 group-hover:opacity-25 animate-pulse" />
+-                  <div 
+-                    className="relative py-3 px-8 rounded-full bg-gradient-to-b from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-[10.5px] uppercase tracking-widest font-black flex items-center gap-2 border border-red-400/20 shadow-lg"
+-                    style={{
+-                      boxShadow: '0 8px 24px rgba(138,10,34,0.35), inset 0 2px 2px rgba(255,255,255,0.25)',
+-                      letterSpacing: '0.18em'
+-                    }}
+-                  >
+-                    <span className="text-xs">{sealing ? '⏳' : '📜'}</span>
+-                    {sealing ? 'Sealing Passage...' : 'Proceed'}
+-                    {!sealing && <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>}
+-                  </div>
++                  <span>{sealing ? '⏳' : '📜'}</span>
++                  <span>{sealing ? 'Sealing...' : 'Confirm Chronicle'}</span>
++                  {!sealing && <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>}
+                 </button>
+               </div>
+             </div>

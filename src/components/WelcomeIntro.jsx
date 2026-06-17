@@ -90,11 +90,11 @@ function ScrambleLetter({ char, delay, duration = 700 }) {
         opacity: 0,
         filter: 'blur(6px)',
         transform: 'translateY(18px)',
-        whiteSpace: 'normal',
+        whiteSpace: char === ' ' ? 'pre' : 'normal',
         transition: 'none',
       }}
     >
-      {char}
+      {char === ' ' ? '\u00A0' : char}
     </span>
   )
 }
@@ -549,7 +549,6 @@ export default function WelcomeIntro({ onComplete }) {
           >
             {showMorphLetters && (
               <div style={{
-                position: 'absolute',
                 fontFamily: '"Playfair Display","Georgia",serif',
                 fontSize: 'clamp(2rem,7.2vw,3.4rem)',
                 fontWeight: 800,
@@ -657,6 +656,8 @@ export default function WelcomeIntro({ onComplete }) {
               padding: 0,
               transform: 'translateY(18px)',
               filter: 'blur(4px)',
+              textAlign: 'center',
+              whiteSpace: 'nowrap',
             }}
           >
             مرحباً &nbsp;·&nbsp; Your Journey Awaits
@@ -725,10 +726,10 @@ export default function WelcomeIntro({ onComplete }) {
         }
         @media (max-width: 768px) {
           .jn-welcome-video {
-            object-position: 20% center !important;
+            object-position: 30% center !important;
           }
           .jn-intro-text-container {
-            transform: translateY(-50px) !important;
+            transform: none !important;
           }
           .jn-intro-main-text-box {
             height: 80px !important;
