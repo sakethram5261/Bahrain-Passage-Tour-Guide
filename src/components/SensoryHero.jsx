@@ -195,7 +195,7 @@ export default function SensoryHero({ onBack }) {
         insider: 'Grab a fresh hot chai from the local market stalls right behind the gate area.',
         pathGuide: 'Walk through the grand archway directly into the historical souq alleys.',
         pathCost: 'Free Entry',
-        image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?q=80&w=1200&auto=format&fit=crop',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/7/75/BabAlBahrain1.jpg',
         day: 1
       }]
     }
@@ -332,7 +332,7 @@ export default function SensoryHero({ onBack }) {
                     >
                       
                       <img
-                        src={spot.image || 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?q=80&w=600&auto=format&fit=crop'}
+                        src={spot.image || 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'}
                         alt={spot.name}
                         className="absolute inset-0 w-full h-full object-cover opacity-80"
                       />
