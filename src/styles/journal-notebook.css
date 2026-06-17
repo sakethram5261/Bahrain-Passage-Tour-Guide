@@ -767,13 +767,15 @@
 .jn-tab:hover {
   color: var(--jn-crimson);
   background: var(--jn-crimson-light);
+  transform: translateY(-1px);
 }
 
 .jn-tab--active {
   color: #ffffff;
   background: var(--jn-crimson);
   border-color: var(--jn-crimson);
-  box-shadow: 0 4px 14px rgba(193, 18, 47, 0.35);
+  box-shadow: 0 5px 15px rgba(193, 18, 47, 0.35);
+  transform: scale(1.02);
 }
 
 /* ── 8. Pages ─────────────────────────────────────────────────────────────── */
@@ -1114,31 +1116,52 @@
 }
 
 .jn-timeline-item--active .jn-tl-emoji {
-  background: var(--jn-crimson);
-  border-color: var(--jn-crimson);
-  box-shadow: 0 4px 16px rgba(193, 18, 47, 0.4);
-  transform: scale(1.1);
+  background: var(--jn-crimson) !important;
+  border-color: #D4AF37 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(193, 18, 47, 0.65), 0 0 6px rgba(212, 175, 55, 0.4);
+  transform: scale(1.12);
+  animation: jn-active-stop-pulse 1.6s infinite alternate;
+}
+
+@keyframes jn-active-stop-pulse {
+  0% {
+    transform: scale(1.05);
+    box-shadow: 0 0 6px rgba(193, 18, 47, 0.4);
+  }
+  100% {
+    transform: scale(1.15);
+    box-shadow: 0 0 16px rgba(193, 18, 47, 0.8), 0 0 8px rgba(212, 175, 55, 0.5);
+  }
 }
 
 .jn-timeline-item--done .jn-tl-emoji {
-  background: var(--jn-green-bg);
-  border-color: rgba(46, 125, 50, 0.35);
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--jn-green);
+  background: var(--jn-crimson) !important;
+  border-color: var(--jn-crimson) !important;
+  color: #ffffff !important;
+  box-shadow: var(--jn-shadow-sm);
+  transform: scale(1.0);
+}
+
+.jn-timeline-item:not(.jn-timeline-item--active):not(.jn-timeline-item--done) .jn-tl-emoji {
+  background: transparent !important;
+  border: 2px solid rgba(212, 175, 55, 0.7) !important;
+  color: var(--jn-gold) !important;
+  box-shadow: none;
 }
 
 .jn-tl-connector {
   width: 2px;
   flex: 1;
   min-height: 24px;
-  background: linear-gradient(180deg, rgba(193, 18, 47, 0.3), rgba(193, 18, 47, 0.08));
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.08));
   border-radius: 1px;
   margin: 4px 0;
 }
 
 .jn-timeline-item--done .jn-tl-connector {
-  background: linear-gradient(180deg, rgba(46, 125, 50, 0.4), rgba(46, 125, 50, 0.1));
+  background: var(--jn-crimson) !important;
+  box-shadow: 0 0 4px rgba(193, 18, 47, 0.2);
 }
 
 .jn-tl-content {

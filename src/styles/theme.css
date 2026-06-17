@@ -1122,24 +1122,25 @@
 
 /* ── Hotel & Spot Cards ───────────────────────────────────────────────────── */
 .hotel-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(209, 26, 56, 0.1);
+  background: #FFFDF9;
+  border: 1.5px solid rgba(139, 90, 43, 0.18);
   border-radius: 16px;
   padding: 1rem;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(42, 35, 33, 0.03);
 }
 
 .hotel-card:hover {
-  border-color: rgba(209, 26, 56, 0.28);
-  box-shadow: 0 8px 24px rgba(209, 26, 56, 0.08);
-  transform: translateY(-2px);
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: 0 10px 25px rgba(139, 90, 43, 0.12);
+  transform: translateY(-3px);
 }
 
 .hotel-card.selected {
   border-color: #D11A38;
-  background: rgba(209, 26, 56, 0.03);
-  box-shadow: 0 0 0 2px rgba(209, 26, 56, 0.12), 0 8px 24px rgba(209, 26, 56, 0.1);
+  background: radial-gradient(circle at 100% 0%, #FFF5F5 0%, #FFFDF9 100%);
+  box-shadow: 0 0 0 1px #D11A38, 0 12px 32px rgba(209, 26, 56, 0.15);
 }
 
 .spot-card {

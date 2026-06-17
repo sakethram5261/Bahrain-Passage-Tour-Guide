@@ -1108,7 +1108,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
             position: 'fixed',
             bottom: '24px',
             right: '24px',
-            zIndex: 250,
+            zIndex: 10000,
             width: 52,
             height: 52,
             borderRadius: '50%',
@@ -1117,8 +1117,8 @@ Always make sure the response is a valid JSON object. Do not include markdown co
               : 'radial-gradient(circle, #e6b800 0%, #b38600 100%)',
             border: open ? '2px solid rgba(212,175,55,0.4)' : '2.5px double #ffffff',
             boxShadow: open
-              ? '0 4px 15px rgba(0,0,0,0.3)'
-              : '0 8px 20px rgba(179,134,0,0.4), inset 0 2px 2px rgba(255,255,255,0.5)',
+              ? '0 10px 30px rgba(0,0,0,0.35)'
+              : '0 10px 30px rgba(179,134,0,0.5), inset 0 2px 2px rgba(255,255,255,0.5)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

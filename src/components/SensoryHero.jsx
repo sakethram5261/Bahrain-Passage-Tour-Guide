@@ -317,13 +317,11 @@ export default function SensoryHero({ onBack }) {
                 direction={'vertical'}
                 grabCursor={true}
                 slidesPerView={1}
-                speed={700}
-                resistanceRatio={0.85}
+                speed={550}
+                resistanceRatio={0.9}
                 mousewheel={{
-                  sensitivity: 0.85,
+                  sensitivity: 1.0,
                   releaseOnEdges: true,
-                  thresholdDelta: 25,
-                  thresholdTime: 60
                 }}
                 keyboard={{
                   enabled: true,
@@ -340,10 +338,22 @@ export default function SensoryHero({ onBack }) {
                 {itinerarySpots.map((spot, i) => (
                   <SwiperSlide 
                     key={spot.id + i}
-                    className="w-full h-full overflow-hidden"
+                    className="w-full h-full overflow-hidden relative"
                   >
+                    {/* Background Slide Delete Indicator */}
+                    {Math.abs(swipeOffsets[i] || 0) > 10 && (
+                      <div className="absolute inset-0 bg-[#3b0a11] flex items-center justify-between px-10 text-red-400 z-0">
+                        <div style={{ opacity: Math.min(1, Math.abs(swipeOffsets[i] || 0) / 100) }} className="flex items-center gap-2 font-sans text-xs font-bold uppercase tracking-widest">
+                          <Trash2 size={16} /> Remove Stop
+                        </div>
+                        <div style={{ opacity: Math.min(1, Math.abs(swipeOffsets[i] || 0) / 100) }} className="flex items-center gap-2 font-sans text-xs font-bold uppercase tracking-widest">
+                          Remove Stop <Trash2 size={16} />
+                        </div>
+                      </div>
+                    )}
+
                     <div 
-                      className="w-full h-full relative select-none cursor-grab active:cursor-grabbing touch-pan-y"
+                      className="w-full h-full relative select-none cursor-grab active:cursor-grabbing touch-pan-y z-10"
                       onPointerDown={(e) => handlePointerDown(e, i)}
                       onPointerMove={(e) => handlePointerMove(e, i)}
                       onPointerUp={(e) => handlePointerUp(e, i)}

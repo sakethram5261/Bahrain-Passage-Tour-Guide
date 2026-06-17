@@ -147,7 +147,35 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
           position: 'relative',
           overflow: 'hidden',
         }}>
-          <div style={{ fontSize: '30px', flexShrink: 0 }}>{selectedHotel.emoji}</div>
+          {selectedHotel.image ? (
+            <div style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              border: '2px double #D4AF37',
+              padding: '2px',
+              background: 'rgba(255,255,255,0.1)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <img 
+                src={selectedHotel.image} 
+                alt={selectedHotel.name}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+            </div>
+          ) : (
+            <div style={{ fontSize: '30px', flexShrink: 0 }}>{selectedHotel.emoji}</div>
+          )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>Your Base Camp ✓</span>
             <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '16px', fontWeight: 700, margin: '2px 0 4px', color: '#fff' }}>
@@ -278,11 +306,39 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                   style={{ width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                    <span style={{
-                      fontSize: '24px', padding: '8px', borderRadius: '12px', flexShrink: 0,
-                      background: isBaseCamp ? 'rgba(209,26,56,0.08)' : '#FAF6EE',
-                      border: isBaseCamp ? '1px solid rgba(209,26,56,0.2)' : '1px solid rgba(139,90,75,0.1)',
-                    }}>{hotel.emoji}</span>
+                    {hotel.image ? (
+                      <div style={{
+                        width: '52px',
+                        height: '52px',
+                        borderRadius: '50%',
+                        border: '2px double #D4AF37',
+                        padding: '1.5px',
+                        background: '#FAF6EE',
+                        boxShadow: '0 4px 8px rgba(139,90,43,0.15)',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <img 
+                          src={hotel.image} 
+                          alt={hotel.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: '50%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <span style={{
+                        fontSize: '24px', padding: '8px', borderRadius: '12px', flexShrink: 0,
+                        background: isBaseCamp ? 'rgba(209,26,56,0.08)' : '#FAF6EE',
+                        border: isBaseCamp ? '1px solid rgba(209,26,56,0.2)' : '1px solid rgba(139,90,75,0.1)',
+                      }}>{hotel.emoji}</span>
+                    )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <h5 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '15px', fontWeight: 700, color: '#2A2321', margin: '0 0 6px', lineHeight: 1.2 }}>
                         {hotel.name}
