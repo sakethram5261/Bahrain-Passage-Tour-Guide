@@ -297,9 +297,13 @@ export default function SensoryHero({ onBack }) {
                 direction={'vertical'}
                 grabCursor={true}
                 slidesPerView={1}
+                speed={700}
+                resistanceRatio={0.85}
                 mousewheel={{
-                  sensitivity: 1,
+                  sensitivity: 0.85,
                   releaseOnEdges: true,
+                  thresholdDelta: 25,
+                  thresholdTime: 60
                 }}
                 keyboard={{
                   enabled: true,
@@ -342,7 +346,7 @@ export default function SensoryHero({ onBack }) {
                       <div className="absolute inset-0 flex flex-col justify-between items-center py-16 px-6 max-w-4xl mx-auto text-white h-full pointer-events-none">
                         
                         <div className="w-full flex justify-between items-start mt-8">
-                          <div className="flex flex-col text-left">
+                           <div className="flex flex-col text-left">
                             <span className="font-mono text-xs md:text-sm tracking-[0.25em] text-white/80 uppercase font-black drop-shadow-md">
                               DAY {spot.day || 1} • {spot.period}
                             </span>
@@ -398,6 +402,16 @@ export default function SensoryHero({ onBack }) {
                         </div>
 
                       </div>
+
+                      {/* Gesture Guidance Tip */}
+                      <div className="absolute bottom-[80px] left-0 right-0 text-center pointer-events-none z-30 select-none">
+                        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/55 backdrop-blur-md border border-white/10 text-[8.5px] font-sans font-extrabold tracking-widest text-white/60 uppercase animate-pulse">
+                          <span>↔ Swipe card to remove</span>
+                          <span className="opacity-30">•</span>
+                          <span>↕ Scroll for next</span>
+                        </div>
+                      </div>
+
                     </div>
                   </SwiperSlide>
                 ))}
