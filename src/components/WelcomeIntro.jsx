@@ -372,12 +372,12 @@ export default function WelcomeIntro({ onComplete }) {
         <source src="/assets/videos/bahrain_timelapse.mp4" type="video/mp4" />
       </video>
 
-      {/* ── Cinematic Dark Overlay ─────────────────────────────────────────── */}
+      {/* ── Cinematic Dark Vignette Overlay ─────────────────────────────────── */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to bottom, rgba(15, 12, 11, 0.72), rgba(15, 12, 11, 0.85))',
+          background: 'radial-gradient(circle at center, rgba(15, 12, 11, 0.45) 0%, rgba(15, 12, 11, 0.88) 100%)',
           zIndex: 1,
         }}
       />
@@ -391,6 +391,39 @@ export default function WelcomeIntro({ onComplete }) {
           zIndex: 2,
         }}
       />
+
+      {/* ── Centered Arabesque Geometric Watermark (Subtle Crimson/Gold) ────── */}
+      <svg
+        className="jn-arabesque-watermark"
+        viewBox="0 0 120 120"
+        style={{
+          position: 'absolute',
+          top: '45%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 'clamp(320px, 65vw, 480px)',
+          height: 'clamp(320px, 65vw, 480px)',
+          opacity: 0.04,
+          pointerEvents: 'none',
+          color: '#C1122F',
+          zIndex: 1,
+        }}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.4"
+      >
+        <g transform="translate(60,60)">
+          <circle r="55" strokeDasharray="3,3" />
+          <circle r="50" />
+          <rect x="-35" y="-35" width="70" height="70" />
+          <rect x="-35" y="-35" width="70" height="70" transform="rotate(45)" />
+          <circle r="30" strokeDasharray="1,1" />
+          <polygon points="0,-30 8,-8 30,0 8,8 0,30 -8,8 -30,0 -8,-8" />
+          <polygon points="0,-30 8,-8 30,0 8,8 0,30 -8,8 -30,0 -8,-8" transform="rotate(45)" />
+          <circle r="15" />
+          <path d="M-10,-10 L10,10 M-10,10 L10,-10" />
+        </g>
+      </svg>
 
       {/* ── Centered Vintage Compass Rose Watermark (Subtle Gold/White) ─────── */}
       <svg
@@ -668,41 +701,7 @@ export default function WelcomeIntro({ onComplete }) {
       {/* ── Skip Intro — refined pill button ───────────────────────────────── */}
       <button
         onClick={exitIntro}
-        style={{
-          position: 'absolute',
-          bottom: '2.4rem',
-          right: '2.4rem',
-          background: 'rgba(15, 12, 11, 0.4)',
-          border: '1px solid rgba(250, 249, 246, 0.25)',
-          borderRadius: '100px',
-          color: '#FAF9F6',
-          opacity: 0.55,
-          fontSize: '0.72rem',
-          fontFamily: '"Playfair Display","Georgia",serif',
-          fontWeight: 700,
-          fontStyle: 'italic',
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          cursor: 'pointer',
-          padding: '0.52rem 1.2rem',
-          transition: 'opacity 0.22s ease, border-color 0.22s ease, background 0.22s ease, transform 0.22s ease',
-          zIndex: 10000,
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-          userSelect: 'none',
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.opacity     = '1'
-          e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.6)'
-          e.currentTarget.style.background  = 'rgba(15, 12, 11, 0.75)'
-          e.currentTarget.style.transform   = 'translateY(-2px)'
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.opacity     = '0.55'
-          e.currentTarget.style.borderColor = 'rgba(250, 249, 246, 0.25)'
-          e.currentTarget.style.background  = 'rgba(15, 12, 11, 0.4)'
-          e.currentTarget.style.transform   = 'none'
-        }}
+        className="jn-intro-skip-btn"
       >
         Skip Intro →
       </button>
@@ -724,6 +723,48 @@ export default function WelcomeIntro({ onComplete }) {
         .jn-intro-text-container {
           transform: translateY(-10px);
         }
+        .jn-intro-skip-btn {
+          position: absolute;
+          bottom: 2.8rem;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(15, 12, 11, 0.45);
+          border: 1px solid rgba(250, 249, 246, 0.22);
+          border-radius: 100px;
+          color: #FAF9F6;
+          opacity: 0.65;
+          font-size: 0.72rem;
+          font-family: "Playfair Display", "Georgia", serif;
+          font-weight: 700;
+          font-style: italic;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          cursor: pointer;
+          padding: 0.58rem 1.4rem;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          z-index: 10000;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          user-select: none;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        .jn-intro-skip-btn:hover {
+          opacity: 1;
+          border-color: rgba(212, 175, 55, 0.8);
+          background: rgba(193, 18, 47, 0.8);
+          transform: translateX(-50%) translateY(-2px);
+          box-shadow: 0 6px 24px rgba(193, 18, 47, 0.4), 0 0 12px rgba(212, 175, 55, 0.3);
+        }
+        .jn-intro-skip-btn:active {
+          transform: translateX(-50%) translateY(0);
+        }
+        @keyframes rotateArabesque {
+          from { transform: translate(-50%, -50%) rotate(0deg); }
+          to { transform: translate(-50%, -50%) rotate(-360deg); }
+        }
+        .jn-arabesque-watermark {
+          animation: rotateArabesque 180s linear infinite;
+        }
         @media (max-width: 768px) {
           .jn-welcome-video {
             object-position: 30% center !important;
@@ -737,6 +778,10 @@ export default function WelcomeIntro({ onComplete }) {
           .jn-intro-bottom-stable {
             margin-top: 0.1rem !important;
             height: 50px !important;
+          }
+          .jn-intro-skip-btn {
+            bottom: 2.2rem;
+            padding: 0.52rem 1.2rem;
           }
         }
         @keyframes introDot {

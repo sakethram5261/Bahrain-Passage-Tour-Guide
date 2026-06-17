@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import { useVibe } from '../hooks/useVibe'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Mousewheel, Pagination } from 'swiper/modules'
+import { Trash2, BookOpen } from 'lucide-react'
 import 'swiper/css'
 import 'swiper/css/pagination'
 
@@ -264,8 +265,27 @@ export default function SensoryHero({ onBack }) {
       }`}
     >
       <style>{`
-        .swiper-pagination-bullet { background: rgba(255,255,255,0.5); }
-        .swiper-pagination-bullet-active { background: #BA0C2F; }
+        .swiper-pagination-vertical {
+          right: 18px !important;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .swiper-pagination-bullet {
+          width: 7px !important;
+          height: 7px !important;
+          background: rgba(255, 255, 255, 0.45) !important;
+          opacity: 0.65 !important;
+          border-radius: 99px !important;
+          transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .swiper-pagination-bullet-active {
+          width: 7px !important;
+          height: 26px !important;
+          background: #D4AF37 !important;
+          opacity: 1 !important;
+          box-shadow: 0 0 10px rgba(212, 175, 55, 0.75);
+        }
         .swiper-button-next, .swiper-button-prev { color: rgba(255,255,255,0.8); }
         .swiper-button-next:hover, .swiper-button-prev:hover { color: #fff; transform: scale(1.1); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -308,7 +328,7 @@ export default function SensoryHero({ onBack }) {
                 keyboard={{
                   enabled: true,
                 }}
-                pagination={{ clickable: true, dynamicBullets: true }}
+                pagination={{ clickable: true }}
                 modules={[Pagination, Mousewheel]}
                 className="w-full h-full"
                 onSlideChange={(swiper) => {
@@ -342,22 +362,22 @@ export default function SensoryHero({ onBack }) {
                       />
                       
                       <div className="absolute inset-0 bg-gradient-to-tr from-[#1a1210]/95 via-[#1a1210]/60 to-[#BA0C2F]/80" />
-
+ 
                       <div className="absolute inset-0 flex flex-col justify-between items-center py-16 px-6 max-w-4xl mx-auto text-white h-full pointer-events-none">
                         
                         <div className="w-full flex justify-between items-start mt-8">
-                           <div className="flex flex-col text-left">
-                            <span className="font-mono text-xs md:text-sm tracking-[0.25em] text-white/80 uppercase font-black drop-shadow-md">
+                           <div className="flex flex-col text-left max-w-[calc(100%-140px)]">
+                            <span className="font-mono text-[10.5px] md:text-sm tracking-[0.22em] text-white/80 uppercase font-black drop-shadow-md truncate block w-full">
                               DAY {spot.day || 1} • {spot.period}
                             </span>
-                            <h2 className="font-serif text-3xl md:text-5xl lg:text-7xl font-black tracking-tight leading-tight mt-2 text-white drop-shadow-2xl">
+                            <h2 className="font-serif text-2xl md:text-5xl lg:text-7xl font-black tracking-tight leading-tight mt-1 text-white drop-shadow-2xl truncate w-full">
                               {spot.keepsakeEmoji || '📍'} {spot.name}
                             </h2>
-                            <span className="font-serif text-xl md:text-3xl italic text-[#ffb5c2] drop-shadow-xl font-semibold mt-2">
+                            <span className="font-serif text-lg md:text-3xl italic text-[#ffb5c2] drop-shadow-xl font-semibold mt-1 truncate w-full">
                               {spot.arabic}
                             </span>
                           </div>
-
+ 
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
@@ -365,44 +385,64 @@ export default function SensoryHero({ onBack }) {
                               const remaining = itinerarySpots.filter((_, sIdx) => sIdx !== i)
                               setItinerarySpots(remaining)
                             }}
-                            className="pointer-events-auto shrink-0 px-4.5 py-2.5 rounded-full bg-red-500/15 hover:bg-red-600 border border-red-500/30 hover:border-red-500 text-red-200 hover:text-white font-sans text-[10px] uppercase tracking-widest font-black transition-all duration-300 backdrop-blur-md cursor-pointer active:scale-95 shadow-md flex items-center gap-1.5 z-50"
+                            className="pointer-events-auto shrink-0 px-4 py-2.5 rounded-full bg-red-950/45 hover:bg-red-700/80 border border-red-500/25 hover:border-red-500 text-red-200 hover:text-white font-sans text-[10px] uppercase tracking-widest font-extrabold transition-all duration-300 backdrop-blur-md cursor-pointer active:scale-95 shadow-md flex items-center gap-1.5 z-50"
                           >
-                            🗑️ Remove Stop
+                            <Trash2 size={11} className="text-red-400" />
+                            Remove Stop
                           </button>
                         </div>
-
-                        <div className="w-full mt-auto space-y-6 mb-16 pointer-events-auto">
-                          {/* Integrated Details Panel */}
-                          <div className="bg-black/40 backdrop-blur-md rounded-2xl p-5 border border-white/10 shadow-inner">
-                            <span className="font-sans text-[10px] tracking-[0.15em] text-white/50 uppercase font-black block mb-2">
+ 
+                        <div className="w-full mt-auto space-y-5 mb-16 pointer-events-auto">
+                          {/* Integrated Details Panel - Premium Dark Glassmorphism */}
+                          <div 
+                            className="rounded-2xl p-5 border shadow-2xl relative overflow-hidden"
+                            style={{
+                              background: 'linear-gradient(135deg, rgba(20, 15, 15, 0.75) 0%, rgba(10, 5, 5, 0.55) 100%)',
+                              borderColor: 'rgba(212, 175, 55, 0.22)',
+                              backdropFilter: 'blur(16px)',
+                              WebkitBackdropFilter: 'blur(16px)',
+                              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                            }}
+                          >
+                            <span className="font-sans text-[9.5px] tracking-[0.18em] text-[#D4AF37] uppercase font-bold block mb-2">
                               🗺️ Curated Local Guide Plan
                             </span>
-                            <p className="font-serif text-[14px] leading-relaxed text-white font-medium">
+                            <p className="font-serif text-[13.5px] leading-relaxed text-white/90 font-medium">
                               {spot.pathGuide}
                             </p>
                             
                             <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
-                              <span className="font-sans text-[11px] tracking-[0.12em] text-emerald-400 uppercase font-black">
+                              <span className="font-sans text-[11px] tracking-[0.12em] text-[#FFE082] uppercase font-bold">
                                 💰 {spot.pathCost || spot.budgetCost || 'Free Entry'}
                               </span>
-                              <span className="font-mono text-[9px] text-white/40 tracking-wider">
+                              <span className="font-mono text-[9px] text-white/50 tracking-wider">
                                 {spot.coords}
                               </span>
                             </div>
                           </div>
-
-                          <div className="bg-black/30 backdrop-blur-md rounded-xl p-4 border border-white/5">
-                            <span className="font-sans text-[9px] tracking-[0.15em] text-amber-500 uppercase font-black block mb-1">
+ 
+                          {/* What You Can Find Here - Subtle Complementary Glassmorphism */}
+                          <div 
+                            className="rounded-xl p-4 border"
+                            style={{
+                              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                              borderColor: 'rgba(255, 255, 255, 0.08)',
+                              backdropFilter: 'blur(12px)',
+                              WebkitBackdropFilter: 'blur(12px)',
+                              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                            }}
+                          >
+                            <span className="font-sans text-[8.5px] tracking-[0.18em] text-white/60 uppercase font-bold block mb-1.5">
                               🔍 What You Can Find Here
                             </span>
-                            <p className="font-serif text-[12px] text-white/90 leading-relaxed font-semibold">
+                            <p className="font-serif text-[12px] text-white/80 leading-relaxed font-semibold">
                               {spot.simpleTerms}
                             </p>
                           </div>
                         </div>
-
+ 
                       </div>
-
+ 
                       {/* Gesture Guidance Tip */}
                       <div className="absolute bottom-[80px] left-0 right-0 text-center pointer-events-none z-30 select-none">
                         <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/55 backdrop-blur-md border border-white/10 text-[8.5px] font-sans font-extrabold tracking-widest text-white/60 uppercase animate-pulse">
@@ -411,12 +451,12 @@ export default function SensoryHero({ onBack }) {
                           <span>↕ Scroll for next</span>
                         </div>
                       </div>
-
+ 
                     </div>
                   </SwiperSlide>
                 ))}
               </Swiper>
-
+ 
               {/* Floating Actions */}
               <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4 z-50 px-6 pointer-events-none">
                 <button
@@ -449,9 +489,9 @@ export default function SensoryHero({ onBack }) {
                       setSealing(false)
                     }, 550)
                   }}
-                  className={`pointer-events-auto px-8 py-3 rounded-full bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-xs uppercase tracking-widest font-black flex items-center gap-2 border border-red-400/20 shadow-[0_10px_30px_rgba(186,12,47,0.4)] transition-all hover:scale-105 active:scale-95 ${!isAtEnd ? 'opacity-90' : 'animate-pulse'}`}
+                  className={`pointer-events-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-xs uppercase tracking-widest font-black flex items-center gap-2 border border-[#D4AF37] shadow-[0_10px_30px_rgba(186,12,47,0.4)] transition-all hover:scale-105 active:scale-95 ${!isAtEnd ? 'opacity-90' : 'animate-pulse'}`}
                 >
-                  <span>{sealing ? '⏳' : '📜'}</span>
+                  <BookOpen size={13} className="text-[#D4AF37]" />
                   <span>{sealing ? 'Sealing...' : 'Confirm Chronicle'}</span>
                 </button>
               </div>

@@ -206,16 +206,33 @@ export default function MoodSelector({ onConfirm }) {
 
                 <div className="relative z-10 flex flex-col gap-2" style={{ transform: 'translateZ(20px)' }}>
                   <div className="flex items-start justify-between">
-                    <span className="text-2xl">{mood.icon}</span>
+                    {/* Stylized Badge Container for Emojis */}
                     <div
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-all duration-200"
+                      className="w-11 h-11 rounded-full flex items-center justify-center border transition-all duration-300"
                       style={{
-                        background: active ? 'rgba(255,255,255,0.22)' : 'rgba(193,18,47,0.08)',
-                        color: active ? '#fff' : 'rgba(193,18,47,0.5)',
-                        border: active ? '1px solid rgba(255,255,255,0.45)' : '1px solid rgba(193,18,47,0.2)',
+                        background: active ? 'rgba(212, 175, 55, 0.15)' : 'rgba(139, 90, 75, 0.05)',
+                        borderColor: active ? '#D4AF37' : 'rgba(139, 90, 75, 0.25)',
+                        boxShadow: active ? '0 0 10px rgba(212, 175, 55, 0.4)' : 'none',
                       }}
                     >
-                      {active ? '✓' : ''}
+                      <span className="text-xl">{mood.icon}</span>
+                    </div>
+
+                    {/* Glowing Gold Stamp / Badge Selector */}
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 transition-all duration-300"
+                      style={{
+                        background: active 
+                          ? 'linear-gradient(135deg, #FFE082 0%, #D4AF37 50%, #B38F24 100%)' 
+                          : 'rgba(139,90,75,0.08)',
+                        color: active ? '#2A2321' : 'transparent',
+                        border: `1.5px solid ${active ? '#FAF9F6' : 'rgba(139,90,75,0.2)'}`,
+                        boxShadow: active 
+                          ? '0 0 8px #D4AF37, inset 0 1px 0 rgba(255,255,255,0.3)' 
+                          : 'none',
+                      }}
+                    >
+                      ★
                     </div>
                   </div>
 
@@ -288,47 +305,53 @@ export default function MoodSelector({ onConfirm }) {
           <label className="font-serif text-[14.5px] font-extrabold text-[#2A2321] flex items-center justify-center md:justify-start gap-1.5">
             ⏳ How long is your Bahrain stay?
           </label>
-          <div className="grid grid-cols-5 gap-2 mt-2">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((d) => {
-              const active = duration === d
-              return (
-                <button
-                  key={d}
-                  onClick={() => {
-                    setDuration(d)
-                  }}
-                  className={`py-2 rounded-xl border text-center font-sans text-xs font-black transition-all cursor-pointer ${
-                    active
-                      ? 'bg-[#D11A38] border-[#D11A38] text-white shadow-md scale-[1.03]'
-                      : 'bg-[#FCFBF8] border-red-500/10 text-[#5C5451] hover:border-red-500/25'
-                  }`}
-                >
-                  {d} {d === 1 ? 'Day' : 'Days'}
-                </button>
-              )
-            })}
+          
+          <div className="relative mt-3">
+            <div 
+              className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((d) => {
+                const active = duration === d
+                return (
+                  <button
+                    key={d}
+                    onClick={() => setDuration(d)}
+                    className={`snap-center flex-shrink-0 w-16 py-3 rounded-xl border text-center font-sans text-xs font-black transition-all duration-300 cursor-pointer ${
+                      active
+                        ? 'bg-[#D11A38] border-[#D4AF37] text-white shadow-[0_4px_12px_rgba(209,26,56,0.3)] scale-[1.05]'
+                        : 'bg-[#FCFBF8] border-red-500/10 text-[#5C5451] hover:border-red-500/30 hover:shadow-sm'
+                    }`}
+                    style={{
+                      boxShadow: active ? '0 4px 12px rgba(209,26,56,0.35), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none',
+                    }}
+                  >
+                    <div className="text-[9px] uppercase opacity-75 font-medium">{d === 1 ? 'Day' : 'Days'}</div>
+                    <div className="text-sm font-bold mt-0.5">{d}</div>
+                  </button>
+                )
+              })}
+            </div>
+            {/* Scroll fade overlays */}
+            <div className="absolute top-0 bottom-2 left-0 w-6 bg-gradient-to-r from-white to-transparent pointer-events-none opacity-60" />
+            <div className="absolute top-0 bottom-2 right-0 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none opacity-80" />
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setSelectedMoods(allSelected ? [] : ['empires', 'sea', 'spice', 'lights'])}
-            className="text-[12.5px] tracking-wider uppercase font-bold px-4 py-3 rounded-xl transition-all cursor-pointer shrink-0"
-            style={{
-              color: '#5C5451',
-              border: '1.5px solid rgba(42,35,33,0.15)',
-              background: '#fff',
-            }}
-          >
-            {allSelected ? 'Clear' : 'All vibes'}
-          </button>
-
+        {/* Action buttons (Stacked for Mobile Prominence) */}
+        <div className="flex flex-col gap-3 mt-1">
           <button
             onClick={handleConfirm}
             disabled={noneSelected}
-            className="flex-1 py-3 rounded-xl font-sans font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
+            className={`w-full py-4 rounded-xl font-sans font-bold text-sm tracking-widest uppercase transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] ${
+              !noneSelected ? 'jn-pulse-gold-btn' : ''
+            }`}
             style={{
+              height: '54px',
               background: noneSelected
                 ? 'rgba(209,26,56,0.1)'
                 : 'linear-gradient(135deg, #BA0C2F 0%, #8A0A22 100%)',
@@ -344,6 +367,26 @@ export default function MoodSelector({ onConfirm }) {
             {noneSelected
               ? 'Pick at least one vibe'
               : 'Build my Bahrain Passage →'}
+          </button>
+
+          <button
+            onClick={() => setSelectedMoods(allSelected ? [] : ['empires', 'sea', 'spice', 'lights'])}
+            className="w-full text-[11px] tracking-widest uppercase font-bold py-3.5 rounded-xl transition-all duration-300 cursor-pointer text-center"
+            style={{
+              color: '#C1122F',
+              border: '1.5px solid rgba(193, 18, 47, 0.25)',
+              background: 'rgba(193, 18, 47, 0.03)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(193, 18, 47, 0.08)'
+              e.currentTarget.style.borderColor = 'rgba(193, 18, 47, 0.4)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(193, 18, 47, 0.03)'
+              e.currentTarget.style.borderColor = 'rgba(193, 18, 47, 0.25)'
+            }}
+          >
+            {allSelected ? '✕ Clear All Vibes' : '✨ Select All Vibes'}
           </button>
         </div>
 
