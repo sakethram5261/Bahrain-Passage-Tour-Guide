@@ -182,7 +182,6 @@ export default function JournalNotebook({ onBack }) {
   const [tabKey,       setTabKey]       = useState(0)       // bumped on every switch → remount → fresh anim
   const [menuOpen,     setMenuOpen]     = useState(false)
   const [chatOpen,     setChatOpen]     = useState(false)   // AI chatbot panel
-  const [turningPage,  setTurningPage]  = useState(null)
   
 
   // Modals & overlay states
@@ -426,15 +425,8 @@ export default function JournalNotebook({ onBack }) {
       playOrganicPageSwish()
     }
 
-    const direction = (activeTab === 'info') ? 'left' : (tab === 'info') ? 'right' : 'left'
-    setTurningPage(direction)
-
-    setTimeout(() => {
-      setActiveTab(tab)
-      setTabKey(k => k + 1)
-      setTurningPage(null)
-    }, 650)
-
+    setActiveTab(tab)
+    setTabKey(k => k + 1)
     setMenuOpen(false)
   }
 
@@ -767,49 +759,42 @@ export default function JournalNotebook({ onBack }) {
     <div className="jn-root" role="main" aria-label="Bahrain Passage Journal Notebook">
 
 
-      {/* ── Fixed crimson header ────────────────────────────────────────────── */}
+      {/* ── Fixed minimal header ────────────────────────────────────────────── */}
       <header className="jn-header" role="banner">
-        {/* Row 1: Brand + Controls */}
+        {/* Slim Utility Bar */}
         <div className="jn-header-inner">
-          <div className="jn-brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', position: 'relative' }}>
-            <span className="jn-brand-title" style={{ position: 'relative', paddingBottom: '6px' }}>
-              Bahrain{' '}
-              <span style={{ position: 'relative', display: 'inline-block' }}>
-                <em>Passage</em>
-                <span className="jn-brand-arabic" lang="ar" style={{ 
-                  position: 'absolute', 
-                  right: 0, 
-                  top: '100%', 
-                  fontSize: '8px', 
-                  letterSpacing: '0.1em', 
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  marginTop: '3px',
-                  whiteSpace: 'nowrap'
-                }}>
-                  مملكة البحرين
-                </span>
-              </span>
+          <div className="jn-brand" onClick={onBack} style={{ cursor: onBack ? 'pointer' : 'default' }}>
+            <span className="jn-brand-title">
+              Bahrain <em>Passage</em>
+            </span>
+            <span className="jn-brand-arabic" lang="ar">
+              مملكة البحرين
             </span>
           </div>
 
-          {/* Trip status pill (desktop only) */}
-          <div className="hidden" style={{ display: 'none' }} />
-
-          <div className="jn-header-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="jn-header-right" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             {/* XP progress pill */}
-            <div className="jn-xp-pill" aria-label={`${displayXP} XP earned`} style={{ margin: 0 }}>
+            <div className="jn-xp-pill" aria-label={`${displayXP} XP earned`}>
               <span className="jn-xp-icon">⚡</span>
               <span className="jn-xp-num">{displayXP} XP</span>
             </div>
 
             {/* Lang toggle */}
-            <LangToggle style={{ fontSize: 10, padding: '4px 8px' }} />
+            <LangToggle 
+              style={{ 
+                fontSize: 10, 
+                padding: '4px 8px',
+                color: 'var(--jn-crimson)',
+                border: '1px solid rgba(193, 18, 47, 0.2)',
+                background: 'rgba(193, 18, 47, 0.05)',
+                height: '28px'
+              }} 
+            />
 
             {/* Passport card trigger */}
             <button
               onClick={() => setShowPassportCard(true)}
-              className="jn-action-btn jn-action-btn--ghost"
-              style={{ padding: '6px 10px', fontSize: '10px', height: 'auto', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
+              className="jn-utility-btn"
               title="View Explorer Passport"
             >
               <span>🗺️</span>
@@ -820,8 +805,7 @@ export default function JournalNotebook({ onBack }) {
             {onBack && (
               <button
                 onClick={onBack}
-                className="jn-action-btn jn-action-btn--ghost"
-                style={{ padding: '6px 10px', fontSize: '10px', height: 'auto', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                className="jn-utility-btn jn-utility-btn--edit"
                 title="Adjust vibe settings"
               >
                 {isRTL ? 'Edit ➜' : '← Edit'}
@@ -829,34 +813,6 @@ export default function JournalNotebook({ onBack }) {
             )}
           </div>
         </div>
-
-        {/* Row 2: Full-width tab bar */}
-        <div style={{ padding: '0 12px 10px 12px' }}>
-          <nav className="tab-bar" role="tablist" aria-label="Journal sections">
-            {TABS.map(t => (
-              <button
-                key={t.id}
-                id={`tab-${t.id}`}
-                role="tab"
-                aria-selected={activeTab === t.id}
-                aria-controls={`panel-${t.id}`}
-                className={`tab-pill ${activeTab === t.id ? 'active' : ''}`}
-                onClick={(e) => switchTab(t.id, e)}
-              >
-                <span>{t.emoji}</span>
-                <span>{t.label}</span>
-                {t.id === 'souvenirs' && collectedKeepsakes.length > 0 && (
-                  <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '999px', padding: '0 5px', fontSize: '0.6rem', fontWeight: 800 }}>
-                    {collectedKeepsakes.length}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Decorative diamond border */}
-        <div className="jn-header-diamonds" aria-hidden="true" />
       </header>
 
 
@@ -883,12 +839,34 @@ export default function JournalNotebook({ onBack }) {
       )}
       {menuOpen && <div className="jn-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
 
-      {/* ── No separate mobile-tab strip needed — tabs are in header ── */}
-
-
 
       {/* ── Main content area with binder ring system ───────────────────────── */}
       <div className="jn-body">
+
+        {/* ── INTEGRATED PAGE NAVIGATION (Tabbed System for Book UI) ── */}
+        <div className="jn-book-tabs-container">
+          <nav className="jn-book-tabs" role="tablist" aria-label="Journal sections">
+            {TABS.map(t => (
+              <button
+                key={t.id}
+                id={`tab-${t.id}`}
+                role="tab"
+                aria-selected={activeTab === t.id}
+                aria-controls={`panel-${t.id}`}
+                className={`jn-book-tab-pill ${activeTab === t.id ? 'active' : ''}`}
+                onClick={(e) => switchTab(t.id, e)}
+              >
+                <span className="jn-tab-emoji">{t.emoji}</span>
+                <span className="jn-tab-label">{t.label}</span>
+                {t.id === 'souvenirs' && collectedKeepsakes.length > 0 && (
+                  <span className="jn-tab-badge">
+                    {collectedKeepsakes.length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
 
         <main className="jn-book">
           
@@ -896,7 +874,7 @@ export default function JournalNotebook({ onBack }) {
           <div 
             className={`jn-page jn-page--left jn-page-tactile ${
               activeTab === 'info' ? 'jn-page--visible' : 'jn-page--hidden'
-            } ${turningPage === 'left' ? 'jn-page-turning-left' : ''}`}
+            }`}
             id="panel-info" 
             role="tabpanel" 
             aria-labelledby="tab-info"
@@ -1097,7 +1075,7 @@ export default function JournalNotebook({ onBack }) {
           <div 
             className={`jn-page jn-page--right jn-page-tactile ${
               activeTab !== 'info' ? 'jn-page--visible' : 'jn-page--hidden'
-            } ${turningPage === 'right' ? 'jn-page-turning-right' : ''}`}
+            }`}
             id="panel-tabs" 
             role="tabpanel"
           >

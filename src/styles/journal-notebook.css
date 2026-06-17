@@ -77,7 +77,7 @@
   --jn-transition-spring: all 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
   /* Header height (for sticky offset) */
-  --jn-header-h: 88px;
+  --jn-header-h: 54px;
 
   /* Sticky CTA height */
   --jn-cta-h: 72px;
@@ -156,52 +156,217 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--jn-crimson);
-  box-shadow: 0 4px 24px rgba(193, 18, 47, 0.35), 0 1px 0 rgba(212, 175, 55, 0.25);
-  /* Subtle noise texture overlay */
-  background-image:
-    linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 60%);
+  background: rgba(250, 249, 246, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(139, 90, 43, 0.08);
+  box-shadow: 0 4px 20px rgba(42, 35, 33, 0.02);
+  transition: all 0.3s ease;
 }
 
 .jn-header-inner {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--jn-sp-md);
-  padding: var(--jn-sp-sm) var(--jn-sp-lg);
-  min-height: 60px;
+  padding: 8px 16px;
+  min-height: 52px;
 }
 
 /* Brand */
 .jn-brand {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 1px;
   flex-shrink: 0;
 }
 
 .jn-brand-arabic {
   font-family: var(--jn-font-sans);
-  font-size: 11px;
-  letter-spacing: 0.3em;
+  font-size: 8px;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--jn-ink-faint);
   font-weight: 600;
+  margin-top: 1px;
 }
 
 .jn-brand-title {
   font-family: var(--jn-font-serif);
-  font-size: clamp(18px, 4vw, 26px);
-  font-weight: 600;
-  color: #ffffff;
+  font-size: clamp(14px, 3.5vw, 19px);
+  font-weight: 700;
+  color: var(--jn-crimson);
   line-height: 1.1;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 .jn-brand-title em {
   font-style: italic;
   font-weight: 300;
+}
+
+/* Session Stats & Actions */
+.jn-xp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(209, 26, 56, 0.05);
+  border: 1px solid rgba(209, 26, 56, 0.15);
+  color: var(--jn-crimson);
+  font-family: var(--jn-font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.jn-xp-icon {
+  font-size: 12px;
+}
+
+.jn-xp-num {
+  letter-spacing: 0.02em;
+}
+
+.jn-utility-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(139, 90, 43, 0.05);
+  border: 1px solid rgba(139, 90, 43, 0.12);
+  color: var(--jn-ink);
+  font-family: var(--jn-font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 28px;
+  line-height: 1;
+  user-select: none;
+}
+
+.jn-utility-btn:hover {
+  background: rgba(139, 90, 43, 0.1);
+  border-color: rgba(139, 90, 43, 0.2);
+  transform: translateY(-1px);
+}
+
+.jn-utility-btn:active {
+  transform: scale(0.96);
+}
+
+.jn-utility-btn--edit {
+  color: var(--jn-crimson);
+  background: rgba(209, 26, 56, 0.04);
+  border-color: rgba(209, 26, 56, 0.15);
+}
+
+.jn-utility-btn--edit:hover {
+  background: rgba(209, 26, 56, 0.08);
+  border-color: rgba(209, 26, 56, 0.25);
+}
+
+.jn-level-badge {
+  display: inline-flex !important;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--jn-crimson-mid);
+}
+
+/* Integrated Bookmark-Style Tabs Container */
+.jn-book-tabs-container {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 8px; /* Slight inset spacing for rounding alignment */
+  position: relative;
+  z-index: 10;
+}
+
+.jn-book-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0 4px;
+  margin-bottom: -1px; /* Overlap book top border */
+}
+
+.jn-book-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Bookmark Tab design: Rounded top, flat bottom, sticking out of the book */
+.jn-book-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  min-height: 44px;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid rgba(139, 90, 43, 0.15);
+  border-bottom: none;
+  background: rgba(239, 235, 224, 0.82);
+  color: var(--jn-ink-muted);
+  font-family: var(--jn-font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: inset 0 -3px 5px rgba(0,0,0,0.02);
+  user-select: none;
+}
+
+.jn-book-tab-pill:hover {
+  background: rgba(239, 235, 224, 1);
+  color: var(--jn-ink);
+}
+
+/* Active State: Stands out like an active bookmark index */
+.jn-book-tab-pill.active {
+  background: var(--jn-crimson);
+  color: #ffffff;
+  border-color: var(--jn-crimson);
+  box-shadow: 
+    0 -2px 10px rgba(193, 18, 47, 0.12),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+  transform: translateY(-2px);
+  z-index: 2;
+}
+
+.jn-tab-emoji {
+  font-size: 13px;
+}
+
+.jn-tab-label {
+  letter-spacing: 0.02em;
+}
+
+.jn-tab-badge {
+  background: var(--jn-amber);
+  color: var(--jn-ink);
+  border-radius: 99px;
+  padding: 1px 6px;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+  margin-left: 2px;
+}
+
+.jn-book-tab-pill.active .jn-tab-badge {
+  background: #ffffff;
+  color: var(--jn-crimson);
 }
 
 /* Desktop nav (hidden on mobile) */
@@ -1358,7 +1523,7 @@
 /* ── 14. Desktop Layout (≥ 768px) ────────────────────────────────────────── */
 @media (min-width: 768px) {
   :root {
-    --jn-header-h: 100px;
+    --jn-header-h: 58px;
   }
 
   /* Show desktop nav, hide hamburger */
@@ -2189,43 +2354,6 @@
   transform-style: preserve-3d;
 }
 
-.jn-page-turning-left {
-  transform-origin: left center;
-  animation: jnPageFlipLeft 0.65s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
-}
-
-.jn-page-turning-right {
-  transform-origin: right center;
-  animation: jnPageFlipRight 0.65s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
-}
-
-@keyframes jnPageFlipLeft {
-  0% {
-    transform: rotateY(0deg);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  }
-  50% {
-    box-shadow: 0 25px 40px rgba(0,0,0,0.22);
-  }
-  100% {
-    transform: rotateY(-180deg);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  }
-}
-
-@keyframes jnPageFlipRight {
-  0% {
-    transform: rotateY(0deg);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  }
-  50% {
-    box-shadow: 0 25px 40px rgba(0,0,0,0.22);
-  }
-  100% {
-    transform: rotateY(180deg);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  }
-}
 
 /* Organic Paper Texture & uneven deckled edges */
 .jn-page-tactile {
