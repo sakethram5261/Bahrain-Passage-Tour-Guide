@@ -272,12 +272,37 @@
   border-color: rgba(209, 26, 56, 0.25);
 }
 
-.jn-level-badge {
-  display: inline-flex !important;
+.jn-utility-btn-rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #a87b00;
+  font-family: var(--jn-font-sans);
   font-size: 9px;
   font-weight: 800;
   text-transform: uppercase;
-  color: var(--jn-crimson-mid);
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 28px;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.jn-utility-btn-rank:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.55);
+  color: #8c6600;
+  transform: translateY(-1px);
+}
+
+.jn-utility-btn-rank:active {
+  transform: scale(0.96);
 }
 
 /* Integrated Bookmark-Style Tabs Container */

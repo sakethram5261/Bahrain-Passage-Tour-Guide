@@ -779,26 +779,14 @@ export default function JournalNotebook({ onBack }) {
               <span className="jn-xp-num">{displayXP} XP</span>
             </div>
 
-            {/* Lang toggle */}
-            <LangToggle 
-              style={{ 
-                fontSize: 10, 
-                padding: '4px 8px',
-                color: 'var(--jn-crimson)',
-                border: '1px solid rgba(193, 18, 47, 0.2)',
-                background: 'rgba(193, 18, 47, 0.05)',
-                height: '28px'
-              }} 
-            />
-
             {/* Passport card trigger */}
             <button
               onClick={() => setShowPassportCard(true)}
-              className="jn-utility-btn"
+              className="jn-utility-btn-rank"
               title="View Explorer Passport"
             >
               <span>🗺️</span>
-              <span className="jn-level-badge">{rank.label}</span>
+              <span>{rank.label}</span>
             </button>
 
             {/* Edit trip / back */}
