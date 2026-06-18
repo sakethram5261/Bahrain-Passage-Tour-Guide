@@ -64,9 +64,8 @@ export default function AISpotSuggestion({ moods, tier, locations }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-amber-300/20">
         <div className="flex items-center gap-1.5">
-          <span className="text-base">✨</span>
           <span className="font-sans text-[8px] tracking-widest uppercase text-amber-700 font-extrabold">
-            AI Hidden Gem Suggestion
+            Hidden Gem Suggestion
           </span>
         </div>
         <button
@@ -108,7 +107,7 @@ export default function AISpotSuggestion({ moods, tier, locations }) {
               </div>
             </div>
             <p className="font-serif text-[10.5px] italic text-bronze-charcoal/80 leading-relaxed mt-2">
-              🤖 "{suggestion.reason}"
+              "{suggestion.reason}"
             </p>
             {suggestion.spot && (
               <p className="font-sans text-[9.5px] text-bronze-muted mt-1.5 leading-relaxed">

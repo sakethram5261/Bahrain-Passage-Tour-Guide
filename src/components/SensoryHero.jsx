@@ -7,16 +7,16 @@ import 'swiper/css'
 import 'swiper/css/pagination'
 
 const guidePhrases = [
-  `Greetings wayfarer! Your local guide deck is assembling...`,
-  `Merchant Jafar is curating aromatic souq spices for Day 1...`,
-  `Priestess Ninsun is matching Dilmun temple relics with historical records...`,
-  `Architect Al-Farsi is outlining coastal fort maps in Muharraq...`,
-  `Scanning Jarada disappearing island marine sandbar low-tide coordinates...`,
-  `Syncing local sea taxi and boat ferry timetables from Sitra port...`,
-  `Optimizing desert walking paths to avoid Sakhir desert midday heat...`,
-  `Confirming fresh Arabic coffee dallah balances at Haji's Traditional Cafe...`,
-  `Aligning custom entry visa seals in your travel passport...`,
-  `Guide alignment fully calibrated. Click below to unroll your ledger leaves!`
+  `Assembling your personalized guide...`,
+  `Selecting points of interest for Day 1...`,
+  `Loading historical details and background info...`,
+  `Mapping coastal forts in Muharraq...`,
+  `Checking tide conditions for Jarada Island...`,
+  `Retrieving transport options and ferry schedules...`,
+  `Optimizing walking routes for the day...`,
+  `Getting recommendations for local cafes...`,
+  `Preparing your custom travel passport...`,
+  `Itinerary ready! Click below to view.`
 ]
 
 export default function SensoryHero({ onBack }) {
@@ -318,7 +318,7 @@ export default function SensoryHero({ onBack }) {
                 }}
                 className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-xs uppercase tracking-widest font-black cursor-pointer active:scale-95 transition-all"
               >
-                🔄 Adjust Vibes
+                Adjust Vibes
               </button>
             </div>
           ) : (
@@ -432,7 +432,7 @@ export default function SensoryHero({ onBack }) {
                             }}
                           >
                             <span className="font-sans text-[9.5px] tracking-[0.18em] text-[#D4AF37] uppercase font-bold block mb-2">
-                              🗺️ Curated Local Guide Plan
+                              Guide Plan
                             </span>
                             <p className="font-serif text-[13.5px] leading-relaxed text-white/90 font-medium">
                               {spot.pathGuide}
@@ -440,7 +440,7 @@ export default function SensoryHero({ onBack }) {
                             
                             <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
                               <span className="font-sans text-[11px] tracking-[0.12em] text-[#FFE082] uppercase font-bold">
-                                💰 {spot.pathCost || spot.budgetCost || 'Free Entry'}
+                                {spot.pathCost || spot.budgetCost || 'Free Entry'}
                               </span>
                               <span className="font-mono text-[9px] text-white/50 tracking-wider">
                                 {spot.coords}
@@ -460,7 +460,7 @@ export default function SensoryHero({ onBack }) {
                             }}
                           >
                             <span className="font-sans text-[8.5px] tracking-[0.18em] text-white/60 uppercase font-bold block mb-1.5">
-                              🔍 What You Can Find Here
+                              What to See
                             </span>
                             <p className="font-serif text-[12px] text-white/80 leading-relaxed font-semibold">
                               {spot.simpleTerms}
@@ -519,7 +519,7 @@ export default function SensoryHero({ onBack }) {
                   className={`pointer-events-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-xs uppercase tracking-widest font-black flex items-center gap-2 border border-[#D4AF37] shadow-[0_10px_30px_rgba(186,12,47,0.4)] transition-all hover:scale-105 active:scale-95 ${!isAtEnd ? 'opacity-90' : 'animate-pulse'}`}
                 >
                   <BookOpen size={13} className="text-[#D4AF37]" />
-                  <span>{sealing ? 'Sealing...' : 'Confirm Chronicle'}</span>
+                  <span>{sealing ? 'Confirming...' : 'Confirm Itinerary'}</span>
                 </button>
               </div>
             </>
@@ -544,7 +544,7 @@ export default function SensoryHero({ onBack }) {
                 مملكة البحرين
               </p>
               <h3 className="font-serif text-2xl font-black text-[#2A2321]">
-                Curating Your Passage
+                Preparing Your Route
               </h3>
             </div>
             

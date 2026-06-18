@@ -598,7 +598,7 @@ export default function JournalNotebook({ onBack }) {
             aria-label="Open camera lens simulator to capture photo"
             style={{ flex: '1 1 120px' }}
           >
-            {capturedPhotos[activeSpot.id] ? '📷 Re-shoot Spot' : '📷 Capture Lens'}
+            {capturedPhotos[activeSpot.id] ? 'Retake Photo' : 'Capture Photo'}
           </button>
           {hasVirtualTour(activeSpot.id) && (
             <button
@@ -607,20 +607,20 @@ export default function JournalNotebook({ onBack }) {
               aria-label="Open virtual tour clip"
               style={{ flex: '1 1 120px' }}
             >
-              🎬 Virtual Tour
+              Virtual Tour
             </button>
           )}
         </div>
 
         {/* What You Can Find Here */}
         <div className="jn-insider-box" role="complementary" aria-label="What you can find here">
-          <span className="jn-tag jn-tag--red">🔍 What You Can Find Here</span>
+          <span className="jn-tag jn-tag--red">What to See</span>
           <p className="jn-insider-text">{activeSpot.simpleTerms}</p>
         </div>
 
         {/* Estimated Cost / Budget */}
         <div className="jn-insider-box" style={{ background: '#fffdf9', border: '1px solid var(--jn-gold-muted)', padding: '15px' }} role="complementary" aria-label="Estimated Cost / Budget">
-          <span className="jn-tag jn-tag--green">💰 Estimated Cost / Budget</span>
+          <span className="jn-tag jn-tag--green">Estimated Cost</span>
           <p className="jn-insider-text" style={{ fontWeight: 'bold', marginTop: '5px' }}>
             {activeSpot.pathCost || activeSpot.budgetCost || 'Free Entry'}
           </p>
@@ -641,7 +641,7 @@ export default function JournalNotebook({ onBack }) {
               marginBottom: '6px',
             }}
           >
-            🗒️ My Notes
+            My Notes
           </label>
           <textarea
             id={`reflection-${activeSpot.id}`}
@@ -674,7 +674,7 @@ export default function JournalNotebook({ onBack }) {
           <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70">
             <div className="flex justify-between items-center mb-2 select-none">
               <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
-                🧭 Local Riddle Quest
+                Riddle
               </span>
               {solvedRiddles[activeSpot.id] ? (
                 <span className="text-[8px] bg-green-100 text-green-800 font-extrabold px-1.5 py-0.5 rounded-full">
@@ -753,9 +753,7 @@ export default function JournalNotebook({ onBack }) {
     )
   }
 
-  /* ════════════════════════════════════════════════════════════════════════════
-     RENDER
-     ════════════════════════════════════════════════════════════════════════════ */
+  /* RENDER */
   return (
     <div className="jn-root" role="main" aria-label="Bahrain Passage Journal Notebook">
 
@@ -928,21 +926,21 @@ export default function JournalNotebook({ onBack }) {
                       <div style={{ textAlign: 'center', padding: '20px 10px' }} className="space-y-4">
                         <span style={{ fontSize: '40px', display: 'block' }}>🔒</span>
                         <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '18px', color: 'var(--jn-ink)', fontWeight: 'bold' }}>
-                          Seal Day {currentDayTab}'s Passage
+                          Complete Day {currentDayTab}
                         </h4>
                         <p className="jn-description" style={{ textAlign: 'center', fontSize: '12px' }}>
-                          You have explored all landmarks for this daily chapter. Imprint your official border stamp to seal the path and lock in the Insider reward.
+                          You've visited all locations. Seal this chapter to earn the insider reward.
                         </p>
                         <button
                           onClick={handleSealDay}
                           className="jn-action-btn jn-action-btn--primary"
                         >
-                          Authenticate Stamp
+                           Seal Day
                         </button>
                       </div>
                     ) : (
                       <div className={`space-y-4 ${isRTL ? 'text-right' : 'text-left'}`}>
-                        <span className="jn-tag jn-tag--green" style={{ display: 'inline-flex' }}>✓ Day {currentDayTab} Passkey Active</span>
+                        <span className="jn-tag jn-tag--green" style={{ display: 'inline-flex' }}>✓ Day {currentDayTab} Verified</span>
                         <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '16px', color: 'var(--jn-ink)', fontWeight: 'bold' }}>
                           Traditional Insider Passkey:
                         </h4>
@@ -1104,7 +1102,7 @@ export default function JournalNotebook({ onBack }) {
                       <span className="jn-period-tag">{activeSpot.period}</span>
                       <h2 className="jn-spot-name">{activeSpot.name}</h2>
                       <p className="jn-coords" aria-label={`GPS: ${activeSpot.coords}`}>
-                        📍 {activeSpot.coords}
+                        {activeSpot.coords}
                         <a
                           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeSpot.name + ' ' + activeSpot.coords)}`}
                           target="_blank"
@@ -1121,7 +1119,7 @@ export default function JournalNotebook({ onBack }) {
                             cursor: 'pointer'
                           }}
                         >
-                          🗺️ Open Map
+                          Open in Maps
                         </a>
                       </p>
                     </div>
@@ -1171,7 +1169,7 @@ export default function JournalNotebook({ onBack }) {
                     }}
                     className="jn-mobile-context-back-btn pointer-events-auto"
                   >
-                    📖 Read Info
+                    Back to Info
                   </button>
                 </div>
               )}
@@ -1183,8 +1181,8 @@ export default function JournalNotebook({ onBack }) {
                   {activeSpot && (
                     <div className="space-y-4">
                       <div className="jn-section-heading">
-                        <h2 className="jn-section-title">Historical Chronicle</h2>
-                        <span className="jn-section-subtitle">Chronicle details & Riddle Quest</span>
+                        <h2 className="jn-section-title">About This Spot</h2>
+                        <span className="jn-section-subtitle">Details & Riddle</span>
                       </div>
                       <hr className="jn-divider" aria-hidden="true" />
                       {renderSpotDetails()}
@@ -1210,8 +1208,8 @@ export default function JournalNotebook({ onBack }) {
                 <div className="jn-mobile-shown-timeline">
                   <div className="space-y-4">
                     <div className="jn-section-heading">
-                      <h2 className="jn-section-title">Day's Chronicle Trail</h2>
-                      <span className="jn-section-subtitle">Bahrain Custom Itinerary timeline</span>
+                      <h2 className="jn-section-title">Today's Route</h2>
+                      <span className="jn-section-subtitle">Your itinerary for this day</span>
                     </div>
 
                     <hr className="jn-divider" aria-hidden="true" />
@@ -1256,11 +1254,11 @@ export default function JournalNotebook({ onBack }) {
                           borderRadius: 'var(--jn-r-md)', marginBottom: '10px', flexWrap: 'wrap',
                         }}>
                           <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-ink-muted)' }}>
-                            📸 {capturedCount}/{activeSpots.length} captured
+                            {capturedCount}/{activeSpots.length} captured
                           </span>
                           <span style={{ color: 'var(--jn-ink-faint)' }}>·</span>
                           <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-ink-muted)' }}>
-                            🧭 {solvedCount} riddle{solvedCount !== 1 ? 's' : ''} solved
+                            {solvedCount} riddle{solvedCount !== 1 ? 's' : ''} solved
                           </span>
                           {isDayCompleted && (
                             <><span style={{ color: 'var(--jn-ink-faint)' }}>·</span>
@@ -1293,7 +1291,7 @@ export default function JournalNotebook({ onBack }) {
                             <h3 className="jn-tl-stop-name" style={{ color: 'var(--jn-ink)' }}>
                               Start at {selectedHotel.name}
                             </h3>
-                            <p className="jn-tl-note" style={{ fontSize: '11px' }}>📍 {selectedHotel.neighborhood}</p>
+                            <p className="jn-tl-note" style={{ fontSize: '11px' }}>{selectedHotel.neighborhood}</p>
                           </div>
                         </li>
                       ) : (
@@ -1351,7 +1349,7 @@ export default function JournalNotebook({ onBack }) {
                               <h3 className="jn-tl-stop-name" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 {stop.name} {hasPic && <span style={{ color: 'var(--jn-green)', fontSize: '10px' }}>✓ Captured</span>}
                               </h3>
-                              <p className="jn-tl-coords">📍 {stop.coords}</p>
+                              <p className="jn-tl-coords">{stop.coords}</p>
                               <p className="jn-tl-note" style={{ fontSize: '11px' }}>{stop.pathGuide}</p>
                             </div>
                           </li>
@@ -1420,8 +1418,8 @@ export default function JournalNotebook({ onBack }) {
               {activeTab === 'map' && (
                 <div className="space-y-4">
                   <div className="jn-section-heading">
-                    <h2 className="jn-section-title">Wayfarer's Map</h2>
-                    <span className="jn-section-subtitle">Bahrain Archipelago Route Chart</span>
+                    <h2 className="jn-section-title">Map</h2>
+                    <span className="jn-section-subtitle">Your route across Bahrain</span>
                   </div>
 
                   <hr className="jn-divider" aria-hidden="true" />
@@ -1433,23 +1431,22 @@ export default function JournalNotebook({ onBack }) {
                       <span className="jn-map-compass">🧭</span>
                     </div>
                     <div className="jn-map-preview-content">
-                      <span className="jn-tag jn-tag--amber">🗺️ Geographical Chart</span>
+                      <span className="jn-tag jn-tag--amber">Route Map</span>
                       <h3 className="jn-map-preview-title">Bahrain Archipelago Map</h3>
                       <p className="jn-map-preview-desc">
-                        Unroll the grand parchment chart to trace your live itinerary route, locate active
-                        daily checkpoints, and hunt for hidden Dilmun Pearl coordinates.
+                        View your route, find landmarks, and discover hidden treasures.
                       </p>
                       <ul style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', color: 'var(--jn-ink-muted)', margin: '0 0 14px 0', padding: '0 0 0 16px', lineHeight: 1.9 }}>
-                        <li>📍 {locations.length} landmark{locations.length !== 1 ? 's' : ''} pinned to your route</li>
-                        <li>🔍 Interactive zoom &amp; tap any pin for details</li>
-                        <li>⭐ Hidden Dilmun Pearl coordinates to discover</li>
+                        <li>{locations.length} landmark{locations.length !== 1 ? 's' : ''} pinned to your route</li>
+                        <li>Interactive zoom & tap any pin for details</li>
+                        <li>Hidden treasure coordinates to discover</li>
                       </ul>
                       <button
                         className="jn-action-btn jn-action-btn--amber"
                         onClick={() => setMapOpen(true)}
                         aria-label="Open interactive Bahrain map"
                       >
-                        🧭 Open Wayfarer Map
+                        Open Map
                       </button>
                     </div>
                   </div>
@@ -1457,7 +1454,7 @@ export default function JournalNotebook({ onBack }) {
                   {/* Almanac weather metrics */}
                   {almanac.metrics && almanac.metrics.length > 0 && (
                     <div style={{ marginTop: '20px' }}>
-                      <h3 className="jn-subsection-title">📊 Wayfarer's Almanac</h3>
+                      <h3 className="jn-subsection-title">Weather & Conditions</h3>
                       <div className="jn-almanac-grid">
                         {almanac.metrics.map((m, i) => (
                           <div key={i} className="jn-almanac-card">
@@ -1477,18 +1474,18 @@ export default function JournalNotebook({ onBack }) {
                 <div className="space-y-4">
                   <div className="jn-section-heading">
                     <h2 className="jn-section-title">Souvenirs</h2>
-                    <span className="jn-section-subtitle">Teak Keepsake Cabinet</span>
+                    <span className="jn-section-subtitle">Your collection</span>
                   </div>
 
                   <hr className="jn-divider" aria-hidden="true" />
 
                   {/* Fils balance */}
                   <div className="jn-fils-bar">
-                    <span className="jn-fils-label">🪙 Travel Stipend</span>
+                    <span className="jn-fils-label">Fils Balance</span>
                     <span className="jn-fils-amount">{(goldFils || 0).toLocaleString()} Fils</span>
                   </div>
                   <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', color: 'var(--jn-ink-faint)', marginTop: '-6px', marginBottom: '14px', fontStyle: 'italic' }}>
-                    Earn Fils by capturing spots 📸 and solving riddles 🧭
+                    Earn Fils by capturing spots and solving riddles
                   </p>
                   {/* Souq shop button */}
                   <button
@@ -1496,7 +1493,7 @@ export default function JournalNotebook({ onBack }) {
                     onClick={() => { setShopOpen(true); setShopAlert(null) }}
                     aria-label="Enter Jafar's Souq Shop"
                   >
-                    🏪 Enter Jafar's Souq Shop
+                    Open Shop
                   </button>
 
                   {/* Keepsake grid */}
@@ -1598,9 +1595,7 @@ export default function JournalNotebook({ onBack }) {
         </main>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          SOUQ SHOP MODAL
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* SOUQ SHOP MODAL */}
       {shopOpen && (
         <div
           className="jn-modal-overlay"
@@ -1625,7 +1620,7 @@ export default function JournalNotebook({ onBack }) {
             )}
 
             <div className="jn-shop-fils-bar">
-              <span>🪙 Your Travel Stipend</span>
+              <span>Your Fils Balance</span>
               <strong>{(goldFils || 0).toLocaleString()} Fils</strong>
             </div>
 
@@ -1654,9 +1649,7 @@ export default function JournalNotebook({ onBack }) {
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          KEEPSAKE DETAIL MODAL
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* KEEPSAKE DETAIL MODAL */}
       {selectedKsake && (
         <div
           className="jn-modal-overlay"
@@ -1678,9 +1671,7 @@ export default function JournalNotebook({ onBack }) {
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          WAYFARER MAP (fullscreen, component handles its own close)
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* WAYFARER MAP (fullscreen, component handles its own close) */}
       {mapOpen && (
         <div className="jn-map-fullscreen" role="dialog" aria-modal="true" aria-label="Wayfarer Map">
           <Suspense fallback={<MapSkeleton label="Loading live route chart..." height="100%" />}>
@@ -1689,9 +1680,7 @@ export default function JournalNotebook({ onBack }) {
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          BASE CAMP PROMPT POPUP
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* BASE CAMP PROMPT POPUP */}
       {baseCampPromptOpen && !selectedHotel && (
         <div
           className="jn-modal-overlay"
@@ -1766,7 +1755,7 @@ export default function JournalNotebook({ onBack }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h5 style={{ margin: 0, fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontWeight: 700, color: '#2A2321' }}>{hotel.name}</h5>
-                      <span style={{ fontSize: '9px', fontWeight: 700, color: '#059669', background: 'rgba(16,185,129,0.08)', padding: '1px 5px', borderRadius: '999px' }}>💰 {hotel.cost.replace('From ', '')}</span>
+                      <span style={{ fontSize: '9px', fontWeight: 700, color: '#059669', background: 'rgba(16,185,129,0.08)', padding: '1px 5px', borderRadius: '999px' }}>{hotel.cost.replace('From ', '')}</span>
                     </div>
                     <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#5C5451', lineHeight: 1.4 }}>{hotel.desc}</p>
                   </div>
@@ -1793,7 +1782,7 @@ export default function JournalNotebook({ onBack }) {
                   textAlign: 'center',
                 }}
               >
-                🗺️ Browse All Hotels
+                Browse All Hotels
               </button>
               <button
                 onClick={() => setBaseCampPromptOpen(false)}
@@ -1815,16 +1804,12 @@ export default function JournalNotebook({ onBack }) {
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          VIRTUAL TOUR (component handles its own fullscreen)
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* VIRTUAL TOUR (component handles its own fullscreen) */}
       {tourOpen && activeSpot && hasVirtualTour(activeSpot.id) && (
         <VirtualTour initialIndex={getTourIndexForSpot(activeSpot.id)} onClose={() => setTourOpen(false)} />
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          WAYFARER LENS PHOTO SIMULATOR MODAL
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* WAYFARER LENS PHOTO SIMULATOR MODAL */}
       {lensOpenSpot && (
         <WayfarerLens
           spot={lensOpenSpot}
@@ -1832,16 +1817,12 @@ export default function JournalNotebook({ onBack }) {
         />
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          EXPLORER PASSPORT CARD OVERLAY
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* EXPLORER PASSPORT CARD OVERLAY */}
       {showPassportCard && (
         <PassportCard onClose={() => setShowPassportCard(false)} />
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          EXPLORER RANK ADVANCED CELEBRATION MODAL
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* EXPLORER RANK ADVANCED CELEBRATION MODAL */}
       {showRankUpModal && unlockedRankInfo && (
         <div
           className="jn-modal-overlay"
@@ -1893,7 +1874,7 @@ export default function JournalNotebook({ onBack }) {
             aria-haspopup="dialog"
             aria-expanded={riddleModalOpen}
           >
-            🧭 {solvedRiddles[activeSpot.id] ? 'Review Local Riddle (Solved)' : 'Solve Local Riddle (+35 XP)'}
+            {solvedRiddles[activeSpot.id] ? 'Review Riddle (Solved)' : 'Solve Riddle (+35 XP)'}
           </button>
         </div>
       )}
@@ -1912,7 +1893,7 @@ export default function JournalNotebook({ onBack }) {
             <div className="jn-sheet-inner">
               <div className="jn-sheet-header">
                 <div>
-                  <span className="jn-tag jn-tag--red" style={{ marginBottom: '4px' }}>🧭 Local Riddle</span>
+                  <span className="jn-tag jn-tag--red" style={{ marginBottom: '4px' }}>Riddle</span>
                   <h3 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '18px', fontWeight: 'bold', margin: '4px 0 0 0' }}>
                     {activeSpot.name}
                   </h3>
@@ -1970,9 +1951,7 @@ export default function JournalNotebook({ onBack }) {
         </>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          AI GUIDE CHATBOT — Floating Action Button + Panel
-          ═══════════════════════════════════════════════════════════════════════ */}
+      {/* AI GUIDE CHATBOT — Floating Action Button + Panel */}
       <>
         {/* Floating chat button — lifts above riddle CTA when visible */}
         {(() => {
@@ -2106,7 +2085,7 @@ export default function JournalNotebook({ onBack }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
               <div>
                 <p style={{ fontFamily: 'sans-serif', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#BA0C2F', fontWeight: 800, margin: '0 0 4px' }}>
-                  ⚡ Quick Info · Day {currentDayTab}
+                  Quick Info · Day {currentDayTab}
                 </p>
                 <h2 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 22, fontWeight: 700, color: '#2A2321', margin: 0, lineHeight: 1.2 }}>
                   {lang === 'ar' && activeSpot.arabic ? activeSpot.arabic : activeSpot.name}
@@ -2126,12 +2105,12 @@ export default function JournalNotebook({ onBack }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
               {activeSpot.coords && (
                 <span style={{ padding: '4px 10px', borderRadius: 999, background: '#FAF6EE', border: '1px solid rgba(139,90,75,0.15)', fontSize: 11, fontFamily: 'sans-serif', fontWeight: 700, color: '#8B5A4B' }}>
-                  📍 {activeSpot.coords}
+                  {activeSpot.coords}
                 </span>
               )}
               {(activeSpot.pathCost || activeSpot.budgetCost) && (
                 <span style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', fontSize: 11, fontFamily: 'sans-serif', fontWeight: 700, color: '#059669' }}>
-                  💰 {activeSpot.pathCost || activeSpot.budgetCost}
+                  {activeSpot.pathCost || activeSpot.budgetCost}
                 </span>
               )}
               {activeSpot.category && (
@@ -2152,7 +2131,7 @@ export default function JournalNotebook({ onBack }) {
             {activeSpot.insider && (
               <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.2)', marginBottom: 20 }}>
                 <p style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 12, fontStyle: 'italic', color: '#2A2321', lineHeight: 1.6, margin: 0 }}>
-                  💡 {activeSpot.insider}
+                  {activeSpot.insider}
                 </p>
               </div>
             )}
@@ -2171,7 +2150,7 @@ export default function JournalNotebook({ onBack }) {
                     textAlign: 'center', textDecoration: 'none', letterSpacing: '0.04em',
                   }}
                 >
-                  🗺️ Get Directions
+                  Get Directions
                 </a>
               )}
               <button
@@ -2183,7 +2162,7 @@ export default function JournalNotebook({ onBack }) {
                   cursor: 'pointer', letterSpacing: '0.04em',
                 }}
               >
-                🧭 Open Map
+                Open Map
               </button>
             </div>
           </div>

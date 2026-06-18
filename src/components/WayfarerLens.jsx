@@ -157,14 +157,14 @@ export default function WayfarerLens({ spot, onClose }) {
     // Launch High-Fidelity Scanning simulation
     setScanning(true)
     setScanProgress(0)
-    setScanLog('🔄 INITIALIZING OPTICS SENSORS...')
+    setScanLog('INITIALIZING...')
     
     // Choose random premium rank
     const ranks = [
-      '🏆 DILMUN ARCHIVIST RANK (GOLD STAMP)',
-      '🏆 NATIONAL GEOGRAPHIC QUALITY (SEAL)',
-      '🏆 LOCAL STORYTELLER PICK (LEGACY)',
-      '🏆 HIGH-FIDELITY LENS ALIGNED (AESTHETIC)'
+      'ARCHIVIST RANK (GOLD STAMP)',
+      'EXPERT PICK (SEAL)',
+      'LOCAL STORYTELLER PICK (LEGACY)',
+      'HIGH-FIDELITY ALIGNMENT (AESTHETIC)'
     ]
     const chosenRank = ranks[Math.floor(Math.random() * ranks.length)]
     setPhotoRank(chosenRank)
@@ -179,13 +179,13 @@ export default function WayfarerLens({ spot, onClose }) {
       playScanBeep(700 + progress * 3.5, 0.05)
 
       if (progress === 10) {
-        setScanLog('⚙️ ALIGNING CODES WITH ANCIENT DILMUN SEALS...')
+        setScanLog('ALIGNING SCAN PARAMETERS...')
       } else if (progress === 35) {
-        setScanLog('📡 STANDBY... MEASURING SUNSET CONTRAST & DEPTH...')
+        setScanLog('MEASURING CONTRAST & DEPTH...')
       } else if (progress === 60) {
-        setScanLog('🎨 WEAVING STORY KEYS INTO PHOTOGRAMMETRIC LOGS...')
+        setScanLog('PROCESSING PHOTOGRAMMETRY...')
       } else if (progress === 85) {
-        setScanLog('🔒 STAMPING TRAVEL VISAS & CUSTOMS PERKS...')
+        setScanLog('FINALIZING ARCHIVE ENTRY...')
       } else if (progress >= 100) {
         clearInterval(scanInterval)
         
@@ -230,10 +230,10 @@ export default function WayfarerLens({ spot, onClose }) {
         <div className="flex justify-between items-center pb-4 border-b border-red-500/10">
           <div className="flex flex-col text-left">
             <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
-              Optics Port V5
+              Camera
             </span>
             <span className="font-serif text-lg text-bronze-charcoal font-semibold mt-0.5">
-              {captured ? 'Scrapbook Snapshot Locked' : 'Focusing Wayfarer Viewfinder'}
+              {captured ? 'Photo Saved' : 'Camera Ready'}
             </span>
           </div>
 
@@ -431,7 +431,7 @@ export default function WayfarerLens({ spot, onClose }) {
 
               {/* Gold Fils and XP stipend reward banner */}
               <div className="mb-3 p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-between text-emerald-800 font-sans text-[9px] font-bold">
-                <span>🏆 explorer stipend:</span>
+                <span>Reward:</span>
                 <span className="bg-emerald-500/10 px-2 py-0.5 rounded text-emerald-900">
                   +250 Fils & +30 XP Added!
                 </span>
@@ -443,7 +443,7 @@ export default function WayfarerLens({ spot, onClose }) {
                   <div className="py-4 flex flex-col items-center justify-center gap-2 select-none">
                     <div className="w-6 h-6 border-2 border-red-500/10 border-t-bahrain-red rounded-full animate-spin" />
                     <span className="font-serif text-[10px] italic text-bronze-muted">
-                      Storyteller deciphering scrolls...
+                      Loading...
                     </span>
                   </div>
                 ) : (
@@ -496,7 +496,7 @@ export default function WayfarerLens({ spot, onClose }) {
               onClick={onClose}
               className="px-8 py-2.5 rounded-full bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer w-full"
             >
-              Insert Photo into Journal Page
+              Done
             </button>
           )}
 

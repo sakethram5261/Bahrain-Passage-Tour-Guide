@@ -213,7 +213,7 @@ function getLocalResponseAndActions(input, activeSpotName, currentMoods) {
   // Return local response if actions matched
   if (actions.length > 0) {
     return {
-      text: `I've updated your trip parameters as requested! Let me know if you want to make further adjustments. 🗺️`,
+      text: `I've updated your trip parameters as requested! Let me know if you want to make further adjustments.`,
       actions,
       actionsApplied
     }
@@ -405,12 +405,12 @@ export default function TourChatbot({ activeSpotName, embedded = false, onClose 
     checkOllama()
   }, [])
 
-  const apiProviderName = provider === 'deepseek' ? 'DeepSeek AI' : provider === 'openrouter' ? 'OpenRouter AI' : provider === 'gemini' ? 'Gemini AI' : provider === 'ollama' ? 'Local Ollama' : 'Local Fallback'
+  const apiProviderName = provider === 'deepseek' ? 'DeepSeek' : provider === 'openrouter' ? 'OpenRouter' : provider === 'gemini' ? 'Gemini' : provider === 'ollama' ? 'Ollama' : 'Offline Mode'
 
   const [messages, setMessages] = useState([
     {
       role: 'bot',
-      text: `Marhaba! I'm your local guide — ask me about any Bahrain destination, or ask me to change budget level, stay duration, or vibes directly in chat! 🇧🇭`
+      text: `Marhaba! I'm your local guide — ask me about any Bahrain destination, or ask me to change budget level, stay duration, or vibes directly in chat!`
     },
   ])
 
@@ -1208,11 +1208,11 @@ Always make sure the response is a valid JSON object. Do not include markdown co
                   textAlign: 'left',
                 }}
               >
-                {deepSeekKey && <option value="deepseek" style={{ color: '#2A2321', background: '#fff' }}>🤖 DeepSeek AI</option>}
-                {openRouterKey && <option value="openrouter" style={{ color: '#2A2321', background: '#fff' }}>🌐 OpenRouter AI</option>}
-                {apiKey && <option value="gemini" style={{ color: '#2A2321', background: '#fff' }}>✨ Gemini AI</option>}
-                {ollamaAvailable && <option value="ollama" style={{ color: '#2A2321', background: '#fff' }}>💻 Local Ollama (qwen2.5)</option>}
-                <option value="fallback" style={{ color: '#2A2321', background: '#fff' }}>🔌 Offline Fallback</option>
+                {deepSeekKey && <option value="deepseek" style={{ color: '#2A2321', background: '#fff' }}>DeepSeek</option>}
+                {openRouterKey && <option value="openrouter" style={{ color: '#2A2321', background: '#fff' }}>OpenRouter</option>}
+                {apiKey && <option value="gemini" style={{ color: '#2A2321', background: '#fff' }}>Gemini</option>}
+                {ollamaAvailable && <option value="ollama" style={{ color: '#2A2321', background: '#fff' }}>Ollama</option>}
+                <option value="fallback" style={{ color: '#2A2321', background: '#fff' }}>Offline Mode</option>
               </select>
             </div>
             <div style={{

@@ -366,7 +366,7 @@ export default function MoodSelector({ onConfirm }) {
               border: 'none',
             }}
           >
-            {allSelected ? '✕ Clear All Vibes' : '✨ Select All Vibes'}
+            {allSelected ? 'Clear All' : 'Select All'}
           </button>
         </div>
       </div>

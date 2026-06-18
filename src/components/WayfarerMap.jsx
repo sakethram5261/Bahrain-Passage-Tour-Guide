@@ -371,7 +371,7 @@ export default function WayfarerMap({ locations, onClose }) {
 
     if (spot.id === riddleSpot.id) {
       if (pearlsCollected.includes(spot.id)) {
-        setPearlAlert({ success: true, text: '✨ You already found this pearl!' })
+        setPearlAlert({ success: true, text: 'You already found this pearl!' })
         handleSpotClick(spot)
         return
       }
@@ -380,7 +380,7 @@ export default function WayfarerMap({ locations, onClose }) {
       setGoldFils(prev => prev + 350)
       awardXP(100, 'Dilmun Pearl riddle solved')
       if (!passportStamps.includes(spot.id)) setPassportStamps(prev => [...prev, spot.id])
-      setPearlAlert({ success: true, text: `🏆 TREASURE FOUND! ${spot.name} — +350 Fils, +100 XP!` })
+      setPearlAlert({ success: true, text: `TREASURE FOUND! ${spot.name} — +350 Fils, +100 XP!` })
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)()
         const osc = ctx.createOscillator()
@@ -398,7 +398,7 @@ export default function WayfarerMap({ locations, onClose }) {
       handleSpotClick(spot)
     } else {
       handleSpotClick(spot)
-      setPearlAlert({ success: false, text: `📍 Not quite — keep searching for the ancient landmark!` })
+      setPearlAlert({ success: false, text: `Not quite — keep searching for the ancient landmark!` })
     }
   }, [activeSpots, riddleSpot, pearlsCollected, handleSpotClick])
 
@@ -441,7 +441,7 @@ export default function WayfarerMap({ locations, onClose }) {
       <div className="flex items-center justify-between px-4 md:px-6 py-3 bg-[#FAF9F6] border-b border-red-500/10 shrink-0">
         <div>
           <span className="font-sans text-[11px] tracking-[0.25em] text-bahrain-red uppercase font-bold block">
-            Wayfarer's Cartographic Chart
+            Route Map
           </span>
           <h2 className="font-serif text-lg font-bold text-bronze-charcoal leading-tight">
             Day {currentDayTab} Route Map
@@ -929,7 +929,7 @@ export default function WayfarerMap({ locations, onClose }) {
                   <span className="text-bahrain-red/80">{selectedSpot.coords}</span>
                   <span>•</span>
                   <span className="px-1.5 py-0.5 rounded bg-emerald-700/10 text-emerald-800">
-                    💰 {selectedSpot.pathCost || selectedSpot.budgetCost || 'Free'}
+                    {selectedSpot.pathCost || selectedSpot.budgetCost || 'Free'}
                   </span>
                 </div>
                 <p className="font-sans text-[14px] text-bronze-muted mt-1.5 leading-relaxed font-medium line-clamp-2">
@@ -944,7 +944,7 @@ export default function WayfarerMap({ locations, onClose }) {
                 {aiNarration[selectedSpot.id] && (
                   <div className="mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-300/30">
                     <span className="font-sans text-[7.5px] uppercase tracking-wider text-amber-700 font-extrabold block mb-1">
-                      🗣️ Jafar's Recollection
+                      Jafar's Recollection
                     </span>
                     <p className="font-serif text-[10.5px] italic text-bronze-charcoal leading-relaxed">
                       "{aiNarration[selectedSpot.id]}"
@@ -954,7 +954,7 @@ export default function WayfarerMap({ locations, onClose }) {
                 {/* AI Nav tip */}
                 {aiNavTip[selectedSpot.id] && (
                   <p className="font-sans text-[9px] text-blue-700/70 mt-1.5 font-semibold">
-                    🧭 {aiNavTip[selectedSpot.id]}
+                    {aiNavTip[selectedSpot.id]}
                   </p>
                 )}
               </div>
@@ -964,13 +964,13 @@ export default function WayfarerMap({ locations, onClose }) {
                   target="_blank" rel="noopener noreferrer"
                   className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-sm"
                 >
-                  🧭 Maps
+                  Directions
                 </a>
                 <button
                   onClick={handleClose}
                   className="px-4 py-2 bg-bahrain-red hover:bg-red-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
                 >
-                  📖 Proceed
+                  View Spot
                 </button>
               </div>
             </div>
@@ -1002,7 +1002,7 @@ export default function WayfarerMap({ locations, onClose }) {
                 <div className="flex items-center gap-2 mt-1 text-[11px] text-bronze-muted font-bold uppercase tracking-wide">
                   <span>{selectedSpot.period?.split(',')[0]}</span>
                   <span className="px-1.5 py-0.5 rounded bg-emerald-700/10 text-emerald-800">
-                    💰 {selectedSpot.pathCost || 'Free'}
+                    {selectedSpot.pathCost || 'Free'}
                   </span>
                 </div>
               </div>
@@ -1011,13 +1011,13 @@ export default function WayfarerMap({ locations, onClose }) {
 
             {aiNarration[selectedSpot.id] && (
               <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-300/30">
-                <span className="font-sans text-[11px] uppercase tracking-wider text-amber-700 font-extrabold block mb-1">🗣️ Jafar's Recollection</span>
+                <span className="font-sans text-[11px] uppercase tracking-wider text-amber-700 font-extrabold block mb-1">Jafar's Recollection</span>
                 <p className="font-serif text-[13.5px] italic text-bronze-charcoal leading-relaxed">"{aiNarration[selectedSpot.id]}"</p>
               </div>
             )}
 
             {aiNavTip[selectedSpot.id] && (
-              <p className="font-sans text-[12px] text-blue-700/70 mt-2 font-semibold">🧭 {aiNavTip[selectedSpot.id]}</p>
+              <p className="font-sans text-[12px] text-blue-700/70 mt-2 font-semibold">{aiNavTip[selectedSpot.id]}</p>
             )}
 
             <div className="flex gap-3 mt-4">
@@ -1026,13 +1026,13 @@ export default function WayfarerMap({ locations, onClose }) {
                 target="_blank" rel="noopener noreferrer"
                 className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl text-center transition-all shadow-sm"
               >
-                🧭 Google Maps
+                Google Maps
               </a>
               <button
                 onClick={handleClose}
                 className="flex-1 py-3 bg-bahrain-red hover:bg-red-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl transition-all shadow-sm cursor-pointer"
               >
-                📖 Proceed
+                View Spot
               </button>
             </div>
           </div>

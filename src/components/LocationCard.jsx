@@ -264,7 +264,7 @@ export default function LocationCard({ spot, onScan }) {
             {/* Storyteller's Secret (AI Dynamic Decipher or Local Tip) */}
             <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10">
               <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold block mb-1">
-                {lensStories[spot.id] ? '📖 Custom Storyteller Decipher' : '✨ The Storyteller\'s Secret'}
+                {lensStories[spot.id] ? 'Local Insights' : 'Local Story'}
               </span>
               <p className="font-serif text-[12px] italic text-bronze-charcoal leading-relaxed font-semibold">
                 {lensStories[spot.id] || spot.insider}
@@ -275,7 +275,7 @@ export default function LocationCard({ spot, onScan }) {
             <div className="p-4.5 rounded-2xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
-                  ✍️ Wanderlust Reflections Log
+                  Notes
                 </span>
                 <span className="font-serif text-[8px] text-bronze-muted/60 italic font-medium select-none">
                   Lined paper ledger
@@ -336,7 +336,7 @@ export default function LocationCard({ spot, onScan }) {
                       className="px-2 py-1 rounded bg-amber-500/10 border border-amber-600/30 text-[8px] uppercase tracking-widest font-black text-amber-800 hover:bg-amber-500/20 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
                       title="Open Directions in Google Maps"
                     >
-                      🗺️ Directions
+                      Directions
                     </a>
                   </div>
                 </div>
@@ -361,7 +361,7 @@ export default function LocationCard({ spot, onScan }) {
                   : 'bg-bahrain-red hover:bg-bahrain-dark text-white border border-bahrain-red'
               }`}
             >
-              {capturedPhotos[spot.id] ? '📷 Re-Focus & Re-Shoot' : '📷 Focus Wayfarer Lens'}
+              {capturedPhotos[spot.id] ? 'Retake Photo' : 'Capture Photo'}
             </button>
           </div>
         </div>

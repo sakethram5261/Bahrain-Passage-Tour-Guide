@@ -120,7 +120,7 @@ export default function Dashboard() {
       if (success) {
         if (item.id === 'riddle-hint') {
           awardXP(30, 'Bought map clue scroll')
-          setShopAlert({ success: true, text: `📜 Hint Purchased! Clue: "Seek Jarada Sandbank or Bahrain Fort map coordinates!"` })
+          setShopAlert({ success: true, text: `Hint Purchased! Clue: "Seek Jarada Sandbank or Bahrain Fort map coordinates!"` })
         } else if (item.id === 'saffron-halwa') {
           awardReputation('jafar', 25)
           awardXP(30, 'Bought merchant halwa')
@@ -659,7 +659,7 @@ export default function Dashboard() {
                           <p className="font-sans text-[9px] text-bronze-charcoal/50 font-mono mt-1">{activeSpot.coords}</p>
                           <div className="flex items-center gap-2 mt-2 flex-wrap">
                             <span className="px-2 py-0.5 rounded bg-emerald-700/10 text-emerald-800 text-[9px] font-sans font-bold uppercase tracking-wider">
-                              💰 Cost: {activeSpot.pathCost || activeSpot.budgetCost || 'Free Entry'}
+                              Cost: {activeSpot.pathCost || activeSpot.budgetCost || 'Free Entry'}
                             </span>
                           </div>
                         </div>
@@ -673,7 +673,7 @@ export default function Dashboard() {
                       {/* What You Can Find Here */}
                       <div className="p-3.5 rounded-xl bg-red-500/5 border border-red-500/10">
                         <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold block mb-1.5">
-                          🔍 What You Can Find Here
+                          What to See
                         </span>
                         <p className="font-serif text-[11.5px] text-bronze-charcoal leading-relaxed font-bold">
                           {activeSpot.simpleTerms}
@@ -683,7 +683,7 @@ export default function Dashboard() {
                       {/* Personal notes */}
                       <div className="p-3.5 rounded-xl border border-red-500/10 bg-white">
                         <span className="font-sans text-[8px] tracking-widest uppercase text-bronze-charcoal/40 font-bold block mb-1.5">
-                          ✍️ Your Notes
+                          Your Notes
                         </span>
                         <textarea
                           value={localReflection}
@@ -706,7 +706,7 @@ export default function Dashboard() {
                         <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70">
                           <div className="flex justify-between items-center mb-2 select-none">
                             <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
-                              🧭 Local Riddle Quest
+                              Riddle
                             </span>
                             {solvedRiddles[activeSpot.id] ? (
                               <span className="text-[8px] bg-green-100 text-green-800 font-extrabold px-1.5 py-0.5 rounded-full">
@@ -768,14 +768,14 @@ export default function Dashboard() {
                                       }}
                                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[8px] font-extrabold uppercase tracking-wide cursor-pointer transition-all disabled:opacity-50"
                                     >
-                                      {aiHintLoading ? '...' : '🤖 Get AI Hint (50 Fils)'}
+                                      {aiHintLoading ? '...' : 'Get Hint (50 Fils)'}
                                     </button>
                                   )}
                                 </div>
                               )}
                               {aiRiddleHint[activeSpot.id] && (
                                 <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-300/40">
-                                  <p className="font-sans text-[7.5px] uppercase tracking-wider text-amber-700 font-extrabold mb-1">🤖 AI Hint</p>
+                                  <p className="font-sans text-[7.5px] uppercase tracking-wider text-amber-700 font-extrabold mb-1">Hint</p>
                                   <p className="font-serif text-[9.5px] italic text-bronze-charcoal leading-relaxed">
                                     {aiRiddleHint[activeSpot.id]}
                                   </p>
@@ -879,7 +879,7 @@ export default function Dashboard() {
                   </div>
 
                   <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold block mt-4 border-t border-red-500/10 pt-4">
-                    📷 Captured Album Snapshots
+                    Captured Photos
                   </span>
                   <Carousel_002 
                     images={(() => {
@@ -1131,7 +1131,7 @@ export default function Dashboard() {
                               : 'bg-bahrain-red hover:bg-bahrain-dark text-white'
                           }`}
                         >
-                          {capturedPhotos[activeSpot.id] ? '📷 Re-Shoot' : '📷 Capture Lens'}
+                          {capturedPhotos[activeSpot.id] ? 'Retake Photo' : 'Capture Photo'}
                         </button>
                         {hasVirtualTour(activeSpot.id) && (
                           <button
@@ -1141,7 +1141,7 @@ export default function Dashboard() {
                             }}
                             className="flex-1 min-w-[130px] px-4 py-2.5 rounded-xl text-[9px] tracking-widest uppercase font-bold transition-all cursor-pointer shadow-md bg-white border border-red-500/20 text-bahrain-red hover:bg-red-500/5"
                           >
-                            🎬 Virtual Tour
+                            Virtual Tour
                           </button>
                         )}
                       </div>
@@ -1149,7 +1149,7 @@ export default function Dashboard() {
                       <div className="w-full max-w-[320px] p-4.5 rounded-2xl border border-amber-600/35 bg-[#FCFBF8] shadow-sm text-left select-none relative overflow-hidden stitch-border shrink-0 my-2">
                         <div className="paper-clip-asset" style={{ right: '20px', left: 'auto' }} />
                         <span className="font-sans text-[7.5px] tracking-widest text-bahrain-red uppercase font-extrabold block mb-2">
-                          📖 Day {currentDayTab} Travel Itinerary
+                          Day {currentDayTab} Itinerary
                         </span>
                         
                         <div className="space-y-2 mt-1">
@@ -1255,21 +1255,20 @@ export default function Dashboard() {
 
               {activeLeaf === 'cartography' && (
                 <div className="flex flex-col items-center justify-center p-6 text-center max-w-[280px] aged-paper-gradient border border-dashed border-amber-600/20 rounded-2xl shadow-sm mt-4 space-y-4">
-                  <span className="text-5xl mb-1 animate-pulse">🗺️</span>
                   <div className="space-y-1">
-                    <span className="font-sans text-[7.5px] tracking-[0.25em] text-bahrain-red uppercase font-black block">
-                      Geographical Chart
+                    <span className="font-sans text-[7.5px] tracking-[0.25em] text-bahrain-red uppercase font-bold block">
+                      Map
                     </span>
                     <h5 className="font-serif text-xs font-bold text-bronze-charcoal">Bahrain Archipelago Map</h5>
                   </div>
                   <p className="font-serif text-[10px] italic text-bronze-muted leading-relaxed">
-                    Unroll the grand parchment chart to trace your live itinerary route, locate active daily checkpoints, and hunt for hidden Dilmun Pearl coordinates.
+                    View your route, find landmarks, and discover treasures.
                   </p>
                   <button
                     onClick={() => setIsMapOpen(true)}
                     className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-sans font-black text-[9px] uppercase tracking-widest transition-all cursor-pointer shadow-md shadow-amber-600/15 border border-amber-600/20 active:scale-98 flex items-center justify-center gap-1.5"
                   >
-                    🧭 Open Wayfarer Map
+                    Open Map
                   </button>
                 </div>
               )}
@@ -1278,7 +1277,7 @@ export default function Dashboard() {
                 <div className="w-full max-w-[350px] flex flex-col items-center space-y-4">
                   <div className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-600/25">
                     <span className="font-sans text-[8px] tracking-wider text-amber-700 font-extrabold flex items-center gap-1 uppercase">
-                      🪙 Travel Stipend
+                      Balance
                     </span>
                     <span className="font-mono text-xs font-black text-amber-800">
                       {goldFils.toLocaleString()} Fils
@@ -1289,12 +1288,12 @@ export default function Dashboard() {
                     onClick={() => { setShowSouqShop(true); setShopAlert(null); }}
                     className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-sans font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer shadow-lg shadow-amber-600/15 border border-amber-600/20 active:scale-98"
                   >
-                    🏪 Enter Jafar's Souq Shop
+                    Open Shop
                   </button>
 
                   <div className="w-full p-5 rounded-2xl bg-amber-500/5 border border-amber-600/20 shadow-sm animate-fadeIn">
                     <span className="font-sans text-[7.5px] tracking-[0.2em] text-amber-800 uppercase font-extrabold block mb-3 text-center">
-                      Teak Keepsake Cabinet
+                      Your Collection
                     </span>
                     <div className="grid grid-cols-4 gap-2.5 relative z-10">
                       {spotsCatalog.map(spot => {
@@ -1353,7 +1352,7 @@ export default function Dashboard() {
                 <div className="w-full max-w-[320px] flex flex-col items-center space-y-4 text-left animate-fadeIn">
                   <div className="w-full p-4 rounded-2xl bg-amber-500/5 border border-amber-600/15 space-y-3">
                     <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-black block">
-                      🗣️ Pronunciation Masterclass
+                      Pronunciation Guide
                     </span>
                     <div className="space-y-2">
                       <div className="pb-2 border-b border-amber-600/10">
@@ -1379,7 +1378,7 @@ export default function Dashboard() {
 
                   <div className="w-full p-4 rounded-2xl bg-amber-600/5 border border-dashed border-amber-600/25 space-y-2">
                     <span className="font-sans text-[8px] tracking-[0.25em] text-amber-700 uppercase font-black block">
-                      📝 Wayfarer Practice Prompts
+                      Practice Phrases
                     </span>
                     <p className="font-serif text-[10px] italic text-bronze-charcoal/80 leading-relaxed font-semibold">
                       "Stand before Master Jafar, raise your hand, look him in the eye and say: 'Salam Alaykum, ya sadiqee!' (Peace be upon you, my friend!)"
@@ -1421,7 +1420,7 @@ export default function Dashboard() {
 
       <footer className="wood-desk-footer w-full max-w-6xl pt-6 pb-2 mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left select-none text-bronze-charcoal/50 z-10">
         <span className="font-sans text-[8px] tracking-wider uppercase font-semibold">
-          Bahrain Tourism & Wayfarer Chronicle © 2026
+          Bahrain Tourism & Passage Guide © 2026
         </span>
         <span className="font-sans text-[8px] tracking-widest text-bahrain-red/60 uppercase font-extrabold">
           National Red & White Pearl Archives
@@ -1453,7 +1452,7 @@ export default function Dashboard() {
                     Manama Heritage Kiosk
                   </span>
                   <h3 className="font-serif text-xl font-bold text-[#2A2321] mt-0.5 flex items-center gap-1.5">
-                    🏪 Master Jafar's Souq Shop
+                    Souq Shop
                   </h3>
                 </div>
                 <button 
@@ -1472,7 +1471,7 @@ export default function Dashboard() {
 
               <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[#C1122F]/5 border border-[#C1122F]/15">
                 <span className="font-sans text-[8px] tracking-wider text-[#C1122F] font-extrabold uppercase flex items-center gap-1">
-                  🪙 Your Travel Stipend
+                  Your Balance
                 </span>
                 <span className="font-mono text-sm font-black text-[#2A2321]">
                   {goldFils.toLocaleString()} Fils

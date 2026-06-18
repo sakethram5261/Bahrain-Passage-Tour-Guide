@@ -254,7 +254,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
               transition: 'all 0.2s ease',
             }}
           >
-            {filterLoading ? '...' : '🤖 Match'}
+            {filterLoading ? '...' : 'Match'}
           </button>
         </div>
       </div>
@@ -265,7 +265,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
           borderLeft: '3px solid #D4AF37', fontSize: '13px', fontFamily: 'var(--jn-font-serif)',
           fontStyle: 'italic', lineHeight: 1.6, color: '#2A2321',
         }}>
-          🗣️ {filterResult}
+          {filterResult}
         </div>
       )}
 
@@ -349,7 +349,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                           {hotel.tier}
                         </span>
                         <span style={{ padding: '2px 8px', borderRadius: '999px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', fontSize: '10px', fontFamily: 'var(--jn-font-sans)', fontWeight: 700, color: '#059669' }}>
-                          💰 {hotel.cost}
+                          {hotel.cost}
                         </span>
                       </div>
                       {rec.reason && (
@@ -366,7 +366,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                   <div style={{ borderTop: '1px dashed rgba(209,26,56,0.12)', marginTop: '12px', paddingTop: '12px' }}>
                     <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '13px', color: '#5C5451', lineHeight: 1.65, margin: '0 0 10px' }}>{hotel.desc}</p>
                     <div style={{ display: 'flex', gap: '8px', fontSize: '11px', fontFamily: 'var(--jn-font-sans)', fontWeight: 700, color: 'rgba(92,84,81,0.75)', marginBottom: '14px', flexWrap: 'wrap' }}>
-                      <span>📍 {hotel.neighborhood}</span>
+                      <span>{hotel.neighborhood}</span>
                       <span>&bull;</span>
                       <span>🚗 {hotel.dist}</span>
                     </div>
@@ -386,7 +386,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                             letterSpacing: '0.04em', transition: 'all 0.2s ease',
                           }}
                         >
-                          🔑 Set as Base Camp
+                          Set as Base Camp
                         </button>
                       )}
                       <a
@@ -401,7 +401,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                           textDecoration: 'none', letterSpacing: '0.04em',
                         }}
                       >
-                        🏨 Book on Booking.com
+                        Book on Booking.com
                       </a>
                     </div>
                   </div>

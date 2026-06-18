@@ -64,7 +64,7 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
         <div className="flex items-center justify-between">
           <div>
             <span className="font-sans text-[11px] tracking-widest uppercase text-bronze-muted/60 font-bold block">
-              💰 Budget Pulse · Day {currentDay}
+              Budget · Day {currentDay}
             </span>
             <div className="flex items-baseline gap-2 mt-0.5">
               <span className={`font-mono text-lg font-black text-${budgetColor}-700`}>
@@ -77,7 +77,7 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
             onClick={() => setShowChat(prev => !prev)}
             className="px-2.5 py-1.5 rounded-xl bg-bahrain-red/10 hover:bg-bahrain-red/20 text-bahrain-red text-[12.5px] font-extrabold uppercase tracking-wide cursor-pointer transition-all"
           >
-            {showChat ? 'Close' : '🤖 Ask AI'}
+            {showChat ? 'Close' : 'Ask Guide'}
           </button>
         </div>
 
@@ -101,12 +101,11 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
       <div className="px-4 py-3">
         {loading ? (
           <div className="flex items-center gap-2 animate-pulse">
-            <span className="text-base">💡</span>
             <div className="h-3 bg-bronze-muted/10 rounded flex-1" />
           </div>
         ) : (
           <p className="font-serif text-[13.5px] italic text-bronze-charcoal leading-relaxed">
-            💡 {tip}
+            {tip}
           </p>
         )}
       </div>
