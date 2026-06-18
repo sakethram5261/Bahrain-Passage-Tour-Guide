@@ -938,13 +938,13 @@ export default function WayfarerMap({ locations, onClose }) {
                 {/* AI Narration */}
                 {aiLoading && !aiNarration[selectedSpot.id] && (
                   <p className="font-serif text-[12px] italic text-amber-700/60 mt-1.5 animate-pulse">
-                    Jafar is recalling a memory...
+                    Loading local history...
                   </p>
                 )}
                 {aiNarration[selectedSpot.id] && (
                   <div className="mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-300/30">
                     <span className="font-sans text-[7.5px] uppercase tracking-wider text-amber-700 font-extrabold block mb-1">
-                      Jafar's Recollection
+                      Local Recollection
                     </span>
                     <p className="font-serif text-[10.5px] italic text-bronze-charcoal leading-relaxed">
                       "{aiNarration[selectedSpot.id]}"
@@ -1011,7 +1011,7 @@ export default function WayfarerMap({ locations, onClose }) {
 
             {aiNarration[selectedSpot.id] && (
               <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-300/30">
-                <span className="font-sans text-[11px] uppercase tracking-wider text-amber-700 font-extrabold block mb-1">Jafar's Recollection</span>
+                <span className="font-sans text-[11px] uppercase tracking-wider text-amber-700 font-extrabold block mb-1">Local Recollection</span>
                 <p className="font-serif text-[13.5px] italic text-bronze-charcoal leading-relaxed">"{aiNarration[selectedSpot.id]}"</p>
               </div>
             )}

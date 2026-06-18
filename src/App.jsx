@@ -1,5 +1,5 @@
 import { useState, useCallback, lazy, Suspense } from 'react'
-import { VibeProvider } from './context/VibeProvider'
+import { JourneyProvider } from './context/JourneyProvider'
 import { useVibe } from './hooks/useVibe'
 import { LangProvider } from './context/LangContext'
 import { ToastProvider } from './context/ToastContext'
@@ -10,7 +10,6 @@ import WelcomeIntro from './components/WelcomeIntro'
 import JournalSkeleton from './components/skeletons/JournalSkeleton'
 import { getRank } from './components/DashboardData'
 
-// Heavy components — code-split so they're not in the initial bundle
 const JournalNotebook = lazy(() => import('./components/JournalNotebook'))
 
 function MainContent() {
@@ -23,22 +22,18 @@ function MainContent() {
     setStep(4)
   }, [setStep])
 
-  // Show welcome intro animation on first load
   if (!introComplete) {
     return <WelcomeIntro onComplete={() => setIntroComplete(true)} />
   }
 
-  // Step 1-3 or no moods → onboarding (MoodSelector)
   if (step < 4 || selectedMoods.length === 0) {
     return <MoodSelector onConfirm={handleMoodConfirm} onBack={() => { setStep(1); setIntroComplete(false) }} />
   }
 
-  // Step 4 → itinerary preview + carousel (SensoryHero)
   if (step === 4) {
     return <SensoryHero key={sensoryKey} onBack={() => setStep(1)} />
   }
 
-  // Step 5+ → full Journal (lazy-loaded)
   return (
     <ErrorBoundary>
       <Suspense fallback={<JournalSkeleton />}>
@@ -56,7 +51,7 @@ export default function App() {
   return (
     <LangProvider>
       <ToastProvider>
-        <VibeProvider>
+        <JourneyProvider>
           <>
             <a href="#main-content" className="skip-to-content">
               Skip to content
@@ -65,7 +60,7 @@ export default function App() {
               <MainContent />
             </div>
           </>
-        </VibeProvider>
+        </JourneyProvider>
       </ToastProvider>
     </LangProvider>
   )

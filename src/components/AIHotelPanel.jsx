@@ -223,7 +223,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)', border: '2px solid #D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>👳‍♂️</div>
           <div>
             <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontWeight: 700, color: '#2A2321', margin: 0, lineHeight: 1.2 }}>Concierge Desk</h4>
-            <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '10px', color: 'rgba(92,84,81,0.7)', margin: 0 }}>Jafar · Chief Travel Advisor</p>
+            <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '10px', color: 'rgba(92,84,81,0.7)', margin: 0 }}>Bahrain Travel Advisor</p>
           </div>
         </div>
         <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '12px', fontStyle: 'italic', color: '#5C5451', marginBottom: '12px', lineHeight: 1.55 }}>

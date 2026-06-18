@@ -51,7 +51,6 @@ export default function Dashboard() {
     goldFils,
     setGoldFils,
     spendFils,
-    awardReputation,
     awardXP,
     unlockKeepsake,
     saveLensStory,
@@ -122,22 +121,19 @@ export default function Dashboard() {
           awardXP(30, 'Bought map clue scroll')
           setShopAlert({ success: true, text: `Hint Purchased! Clue: "Seek Jarada Sandbank or Bahrain Fort map coordinates!"` })
         } else if (item.id === 'saffron-halwa') {
-          awardReputation('jafar', 25)
-          awardXP(30, 'Bought merchant halwa')
-          setShopAlert({ success: true, text: `🍯 Hot saffron halwa delivered! +25 Jafar Spice Merchant Reputation!` })
+          awardXP(30, 'Bought saffron halwa')
+          setShopAlert({ success: true, text: `🍯 Hot saffron halwa delivered! +25 XP!` })
         } else if (item.id === 'pearl-hook') {
-          awardReputation('seyadi', 30)
           awardXP(40, 'Bought pearl hook')
-          setShopAlert({ success: true, text: `🪝 Generational Pearl Hook unlocked! +30 Seyadi Pearl Guild Reputation!` })
+          setShopAlert({ success: true, text: `🪝 Generational Pearl Hook unlocked! +30 XP!` })
         } else if (item.id === 'falcon-glove') {
-          awardReputation('faisal', 30)
           awardXP(40, 'Bought leather falcon glove')
-          setShopAlert({ success: true, text: `🧤 Falconer leather glove unlocked! +30 Faisal Falconry Guild Reputation!` })
+          setShopAlert({ success: true, text: `🧤 Falconer leather glove unlocked! +30 XP!` })
         } else if (item.id === 'keepsake-bag') {
           const lockedSpot = spotsCatalog.find(s => !collectedKeepsakes.includes(s.id))
           if (lockedSpot) {
             unlockKeepsake(lockedSpot.id)
-            saveLensStory(lockedSpot.id, "Purchased directly from Jafar's wooden merchant counter inside the historical Manama Souq bazar.")
+            saveLensStory(lockedSpot.id, "Purchased from a heritage merchant counter inside the historical Manama Souq bazaar.")
             setShopAlert({ success: true, text: `🛍️ Grab-bag opened! Unlocked keepsake relic: ${lockedSpot.keepsakeName} ${lockedSpot.keepsakeEmoji}!` })
           } else {
             setGoldFils(prev => prev + item.cost) 
@@ -1381,7 +1377,7 @@ export default function Dashboard() {
                       Practice Phrases
                     </span>
                     <p className="font-serif text-[10px] italic text-bronze-charcoal/80 leading-relaxed font-semibold">
-                      "Stand before Master Jafar, raise your hand, look him in the eye and say: 'Salam Alaykum, ya sadiqee!' (Peace be upon you, my friend!)"
+                      "Raise your hand in greeting and say: 'Salam Alaykum, ya sadiqee!' (Peace be upon you, my friend!)"
                     </p>
                   </div>
                 </div>

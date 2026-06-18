@@ -150,7 +150,7 @@ export default function JournalNotebook({ onBack }) {
     solveRiddle = () => {},
     goldFils = 0,
     spendFils = () => {},
-    awardReputation = () => {},
+
     xp = 0,
     awardXP = () => {},
     soundVolume = 0.5,
@@ -521,7 +521,6 @@ export default function JournalNotebook({ onBack }) {
       
       setTimeout(() => {
         solveRiddle(activeSpot.id)
-        awardReputation('jafar', 15)
       }, 700)
     } else {
       try {
@@ -558,7 +557,6 @@ export default function JournalNotebook({ onBack }) {
     }
     if (spendFils(item.cost)) {
       awardXP(item.xpReward || 20, `Bought ${item.name}`)
-      awardReputation('jafar', 10)
       setShopAlert({ success: true, text: `✅ Purchased ${item.name}! +${item.xpReward || 20} XP` })
     }
   }
@@ -1491,7 +1489,7 @@ export default function JournalNotebook({ onBack }) {
                   <button
                     className="jn-action-btn jn-action-btn--amber jn-action-btn--full"
                     onClick={() => { setShopOpen(true); setShopAlert(null) }}
-                    aria-label="Enter Jafar's Souq Shop"
+                    aria-label="Enter Souq Shop"
                   >
                     Open Shop
                   </button>
@@ -1601,14 +1599,14 @@ export default function JournalNotebook({ onBack }) {
           className="jn-modal-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Jafar's Souq Shop"
+          aria-label="Souq Shop"
           onClick={(e) => { if (e.target === e.currentTarget) setShopOpen(false) }}
         >
           <div className="jn-shop-modal">
             <div className="jn-shop-header">
               <div>
                 <span className="jn-shop-eyebrow">Manama Heritage Kiosk</span>
-                <h3 className="jn-shop-title">🏪 Master Jafar's Souq Shop</h3>
+                <h3 className="jn-shop-title">🏪 Manama Souq Shop</h3>
               </div>
               <button className="jn-shop-close" onClick={() => setShopOpen(false)} aria-label="Close shop">✕ Exit Shop</button>
             </div>

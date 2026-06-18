@@ -157,7 +157,7 @@ export const spotsCatalog = [
     period: 'Generational Craft',
     desc: 'Watch local masters shape local red clay using hand wheels, firing them in kilns built alongside ancient Dilmun mounds.',
     simpleTerms: 'What this offers: A historic potting village where local craftsmen mold wet red clay into large jars and pots by hand. They bake them inside brick kilns built right next to ancient burial mounds.',
-    insider: 'Ask Master Craftsman Jafar to demonstrate the foot-wheel spin; he is among the last to use the ancient Dilmun kick method.',
+    insider: 'Ask the master potters to demonstrate the foot-wheel spin; they are among the last to use the ancient Dilmun kick method.',
     image: 'https://images.unsplash.com/photo-1595273670150-db0d3bf36b5a?auto=format&fit=crop&w=1200&q=80',
     budgetGuide: 'Completely free to walk around the workshops and watch the craftsmen spin the clay in their rustic kilns.',
     premiumGuide: 'Take a pottery masterclass from a generational craftsman, molding and baking your own custom terracotta vessel.',
@@ -167,7 +167,7 @@ export const spotsCatalog = [
     keepsakeId: 'red-clay-chalice',
     keepsakeName: 'Terracotta Red Clay Amulet',
     keepsakeEmoji: '🏺',
-    keepsakeDesc: 'A tiny, circular amulet shaped from wet Sakhir red clay and baked inside Master Jafar\'s generational wood-fired brick kiln.'
+    keepsakeDesc: 'A tiny, circular amulet shaped from wet Sakhir red clay and baked inside a generational wood-fired brick kiln.'
   },
   {
     id: 'arad-fort',

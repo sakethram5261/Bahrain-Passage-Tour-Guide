@@ -6,12 +6,9 @@ import { fetchSpotStory } from '../services/itinerary-service'
 
 export default function WayfarerLens({ spot, onClose }) {
   const { 
-    selectedMoods, 
-    tier, 
     saveCapturedPhoto, 
     saveLensStory, 
     lensStories, 
-    activeGuide, 
     unlockKeepsake,
     capturedPhotos = {}
   } = useVibe()
@@ -194,8 +191,7 @@ export default function WayfarerLens({ spot, onClose }) {
         setScanning(false)
         setStoryLoading(true)
         
-        // Fetch dynamic real-time local storyteller decipher
-        fetchSpotStory(spot, selectedMoods, tier, activeGuide).then(storyText => {
+        fetchSpotStory(spot).then(storyText => {
           if (storyText) {
             saveLensStory(spot.id, storyText)
           }

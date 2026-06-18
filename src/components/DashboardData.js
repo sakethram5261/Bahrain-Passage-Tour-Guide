@@ -133,31 +133,22 @@ export const RIDDLES = {
   }
 }
 
-export function getGuideThoughts(spot, guideId) {
+export function getGuideThoughts(spot) {
   if (!spot) return "Select a landmark below to begin our journey..."
   const spotName = spot.name.split(' (')[0]
-  
-  if (guideId === 'jafar') {
-    return `Ah, the sight of ${spotName} always warms my soul. In my youth during the 1920s pearling boom, our pearling fleets would steer by this landmark. My secret tip: look for the old spice and incense merchants just down the path—their families have traded here for generations, and they brew a legendary cardamom karak tea if you ask with respect.`
-  } else if (guideId === 'ninsun') {
-    return `Under the sacred skies of c. 2000 BCE, ${spotName} was known as a sanctuary of Dilmun. We walked these limestone paths to offer fresh spring water clay stamps to the gods. My mystical tip: feel the ancient limestone blocks at dusk—they retain the sun's warmth, and you can almost hear the soft whispers of freshwater springs rising from the salt seas.`
-  } else {
-    return `As a military architect of the 1400s, I designed defensive works near ${spotName}. Its stone layout is a masterclass in sea-facing masonry. My tactical tip: climb to the eastern parapet where the sea breeze hits. From there, you can see how the architectural alignment gives a perfect tactical view of the shallow coastal reefs.`
-  }
+  return `Standing at ${spotName}, one feels the deep layers of Bahrain's history — from ancient Dilmun to the pearling era, from military fortifications to modern cultural revival. Each stone and alleyway holds a story waiting to be discovered.`
 }
 
 export const shopItems = [
   { id: 'riddle-hint', name: 'Riddle Scroll Clue', desc: 'Poetic guidance for active Dilmun Pearl coordinate riddles.', cost: 150, emoji: '📜' },
-  { id: 'saffron-halwa', name: 'Saffron Halwa Plate', desc: 'Increases relationship with Jafar (Spice Merchant) by +25 XP.', cost: 300, emoji: '🍯' },
-  { id: 'pearl-hook', name: 'Generational Oyster Hook', desc: 'Increases relationship with Seyadi (Pearl Diver) by +30 XP.', cost: 400, emoji: '🪝' },
-  { id: 'falcon-glove', name: 'Falconer Leather Glove', desc: 'Increases relationship with Faisal (Falconer) by +30 XP.', cost: 400, emoji: '🧤' },
+  { id: 'saffron-halwa', name: 'Saffron Halwa Plate', desc: 'Earn +25 XP by tasting this traditional golden dessert from the copper vats of Manama Souq.', cost: 300, emoji: '🍯' },
+  { id: 'pearl-hook', name: 'Generational Oyster Hook', desc: 'Earn +30 XP by learning the traditional pearl-diving tool of Bahraini divers.', cost: 400, emoji: '🪝' },
+  { id: 'falcon-glove', name: 'Falconer Leather Glove', desc: 'Earn +30 XP by discovering the ancient art of Arabian falconry.', cost: 400, emoji: '🧤' },
   { id: 'keepsake-bag', name: 'Bazaar Keepsake Grab-bag', desc: 'Instantly unlocks a random traditional souvenir relic.', cost: 600, emoji: '🛍️' }
 ]
 
 export const guides = [
-  { id: 'jafar', name: 'Merchant Jafar', title: 'Pearling Era (1920s)', emoji: '⛵', arabic: 'تاجر' },
-  { id: 'ninsun', name: 'Priestess Ninsun', title: 'Dilmun Era (2000 BCE)', emoji: '🏺', arabic: 'كاهنة' },
-  { id: 'al-farsi', name: 'Architect Al-Farsi', title: 'Military Era (1400s)', emoji: '🏰', arabic: 'مهندس' }
+  { id: 'guide', name: 'Bahrain Storyteller', title: 'Cultural Historian', emoji: '📖', arabic: 'راوية' }
 ]
 
 const ALMANAC_DATA = {

@@ -11,7 +11,7 @@ export async function fetchCuratedItinerary(selectedMoods, tier, duration, pace)
   }
 }
 
-export async function fetchSpotStory(spot, selectedMoods, tier, activeGuide = 'jafar') {
+export async function fetchSpotStory(spot) {
   try {
     // Artificial short delay for sensory transition state
     await new Promise(resolve => setTimeout(resolve, 500))
@@ -19,12 +19,11 @@ export async function fetchSpotStory(spot, selectedMoods, tier, activeGuide = 'j
     const spotId = spot?.id
     const storiesForSpot = spotStories[spotId]
     
-    if (storiesForSpot) {
-      const story = storiesForSpot[activeGuide]
-      if (story) return story
+    if (storiesForSpot?.story) {
+      return storiesForSpot.story
     }
     
-    return `Looking upon the ruins of ${spot?.name || 'this landmark'}, one feels the quiet heartbeat of history that spans centuries.`
+    return `Looking upon ${spot?.name || 'this landmark'}, one feels the quiet heartbeat of history that spans centuries.`
   } catch (error) {
     console.error('Failed to compile spot story:', error)
     return null

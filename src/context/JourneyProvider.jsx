@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { VibeContext } from './VibeContext'
+import { JourneyContext } from './JourneyContext'
 import { playPageSwish } from '../services/audioUtils'
 
 const safeGetJSON = (key, defaultValue) => {
@@ -32,48 +32,49 @@ const safeGetStr = (key, defaultValue) => {
   }
 }
 
-export function VibeProvider({ children }) {
+export function JourneyProvider({ children }) {
+  // ── Onboarding state ──────────────────────────────────────────────────
   const [step, setStep] = useState(() => safeGetNum('bp_step', 1))
   const [selectedMoods, setSelectedMoods] = useState(() => safeGetJSON('bp_selectedMoods', []))
   const [tier, setTier] = useState(() => safeGetStr('bp_tier', 'Wandering'))
   const [duration, setDuration] = useState(() => safeGetNum('bp_duration', 3))
-  const [pace, setPace] = useState(() => safeGetStr('bp_pace', 'Serene'))
-  const [progress, setProgress] = useState(() => safeGetNum('bp_progress', 0))
 
+  // ── Progress ──────────────────────────────────────────────────────────
   const [unlockedDays, setUnlockedDays] = useState(() => safeGetJSON('bp_unlockedDays', [1]))
   const [completedDays, setCompletedDays] = useState(() => safeGetJSON('bp_completedDays', []))
   const [currentDayTab, setCurrentDayTab] = useState(() => safeGetNum('bp_currentDayTab', 1))
-
-  const [curatedItinerary, setCuratedItinerary] = useState(() => safeGetJSON('bp_curatedItinerary', null))
-  const [itinerarySpots, setItinerarySpots] = useState(() => safeGetJSON('bp_itinerarySpots', []))
-  const [itineraryLoading, setItineraryLoading] = useState(false)
   const [currentSpotIndex, setCurrentSpotIndex] = useState(0)
 
+  // ── Itinerary ─────────────────────────────────────────────────────────
+  const [itinerarySpots, setItinerarySpots] = useState(() => safeGetJSON('bp_itinerarySpots', []))
+  const [itineraryLoading, setItineraryLoading] = useState(false)
+
+  // ── Journal entries ───────────────────────────────────────────────────
   const [capturedPhotos, setCapturedPhotos] = useState(() => safeGetJSON('bp_capturedPhotos', {}))
   const [lensStories, setLensStories] = useState(() => safeGetJSON('bp_lensStories', {}))
-
-  const [activeGuide, setActiveGuide] = useState(() => safeGetStr('bp_activeGuide', 'jafar'))
-  const [collectedKeepsakes, setCollectedKeepsakes] = useState(() => safeGetJSON('bp_collectedKeepsakes', []))
   const [journalReflections, setJournalReflections] = useState(() => safeGetJSON('bp_journalReflections', {}))
-  const [soundVolume, setSoundVolume] = useState(() => safeGetNum('bp_soundVolume', 0.5))
-  const [soundMuted, setSoundMuted] = useState(() => safeGetStr('bp_soundMuted', '0') === '1')
-  const [activeLeaf, setActiveLeaf] = useState(() => safeGetStr('bp_activeLeaf', 'chronicles'))
 
+  // ── Gamification ──────────────────────────────────────────────────────
   const [xp, setXp] = useState(() => safeGetNum('bp_xp', 0))
   const [xpLog, setXpLog] = useState(() => safeGetJSON('bp_xpLog', []))
-  const [showPassportCard, setShowPassportCard] = useState(false)
-  
-  // Riddle solving persistence for the gamified tour guide
+  const [goldFils, setGoldFils] = useState(() => safeGetNum('bp_goldFils', 1200))
+  const [collectedKeepsakes, setCollectedKeepsakes] = useState(() => safeGetJSON('bp_collectedKeepsakes', []))
   const [solvedRiddles, setSolvedRiddles] = useState(() => safeGetJSON('bp_solvedRiddles', {}))
-
-  // Premium Gamification & local Fils Economy States
-  const [goldFils, setGoldFils] = useState(() => safeGetNum('bp_goldFils', 1200)) // Start with warm travel stipend
-  const [characterRep, setCharacterRep] = useState(() => safeGetJSON('bp_characterRep', { jafar: 10, seyadi: 10, faisal: 10 })) // Base rep values
-  const [passportStamps, setPassportStamps] = useState(() => safeGetJSON('bp_passportStamps', [])) // Unlocked visual ink stamps
-
-  // Pearl quest progress — global so it persists across tab switches
+  const [passportStamps, setPassportStamps] = useState(() => safeGetJSON('bp_passportStamps', []))
   const [pearlsCollected, setPearlsCollected] = useState(() => safeGetJSON('bp_pearlsCollected', []))
   const [selectedHotel, setSelectedHotel] = useState(() => safeGetJSON('bp_selectedHotel', null))
+
+  // ── Audio ─────────────────────────────────────────────────────────────
+  const [soundVolume, setSoundVolume] = useState(() => safeGetNum('bp_soundVolume', 0.5))
+  const [soundMuted, setSoundMuted] = useState(() => safeGetStr('bp_soundMuted', '0') === '1')
+
+  // ── UI state ──────────────────────────────────────────────────────────
+  const [activeLeaf, setActiveLeaf] = useState(() => safeGetStr('bp_activeLeaf', 'chronicles'))
+  const [showPassportCard, setShowPassportCard] = useState(false)
+
+  // ── Chat history (persisted, shared across features) ──────────────────
+  const [chatHistory, setChatHistory] = useState(() => safeGetJSON('bp_chatHistory', []))
+
   const aligned = step === 5
 
   useEffect(() => {
@@ -82,7 +83,6 @@ export function VibeProvider({ children }) {
     })
   }, [currentDayTab])
 
-  // Prune completed and unlocked days if duration is decreased, preventing zombie days
   useEffect(() => {
     queueMicrotask(() => {
       setUnlockedDays(prev => {
@@ -97,7 +97,7 @@ export function VibeProvider({ children }) {
     })
   }, [duration, currentDayTab])
 
-  // Batched localStorage sync — single effect using a debounced microtask
+  // Batched localStorage sync
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
@@ -105,17 +105,12 @@ export function VibeProvider({ children }) {
         localStorage.setItem('bp_selectedMoods', JSON.stringify(selectedMoods))
         localStorage.setItem('bp_tier', tier)
         localStorage.setItem('bp_duration', duration)
-        localStorage.setItem('bp_pace', pace)
-        localStorage.setItem('bp_progress', progress)
         localStorage.setItem('bp_unlockedDays', JSON.stringify(unlockedDays))
         localStorage.setItem('bp_completedDays', JSON.stringify(completedDays))
         localStorage.setItem('bp_currentDayTab', currentDayTab)
-        localStorage.setItem('bp_curatedItinerary', curatedItinerary ? JSON.stringify(curatedItinerary) : '')
         localStorage.setItem('bp_itinerarySpots', JSON.stringify(itinerarySpots))
         localStorage.setItem('bp_capturedPhotos', JSON.stringify(capturedPhotos))
         localStorage.setItem('bp_lensStories', JSON.stringify(lensStories))
-        localStorage.setItem('bp_activeGuide', activeGuide)
-        localStorage.setItem('bp_collectedKeepsakes', JSON.stringify(collectedKeepsakes))
         localStorage.setItem('bp_journalReflections', JSON.stringify(journalReflections))
         localStorage.setItem('bp_soundVolume', soundVolume)
         localStorage.setItem('bp_soundMuted', soundMuted ? '1' : '0')
@@ -124,21 +119,21 @@ export function VibeProvider({ children }) {
         localStorage.setItem('bp_xpLog', JSON.stringify(xpLog))
         localStorage.setItem('bp_solvedRiddles', JSON.stringify(solvedRiddles))
         localStorage.setItem('bp_goldFils', goldFils)
-        localStorage.setItem('bp_characterRep', JSON.stringify(characterRep))
         localStorage.setItem('bp_passportStamps', JSON.stringify(passportStamps))
         localStorage.setItem('bp_pearlsCollected', JSON.stringify(pearlsCollected))
         localStorage.setItem('bp_selectedHotel', selectedHotel ? JSON.stringify(selectedHotel) : '')
+        localStorage.setItem('bp_collectedKeepsakes', JSON.stringify(collectedKeepsakes))
+        localStorage.setItem('bp_chatHistory', JSON.stringify(chatHistory))
       } catch (e) { console.error(e) }
     }, 200)
     return () => clearTimeout(timer)
-  }, [step, selectedMoods, tier, duration, pace, progress, unlockedDays, completedDays, currentDayTab, curatedItinerary, itinerarySpots, capturedPhotos, lensStories, activeGuide, collectedKeepsakes, journalReflections, soundVolume, soundMuted, activeLeaf, xp, xpLog, solvedRiddles, goldFils, characterRep, passportStamps, pearlsCollected, selectedHotel])
+  }, [step, selectedMoods, tier, duration, unlockedDays, completedDays, currentDayTab, itinerarySpots, capturedPhotos, lensStories, journalReflections, soundVolume, soundMuted, activeLeaf, xp, xpLog, solvedRiddles, goldFils, passportStamps, pearlsCollected, selectedHotel, collectedKeepsakes, chatHistory])
 
   const awardXP = useCallback((amount, reason) => {
     setXp(prev => prev + amount)
     setXpLog(prev => [...prev.slice(-19), { amount, reason, ts: Date.now() }])
   }, [])
 
-  // Hoisting Fix: Define unlockKeepsake early since other handlers depend on it
   const unlockKeepsake = (spotId) => {
     if (!collectedKeepsakes.includes(spotId)) {
       setCollectedKeepsakes(prev => [...prev, spotId])
@@ -150,7 +145,7 @@ export function VibeProvider({ children }) {
     if (!completedDays.includes(dayNum)) {
       setCompletedDays(prev => [...prev, dayNum])
       awardXP(100, `Day ${dayNum} sealed`)
-      setGoldFils(prev => prev + 400) // Grant coins for sealing day
+      setGoldFils(prev => prev + 400)
       const nextDay = dayNum + 1
       if (nextDay <= duration && !unlockedDays.includes(nextDay)) {
         setUnlockedDays(prev => [...prev, nextDay])
@@ -161,9 +156,7 @@ export function VibeProvider({ children }) {
   const saveCapturedPhoto = (spotId, dataUrl) => {
     setCapturedPhotos(prev => ({ ...prev, [spotId]: dataUrl }))
     awardXP(30, 'Lens snapshot captured')
-    setGoldFils(prev => prev + 250) // Reward coins for photo snap
-    
-    // Auto-unlock stamp for that spot
+    setGoldFils(prev => prev + 250)
     if (!passportStamps.includes(spotId)) {
       setPassportStamps(prev => [...prev, spotId])
     }
@@ -178,27 +171,24 @@ export function VibeProvider({ children }) {
     setJournalReflections(prev => ({ ...prev, [spotId]: text }))
     if (!hadEntry && text.trim().length > 10) {
       awardXP(15, 'Journal entry written')
-      setGoldFils(prev => prev + 100) // Reward reflection coins
+      setGoldFils(prev => prev + 100)
     }
   }
 
   const markSpotVisited = useCallback(() => {
     awardXP(25, 'Spot explored')
-    setGoldFils(prev => prev + 80) // Exploratory fils stipend
+    setGoldFils(prev => prev + 80)
   }, [awardXP])
 
   const solveRiddle = (spotId) => {
     if (!solvedRiddles[spotId]) {
       setSolvedRiddles(prev => ({ ...prev, [spotId]: true }))
       awardXP(35, 'Riddle solved')
-      setGoldFils(prev => prev + 150) // Reward riddle solving fils
-      
-      // Auto-unlock keepsake upon solving riddle
+      setGoldFils(prev => prev + 150)
       unlockKeepsake(spotId)
     }
   }
 
-  // Deduct fils to unlock premium items in virtual souq shop
   const spendFils = (amount) => {
     if (goldFils >= amount) {
       setGoldFils(prev => prev - amount)
@@ -207,23 +197,13 @@ export function VibeProvider({ children }) {
     return false
   }
 
-  // Level up local resident relationship guilds
-  const awardReputation = (character, amount) => {
-    setCharacterRep(prev => ({
-      ...prev,
-      [character]: Math.min((prev[character] || 0) + amount, 100)
-    }))
-  }
-
   const resetChronicle = () => {
     setUnlockedDays([1])
     setCompletedDays([])
     setCurrentDayTab(1)
-    setCuratedItinerary(null)
     setItinerarySpots([])
     setCapturedPhotos({})
     setLensStories({})
-    setActiveGuide('jafar')
     setCollectedKeepsakes([])
     setJournalReflections({})
     setActiveLeaf('chronicles')
@@ -233,18 +213,18 @@ export function VibeProvider({ children }) {
     setSelectedMoods([])
     setSolvedRiddles({})
     setGoldFils(1200)
-    setCharacterRep({ jafar: 10, seyadi: 10, faisal: 10 })
     setPassportStamps([])
     setPearlsCollected([])
+    setChatHistory([])
     setStep(1)
     try {
       const keys = [
-        'bp_step', 'bp_selectedMoods', 'bp_tier', 'bp_duration', 'bp_pace', 'bp_progress',
-        'bp_unlockedDays', 'bp_completedDays', 'bp_currentDayTab', 'bp_curatedItinerary',
-        'bp_itinerarySpots', 'bp_capturedPhotos', 'bp_lensStories', 'bp_activeGuide',
+        'bp_step', 'bp_selectedMoods', 'bp_tier', 'bp_duration',
+        'bp_unlockedDays', 'bp_completedDays', 'bp_currentDayTab',
+        'bp_itinerarySpots', 'bp_capturedPhotos', 'bp_lensStories',
         'bp_collectedKeepsakes', 'bp_journalReflections', 'bp_soundVolume', 'bp_soundMuted',
         'bp_activeLeaf', 'bp_xp', 'bp_xpLog', 'bp_solvedRiddles', 'bp_goldFils',
-        'bp_characterRep', 'bp_passportStamps', 'bp_pearlsCollected'
+        'bp_passportStamps', 'bp_pearlsCollected', 'bp_chatHistory'
       ]
       keys.forEach(k => localStorage.removeItem(k))
     } catch (e) {
@@ -267,20 +247,18 @@ export function VibeProvider({ children }) {
   }, [soundMuted, soundVolume])
 
   return (
-    <VibeContext.Provider value={{ 
-      step, 
-      setStep: transitionSetStep, 
-      playOrganicPageSwish, 
+    <JourneyContext.Provider value={{
+      // Onboarding
+      step,
+      setStep: transitionSetStep,
       selectedMoods,
       setSelectedMoods,
-      tier, 
-      setTier, 
+      tier,
+      setTier,
       duration,
       setDuration,
-      pace, 
-      setPace, 
-      progress, 
-      setProgress,
+
+      // Progress
       aligned,
       unlockedDays,
       completedDays,
@@ -288,30 +266,24 @@ export function VibeProvider({ children }) {
       setCurrentDayTab,
       completeDay,
       resetChronicle,
-      curatedItinerary,
-      setCuratedItinerary,
+
+      // Itinerary
       itinerarySpots,
       setItinerarySpots,
       itineraryLoading,
       setItineraryLoading,
       currentSpotIndex,
       setCurrentSpotIndex,
+
+      // Journal
       capturedPhotos,
       saveCapturedPhoto,
       lensStories,
       saveLensStory,
-      activeGuide,
-      setActiveGuide,
-      collectedKeepsakes,
-      unlockKeepsake,
       journalReflections,
       saveJournalReflection,
-      soundVolume,
-      setSoundVolume,
-      soundMuted,
-      setSoundMuted,
-      activeLeaf,
-      setActiveLeaf,
+
+      // Gamification
       xp,
       xpLog,
       awardXP,
@@ -322,18 +294,32 @@ export function VibeProvider({ children }) {
       solveRiddle,
       goldFils,
       setGoldFils,
-      characterRep,
-      setCharacterRep,
       passportStamps,
       setPassportStamps,
       spendFils,
-      awardReputation,
       pearlsCollected,
       setPearlsCollected,
       selectedHotel,
       setSelectedHotel,
+      collectedKeepsakes,
+      unlockKeepsake,
+
+      // Audio
+      soundVolume,
+      setSoundVolume,
+      soundMuted,
+      setSoundMuted,
+      playOrganicPageSwish,
+
+      // UI
+      activeLeaf,
+      setActiveLeaf,
+
+      // Chat (shared across features)
+      chatHistory,
+      setChatHistory,
     }}>
       {children}
-    </VibeContext.Provider>
+    </JourneyContext.Provider>
   )
 }
