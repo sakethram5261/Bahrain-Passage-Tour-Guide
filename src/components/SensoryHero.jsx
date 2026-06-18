@@ -44,6 +44,16 @@ export default function SensoryHero({ onBack }) {
   const [activePointerIdState, setActivePointerIdState] = useState(null)
   const pointerStartX = useRef(0)
   const activePointerId = useRef(null)
+  const intervalRef = useRef(null)
+
+  const handleSkipCuration = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+    }
+    setTerminalLogs(guidePhrases)
+    setLogsComplete(true)
+    setShowPreviewOverview(true)
+  }
 
   const handlePointerDown = (e, index) => {
     if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.pointer-events-auto')) return
@@ -196,7 +206,7 @@ export default function SensoryHero({ onBack }) {
         insider: 'Grab a fresh hot chai from the local market stalls right behind the gate area.',
         pathGuide: 'Walk through the grand archway directly into the historical souq alleys.',
         pathCost: 'Free Entry',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/7/75/BabAlBahrain1.jpg',
+        image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=1200&q=80',
         day: 1
       }]
     }
@@ -228,7 +238,7 @@ export default function SensoryHero({ onBack }) {
       setTerminalLogs([guidePhrases[0]])
     })
 
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       if (active) {
         const next = activeLogIndex + 1
         if (next < guidePhrases.length) {
@@ -236,15 +246,15 @@ export default function SensoryHero({ onBack }) {
           setTerminalLogs(logs => [...logs, guidePhrases[next]])
           activeLogIndex = next
         } else {
-          clearInterval(interval)
+          clearInterval(intervalRef.current)
           setLogsComplete(true)
         }
       }
-    }, 450)
+    }, 120)
 
     return () => {
       active = false
-      clearInterval(interval)
+      clearInterval(intervalRef.current)
     }
   }, [coverOpened, playTypewriterClick])
 
@@ -326,7 +336,7 @@ export default function SensoryHero({ onBack }) {
                 keyboard={{
                   enabled: true,
                 }}
-                pagination={{ clickable: true }}
+                pagination={{ clickable: false }}
                 modules={[Pagination, Mousewheel]}
                 className="w-full h-full"
                 onSlideChange={(swiper) => {
@@ -364,9 +374,16 @@ export default function SensoryHero({ onBack }) {
                         transition: activePointerIdState === null ? 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease' : 'none'
                       }}
                     >
+                      {/* Swipe Left/Right Affordance arrows */}
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-30 bg-black/40 backdrop-blur-sm w-7 h-7 rounded-full flex items-center justify-center text-white/60 text-xs border border-white/10 opacity-60">
+                        ◀
+                      </div>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-30 bg-black/40 backdrop-blur-sm w-7 h-7 rounded-full flex items-center justify-center text-white/60 text-xs border border-white/10 opacity-60">
+                        ▶
+                      </div>
                       
                       <img
-                        src={spot.image || 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'}
+                        src={spot.image || 'https://images.unsplash.com/photo-1585123334904-845d60e97b29?auto=format&fit=crop&w=1200&q=80'}
                         alt={spot.name}
                         className="absolute inset-0 w-full h-full object-cover opacity-80"
                       />
@@ -454,8 +471,8 @@ export default function SensoryHero({ onBack }) {
                       </div>
  
                       {/* Gesture Guidance Tip */}
-                      <div className="absolute bottom-[80px] left-0 right-0 text-center pointer-events-none z-30 select-none">
-                        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/55 backdrop-blur-md border border-white/10 text-[8.5px] font-sans font-extrabold tracking-widest text-white/60 uppercase animate-pulse">
+                      <div className="absolute bottom-[90px] left-0 right-0 text-center pointer-events-none z-30 select-none">
+                        <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/80 backdrop-blur-md border border-red-500/35 text-[11px] font-sans font-extrabold tracking-widest text-[#FFE082] uppercase animate-pulse">
                           <span>↔ Swipe card to remove</span>
                           <span className="opacity-30">•</span>
                           <span>↕ Scroll for next</span>
@@ -534,6 +551,13 @@ export default function SensoryHero({ onBack }) {
             <div className="w-full max-w-[200px] bg-red-500/10 h-1.5 rounded-full overflow-hidden relative">
               <div className="h-full bg-[#A80D27] rounded-full animate-pulse w-3/4" />
             </div>
+            
+            <button
+              onClick={handleSkipCuration}
+              className="mt-2 px-5 py-2 rounded-full border border-[#A80D27]/35 text-[#A80D27] hover:bg-[#A80D27]/5 font-sans text-[11px] uppercase tracking-wider font-black cursor-pointer active:scale-95 transition-all"
+            >
+              Skip Curation →
+            </button>
           </div>
 
           <div className="hidden md:flex p-8 flex-col relative text-left h-full border-l border-red-500/10 bg-[#FCFBF8]">

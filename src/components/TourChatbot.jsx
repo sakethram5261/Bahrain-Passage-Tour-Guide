@@ -121,7 +121,7 @@ const MECHANICS = {
 const QUICK_QUESTIONS = [
   { label: "Change budget to Luxury", key: 'luxury' },
   { label: "Make my trip 5 days", key: '5 days' },
-  { label: "Give me 500 gold fils", key: 'give me 500 gold fils' },
+  { label: "How do I earn Gold Fils?", key: 'fils' },
   { label: "Tell me about Bahrain Fort", key: 'bahrain fort' },
   { label: "What is the Capture Lens?", key: 'lens' },
   { label: "How do I unlock the next day?", key: 'unlock' },

@@ -900,15 +900,15 @@ export default function Dashboard() {
 
                       return [
                         { 
-                          src: 'https://upload.wikimedia.org/wikipedia/commons/7/75/BabAlBahrain1.jpg', 
+                          src: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=1200&q=80', 
                           alt: 'Showcase Snap: Bab Al Bahrain' 
                         },
                         { 
-                          src: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Manama_al-Fateh_Grand_Mosque_Exterior_Norden_1.jpg', 
+                          src: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=1200&q=80', 
                           alt: 'Showcase Snap: Al Fateh Grand Mosque' 
                         },
                         { 
-                          src: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG', 
+                          src: 'https://images.unsplash.com/photo-1585123334904-845d60e97b29?auto=format&fit=crop&w=1200&q=80', 
                           alt: 'Showcase Snap: Qal\'at al-Bahrain (Bahrain Fort)' 
                         }
                       ];

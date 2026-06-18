@@ -209,6 +209,7 @@ export default function JournalNotebook({ onBack }) {
   const [stamping, setStamping] = useState(false)
   const [unlockedRankInfo, setUnlockedRankInfo] = useState(null)
   const [showRankUpModal, setShowRankUpModal] = useState(false)
+  const [copiedKey, setCopiedKey] = useState(false)
   
   const prevRankIdRef = useRef(null)
   const rank = getRank(xp)
@@ -945,7 +946,7 @@ export default function JournalNotebook({ onBack }) {
                         <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '16px', color: 'var(--jn-ink)', fontWeight: 'bold' }}>
                           Traditional Insider Passkey:
                         </h4>
-                        <div style={{ background: 'rgba(193,18,47,0.04)', border: '1px dashed var(--jn-crimson-mid)', padding: '15px', borderRadius: '12px' }}>
+                        <div style={{ background: 'rgba(193,18,47,0.04)', border: '1px dashed var(--jn-crimson-mid)', padding: '15px', paddingRight: '75px', borderRadius: '12px', position: 'relative' }}>
                           <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '12px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--jn-ink-muted)' }}>
                             {currentDayTab === 1 && 'Insider Key: Place your right hand over your heart, greet a local merchant, and say "Chay Karak, bil-hail" (translates to "Cardamom Karak tea, please") for traditional warmth and a genuine smile.'}
                             {currentDayTab === 2 && 'Insider Key: At a local potter workshop, ask for fresh "Khubz Tannour" flatbread—it is baked in traditional red clay ovens and gifted with sesame toppings.'}
@@ -953,14 +954,74 @@ export default function JournalNotebook({ onBack }) {
                             {currentDayTab === 4 && 'Insider Key: Stand on the eastern lee side of the ancient Tree of Life at sunset; local desert nomads listen for a low whistle they attribute to water spirits.'}
                             {currentDayTab === 5 && 'Insider Key: Traditional respect in the Kingdom is simple: place your right hand over your heart and say "Salam Alaykum" (Peace be upon you) when starting any conversation.'}
                           </p>
+                          <button
+                            onClick={() => {
+                              const keys = {
+                                1: 'Insider Key: Place your right hand over your heart, greet a local merchant, and say "Chay Karak, bil-hail" (translates to "Cardamom Karak tea, please") for traditional warmth and a genuine smile.',
+                                2: 'Insider Key: At a local potter workshop, ask for fresh "Khubz Tannour" flatbread—it is baked in traditional red clay ovens and gifted with sesame toppings.',
+                                3: 'Insider Key: Ask the harbor skipper for the "Jarada tidal window"—it is the exact 3-hour low-tide peak when the sand is purest white and wild pearl oysters wash ashore.',
+                                4: 'Insider Key: Stand on the eastern lee side of the ancient Tree of Life at sunset; local desert nomads listen for a low whistle they attribute to water spirits.',
+                                5: 'Insider Key: Traditional respect in the Kingdom is simple: place your right hand over your heart and say "Salam Alaykum" (Peace be upon you) when starting any conversation.'
+                              };
+                              navigator.clipboard.writeText(keys[currentDayTab] || '');
+                              setCopiedKey(true);
+                              setTimeout(() => setCopiedKey(false), 2000);
+                            }}
+                            className="pointer-events-auto"
+                            style={{
+                              position: 'absolute',
+                              top: '12px',
+                              right: '12px',
+                              background: copiedKey ? '#2e7d32' : 'var(--jn-crimson)',
+                              color: '#fff',
+                              border: 'none',
+                              padding: '6px 10px',
+                              borderRadius: '6px',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              cursor: 'pointer',
+                              zIndex: 10,
+                              transition: 'all 0.2s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            }}
+                          >
+                            {copiedKey ? '✓ Copied' : '📋 Copy'}
+                          </button>
                         </div>
 
                         {/* Ink stamp render */}
                         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-                          <div style={{ width: '100px', height: '100px', borderRadius: '50%', border: '4px double rgba(46, 125, 50, 0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transform: 'rotate(10deg)', color: '#2e7d32', fontStyle: 'italic' }}>
-                            <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase' }}>Sealed</span>
-                            <span style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '7px', fontWeight: 'bold', marginTop: '2px' }}>Day {currentDayTab}</span>
-                            <span style={{ fontSize: '5px', marginTop: '2px' }}>PASSPORT OK</span>
+                          <div style={{
+                            width: '110px',
+                            height: '110px',
+                            borderRadius: '50%',
+                            border: '4px double #1b5e20',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transform: 'rotate(-8deg)',
+                            color: '#1b5e20',
+                            background: 'rgba(27, 94, 32, 0.04)',
+                            boxShadow: '0 0 0 3px rgba(27, 94, 32, 0.05)',
+                            lineHeight: '1.1',
+                            userSelect: 'none'
+                          }}>
+                            <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '7.5px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em' }}>KINGDOM OF BAHRAIN</span>
+                            <span style={{
+                              fontFamily: 'var(--jn-font-sans)',
+                              fontSize: '9.5px',
+                              fontWeight: 900,
+                              textTransform: 'uppercase',
+                              borderTop: '1px solid #1b5e20',
+                              borderBottom: '1px solid #1b5e20',
+                              padding: '2px 3px',
+                              margin: '3px 0',
+                              letterSpacing: '0.04em'
+                            }}>
+                              ENTRY APPROVED
+                            </span>
+                            <span style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '9px', fontWeight: 800 }}>DAY {currentDayTab} SEAL</span>
                           </div>
                         </div>
 
@@ -1010,13 +1071,13 @@ export default function JournalNotebook({ onBack }) {
                         <div style={{ fontSize: '48px', marginBottom: '8px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' }}>
                           {activeSpot.keepsakeEmoji || '🗺️'}
                         </div>
-                        <span className="jn-tag jn-tag--red" style={{ fontSize: '9px', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        <span className="jn-tag jn-tag--red" style={{ fontSize: '12px', textTransform: 'uppercase', marginBottom: '4px' }}>
                           {activeSpot.category || 'Archipelago'}
                         </span>
-                        <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '14px', fontWeight: 'bold', color: 'var(--jn-ink)', margin: '4px 0' }}>
+                        <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '15px', fontWeight: 'bold', color: 'var(--jn-ink)', margin: '4px 0' }}>
                           {activeSpot.name}
                         </h4>
-                        <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '9px', color: 'var(--jn-ink-faint)', textTransform: 'uppercase' }}>
+                        <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '12px', color: 'var(--jn-ink-faint)', textTransform: 'uppercase', fontWeight: '600' }}>
                           {activeSpot.period}
                         </span>
                       </div>
@@ -1042,7 +1103,27 @@ export default function JournalNotebook({ onBack }) {
                     <div>
                       <span className="jn-period-tag">{activeSpot.period}</span>
                       <h2 className="jn-spot-name">{activeSpot.name}</h2>
-                      <p className="jn-coords" aria-label={`GPS: ${activeSpot.coords}`}>📍 {activeSpot.coords}</p>
+                      <p className="jn-coords" aria-label={`GPS: ${activeSpot.coords}`}>
+                        📍 {activeSpot.coords}
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeSpot.name + ' ' + activeSpot.coords)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="jn-maps-link pointer-events-auto"
+                          style={{
+                            marginLeft: '10px',
+                            color: 'var(--jn-crimson)',
+                            textDecoration: 'underline',
+                            fontWeight: '800',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          🗺️ Open Map
+                        </a>
+                      </p>
                     </div>
                     <span className="jn-arabic" lang="ar">{activeSpot.arabic}</span>
                   </div>
@@ -1069,6 +1150,32 @@ export default function JournalNotebook({ onBack }) {
           >
             <div key={tabKey} className="jn-page-anim-wrap">
               
+              {/* Mobile-only Spot Context Bar */}
+              {activeSpot && activeTab !== 'info' && (
+                <div className="jn-mobile-context-bar block md:hidden">
+                  <div className="jn-mobile-context-content">
+                    <img 
+                      src={activeSpot.image || 'https://images.unsplash.com/photo-1585123334904-845d60e97b29?auto=format&fit=crop&w=120&q=80'} 
+                      alt="" 
+                      className="jn-mobile-context-thumb" 
+                    />
+                    <div className="jn-mobile-context-text">
+                      <span className="jn-mobile-context-tag">Active Landmark:</span>
+                      <h4 className="jn-mobile-context-title">{activeSpot.name}</h4>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      playTypewriterClick(1.0);
+                      setActiveTab('info');
+                    }}
+                    className="jn-mobile-context-back-btn pointer-events-auto"
+                  >
+                    📖 Read Info
+                  </button>
+                </div>
+              )}
+
               {/* ─── SUB-TAB: ITINERARY / LANDMARK DETAILS SPLIT ─── */}
               {/* ─── SUB-TAB: LANDMARK DETAILS (INFO) ─── */}
               {activeTab === 'info' && (
@@ -1076,7 +1183,7 @@ export default function JournalNotebook({ onBack }) {
                   {activeSpot && (
                     <div className="space-y-4">
                       <div className="jn-section-heading">
-                        <h2 className="jn-section-title">Observation Log</h2>
+                        <h2 className="jn-section-title">Historical Chronicle</h2>
                         <span className="jn-section-subtitle">Chronicle details & Riddle Quest</span>
                       </div>
                       <hr className="jn-divider" aria-hidden="true" />
@@ -1103,7 +1210,7 @@ export default function JournalNotebook({ onBack }) {
                 <div className="jn-mobile-shown-timeline">
                   <div className="space-y-4">
                     <div className="jn-section-heading">
-                      <h2 className="jn-section-title">Discovery Route</h2>
+                      <h2 className="jn-section-title">Day's Chronicle Trail</h2>
                       <span className="jn-section-subtitle">Bahrain Custom Itinerary timeline</span>
                     </div>
 
@@ -1867,59 +1974,69 @@ export default function JournalNotebook({ onBack }) {
           AI GUIDE CHATBOT — Floating Action Button + Panel
           ═══════════════════════════════════════════════════════════════════════ */}
       <>
-        {/* Floating chat button */}
-        <button
-          onClick={() => setChatOpen(v => !v)}
-          aria-label={chatOpen ? 'Close AI Guide' : 'Open AI Guide'}
-          style={{
-            position: 'fixed',
-            bottom: '90px',
-            right: '20px',
-            zIndex: 200,
-            width: '52px',
-            height: '52px',
-            borderRadius: '50%',
-            background: chatOpen ? '#2A2321' : 'linear-gradient(135deg, #D11A38, #A81028)',
-            color: '#fff',
-            border: '2px solid rgba(255,255,255,0.15)',
-            boxShadow: '0 8px 24px rgba(209,26,56,0.4)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '22px',
-            cursor: 'pointer',
-            transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
-            transform: chatOpen ? 'scale(0.92)' : 'scale(1)',
-          }}
-        >
-          {chatOpen ? '✕' : '🤖'}
-        </button>
+        {/* Floating chat button — lifts above riddle CTA when visible */}
+        {(() => {
+          const riddleCTAVisible = activeTab === 'info' && activeSpot && RIDDLES[activeSpot.id]
+          const fabBottom = riddleCTAVisible ? '158px' : '90px'
+          const panelBottom = riddleCTAVisible ? '222px' : '155px'
+          return (
+            <>
+              <button
+                onClick={() => setChatOpen(v => !v)}
+                aria-label={chatOpen ? 'Close AI Guide' : 'Open AI Guide'}
+                style={{
+                  position: 'fixed',
+                  bottom: fabBottom,
+                  right: '20px',
+                  zIndex: 200,
+                  width: '52px',
+                  height: '52px',
+                  borderRadius: '50%',
+                  background: chatOpen ? '#2A2321' : 'linear-gradient(135deg, #D11A38, #A81028)',
+                  color: '#fff',
+                  border: '2px solid rgba(255,255,255,0.15)',
+                  boxShadow: '0 8px 24px rgba(209,26,56,0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
+                  transform: chatOpen ? 'scale(0.92)' : 'scale(1)',
+                }}
+              >
+                {chatOpen ? '✕' : '🤖'}
+              </button>
 
-        {/* Chatbot panel — slides up when open */}
-        {chatOpen && (
-          <div
-            style={{
-              position: 'fixed',
-              bottom: '155px',
-              right: '16px',
-              width: 'min(380px, calc(100vw - 32px))',
-              zIndex: 199,
-              borderRadius: '20px',
-              overflow: 'hidden',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(209,26,56,0.12)',
-              animation: 'slideInRight 0.3s cubic-bezier(0.16,1,0.3,1) both',
-            }}
-          >
-            <Suspense fallback={<MapSkeleton label="Connecting with concierge..." height={350} />}>
-              <TourChatbot
-                activeSpotName={activeSpot?.name}
-                embedded={true}
-                onClose={() => setChatOpen(false)}
-              />
-            </Suspense>
-          </div>
-        )}
+              {/* Chatbot panel — slides up when open */}
+              {chatOpen && (
+                <div
+                  style={{
+                    position: 'fixed',
+                    bottom: panelBottom,
+                    right: '16px',
+                    width: 'min(380px, calc(100vw - 32px))',
+                    zIndex: 199,
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(209,26,56,0.12)',
+                    animation: 'slideInRight 0.3s cubic-bezier(0.16,1,0.3,1) both',
+                  }}
+                >
+                  <Suspense fallback={<MapSkeleton label="Connecting with concierge..." height={350} />}>
+                    <TourChatbot
+                      activeSpotName={activeSpot?.name}
+                      embedded={true}
+                      onClose={() => setChatOpen(false)}
+                    />
+                  </Suspense>
+                </div>
+              )}
+            </>
+          )
+        })()}
       </>
+
 
       {/* ⚡ Quick Info FAB */}
       <button

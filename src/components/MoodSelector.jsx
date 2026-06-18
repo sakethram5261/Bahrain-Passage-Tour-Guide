@@ -161,7 +161,7 @@ export default function MoodSelector({ onConfirm }) {
 
       {/* Cards + CTA (fitted using spacing adjustments) */}
       <div className="w-full max-w-2xl px-4 pt-4 pb-6 flex flex-col gap-4 mx-auto">
-        <div className="grid grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {MOODS.map((mood, i) => {
             const active = selectedMoods.includes(mood.id)
             return (
@@ -178,11 +178,11 @@ export default function MoodSelector({ onConfirm }) {
                   perspective: '1000px',
                   transformStyle: 'preserve-3d',
                   background: active 
-                    ? 'linear-gradient(135deg, #BA0C2F 0%, #8A0A22 100%)' 
+                    ? 'linear-gradient(135deg, #C1122F 0%, #8f0d22 100%)' 
                     : 'linear-gradient(135deg, #FCFBF8 0%, #EFEBE4 100%)',
-                  border: `2px solid ${active ? '#BA0C2F' : 'rgba(139,90,75,0.15)'}`,
+                  border: `2px solid ${active ? '#C1122F' : 'rgba(139,90,75,0.15)'}`,
                   boxShadow: active
-                    ? '0 12px 36px rgba(138,10,34,0.38), 0 2px 8px rgba(0,0,0,0.12)'
+                    ? '0 12px 36px rgba(193,18,47,0.38), 0 2px 8px rgba(0,0,0,0.12)'
                     : '0 4px 20px rgba(42,35,33,0.06), 0 1px 3px rgba(0,0,0,0.03)',
                   transition: 'border 0.25s, box-shadow 0.25s, background 0.25s',
                 }}
@@ -280,21 +280,6 @@ export default function MoodSelector({ onConfirm }) {
           })}
         </div>
 
-        {/* Selection count indicator */}
-        <div className="flex items-center gap-2 justify-center py-0.5">
-          {MOODS.map(m => (
-            <div
-              key={m.id}
-              className="rounded-full transition-all duration-300"
-              style={{
-                width: selectedMoods.includes(m.id) ? '24px' : '8px',
-                height: '8px',
-                background: selectedMoods.includes(m.id) ? '#D11A38' : 'rgba(209,26,56,0.15)',
-              }}
-            />
-          ))}
-        </div>
-
         {/* Stay Duration Selector */}
         <div 
           className="bg-white border border-red-500/10 rounded-2xl p-4 shadow-sm select-none transition-all duration-300 animate-fadeIn"
@@ -326,11 +311,11 @@ export default function MoodSelector({ onConfirm }) {
                     onClick={() => setDuration(d)}
                     className={`snap-center flex-shrink-0 w-16 py-3 rounded-xl border text-center font-sans text-xs font-black transition-all duration-300 cursor-pointer ${
                       active
-                        ? 'bg-[#D11A38] border-[#D4AF37] text-white shadow-[0_4px_12px_rgba(209,26,56,0.3)] scale-[1.05]'
+                        ? 'bg-[#C1122F] border-[#D4AF37] text-white shadow-[0_4px_12px_rgba(193,18,47,0.3)] scale-[1.05]'
                         : 'bg-[#FCFBF8] border-red-500/10 text-[#5C5451] hover:border-red-500/30 hover:shadow-sm'
                     }`}
                     style={{
-                      boxShadow: active ? '0 4px 12px rgba(209,26,56,0.35), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none',
+                      boxShadow: active ? '0 4px 12px rgba(193,18,47,0.35), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none',
                     }}
                   >
                     <div className="text-[9px] uppercase opacity-75 font-medium">{d === 1 ? 'Day' : 'Days'}</div>
@@ -356,15 +341,15 @@ export default function MoodSelector({ onConfirm }) {
             style={{
               height: '54px',
               background: noneSelected
-                ? 'rgba(209,26,56,0.1)'
-                : 'linear-gradient(135deg, #BA0C2F 0%, #8A0A22 100%)',
-              color: noneSelected ? 'rgba(209,26,56,0.45)' : '#fff',
+                ? 'rgba(193,18,47,0.1)'
+                : 'linear-gradient(135deg, #C1122F 0%, #8f0d22 100%)',
+              color: noneSelected ? 'rgba(193,18,47,0.45)' : '#fff',
               border: noneSelected 
-                ? '1.5px dashed rgba(209,26,56,0.25)' 
+                ? '1.5px dashed rgba(193,18,47,0.25)' 
                 : '2px solid #D4AF37',
               boxShadow: noneSelected
                 ? 'none'
-                : '0 8px 24px rgba(138,10,34,0.4), 0 2px 6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+                : '0 8px 24px rgba(193,18,47,0.4), 0 2px 6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
             }}
           >
             {noneSelected
@@ -374,28 +359,16 @@ export default function MoodSelector({ onConfirm }) {
 
           <button
             onClick={() => setSelectedMoods(allSelected ? [] : ['empires', 'sea', 'spice', 'lights'])}
-            className="w-full text-[11px] tracking-widest uppercase font-bold py-3.5 rounded-xl transition-all duration-300 cursor-pointer text-center"
+            className="w-full text-[11px] tracking-widest uppercase font-bold py-2.5 transition-all duration-300 cursor-pointer text-center hover:underline"
             style={{
               color: '#C1122F',
-              border: '1.5px solid rgba(193, 18, 47, 0.25)',
-              background: 'rgba(193, 18, 47, 0.03)',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(193, 18, 47, 0.08)'
-              e.currentTarget.style.borderColor = 'rgba(193, 18, 47, 0.4)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(193, 18, 47, 0.03)'
-              e.currentTarget.style.borderColor = 'rgba(193, 18, 47, 0.25)'
+              background: 'transparent',
+              border: 'none',
             }}
           >
             {allSelected ? '✕ Clear All Vibes' : '✨ Select All Vibes'}
           </button>
         </div>
-
-        <p className="text-[12px] text-center font-sans" style={{ color: 'rgba(92,84,81,0.45)' }}>
-          Expertly curated · 18 local spots · Kingdom of Bahrain 🇧🇭
-        </p>
       </div>
     </div>
   )
