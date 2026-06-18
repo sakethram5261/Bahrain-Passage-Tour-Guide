@@ -351,13 +351,14 @@ export default function WelcomeIntro({ onComplete }) {
   return (
     <div
       ref={wrapRef}
+      onClick={exitIntro}
       style={{
         position: 'fixed', inset: 0, zIndex: 9999,
         background: '#0F0C0B',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
-        opacity: 0,
+        opacity: 0, cursor: 'pointer',
       }}
     >
       {/* ── Background Video / Image Fallback ─────────────────────────────── */}
@@ -698,13 +699,31 @@ export default function WelcomeIntro({ onComplete }) {
         </div>
       </div>
 
-      {/* ── Skip Intro — refined pill button ───────────────────────────────── */}
+      {/* ── Skip Intro — pill button ──────────────────────────────────────── */}
       <button
-        onClick={exitIntro}
+        onClick={(e) => { e.stopPropagation(); exitIntro() }}
         className="jn-intro-skip-btn"
       >
         Skip Intro →
       </button>
+
+      <span style={{
+        position: 'absolute',
+        bottom: '1.6rem',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        color: 'rgba(250, 249, 246, 0.3)',
+        fontFamily: '"Playfair Display","Georgia",serif',
+        fontSize: '0.6rem',
+        fontStyle: 'italic',
+        letterSpacing: '0.25em',
+        textTransform: 'uppercase',
+        zIndex: 9999,
+        pointerEvents: 'none',
+        userSelect: 'none',
+      }}>
+        Click anywhere to skip
+      </span>
 
       {/* ── Keyframes ──────────────────────────────────────────────────────── */}
       <style>{`

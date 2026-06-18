@@ -1,0 +1,12 @@
+{
+  "name": "Bahrain Passage",
+  "short_name": "BahrainPassage",
+  "description": "A premium digital chronicle of Bahrain's cultural riches",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF9F6",
+  "theme_color": "#D11A38",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

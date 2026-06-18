@@ -3,6 +3,7 @@ import { useVibe } from '../hooks/useVibe'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Mousewheel, Pagination } from 'swiper/modules'
 import { Trash2, BookOpen } from 'lucide-react'
+import { playTypewriterClick } from '../services/audioUtils'
 import 'swiper/css'
 import 'swiper/css/pagination'
 
@@ -55,20 +56,33 @@ export default function SensoryHero({ onBack }) {
     setShowPreviewOverview(true)
   }
 
-  const handlePointerDown = (e, index) => {
+  const swipeStartX = useRef(0)
+  const swipeStartY = useRef(0)
+  const swipeActivated = useRef(false)
+
+  const handlePointerDown = (e, _index) => {
     if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.pointer-events-auto')) return
     if (e.button !== undefined && e.button !== 0) return
+    swipeStartX.current = e.clientX
+    swipeStartY.current = e.clientY
+    swipeActivated.current = false
     pointerStartX.current = e.clientX
     activePointerId.current = e.pointerId
     setActivePointerIdState(e.pointerId)
     try {
       e.currentTarget.setPointerCapture(e.pointerId)
-    } catch (err) {}
+    } catch { /* ignore */ }
   };
 
   const handlePointerMove = (e, index) => {
     if (activePointerId.current !== e.pointerId) return
     const diffX = e.clientX - pointerStartX.current
+    const diffY = e.clientY - swipeStartY.current
+    if (!swipeActivated.current && Math.abs(diffY) > Math.abs(diffX) * 2) {
+      return
+    }
+    if (Math.abs(diffX) > 20) swipeActivated.current = true
+    if (!swipeActivated.current) return
     setSwipeOffsets(prev => ({
       ...prev,
       [index]: diffX
@@ -81,11 +95,16 @@ export default function SensoryHero({ onBack }) {
     setActivePointerIdState(null)
     try {
       e.currentTarget.releasePointerCapture(e.pointerId)
-    } catch (err) {}
+    } catch { /* ignore */ }
+
+    if (!swipeActivated.current) {
+      setSwipeOffsets(prev => ({ ...prev, [index]: 0 }))
+      return
+    }
 
     const offset = swipeOffsets[index] || 0
     if (Math.abs(offset) > 140) {
-      playTypewriterClick(0.75)
+      playClick(0.75)
       setSwipeOffsets(prev => ({
         ...prev,
         [index]: offset > 0 ? window.innerWidth : -window.innerWidth
@@ -110,37 +129,8 @@ export default function SensoryHero({ onBack }) {
   const contentRef = useRef(null)
   const logsEndRef = useRef(null)
 
-  const playTypewriterClick = useCallback((pitchMultiplier = 1.0) => {
-    if (soundMuted) return
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext
-      if (!AudioContext) return
-      
-      const audioCtx = new AudioContext()
-      const osc = audioCtx.createOscillator()
-      const gainNode = audioCtx.createGain()
-      const filter = audioCtx.createBiquadFilter()
-      
-      osc.type = 'sine'
-      const startFreq = 1150 * pitchMultiplier
-      osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime)
-      osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.04)
-      
-      filter.type = 'bandpass'
-      filter.frequency.setValueAtTime(500, audioCtx.currentTime)
-      filter.Q.setValueAtTime(5, audioCtx.currentTime)
-      
-      gainNode.gain.setValueAtTime(0, audioCtx.currentTime)
-      gainNode.gain.linearRampToValueAtTime(0.12 * soundVolume, audioCtx.currentTime + 0.003) 
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.035) 
-      
-      osc.connect(filter)
-      filter.connect(gainNode)
-      gainNode.connect(audioCtx.destination)
-      
-      osc.start()
-      osc.stop(audioCtx.currentTime + 0.04)
-    } catch { /* ignore */ }
+  const playClick = useCallback((pitchMultiplier = 1.0) => {
+    playTypewriterClick(pitchMultiplier, soundVolume, soundMuted)
   }, [soundMuted, soundVolume])
 
   const compileItinerary = useCallback(async () => {
@@ -242,7 +232,7 @@ export default function SensoryHero({ onBack }) {
       if (active) {
         const next = activeLogIndex + 1
         if (next < guidePhrases.length) {
-          playTypewriterClick(1.0 + Math.random() * 0.25)
+          playClick(1.0 + Math.random() * 0.25)
           setTerminalLogs(logs => [...logs, guidePhrases[next]])
           activeLogIndex = next
         } else {
@@ -256,7 +246,7 @@ export default function SensoryHero({ onBack }) {
       active = false
       clearInterval(intervalRef.current)
     }
-  }, [coverOpened, playTypewriterClick])
+  }, [coverOpened, playClick])
 
   useEffect(() => {
     if (logsEndRef.current) logsEndRef.current.scrollIntoView({ behavior: 'smooth' })
@@ -313,7 +303,7 @@ export default function SensoryHero({ onBack }) {
               </p>
               <button
                 onClick={() => {
-                  playTypewriterClick(0.85)
+                  playClick(0.85)
                   if (onBack) onBack()
                 }}
                 className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-xs uppercase tracking-widest font-black cursor-pointer active:scale-95 transition-all"
@@ -340,7 +330,7 @@ export default function SensoryHero({ onBack }) {
                 modules={[Pagination, Mousewheel]}
                 className="w-full h-full"
                 onSlideChange={(swiper) => {
-                  playTypewriterClick(1.0)
+                  playClick(1.0)
                   setIsAtEnd(swiper.isEnd)
                 }}
                 onReachEnd={() => setIsAtEnd(true)}
@@ -386,29 +376,33 @@ export default function SensoryHero({ onBack }) {
                         src={spot.image || 'https://images.unsplash.com/photo-1585123334904-845d60e97b29?auto=format&fit=crop&w=1200&q=80'}
                         alt={spot.name}
                         className="absolute inset-0 w-full h-full object-cover opacity-80"
+                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling?.classList.remove('hidden') }}
                       />
+                      <div className="absolute inset-0 w-full h-full hidden flex items-center justify-center bg-gradient-to-br from-[#2A2321] to-[#1a1210]">
+                        <span className="text-6xl opacity-40">{spot.keepsakeEmoji || '📍'}</span>
+                      </div>
                       
                       <div className="absolute inset-0 bg-gradient-to-tr from-[#1a1210]/95 via-[#1a1210]/60 to-[#BA0C2F]/80" />
  
                       <div className="absolute inset-0 flex flex-col justify-between items-center py-16 px-6 max-w-4xl mx-auto text-white h-full pointer-events-none">
                         
                         <div className="w-full flex justify-between items-start mt-8">
-                           <div className="flex flex-col text-left max-w-[calc(100%-140px)]">
-                            <span className="font-mono text-[10.5px] md:text-sm tracking-[0.22em] text-white/80 uppercase font-black drop-shadow-md truncate block w-full">
-                              DAY {spot.day || 1} • {spot.period}
-                            </span>
-                            <h2 className="font-serif text-2xl md:text-5xl lg:text-7xl font-black tracking-tight leading-tight mt-1 text-white drop-shadow-2xl truncate w-full">
-                              {spot.keepsakeEmoji || '📍'} {spot.name}
-                            </h2>
-                            <span className="font-serif text-lg md:text-3xl italic text-[#ffb5c2] drop-shadow-xl font-semibold mt-1 truncate w-full">
-                              {spot.arabic}
-                            </span>
-                          </div>
+                         <div className="flex flex-col text-left max-w-[calc(100%-140px)] overflow-visible">
+                             <span className="font-mono text-[10.5px] md:text-sm tracking-[0.22em] text-white/80 uppercase font-black drop-shadow-md block w-full break-words">
+                               DAY {spot.day || 1} • {spot.period}
+                             </span>
+                             <h2 className="font-serif text-xl md:text-3xl lg:text-4xl font-black tracking-tight leading-tight mt-1 text-white drop-shadow-2xl w-full break-words">
+                               {spot.keepsakeEmoji || '📍'} {spot.name}
+                             </h2>
+                             <span className="font-serif text-base md:text-xl italic text-[#ffb5c2] drop-shadow-xl font-semibold mt-1 w-full break-words">
+                               {spot.arabic}
+                             </span>
+                           </div>
  
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              playTypewriterClick(0.75)
+                              playClick(0.75)
                               const remaining = itinerarySpots.filter((_, sIdx) => sIdx !== i)
                               setItinerarySpots(remaining)
                             }}
@@ -488,7 +482,7 @@ export default function SensoryHero({ onBack }) {
               <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4 z-50 px-6 pointer-events-none">
                 <button
                   onClick={() => {
-                    playTypewriterClick(0.85)
+                    playClick(0.85)
                     if (onBack) onBack()
                   }}
                   className="pointer-events-auto px-6 py-3 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 text-white font-bold text-xs tracking-wider transition-all active:scale-95"
@@ -497,11 +491,12 @@ export default function SensoryHero({ onBack }) {
                 </button>
                 
                 <button
-                  disabled={sealing}
+                  disabled={sealing || !isAtEnd}
                   onClick={() => {
-                    if (sealing) return
+                    if (sealing || !isAtEnd) return
+                    if (!window.confirm('Ready to seal your itinerary? You can always come back to adjust.')) return
                     setSealing(true)
-                    playTypewriterClick(1.6)
+                    playClick(1.6)
                     const stampSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav')
                     stampSfx.volume = 0.25 * (soundVolume || 1)
                     stampSfx.play().catch(() => {})
@@ -516,10 +511,10 @@ export default function SensoryHero({ onBack }) {
                       setSealing(false)
                     }, 550)
                   }}
-                  className={`pointer-events-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-xs uppercase tracking-widest font-black flex items-center gap-2 border border-[#D4AF37] shadow-[0_10px_30px_rgba(186,12,47,0.4)] transition-all hover:scale-105 active:scale-95 ${!isAtEnd ? 'opacity-90' : 'animate-pulse'}`}
+                  className={`pointer-events-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-xs uppercase tracking-widest font-black flex items-center gap-2 border border-[#D4AF37] shadow-[0_10px_30px_rgba(186,12,47,0.4)] transition-all hover:scale-105 active:scale-95 ${!isAtEnd ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
                 >
                   <BookOpen size={13} className="text-[#D4AF37]" />
-                  <span>{sealing ? 'Confirming...' : 'Confirm Itinerary'}</span>
+                  <span>{sealing ? 'Confirming...' : isAtEnd ? 'Confirm Itinerary' : 'Scroll to review all stops'}</span>
                 </button>
               </div>
             </>
@@ -549,7 +544,7 @@ export default function SensoryHero({ onBack }) {
             </div>
             
             <div className="w-full max-w-[200px] bg-red-500/10 h-1.5 rounded-full overflow-hidden relative">
-              <div className="h-full bg-[#A80D27] rounded-full animate-pulse w-3/4" />
+              <div className="h-full bg-[#A80D27] rounded-full transition-all duration-300 ease-out" style={{ width: `${Math.min(100, (terminalLogs.length / guidePhrases.length) * 100)}%` }} />
             </div>
             
             <button

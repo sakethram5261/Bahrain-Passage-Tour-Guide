@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react'
 import gsap from 'gsap'
 import { useVibe } from '../hooks/useVibe'
+import { ArrowLeft } from 'lucide-react'
 
 const MOODS = [
   {
@@ -37,7 +38,7 @@ const MOODS = [
   },
 ]
 
-export default function MoodSelector({ onConfirm }) {
+export default function MoodSelector({ onConfirm, onBack }) {
   const { selectedMoods, setSelectedMoods, duration, setDuration } = useVibe()
 
   const containerRef = useRef(null)
@@ -57,6 +58,12 @@ export default function MoodSelector({ onConfirm }) {
       )
     })
   }, [])
+
+  useEffect(() => {
+    const handleKey = (e) => { if (e.key === 'Escape' && onBack) onBack() }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onBack])
 
   const toggle = (id) => {
     setSelectedMoods(prev =>
@@ -134,6 +141,17 @@ export default function MoodSelector({ onConfirm }) {
           style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.12) 0%, transparent 70%)' }}
         />
 
+        {/* Back button */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            aria-label="Go back"
+            className="absolute top-4 left-4 z-20 w-9 h-9 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white cursor-pointer transition-all active:scale-90"
+          >
+            <ArrowLeft size={16} />
+          </button>
+        )}
+
         {/* Decorative compass rose */}
         <svg viewBox="0 0 100 100" className="absolute right-6 top-3 opacity-10 w-24 h-24 md:w-32 md:h-32" fill="none" stroke="white" strokeWidth="0.6">
           <circle cx="50" cy="50" r="42" strokeDasharray="3,4" />
@@ -165,15 +183,17 @@ export default function MoodSelector({ onConfirm }) {
           {MOODS.map((mood, i) => {
             const active = selectedMoods.includes(mood.id)
             return (
-              <button
-                key={mood.id}
-                ref={el => cardsRef.current[i] = el}
-                onClick={() => toggle(mood.id)}
-                onMouseMove={(e) => handleMouseMove(e, cardsRef.current[i])}
-                onMouseLeave={() => handleMouseLeave(cardsRef.current[i], active)}
-                className={`relative rounded-2xl p-4 text-left cursor-pointer group overflow-hidden ${
-                  active ? 'jn-vibe-card-active-glow' : 'jn-vibe-card-glow'
-                }`}
+                <button
+                  key={mood.id}
+                  ref={el => cardsRef.current[i] = el}
+                  onClick={() => toggle(mood.id)}
+                  onMouseMove={(e) => handleMouseMove(e, cardsRef.current[i])}
+                  onMouseLeave={() => handleMouseLeave(cardsRef.current[i], active)}
+                  aria-pressed={active}
+                  aria-label={`${mood.label} - ${mood.tagline}${active ? ' (selected)' : ''}`}
+                  className={`relative rounded-2xl p-4 text-left cursor-pointer group overflow-hidden ${
+                    active ? 'jn-vibe-card-active-glow' : 'jn-vibe-card-glow'
+                  }`}
                 style={{
                   perspective: '1000px',
                   transformStyle: 'preserve-3d',
@@ -236,7 +256,7 @@ export default function MoodSelector({ onConfirm }) {
                     </div>
                   </div>
 
-                  <div>
+                    <div>
                     <div className="flex items-baseline gap-2 flex-wrap">
                       <span
                         className="font-serif text-xl font-semibold"
@@ -246,14 +266,14 @@ export default function MoodSelector({ onConfirm }) {
                       </span>
                       <span
                         className="font-sans text-[12px]"
-                        style={{ color: active ? 'rgba(255,255,255,0.65)' : 'rgba(92,84,81,0.5)' }}
+                        style={{ color: active ? 'rgba(255,255,255,0.75)' : 'rgba(92,84,81,0.6)' }}
                       >
                         {mood.arabic}
                       </span>
                     </div>
                     <p
                       className="text-[13px] mt-0.5 leading-snug font-sans"
-                      style={{ color: active ? 'rgba(255,255,255,0.8)' : '#5C5451' }}
+                      style={{ color: active ? 'rgba(255,255,255,0.9)' : '#5C5451' }}
                     >
                       {mood.tagline}
                     </p>
@@ -291,16 +311,27 @@ export default function MoodSelector({ onConfirm }) {
             ⏳ How long is your Bahrain stay?
           </label>
           
-          <div className="relative mt-3">
+          <div className="relative mt-3 flex items-center gap-1">
+            <button
+              onClick={() => {
+                const el = document.getElementById('duration-scroll')
+                if (el) el.scrollBy({ left: -120, behavior: 'smooth' })
+              }}
+              aria-label="Scroll left"
+              className="shrink-0 w-7 h-7 rounded-full bg-white border border-red-500/15 flex items-center justify-center text-[#5C5451] hover:bg-red-50 cursor-pointer transition-all"
+            >
+              ◀
+            </button>
             <div 
-              className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory"
+              id="duration-scroll"
+              className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory flex-1"
               style={{
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none',
                 overscrollBehaviorX: 'contain',
                 scrollPadding: '0 12px',
                 paddingLeft: '4px',
-                paddingRight: '16px',
+                paddingRight: '4px',
               }}
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((d) => {
@@ -324,9 +355,16 @@ export default function MoodSelector({ onConfirm }) {
                 )
               })}
             </div>
-            {/* Scroll fade overlays */}
-            <div className="absolute top-0 bottom-2 left-0 w-6 bg-gradient-to-r from-white to-transparent pointer-events-none opacity-60" />
-            <div className="absolute top-0 bottom-2 right-0 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none opacity-80" />
+            <button
+              onClick={() => {
+                const el = document.getElementById('duration-scroll')
+                if (el) el.scrollBy({ left: 120, behavior: 'smooth' })
+              }}
+              aria-label="Scroll right"
+              className="shrink-0 w-7 h-7 rounded-full bg-white border border-red-500/15 flex items-center justify-center text-[#5C5451] hover:bg-red-50 cursor-pointer transition-all"
+            >
+              ▶
+            </button>
           </div>
         </div>
 
