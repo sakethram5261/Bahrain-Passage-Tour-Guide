@@ -896,15 +896,15 @@ export default function Dashboard() {
 
                       return [
                         { 
-                          src: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=1200&q=80', 
+                          src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bab_al-Bahrain_Souq_1.jpg', 
                           alt: 'Showcase Snap: Bab Al Bahrain' 
                         },
                         { 
-                          src: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=1200&q=80', 
-                          alt: 'Showcase Snap: Al Fateh Grand Mosque' 
+                          src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bahrain_National_Museum_Exterior_1.jpg', 
+                          alt: 'Showcase Snap: Bahrain National Museum' 
                         },
                         { 
-                          src: 'https://images.unsplash.com/photo-1585123334904-845d60e97b29?auto=format&fit=crop&w=1200&q=80', 
+                          src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG', 
                           alt: 'Showcase Snap: Qal\'at al-Bahrain (Bahrain Fort)' 
                         }
                       ];

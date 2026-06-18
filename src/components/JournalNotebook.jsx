@@ -1151,7 +1151,7 @@ export default function JournalNotebook({ onBack }) {
                 <div className="jn-mobile-context-bar block md:hidden">
                   <div className="jn-mobile-context-content">
                     <img 
-                      src={activeSpot.image || 'https://images.unsplash.com/photo-1585123334904-845d60e97b29?auto=format&fit=crop&w=120&q=80'} 
+                      src={activeSpot.image || 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'} 
                       alt="" 
                       className="jn-mobile-context-thumb" 
                     />
