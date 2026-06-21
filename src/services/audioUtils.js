@@ -78,6 +78,98 @@ export function playPageSwish(soundVolume = 1, soundMuted = false) {
   } catch { /* ignore */ }
 }
 
+export function playOudPluck(soundVolume = 1, soundMuted = false) {
+  if (soundMuted) return
+  const ctx = getAudioContext()
+  if (!ctx) return
+  try {
+    const playString = (frequency, delayTime, gainVolume) => {
+      const osc = ctx.createOscillator()
+      const gainNode = ctx.createGain()
+      
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(frequency, ctx.currentTime + delayTime)
+      
+      gainNode.gain.setValueAtTime(0, ctx.currentTime + delayTime)
+      gainNode.gain.linearRampToValueAtTime(gainVolume * soundVolume, ctx.currentTime + delayTime + 0.02)
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delayTime + 1.2)
+      
+      osc.connect(gainNode)
+      gainNode.connect(ctx.destination)
+      
+      osc.start(ctx.currentTime + delayTime)
+      osc.stop(ctx.currentTime + delayTime + 1.3)
+    }
+    
+    playString(146.83, 0.0, 0.22)   // D3
+    playString(220.00, 0.04, 0.16)  // A3
+    playString(293.66, 0.08, 0.12)  // D4
+  } catch { /* ignore */ }
+}
+
+export function playDiscoverySuccess(soundVolume = 1, soundMuted = false) {
+  if (soundMuted) return
+  const ctx = getAudioContext()
+  if (!ctx) return
+  try {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'triangle'
+    osc.frequency.setValueAtTime(523.25, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.35)
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.08 * soundVolume, ctx.currentTime + 0.05)
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.5)
+  } catch { /* ignore */ }
+}
+
+export function playScanBeep(freq = 800, duration = 0.08, soundVolume = 1, soundMuted = false) {
+  if (soundMuted) return
+  const ctx = getAudioContext()
+  if (!ctx) return
+  try {
+    const osc = ctx.createOscillator()
+    const gainNode = ctx.createGain()
+    
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(freq, ctx.currentTime)
+    
+    gainNode.gain.setValueAtTime(0, ctx.currentTime)
+    gainNode.gain.linearRampToValueAtTime(0.04 * soundVolume, ctx.currentTime + 0.01)
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration - 0.01)
+    
+    osc.connect(gainNode)
+    gainNode.connect(ctx.destination)
+    
+    osc.start()
+    osc.stop(ctx.currentTime + duration)
+  } catch { /* ignore */ }
+}
+
+export function playCampStampSound(soundVolume = 1, soundMuted = false) {
+  if (soundMuted) return
+  const ctx = getAudioContext()
+  if (!ctx) return
+  try {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime) // D5
+    osc.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.15) // D6
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.08 * soundVolume, ctx.currentTime + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.5)
+  } catch { /* ignore */ }
+}
+
 export function resetAudioContext() {
   if (audioCtx) {
     audioCtx.close()

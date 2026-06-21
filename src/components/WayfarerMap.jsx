@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useVibe } from '../hooks/useVibe'
 import { spotsCatalog } from '../hooks/useItinerary'
 import { callLocalAI, buildSpotNarratorPrompt, buildLocationNavPrompt } from '../services/aiService'
+import { playDiscoverySuccess } from '../services/audioUtils'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MIN_LAT = 25.95
@@ -381,19 +382,7 @@ export default function WayfarerMap({ locations, onClose }) {
       awardXP(100, 'Dilmun Pearl riddle solved')
       if (!passportStamps.includes(spot.id)) setPassportStamps(prev => [...prev, spot.id])
       setPearlAlert({ success: true, text: `TREASURE FOUND! ${spot.name} — +350 Fils, +100 XP!` })
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)()
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.type = 'triangle'
-        osc.frequency.setValueAtTime(523.25, ctx.currentTime)
-        osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.35)
-        gain.gain.setValueAtTime(0, ctx.currentTime)
-        gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.05)
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5)
-        osc.connect(gain); gain.connect(ctx.destination)
-        osc.start(); osc.stop(ctx.currentTime + 0.5)
-      } catch { /* ignore */ }
+      playDiscoverySuccess(1.0, !soundVolume || soundMuted)
       setTimeout(() => setPearlChestAnim(null), 3500)
       handleSpotClick(spot)
     } else {

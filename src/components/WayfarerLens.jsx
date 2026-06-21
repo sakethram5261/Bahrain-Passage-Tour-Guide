@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { useVibe } from '../hooks/useVibe'
 import { fetchSpotStory } from '../services/itinerary-service'
+import { playScanBeep as playScanBeepShared } from '../services/audioUtils'
 
 export default function WayfarerLens({ spot, onClose }) {
   const { 
@@ -10,7 +11,9 @@ export default function WayfarerLens({ spot, onClose }) {
     saveLensStory, 
     lensStories, 
     unlockKeepsake,
-    capturedPhotos = {}
+    capturedPhotos = {},
+    soundVolume,
+    soundMuted
   } = useVibe()
   
   const videoRef = useRef(null)
@@ -78,26 +81,7 @@ export default function WayfarerLens({ spot, onClose }) {
   }, [captured])
 
   const playScanBeep = (freq = 800, duration = 0.08) => {
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext
-      if (!AudioContext) return
-      const audioCtx = new AudioContext()
-      const osc = audioCtx.createOscillator()
-      const gainNode = audioCtx.createGain()
-      
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime)
-      
-      gainNode.gain.setValueAtTime(0, audioCtx.currentTime)
-      gainNode.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.01)
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration - 0.01)
-      
-      osc.connect(gainNode)
-      gainNode.connect(audioCtx.destination)
-      
-      osc.start()
-      osc.stop(audioCtx.currentTime + duration)
-    } catch { /* ignore */ }
+    playScanBeepShared(freq, duration, soundVolume, soundMuted)
   }
 
   const handleCapture = async () => {

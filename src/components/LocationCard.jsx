@@ -1,5 +1,6 @@
 import { useVibe } from '../hooks/useVibe'
 import { ShieldAlert, Sun, Clock } from 'lucide-react'
+import { playTypewriterClick } from '../services/audioUtils'
 
 // Helper to calculate estimated home currency equivalents
 const getHomeCurrencyEquivalent = (costStr) => {
@@ -108,42 +109,6 @@ export default function LocationCard({ spot, onScan }) {
   } = useVibe()
   
   const hasKeepsake = collectedKeepsakes && collectedKeepsakes.includes(spot.id)
-
-  const playTypewriterClick = () => {
-    if (soundMuted) return
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext
-      if (!AudioContext) return
-      
-      const audioCtx = new AudioContext()
-      const osc = audioCtx.createOscillator()
-      const gainNode = audioCtx.createGain()
-      const filter = audioCtx.createBiquadFilter()
-      
-      osc.type = 'sine'
-      const pitchMultiplier = 0.95 + Math.random() * 0.15
-      const startFreq = 1100 * pitchMultiplier
-      osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime)
-      osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.04)
-      
-      filter.type = 'bandpass'
-      filter.frequency.setValueAtTime(550, audioCtx.currentTime)
-      filter.Q.setValueAtTime(4, audioCtx.currentTime)
-      
-      gainNode.gain.setValueAtTime(0, audioCtx.currentTime)
-      gainNode.gain.linearRampToValueAtTime(0.08 * soundVolume, audioCtx.currentTime + 0.003) // Very rapid click strike
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03) // Rapid decay
-      
-      osc.connect(filter)
-      filter.connect(gainNode)
-      gainNode.connect(audioCtx.destination)
-      
-      osc.start()
-      osc.stop(audioCtx.currentTime + 0.035)
-    } catch (e) {
-      console.error('Typewriter sound play failed:', e)
-    }
-  }
 
   return (
     <div className="glass-panel rounded-3xl overflow-hidden p-6 md:p-8 flex flex-col transition-all duration-500 hover:shadow-md hover:border-red-500/10 w-full max-w-4xl mx-auto">
@@ -279,25 +244,22 @@ export default function LocationCard({ spot, onScan }) {
               </p>
             </div>
 
-            {/* Lined Notebook Paper: Wanderlust Reflections */}
-            <div className="p-4.5 rounded-2xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white">
+            {/* Diary Reflections */}
+            <div className="p-4 rounded-2xl border border-stone-200 bg-white dark:bg-[#1C1816] shadow-sm relative overflow-hidden">
               <div className="flex justify-between items-center mb-2">
-                <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
+                <span className="font-sans text-[9px] tracking-wider uppercase text-neutral-400 font-extrabold flex items-center gap-1">
                   Notes
-                </span>
-                <span className="font-serif text-[8px] text-bronze-muted/60 italic font-medium select-none">
-                  Lined paper ledger
                 </span>
               </div>
               <textarea
                 value={journalReflections[spot.id] || ''}
                 onChange={(e) => {
                   saveJournalReflection(spot.id, e.target.value)
-                  playTypewriterClick()
+                  playTypewriterClick(1.0, soundVolume, soundMuted)
                 }}
-                placeholder="Type your physical journal thoughts here... (typewriter key feedback enabled)"
+                placeholder="Jot down your notes and memories..."
                 rows="3"
-                className="w-full text-xs font-serif text-bronze-charcoal placeholder-bronze-muted/30 lined-notepad-paper border-none focus:outline-none resize-none focus:ring-0 leading-6 bg-transparent"
+                className="w-full text-xs font-sans text-stone-700 dark:text-stone-300 placeholder-stone-400 border-none focus:outline-none resize-none focus:ring-0 leading-6 bg-transparent"
               />
             </div>
 

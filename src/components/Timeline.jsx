@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { useVibe } from '../hooks/useVibe'
 import LocationCard from './LocationCard'
+import { playOudPluck } from '../services/audioUtils'
 
 const dayThemes = {
   1: { 
@@ -144,38 +145,10 @@ export default function Timeline({ locations, loading, onScan }) {
       
       window.speechSynthesis.speak(utterance)
       
-      // 2. Physics-Modeled Traditional Oud Lute Pluck (Pure Web Audio Synthesis)
-      const AudioContext = window.AudioContext || window.webkitAudioContext
-      if (!AudioContext) return
-      
-      const audioCtx = new AudioContext()
-      
-      const playString = (frequency, delayTime, gainVolume) => {
-        const osc = audioCtx.createOscillator()
-        const gainNode = audioCtx.createGain()
-        
-        // Triangle wave offers a warm, hollow hollow resonance matching wooden lute bodies
-        osc.type = 'triangle'
-        osc.frequency.setValueAtTime(frequency, audioCtx.currentTime + delayTime)
-        
-        // Pluck envelope: zero start, instant rise, long exponential wood decay
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime + delayTime)
-        gainNode.gain.linearRampToValueAtTime(gainVolume * soundVolume, audioCtx.currentTime + delayTime + 0.02) // Fast attack plucking
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + delayTime + 1.2) // Dampened decay
-        
-        osc.connect(gainNode)
-        gainNode.connect(audioCtx.destination)
-        
-        osc.start(audioCtx.currentTime + delayTime)
-        osc.stop(audioCtx.currentTime + delayTime + 1.3)
-      }
-      
-      // Pluck a warm traditional Arabic D-minor maqam chord progression
-      playString(146.83, 0.0, 0.22)   // D3 (Deep wood resonance)
-      playString(220.00, 0.04, 0.16)  // A3 (Warm fifth support)
-      playString(293.66, 0.08, 0.12)  // D4 (Melodic octave pluck)
+      // 2. Play Shared traditional Arabic Oud Lute Pluck
+      playOudPluck(soundVolume, soundMuted)
     } catch (e) {
-      console.error('Speech plucker or AudioContext warm-up failed:', e)
+      console.error('Speech plucker failed:', e)
     }
   }
 
