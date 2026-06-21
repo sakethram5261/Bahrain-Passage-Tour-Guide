@@ -207,14 +207,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
                   transition: 'border 0.25s, box-shadow 0.25s, background 0.25s',
                 }}
               >
-                {/* Inner stitch-border for antique travel ledger feel */}
-                <div
-                  className="absolute inset-1.5 rounded-[12px] pointer-events-none"
-                  style={{
-                    border: `1.2px dashed ${active ? 'rgba(255,255,255,0.25)' : 'rgba(193,18,47,0.15)'}`,
-                    transform: 'translateZ(10px)',
-                  }}
-                />
+
 
                 {/* Hover effect for inactive */}
                 {!active && (
@@ -238,21 +231,13 @@ export default function MoodSelector({ onConfirm, onBack }) {
                       <span className="text-xl">{mood.icon}</span>
                     </div>
 
-                    {/* Glowing Gold Stamp / Badge Selector */}
+                    {/* Simple Checkmark Circle */}
                     <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 transition-all duration-300"
-                      style={{
-                        background: active 
-                          ? 'linear-gradient(135deg, #FFE082 0%, #D4AF37 50%, #B38F24 100%)' 
-                          : 'rgba(139,90,75,0.08)',
-                        color: active ? '#2A2321' : 'transparent',
-                        border: `1.5px solid ${active ? '#FAF9F6' : 'rgba(139,90,75,0.2)'}`,
-                        boxShadow: active 
-                          ? '0 0 8px #D4AF37, inset 0 1px 0 rgba(255,255,255,0.3)' 
-                          : 'none',
-                      }}
+                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all duration-200 border ${
+                        active ? 'bg-[#C1122F] border-[#C1122F] text-white' : 'border-[#D6D3D1] text-transparent'
+                      }`}
                     >
-                      ★
+                      ✓
                     </div>
                   </div>
 
@@ -308,7 +293,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
           }}
         >
           <label className="font-serif text-[14.5px] font-extrabold text-[#2A2321] flex items-center justify-center md:justify-start gap-1.5">
-            ⏳ How long is your Bahrain stay?
+            How long is your stay?
           </label>
           
           <div className="relative mt-3 flex items-center gap-1">
@@ -373,21 +358,19 @@ export default function MoodSelector({ onConfirm, onBack }) {
           <button
             onClick={handleConfirm}
             disabled={noneSelected}
-            className={`w-full py-4 rounded-xl font-sans font-bold text-sm tracking-widest uppercase transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] ${
-              !noneSelected ? 'jn-pulse-gold-btn' : ''
-            }`}
+            className="w-full py-4 rounded-xl font-sans font-bold text-sm tracking-widest uppercase transition-all duration-200 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
             style={{
               height: '54px',
               background: noneSelected
-                ? 'rgba(193,18,47,0.1)'
-                : 'linear-gradient(135deg, #C1122F 0%, #8f0d22 100%)',
-              color: noneSelected ? 'rgba(193,18,47,0.45)' : '#fff',
+                ? 'var(--color-surface-2)'
+                : 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+              color: noneSelected ? 'var(--color-text-faint)' : '#fff',
               border: noneSelected 
-                ? '1.5px dashed rgba(193,18,47,0.25)' 
-                : '2px solid #D4AF37',
+                ? '1px dashed var(--color-border)' 
+                : 'none',
               boxShadow: noneSelected
                 ? 'none'
-                : '0 8px 24px rgba(193,18,47,0.4), 0 2px 6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+                : 'var(--shadow-md)',
             }}
           >
             {noneSelected

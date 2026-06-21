@@ -15,6 +15,23 @@
 
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import gsap from 'gsap'
+import { 
+  Calendar, 
+  MapPin, 
+  Map, 
+  Hotel, 
+  Gift, 
+  BookOpen, 
+  Lock, 
+  Zap, 
+  Compass, 
+  Sparkles,
+  MessageSquare,
+  HelpCircle,
+  Volume2,
+  VolumeX,
+  Languages
+} from 'lucide-react'
 import { useVibe } from '../hooks/useVibe'
 import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
 import VirtualTour from './VirtualTour'
@@ -38,12 +55,12 @@ const TourChatbot = lazy(() => import('./TourChatbot'))
 
 /* ─── Tabs definition ──────────────────────────────────────────────────────── */
 const TABS = [
-  { id: 'info',       label: 'Today',    emoji: '📅' },
-  { id: 'itinerary',  label: 'Route',    emoji: '📍' },
-  { id: 'map',        label: 'Map',      emoji: '🗺️' },
-  { id: 'hotels',     label: 'Hotels',   emoji: '🏨' },
-  { id: 'souvenirs',  label: 'Souvenirs',emoji: '🪙' },
-  { id: 'phrasebook', label: 'Phrases',  emoji: '📜' },
+  { id: 'info',       label: 'Today' },
+  { id: 'itinerary',  label: 'Route' },
+  { id: 'map',        label: 'Map' },
+  { id: 'hotels',     label: 'Hotels' },
+  { id: 'souvenirs',  label: 'Souvenirs' },
+  { id: 'phrasebook', label: 'Phrases' },
 ]
 
 
@@ -671,28 +688,28 @@ export default function JournalNotebook({ onBack }) {
         {RIDDLES[activeSpot.id] && (
           <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70">
             <div className="flex justify-between items-center mb-2 select-none">
-              <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
+              <span className="font-sans text-[11px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
                 Riddle
               </span>
               {solvedRiddles[activeSpot.id] ? (
-                <span className="text-[8px] bg-green-100 text-green-800 font-extrabold px-1.5 py-0.5 rounded-full">
+                <span className="text-[11px] bg-green-100 text-green-800 font-extrabold px-2 py-0.5 rounded-full">
                   ✓ Solved (+35 XP)
                 </span>
               ) : (
-                <span className="text-[8px] bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">
+                <span className="text-[11px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full">
                   Unsolved (+35 XP)
                 </span>
               )}
             </div>
 
-            <p className="font-serif text-[10.5px] text-bronze-charcoal leading-relaxed font-bold mb-3">
+            <p className="font-serif text-[14px] text-bronze-charcoal leading-relaxed font-bold mb-3">
               "{RIDDLES[activeSpot.id].question}"
             </p>
 
             {solvedRiddles[activeSpot.id] ? (
               <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/10 space-y-1">
-                <p className="font-sans text-[8px] uppercase tracking-wider text-green-700 font-extrabold select-none">Insider Discovery Reveal:</p>
-                <p className="font-serif text-[9.5px] text-bronze-charcoal leading-relaxed italic font-semibold">
+                <p className="font-sans text-[11px] uppercase tracking-wider text-green-700 font-extrabold select-none">Insider Discovery Reveal:</p>
+                <p className="font-serif text-[13px] text-bronze-charcoal leading-relaxed italic font-semibold">
                   {RIDDLES[activeSpot.id].insider}
                 </p>
               </div>
@@ -702,13 +719,13 @@ export default function JournalNotebook({ onBack }) {
                   <button
                     key={oIdx}
                     onClick={() => handleAnswerRiddle(oIdx)}
-                    className="w-full p-2 text-left rounded-lg border border-red-500/10 hover:border-bahrain-red bg-white hover:bg-red-500/5 text-[9px] font-sans font-bold text-bronze-charcoal transition-all cursor-pointer active:scale-99"
+                    className="w-full p-2.5 text-left rounded-lg border border-red-500/10 hover:border-bahrain-red bg-white hover:bg-red-500/5 text-[13px] font-sans font-bold text-bronze-charcoal transition-all cursor-pointer active:scale-99"
                   >
                     {opt}
                   </button>
                 ))}
                 {riddleError && (
-                  <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-sans text-[9px] font-bold animate-scaleIn select-none">
+                  <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-sans text-[11px] font-bold animate-scaleIn select-none">
                     ❌ {riddleError}
                   </div>
                 )}
@@ -744,7 +761,7 @@ export default function JournalNotebook({ onBack }) {
               letterSpacing: '0.05em',
             }}
           >
-            {currentSpotIndex === activeSpots.length - 1 ? 'Go to Sealing Chamber 🔒' : `Next Itinerary Item ${isRTL ? '←' : '➜'}`}
+            {currentSpotIndex === activeSpots.length - 1 ? 'Complete Day' : `Next Stop ${isRTL ? '←' : '→'}`}
           </button>
         </div>
       </div>
@@ -772,7 +789,6 @@ export default function JournalNotebook({ onBack }) {
           <div className="jn-header-right" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             {/* XP progress pill */}
             <div className="jn-xp-pill" aria-label={`${displayXP} XP earned`}>
-              <span className="jn-xp-icon">⚡</span>
               <span className="jn-xp-num">{displayXP} XP</span>
             </div>
 
@@ -782,7 +798,6 @@ export default function JournalNotebook({ onBack }) {
               className="jn-utility-btn-rank"
               title="View Explorer Passport"
             >
-              <span>🗺️</span>
               <span>{rank.label}</span>
             </button>
 
@@ -812,12 +827,12 @@ export default function JournalNotebook({ onBack }) {
         >
           {activeSpot && hasVirtualTour(activeSpot.id) && (
             <button className="jn-mob-nav-btn" onClick={() => { setTourOpen(true); setMenuOpen(false) }}>
-              🎬 Virtual Tour
+              Virtual Tour
             </button>
           )}
           {onBack && (
             <button className="jn-mob-nav-btn jn-mob-nav-btn--back" onClick={onBack}>
-              {isRTL ? 'Adjust Vibe Settings ➜' : '← Adjust Vibe Settings'}
+              {isRTL ? 'Edit Trip →' : '← Edit Trip'}
             </button>
           )}
         </div>
@@ -831,25 +846,41 @@ export default function JournalNotebook({ onBack }) {
         {/* ── INTEGRATED PAGE NAVIGATION (Tabbed System for Book UI) ── */}
         <div className="jn-book-tabs-container">
           <nav className="jn-book-tabs" role="tablist" aria-label="Journal sections">
-            {TABS.map(t => (
-              <button
-                key={t.id}
-                id={`tab-${t.id}`}
-                role="tab"
-                aria-selected={activeTab === t.id}
-                aria-controls={`panel-${t.id}`}
-                className={`jn-book-tab-pill ${activeTab === t.id ? 'active' : ''}`}
-                onClick={(e) => switchTab(t.id, e)}
-              >
-                <span className="jn-tab-emoji">{t.emoji}</span>
-                <span className="jn-tab-label">{t.label}</span>
-                {t.id === 'souvenirs' && collectedKeepsakes.length > 0 && (
-                  <span className="jn-tab-badge">
-                    {collectedKeepsakes.length}
+            {TABS.map(t => {
+              const TabIcon = ({ id }) => {
+                const size = 14;
+                switch (id) {
+                  case 'info': return <Calendar size={size} />;
+                  case 'itinerary': return <MapPin size={size} />;
+                  case 'map': return <Map size={size} />;
+                  case 'hotels': return <Hotel size={size} />;
+                  case 'souvenirs': return <Gift size={size} />;
+                  case 'phrasebook': return <BookOpen size={size} />;
+                  default: return null;
+                }
+              };
+              return (
+                <button
+                  key={t.id}
+                  id={`tab-${t.id}`}
+                  role="tab"
+                  aria-selected={activeTab === t.id}
+                  aria-controls={`panel-${t.id}`}
+                  className={`jn-book-tab-pill ${activeTab === t.id ? 'active' : ''}`}
+                  onClick={(e) => switchTab(t.id, e)}
+                >
+                  <span className="jn-tab-emoji" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <TabIcon id={t.id} />
                   </span>
-                )}
-              </button>
-            ))}
+                  <span className="jn-tab-label">{t.label}</span>
+                  {t.id === 'souvenirs' && collectedKeepsakes.length > 0 && (
+                    <span className="jn-tab-badge">
+                      {collectedKeepsakes.length}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
         </div>
 
@@ -867,18 +898,17 @@ export default function JournalNotebook({ onBack }) {
             <div key={tabKey} className="jn-page-anim-wrap">
               {loading ? (
                 <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-                  <span className="jn-tag jn-tag--amber animate-pulse">⏳ Loading...</span>
+                  <span className="jn-tag jn-tag--amber">Loading...</span>
                 </div>
               ) : !hasSpots ? (
                 <div style={{ padding: '40px 20px', textAlign: 'center' }} className="space-y-4">
-                  <span style={{ fontSize: '40px', display: 'block' }}>🏜️</span>
-                  <h3 className="jn-section-title" style={{ textAlign: 'center' }}>No landmarks on custom route</h3>
+                  <h3 className="jn-section-title" style={{ textAlign: 'center' }}>No stops on this route</h3>
                   <p className="jn-description" style={{ textAlign: 'center' }}>
-                    Adjust your settings to assemble an authentic itinerary matching your vibes.
+                    Adjust your settings to build an itinerary matching your interests.
                   </p>
                   {onBack && (
                     <button className="jn-action-btn jn-action-btn--primary" onClick={onBack}>
-                      Adjust Vibe Settings
+                      Edit Trip Settings
                     </button>
                   )}
                 </div>
@@ -886,8 +916,8 @@ export default function JournalNotebook({ onBack }) {
                 /* ─── SEAL DAY PANEL ─── */
                 <div className="space-y-6" style={{ padding: '10px 0' }}>
                   <div className="jn-section-heading">
-                    <h2 className="jn-section-title">Chapter Sealed</h2>
-                    <span className="jn-section-subtitle">Day {currentDayTab} Passkey verification</span>
+                    <h2 className="jn-section-title">Day Complete</h2>
+                    <span className="jn-section-subtitle">Day {currentDayTab} Summary</span>
                   </div>
                   
                   <hr className="jn-divider" aria-hidden="true" />
@@ -922,25 +952,24 @@ export default function JournalNotebook({ onBack }) {
 
                     {!isDayCompleted ? (
                       <div style={{ textAlign: 'center', padding: '20px 10px' }} className="space-y-4">
-                        <span style={{ fontSize: '40px', display: 'block' }}>🔒</span>
                         <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '18px', color: 'var(--jn-ink)', fontWeight: 'bold' }}>
                           Complete Day {currentDayTab}
                         </h4>
                         <p className="jn-description" style={{ textAlign: 'center', fontSize: '12px' }}>
-                          You've visited all locations. Seal this chapter to earn the insider reward.
+                          You've visited all locations. Complete this day to earn the insider reward.
                         </p>
                         <button
                           onClick={handleSealDay}
                           className="jn-action-btn jn-action-btn--primary"
                         >
-                           Seal Day
+                           Complete Day
                         </button>
                       </div>
                     ) : (
                       <div className={`space-y-4 ${isRTL ? 'text-right' : 'text-left'}`}>
                         <span className="jn-tag jn-tag--green" style={{ display: 'inline-flex' }}>✓ Day {currentDayTab} Verified</span>
                         <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '16px', color: 'var(--jn-ink)', fontWeight: 'bold' }}>
-                          Traditional Insider Passkey:
+                          Insider Tip:
                         </h4>
                         <div style={{ background: 'rgba(193,18,47,0.04)', border: '1px dashed var(--jn-crimson-mid)', padding: '15px', paddingRight: '75px', borderRadius: '12px', position: 'relative' }}>
                           <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '12px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--jn-ink-muted)' }}>
@@ -1037,7 +1066,7 @@ export default function JournalNotebook({ onBack }) {
                                   el.scrollTo({ top: 0, behavior: 'smooth' })
                                 }, 50)
                               }}
-                              className="jn-action-btn jn-action-btn--primary animate-pulse"
+                              className="jn-action-btn jn-action-btn--primary"
                               style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
@@ -1982,7 +2011,7 @@ export default function JournalNotebook({ onBack }) {
                   transform: chatOpen ? 'scale(0.92)' : 'scale(1)',
                 }}
               >
-                {chatOpen ? '✕' : '🤖'}
+                {chatOpen ? '✕' : <MessageSquare size={22} />}
               </button>
 
               {/* Chatbot panel — slides up when open */}
@@ -2043,7 +2072,7 @@ export default function JournalNotebook({ onBack }) {
         onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(212,175,55,0.6)' }}
         onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,175,55,0.4)' }}
       >
-        ⚡
+        <Zap size={18} />
       </button>
 
       {/* Quick Info Sheet */}

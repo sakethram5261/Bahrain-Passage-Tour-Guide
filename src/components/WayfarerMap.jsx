@@ -434,7 +434,7 @@ export default function WayfarerMap({ locations, onClose }) {
   `
 
   return (
-    <div className="fixed inset-0 z-[300] flex flex-col bg-[#0d0a09]/90 backdrop-blur-sm">
+    <div className="cartography-scroll-sheet z-[300]">
       <style>{mapStyles}</style>
 
       {/* ── Header ── */}

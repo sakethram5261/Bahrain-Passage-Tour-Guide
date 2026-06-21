@@ -193,7 +193,7 @@ export default function Timeline({ locations, loading, onScan }) {
       {/* Chapter Title block */}
       <div className="flex flex-col text-left pl-4 md:pl-0 mb-6 select-none">
         <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
-          Active Chronicle Page
+          Day {currentDayTab}
         </span>
         <h3 className="font-serif text-2xl text-bronze-charcoal font-semibold mt-1">
           {activeTheme.title}
@@ -208,7 +208,7 @@ export default function Timeline({ locations, loading, onScan }) {
         {!hasSpots ? (
           <div className="w-full py-16 text-center glass-panel rounded-3xl p-6 select-none">
             <p className="font-serif text-sm text-bronze-muted italic">
-              No daily passages aligned in your travel moods profile. Realign elements to custom curate.
+            No matching stops found for your interests. Adjust your preferences.
             </p>
           </div>
         ) : (
@@ -244,20 +244,20 @@ export default function Timeline({ locations, loading, onScan }) {
                       </div>
 
                       <span className="font-sans text-[8px] tracking-[0.2em] text-bahrain-red uppercase font-bold block mb-2 select-none">
-                        Passage Verification
+                        Day Complete
                       </span>
                       <h4 className="font-serif text-2xl text-bronze-charcoal font-semibold mb-3">
-                        Seal Day {currentDayTab}'s Passage
+                        Complete Day {currentDayTab}
                       </h4>
                       <p className="font-sans text-xs text-bronze-muted leading-relaxed mb-8">
-                        You have explored all landmarks for this daily chapter. Imprint your official custom border stamp to seal the path and lock in the Insider reward.
+                        You've explored all landmarks for this day. Mark it as complete to unlock the insider reward.
                       </p>
                       
                       <button
                         onClick={handleSealDay}
                         className="px-8 py-3 rounded-full bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer"
                       >
-                        Imprint Customs Stamp
+                        Complete Day
                       </button>
                     </div>
                   ) : (
@@ -268,11 +268,11 @@ export default function Timeline({ locations, loading, onScan }) {
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-green-600" />
                           <span className="font-sans text-[8px] tracking-widest uppercase text-green-700 font-bold select-none">
-                            Chronicle Page Sealed
+                            Day Complete
                           </span>
                         </div>
                         <h4 className="font-serif text-2xl text-bronze-charcoal font-semibold">
-                          Day {currentDayTab} Passkey Unlocked
+                          Day {currentDayTab} Insider Reward
                         </h4>
                         
                         <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex justify-between items-start gap-4">
@@ -292,7 +292,7 @@ export default function Timeline({ locations, loading, onScan }) {
                             onClick={() => setCurrentDayTab(currentDayTab + 1)}
                             className="px-5 py-2.5 rounded-lg border border-bahrain-red/20 text-bahrain-red hover:bg-red-500/5 text-[9px] uppercase tracking-widest font-bold transition-all cursor-pointer select-none"
                           >
-                            Open Next Chapter Page →
+                            Next Day →
                           </button>
                         )}
                       </div>
@@ -317,8 +317,8 @@ export default function Timeline({ locations, loading, onScan }) {
               
               <span className="font-sans text-[9px] tracking-wider uppercase text-bronze-muted/60 font-bold">
                 {isSealStep 
-                  ? `Sealing Passage (${currentSpotIndex + 1} of ${totalSteps})` 
-                  : `Logbook Step ${currentSpotIndex + 1} of ${totalSteps}`
+                  ? `Day Complete (${currentSpotIndex + 1} of ${totalSteps})` 
+                  : `Stop ${currentSpotIndex + 1} of ${totalSteps}`
                 }
               </span>
 
@@ -342,14 +342,14 @@ export default function Timeline({ locations, loading, onScan }) {
                   onClick={handlePrevStep}
                   className="px-4 py-1.5 rounded-lg border border-red-500/10 text-bronze-charcoal hover:bg-red-500/5 text-[9px] uppercase tracking-widest font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
                 >
-                  ← Turn Page
+                  ← Previous
                 </button>
                 <button
                   disabled={currentSpotIndex === totalSteps - 1}
                   onClick={handleNextStep}
                   className="px-4 py-1.5 rounded-lg border border-red-500/10 text-bronze-charcoal hover:bg-red-500/5 text-[9px] uppercase tracking-widest font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
                 >
-                  Turn Page →
+                  Next →
                 </button>
               </div>
 

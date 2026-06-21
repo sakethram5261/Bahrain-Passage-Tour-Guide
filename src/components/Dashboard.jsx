@@ -17,7 +17,7 @@ import AIHotelPanel from './AIHotelPanel'
 import AIBudgetAdvisor from './AIBudgetAdvisor'
 import AISpotSuggestion from './AISpotSuggestion'
 import { callLocalAI, buildRiddleHintPrompt } from '../services/aiService'
-import NauticalChronometer from './NauticalChronometer'
+import Clock from './Clock'
 
 export default function Dashboard() {
   const { 
@@ -423,7 +423,7 @@ export default function Dashboard() {
         </svg>
       </div>
 
-      <NauticalChronometer className="hidden lg:block desktop-prop-watch" style={{ opacity: 0.35 }} showSeconds={true} />
+      <Clock className="hidden lg:block desktop-prop-watch" style={{ opacity: 0.35 }} showSeconds={true} />
 
       <div className="hidden lg:block desktop-prop-passport" style={{ opacity: 0.35 }}>
         <svg viewBox="0 0 120 180" className="w-full h-auto">

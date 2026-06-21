@@ -245,20 +245,20 @@ export default function WayfarerLens({ spot, onClose }) {
         <div className="flex-1 flex flex-col items-center justify-center py-6">
           {scanning ? (
             /* Premium active optics scanning HUD view */
-            <div className="w-full max-w-sm p-6 rounded-2xl border border-amber-600/40 bg-[#f4f1e8] text-center select-none shadow-[0_4px_25px_rgba(184,134,11,0.18)] relative overflow-hidden animate-pulse">
-              {/* Scanning gold coordinates overlay flanking brackets */}
-              <div className="absolute top-4 left-4 font-mono text-[9px] text-amber-800 font-bold">
+            <div className="w-full max-w-sm p-6 rounded-2xl border border-[#C1122F]/20 bg-[#FAFAF9] text-center select-none shadow-md relative overflow-hidden">
+              {/* Scanning coordinates overlay */}
+              <div className="absolute top-4 left-4 font-mono text-[9px] text-[#C1122F] font-bold">
                 [ {spot.coords.split(',')[0] || '26.2285° N'} ]
               </div>
-              <div className="absolute top-4 right-4 font-mono text-[9px] text-amber-800 font-bold">
+              <div className="absolute top-4 right-4 font-mono text-[9px] text-[#C1122F] font-bold">
                 [ {spot.coords.split(',')[1]?.trim() || '50.5198° E'} ]
               </div>
 
-              {/* Glowing circular reticle with gold sweep bar */}
-              <div className="relative w-44 h-44 mx-auto rounded-full border-2 border-dashed border-amber-600/60 flex items-center justify-center bg-white/75 shadow-[inset_0_0_20px_rgba(217,119,6,0.1)] my-5 overflow-hidden">
+              {/* Glowing circular reticle with red sweep bar */}
+              <div className="relative w-44 h-44 mx-auto rounded-full border-2 border-dashed border-[#C1122F]/40 flex items-center justify-center bg-white shadow-[inset_0_0_20px_rgba(193,18,47,0.06)] my-5 overflow-hidden">
                 {/* Horizontal scanning sweep bar */}
                 <div 
-                  className="absolute left-0 right-0 h-1 bg-amber-600 shadow-[0_0_10px_#d97706] opacity-80"
+                  className="absolute left-0 right-0 h-1 bg-[#C1122F] shadow-[0_0_8px_#C1122F] opacity-80"
                   style={{
                     top: `${scanProgress}%`,
                     transition: 'top 0.1s linear'
@@ -266,8 +266,8 @@ export default function WayfarerLens({ spot, onClose }) {
                 />
                 
                 {/* Crosshairs */}
-                <div className="absolute w-6 h-px bg-amber-600/60" />
-                <div className="absolute h-6 w-px bg-amber-600/60" />
+                <div className="absolute w-6 h-px bg-[#C1122F]/40" />
+                <div className="absolute h-6 w-px bg-[#C1122F]/40" />
 
                 {/* Progress Circle Spinner */}
                 <svg className="absolute w-36 h-36 -rotate-90" viewBox="0 0 100 100">
@@ -275,7 +275,7 @@ export default function WayfarerLens({ spot, onClose }) {
                     cx="50"
                     cy="50"
                     r="45"
-                    stroke="rgba(217,119,6,0.1)"
+                    stroke="rgba(193,18,47,0.05)"
                     strokeWidth="2.5"
                     fill="none"
                   />
@@ -283,7 +283,7 @@ export default function WayfarerLens({ spot, onClose }) {
                     cx="50"
                     cy="50"
                     r="45"
-                    stroke="#b8860b"
+                    stroke="#C1122F"
                     strokeWidth="3"
                     fill="none"
                     strokeDasharray={2 * Math.PI * 45}
@@ -292,27 +292,27 @@ export default function WayfarerLens({ spot, onClose }) {
                   />
                 </svg>
 
-                <span className="font-mono text-xl font-bold text-amber-800 z-10">
+                <span className="font-mono text-xl font-bold text-[#C1122F] z-10">
                   {scanProgress}%
                 </span>
               </div>
 
               {/* Scrolling status log text */}
-              <div className="mt-4 bg-white/95 border border-amber-600/20 p-3 rounded-xl min-h-[60px] flex items-center justify-center">
-                <p className="font-mono text-[9px] text-amber-900 uppercase tracking-widest leading-relaxed font-bold">
+              <div className="mt-4 bg-white border border-neutral-200 p-3 rounded-xl min-h-[60px] flex items-center justify-center">
+                <p className="font-mono text-[9px] text-neutral-700 uppercase tracking-widest leading-relaxed font-bold">
                   {scanLog}
                 </p>
               </div>
 
-              <span className="font-sans text-[7px] tracking-[0.25em] text-amber-800/60 uppercase block mt-3.5 font-bold">
+              <span className="font-sans text-[7px] tracking-[0.25em] text-[#C1122F]/60 uppercase block mt-3.5 font-bold">
                 Do Not Move Device · Aligning Strata
               </span>
             </div>
           ) : !captured ? (
             <div className="flex flex-col items-center w-full">
               
-              {/* Retro Camera Reticle Round Frame */}
-              <div className="relative w-64 h-64 rounded-full border-4 border-amber-600/40 overflow-hidden shadow-[0_0_24px_rgba(0,0,0,0.55),_inset_0_0_16px_rgba(0,0,0,0.85)] mb-6 bg-zinc-950 flex items-center justify-center">
+              {/* Camera Viewfinder Viewport */}
+              <div className="relative w-64 h-64 rounded-2xl border border-white/20 overflow-hidden shadow-lg mb-6 bg-zinc-950 flex items-center justify-center">
                 
                 <div className="absolute inset-0 z-0">
                   {permission === 'granted' ? (
@@ -325,48 +325,41 @@ export default function WayfarerLens({ spot, onClose }) {
                     />
                   ) : (
                     /* High-fidelity mock viewfinder if permission denied */
-                    <div className="w-full h-full relative bg-bahrain-dark flex items-center justify-center">
-                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-bahrain-dark to-bahrain-dark/95 text-center select-none z-0">
-                        <span className="font-serif text-sm text-pearl-bg/85 font-medium italic tracking-wider z-10 truncate max-w-full px-2">
+                    <div className="w-full h-full relative bg-[#1C1917] flex items-center justify-center">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none z-0">
+                        <span className="font-serif text-sm text-white/80 font-medium italic tracking-wider z-10 truncate max-w-full px-2">
                           {spot.name}
                         </span>
-                        <span className="font-serif text-xs text-amber-500/80 mt-1 z-10 font-bold">
+                        <span className="font-serif text-xs text-[#C1122F] mt-1 z-10 font-bold">
                           {spot.arabic}
                         </span>
-                        <span className="font-sans text-[6px] text-pearl-bg/35 tracking-[0.2em] uppercase mt-2.5 z-10">
+                        <span className="font-sans text-[6px] text-white/40 tracking-[0.2em] uppercase mt-2.5 z-10">
                           Optical Scanner Port
                         </span>
                       </div>
                       <img 
                         src={spot.image} 
                         alt="mock camera view" 
-                        className="w-full h-full object-cover opacity-60 filter grayscale-[20%] relative z-10"
+                        className="w-full h-full object-cover opacity-50 relative z-10"
                         onError={(e) => {
                           e.target.style.display = 'none';
                         }}
                       />
-                      <div className="absolute inset-0 bg-red-950/20 z-20" />
-                      <div className="absolute inset-0 border border-dashed border-red-500/30 rounded-full scale-[0.85] z-25 pointer-events-none" />
-                      <span className="absolute bottom-4 left-1/2 -translate-x-1/2 font-sans text-[6px] tracking-widest text-white bg-black/70 px-2 py-0.5 rounded uppercase z-30 font-bold">
-                        Simulating Reticle
-                      </span>
                     </div>
                   )}
                 </div>
 
-                {/* Rotating Focus rings */}
-                <div 
-                  ref={ringRef}
-                  className="absolute inset-0 z-10 border border-dashed border-red-500/35 rounded-full scale-95" 
-                />
-
-                <div className="absolute inset-0 z-10 pointer-events-none border-[12px] border-amber-800/10 rounded-full" />
+                {/* Thin corner brackets */}
+                <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-[#C1122F]/60 rounded-tl" />
+                <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-[#C1122F]/60 rounded-tr" />
+                <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-[#C1122F]/60 rounded-bl" />
+                <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-[#C1122F]/60 rounded-br" />
                 
                 {/* Viewfinder crosshair */}
-                <div className="absolute z-20 w-3 h-3 border-l border-t border-red-500/60 top-1/2 left-1/2 -translate-x-3 -translate-y-3" />
-                <div className="absolute z-20 w-3 h-3 border-r border-t border-red-500/60 top-1/2 left-1/2 translate-x-1 -translate-y-3" />
-                <div className="absolute z-20 w-3 h-3 border-l border-b border-red-500/60 top-1/2 left-1/2 -translate-x-3 translate-y-1" />
-                <div className="absolute z-20 w-3 h-3 border-r border-b border-red-500/60 top-1/2 left-1/2 translate-x-1 translate-y-1" />
+                <div className="absolute z-20 w-3 h-3 border-l border-t border-[#C1122F]/60 top-1/2 left-1/2 -translate-x-3 -translate-y-3" />
+                <div className="absolute z-20 w-3 h-3 border-r border-t border-[#C1122F]/60 top-1/2 left-1/2 translate-x-1 -translate-y-3" />
+                <div className="absolute z-20 w-3 h-3 border-l border-b border-[#C1122F]/60 top-1/2 left-1/2 -translate-x-3 translate-y-1" />
+                <div className="absolute z-20 w-3 h-3 border-r border-b border-[#C1122F]/60 top-1/2 left-1/2 translate-x-1 translate-y-1" />
               </div>
 
               {/* Viewport instruction text */}

@@ -1182,38 +1182,9 @@ Always make sure the response is a valid JSON object. Do not include markdown co
               <div style={{ color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: '"Outfit", sans-serif', letterSpacing: 0.2 }}>
                 Bahrain Passage Guide
               </div>
-              <select
-                value={provider}
-                onChange={(e) => {
-                  setProvider(e.target.value)
-                  setApiError(null)
-                }}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  background: 'rgba(255,255,255,0.16)',
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  color: '#fff',
-                  fontSize: '12.5px',
-                  fontWeight: 600,
-                  padding: '2px 6px',
-                  borderRadius: '6px',
-                  marginTop: '4px',
-                  fontFamily: '"Outfit", sans-serif',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  width: 'fit-content',
-                  webkitAppearance: 'none',
-                  mozAppearance: 'none',
-                  appearance: 'none',
-                  textAlign: 'left',
-                }}
-              >
-                {deepSeekKey && <option value="deepseek" style={{ color: '#2A2321', background: '#fff' }}>DeepSeek</option>}
-                {openRouterKey && <option value="openrouter" style={{ color: '#2A2321', background: '#fff' }}>OpenRouter</option>}
-                {apiKey && <option value="gemini" style={{ color: '#2A2321', background: '#fff' }}>Gemini</option>}
-                {ollamaAvailable && <option value="ollama" style={{ color: '#2A2321', background: '#fff' }}>Ollama</option>}
-                <option value="fallback" style={{ color: '#2A2321', background: '#fff' }}>Offline Mode</option>
-              </select>
+              <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', fontWeight: 500, fontFamily: '"Outfit", sans-serif', marginTop: '2px' }}>
+                Local travel assistant
+              </div>
             </div>
             <div style={{
               width: 8, height: 8, borderRadius: '50%',
@@ -1368,7 +1339,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
 
           {/* Input */}
           <div style={{
-            padding: '10px 12px',
+            padding: '10px 12px 4px',
             borderTop: '1px solid rgba(209,26,56,0.1)',
             display: 'flex',
             gap: 8,
@@ -1417,6 +1388,18 @@ Always make sure the response is a valid JSON object. Do not include markdown co
             >
               ↑
             </button>
+          </div>
+          <div style={{
+            fontSize: '9px',
+            color: 'rgba(92,84,81,0.5)',
+            textAlign: 'center',
+            background: '#fff',
+            paddingBottom: '8px',
+            fontFamily: '"Outfit", sans-serif',
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+          }}>
+            Powered by {apiProviderName}
           </div>
         </div>
       )}

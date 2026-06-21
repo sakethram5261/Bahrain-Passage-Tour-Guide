@@ -5,9 +5,9 @@
 @import "./styles/journal-notebook.css";
 
 :root {
-  font-family: var(--font-sans);
-  color: var(--color-bronze-charcoal);
-  background-color: var(--color-pearl-100);
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-surface);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -17,13 +17,13 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background-color: var(--color-pearl-100);
+  background-color: var(--color-surface);
   min-height: 100vh;
 }
 
 ::selection {
-  background-color: rgba(214, 175, 55, 0.25);
-  color: var(--color-bronze-charcoal);
+  background-color: var(--color-accent-soft);
+  color: var(--color-text);
 }
 
 * {

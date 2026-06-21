@@ -39,6 +39,7 @@ export default function SensoryHero({ onBack }) {
   const [contentLoaded, setContentLoaded] = useState(false)
   const [sealing, setSealing] = useState(false) 
   const [isAtEnd, setIsAtEnd] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   // Swipe-to-delete variables and handlers
   const [swipeOffsets, setSwipeOffsets] = useState({})
@@ -295,18 +296,18 @@ export default function SensoryHero({ onBack }) {
       {showPreviewOverview ? (
         <div ref={contentRef} className="w-full h-full relative animate-screenEntry">
           {itinerarySpots.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-8 bg-[#1a1210] text-white">
-              <span className="text-5xl animate-bounce mb-4">📍</span>
-              <h3 className="font-serif text-2xl font-bold text-[#ffb5c2] mb-2">Ledger is Empty</h3>
+            <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-8 bg-[#1C1917] text-white">
+              <BookOpen size={40} className="text-white/30 mb-4" />
+              <h3 className="font-serif text-2xl font-bold text-white mb-2">No Stops Selected</h3>
               <p className="font-sans text-xs text-white/60 max-w-[280px] mb-6 leading-relaxed">
-                You have removed all stops from your travel path. Please go back to align your vibes and rebuild your itinerary!
+                You have removed all stops. Please go back to align your vibes and rebuild your itinerary!
               </p>
               <button
                 onClick={() => {
                   playClick(0.85)
                   if (onBack) onBack()
                 }}
-                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-xs uppercase tracking-widest font-black cursor-pointer active:scale-95 transition-all"
+                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white font-sans text-xs uppercase tracking-widest font-bold cursor-pointer active:scale-95 transition-all"
               >
                 Adjust Vibes
               </button>
@@ -376,6 +377,8 @@ export default function SensoryHero({ onBack }) {
                         src={spot.image || 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'}
                         alt={spot.name}
                         className="absolute inset-0 w-full h-full object-cover opacity-80"
+                        loading="lazy"
+                        decoding="async"
                         onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling?.classList.remove('hidden') }}
                       />
                       <div className="absolute inset-0 w-full h-full hidden flex items-center justify-center bg-gradient-to-br from-[#2A2321] to-[#1a1210]">
@@ -466,7 +469,7 @@ export default function SensoryHero({ onBack }) {
  
                       {/* Gesture Guidance Tip */}
                       <div className="absolute bottom-[90px] left-0 right-0 text-center pointer-events-none z-30 select-none">
-                        <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/80 backdrop-blur-md border border-red-500/35 text-[11px] font-sans font-extrabold tracking-widest text-[#FFE082] uppercase animate-pulse">
+                        <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-neutral-900/90 backdrop-blur-md border border-white/10 text-[11px] font-sans font-bold tracking-widest text-white uppercase">
                           <span>↔ Swipe card to remove</span>
                           <span className="opacity-30">•</span>
                           <span>↕ Scroll for next</span>
@@ -494,27 +497,12 @@ export default function SensoryHero({ onBack }) {
                   disabled={sealing || !isAtEnd}
                   onClick={() => {
                     if (sealing || !isAtEnd) return
-                    if (!window.confirm('Ready to seal your itinerary? You can always come back to adjust.')) return
-                    setSealing(true)
-                    playClick(1.6)
-                    const stampSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav')
-                    stampSfx.volume = 0.25 * (soundVolume || 1)
-                    stampSfx.play().catch(() => {})
-                    
-                    if (contentRef.current) {
-                      contentRef.current.style.transition = 'opacity 0.5s ease, transform 0.5s ease'
-                      contentRef.current.style.opacity = '0'
-                      contentRef.current.style.transform = 'scale(1.05)'
-                    }
-                    setTimeout(() => {
-                      setStep(5)
-                      setSealing(false)
-                    }, 550)
+                    setConfirmOpen(true)
                   }}
-                  className={`pointer-events-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#BA0C2F] to-[#8A0A22] text-white font-sans text-xs uppercase tracking-widest font-black flex items-center gap-2 border border-[#D4AF37] shadow-[0_10px_30px_rgba(186,12,47,0.4)] transition-all hover:scale-105 active:scale-95 ${!isAtEnd ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
+                  className={`pointer-events-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white font-sans text-xs uppercase tracking-widest font-bold flex items-center gap-2 shadow-[0_10px_30px_rgba(193,18,47,0.25)] transition-all hover:scale-105 active:scale-95 ${!isAtEnd ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <BookOpen size={13} className="text-[#D4AF37]" />
-                  <span>{sealing ? 'Confirming...' : isAtEnd ? 'Confirm Itinerary' : 'Scroll to review all stops'}</span>
+                  <BookOpen size={13} className="text-white" />
+                  <span>{sealing ? 'Confirming...' : isAtEnd ? 'Confirm Itinerary' : 'Scroll to review stops'}</span>
                 </button>
               </div>
             </>
@@ -522,53 +510,80 @@ export default function SensoryHero({ onBack }) {
         </div>
       ) : (
         /* LOADING STAGE */
-        <div className="relative w-full max-w-md md:max-w-5xl rounded-[28px] overflow-hidden bg-[#FAF9F6] shadow-2xl min-h-[460px] grid grid-cols-1 md:grid-cols-2">
+        <div className="relative w-full max-w-md md:max-w-xl rounded-2xl overflow-hidden bg-[#FAF9F6] border border-neutral-200/50 shadow-xl min-h-[360px] flex flex-col justify-center items-center p-8 select-none space-y-6">
+          <div className="w-20 h-20 rounded-full border border-dashed border-[#C1122F]/30 flex items-center justify-center relative bg-white/50">
+            <svg viewBox="0 0 100 100" className="w-14 h-14 opacity-75" fill="none" stroke="#C1122F" strokeWidth="1.5" style={{ animation: 'spin 10s linear infinite' }}>
+              <circle cx="50" cy="50" r="42" strokeDasharray="3,3" />
+              <circle cx="50" cy="50" r="16" />
+              <path d="M 50,2 L 50,98 M 2,50 L 98,50" />
+            </svg>
+          </div>
+
+          <div className="space-y-2 text-center">
+            <p className="font-sans text-[8px] tracking-[0.3em] uppercase font-bold text-neutral-400">
+              Kingdom of Bahrain
+            </p>
+            <h3 className="font-serif text-xl font-bold text-neutral-900">
+              Building your route...
+            </h3>
+          </div>
           
-          <div className="p-8 flex flex-col justify-center items-center text-center select-none space-y-6">
-            <div className="w-32 h-32 rounded-full border-2 border-dashed border-[#A80D27]/25 flex items-center justify-center relative bg-white/40">
-              <svg viewBox="0 0 100 100" className="w-24 h-24 opacity-75" fill="none" stroke="#A80D27" strokeWidth="1.2" style={{ animation: 'spin 12s linear infinite' }}>
-                <circle cx="50" cy="50" r="42" strokeDasharray="3,3" />
-                <circle cx="50" cy="50" r="16" />
-                <path d="M 50,2 L 50,98 M 2,50 L 98,50" />
-              </svg>
-              <span className="absolute text-xl" style={{ animation: 'pulse 3s infinite' }}>🧭</span>
-            </div>
-
-            <div className="space-y-2">
-              <p className="font-sans text-[9px] tracking-[0.4em] uppercase font-bold text-[#A80D27]">
-                مملكة البحرين
-              </p>
-              <h3 className="font-serif text-2xl font-black text-[#2A2321]">
-                Preparing Your Route
-              </h3>
-            </div>
-            
-            <div className="w-full max-w-[200px] bg-red-500/10 h-1.5 rounded-full overflow-hidden relative">
-              <div className="h-full bg-[#A80D27] rounded-full transition-all duration-300 ease-out" style={{ width: `${Math.min(100, (terminalLogs.length / guidePhrases.length) * 100)}%` }} />
-            </div>
-            
-            <button
-              onClick={handleSkipCuration}
-              className="mt-2 px-5 py-2 rounded-full border border-[#A80D27]/35 text-[#A80D27] hover:bg-[#A80D27]/5 font-sans text-[11px] uppercase tracking-wider font-black cursor-pointer active:scale-95 transition-all"
-            >
-              Skip Curation →
-            </button>
+          <div className="w-full max-w-[200px] bg-neutral-200 h-1 rounded-full overflow-hidden relative">
+            <div className="h-full bg-[#C1122F] rounded-full transition-all duration-300 ease-out" style={{ width: `${Math.min(100, (terminalLogs.length / guidePhrases.length) * 100)}%` }} />
           </div>
+          
+          <button
+            onClick={handleSkipCuration}
+            className="text-[#C1122F] hover:underline font-sans text-xs tracking-wide font-bold cursor-pointer active:scale-95 transition-all"
+          >
+            Skip →
+          </button>
+        </div>
+      )}
 
-          <div className="hidden md:flex p-8 flex-col relative text-left h-full border-l border-red-500/10 bg-[#FCFBF8]">
-            <span className="font-sans text-[8px] tracking-[0.25em] text-[#A80D27] uppercase font-bold mb-4">
-              Live Curation Log
-            </span>
-            <div className="flex-1 overflow-y-auto space-y-3 font-mono text-[11px] text-[#5C5451]">
-              {terminalLogs.map((log, idx) => (
-                <div key={idx} className={`flex items-start gap-2 ${idx === terminalLogs.length - 1 ? 'text-[#A80D27] font-bold' : 'opacity-70'}`}>
-                  <span>❯</span><span>{log}</span>
-                </div>
-              ))}
-              <div ref={logsEndRef} />
+      {/* Confirmation Modal */}
+      {confirmOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 border border-neutral-100">
+            <h4 className="font-serif text-xl font-bold text-neutral-900">Ready to begin your journey?</h4>
+            <p className="font-sans text-xs text-neutral-500 leading-relaxed">
+              Confirming will seal your initial itinerary and unlock your digital travel journal. You can adjust settings or regenerate your trip at any time.
+            </p>
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                onClick={() => {
+                  playClick(0.85);
+                  setConfirmOpen(false);
+                }}
+                className="px-4 py-2 rounded-xl text-neutral-600 border border-neutral-200 text-xs font-bold hover:bg-neutral-50 active:scale-95 transition-all"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={() => {
+                  setConfirmOpen(false);
+                  setSealing(true);
+                  playClick(1.6);
+                  const stampSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav');
+                  stampSfx.volume = 0.25 * (soundVolume || 1);
+                  stampSfx.play().catch(() => {});
+                  
+                  if (contentRef.current) {
+                    contentRef.current.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    contentRef.current.style.opacity = '0';
+                    contentRef.current.style.transform = 'scale(1.05)';
+                  }
+                  setTimeout(() => {
+                    setStep(5);
+                    setSealing(false);
+                  }, 550);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-md"
+              >
+                Confirm & Start
+              </button>
             </div>
           </div>
-
         </div>
       )}
     </div>

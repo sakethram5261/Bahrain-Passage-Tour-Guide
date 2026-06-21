@@ -393,38 +393,7 @@ export default function WelcomeIntro({ onComplete }) {
         }}
       />
 
-      {/* ── Centered Arabesque Geometric Watermark (Subtle Crimson/Gold) ────── */}
-      <svg
-        className="jn-arabesque-watermark"
-        viewBox="0 0 120 120"
-        style={{
-          position: 'absolute',
-          top: '45%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 'clamp(320px, 65vw, 480px)',
-          height: 'clamp(320px, 65vw, 480px)',
-          opacity: 0.04,
-          pointerEvents: 'none',
-          color: '#C1122F',
-          zIndex: 1,
-        }}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="0.4"
-      >
-        <g transform="translate(60,60)">
-          <circle r="55" strokeDasharray="3,3" />
-          <circle r="50" />
-          <rect x="-35" y="-35" width="70" height="70" />
-          <rect x="-35" y="-35" width="70" height="70" transform="rotate(45)" />
-          <circle r="30" strokeDasharray="1,1" />
-          <polygon points="0,-30 8,-8 30,0 8,8 0,30 -8,8 -30,0 -8,-8" />
-          <polygon points="0,-30 8,-8 30,0 8,8 0,30 -8,8 -30,0 -8,-8" transform="rotate(45)" />
-          <circle r="15" />
-          <path d="M-10,-10 L10,10 M-10,10 L10,-10" />
-        </g>
-      </svg>
+
 
       {/* ── Centered Vintage Compass Rose Watermark (Subtle Gold/White) ─────── */}
       <svg
@@ -707,23 +676,7 @@ export default function WelcomeIntro({ onComplete }) {
         Skip Intro →
       </button>
 
-      <span style={{
-        position: 'absolute',
-        bottom: '1.6rem',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        color: 'rgba(250, 249, 246, 0.3)',
-        fontFamily: '"Playfair Display","Georgia",serif',
-        fontSize: '0.6rem',
-        fontStyle: 'italic',
-        letterSpacing: '0.25em',
-        textTransform: 'uppercase',
-        zIndex: 9999,
-        pointerEvents: 'none',
-        userSelect: 'none',
-      }}>
-        Click anywhere to skip
-      </span>
+
 
       {/* ── Keyframes ──────────────────────────────────────────────────────── */}
       <style>{`

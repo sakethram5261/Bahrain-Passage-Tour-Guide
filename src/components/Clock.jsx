@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-export default function NauticalChronometer({ showSeconds = true, className = "", style = {} }) {
+export default function Clock({ showSeconds = true, className = "", style = {} }) {
   const [time, setTime] = useState(new Date())
 
   useEffect(() => {

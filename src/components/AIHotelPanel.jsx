@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { useVibe } from '../hooks/useVibe'
 import { callLocalAI, buildHotelAdvisorPrompt } from '../services/aiService'
 import { HOTELS_DB } from '../data/hotelsData'
+import { ConciergeBell, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 
 // Re-export so existing importers (JournalNotebook) don't break
 export { HOTELS_DB }
-
 
 export default function AIHotelPanel({ moods, tier, duration, autoLoad = true }) {
   const { selectedHotel, setSelectedHotel, awardXP } = useVibe()
@@ -57,7 +57,6 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
 
   const playCampStampSound = () => {
     try {
@@ -135,77 +134,41 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
 
       {/* ── Selected Hotel – Prominent Base Camp Banner ── */}
       {selectedHotel && (
-        <div style={{
-          background: 'linear-gradient(135deg, #D11A38 0%, #8A0A22 100%)',
-          borderRadius: '16px',
-          padding: '16px',
-          color: '#fff',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-          boxShadow: '0 8px 24px rgba(209,26,56,0.25)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
+        <div className="bg-gradient-to-br from-[#C1122F] to-[#8B0D22] rounded-2xl p-4 text-white flex items-center gap-3.5 shadow-lg shadow-[#C1122F]/25 relative overflow-hidden animate-fadeIn">
           {selectedHotel.image ? (
-            <div style={{
-              width: '60px',
-              height: '60px',
-              borderRadius: '50%',
-              border: '2px double #D4AF37',
-              padding: '2px',
-              background: 'rgba(255,255,255,0.1)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
+            <div className="w-13 h-13 rounded-full border-2 border-double border-[#D4AF37]/70 p-0.5 bg-white/10 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
               <img 
                 src={selectedHotel.image} 
                 alt={selectedHotel.name}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: '50%',
-                  objectFit: 'cover'
-                }}
+                className="w-full h-full rounded-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           ) : (
-            <div style={{ fontSize: '30px', flexShrink: 0 }}>{selectedHotel.emoji}</div>
+            <div className="text-3xl shrink-0">{selectedHotel.emoji}</div>
           )}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.75 }}>Your Base Camp ✓</span>
-            <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '16px', fontWeight: 700, margin: '2px 0 4px', color: '#fff' }}>
+          <div className="flex-1 min-w-0 text-left">
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#FFF1F3] opacity-75">Your Base Camp ✓</span>
+            <h4 className="font-serif text-base font-bold mt-0.5 mb-1 text-white">
               {selectedHotel.name}
             </h4>
-            <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', opacity: 0.8, margin: 0 }}>
+            <p className="font-sans text-xs text-[#FFF1F3]/80">
               {selectedHotel.neighborhood} &middot; {selectedHotel.cost}
             </p>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
+          <div className="flex flex-col gap-2 shrink-0">
             <a
               href={selectedHotel.bookingUrl}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '4px',
-                padding: '6px 12px', borderRadius: '999px',
-                background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
-                color: '#fff', fontSize: '10px', fontWeight: 700, textDecoration: 'none',
-                whiteSpace: 'nowrap', letterSpacing: '0.04em',
-              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 border border-white/30 text-white font-bold text-[10px] no-underline whitespace-nowrap tracking-wider hover:bg-white/25 transition-colors"
             >
-              📱 Book Now
+              Book Now
             </a>
             <button
               onClick={() => setSelectedHotel(null)}
-              style={{
-                background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)',
-                fontSize: '10px', cursor: 'pointer', padding: '0', textAlign: 'center',
-              }}
+              className="bg-transparent border-none text-[#FFF1F3]/60 text-[10px] cursor-pointer p-0 text-center hover:text-white/80 transition-colors"
             >
               Change hotel
             </button>
@@ -214,57 +177,40 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
       )}
 
       {/* ── Concierge Desk Search ── */}
-      <div style={{
-        padding: '16px', borderRadius: '16px',
-        background: 'radial-gradient(circle at 100% 0%, #FFFDF9 0%, #FAF6EE 100%)',
-        border: '1.5px solid rgba(139,90,43,0.2)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)', border: '2px solid #D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>👳‍♂️</div>
+      <div className="p-4 rounded-2xl bg-gradient-to-br from-stone-50 to-stone-100/70 border border-stone-200 shadow-sm text-left">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#C1122F] to-[#8B0D22] border border-[#D4AF37]/30 flex items-center justify-center shrink-0">
+            <ConciergeBell className="w-4 h-4 text-white" />
+          </div>
           <div>
-            <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontWeight: 700, color: '#2A2321', margin: 0, lineHeight: 1.2 }}>Concierge Desk</h4>
-            <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '10px', color: 'rgba(92,84,81,0.7)', margin: 0 }}>Bahrain Travel Advisor</p>
+            <h4 className="font-serif text-sm font-bold text-neutral-800 leading-tight">Concierge Desk</h4>
+            <p className="font-sans text-[10px] text-neutral-500">Bahrain Travel Advisor</p>
           </div>
         </div>
-        <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '12px', fontStyle: 'italic', color: '#5C5451', marginBottom: '12px', lineHeight: 1.55 }}>
+        <p className="font-serif text-xs italic text-neutral-600 mb-3 leading-relaxed">
           "Describe your perfect stay—beachfront calm, heritage walls, or Souq proximity—and I shall find your base camp."
         </p>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="flex gap-2">
           <input
             type="text"
             value={filterQuery}
             onChange={e => setFilterQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleFilter()}
             placeholder='e.g. "beachfront sunset" or "near Manama Souq"...'
-            style={{
-              flex: 1, padding: '9px 14px', borderRadius: '12px', fontFamily: 'var(--jn-font-serif)',
-              fontSize: '13px', border: '1px solid rgba(209,26,56,0.15)', background: 'rgba(255,255,255,0.9)',
-              outline: 'none', color: '#2A2321', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)',
-            }}
+            className="flex-1 px-3.5 py-2 rounded-xl font-serif text-sm border border-stone-200 bg-white focus:outline-none focus:border-[#C1122F]/40 text-neutral-800 shadow-inner"
           />
           <button
             onClick={handleFilter}
             disabled={filterLoading || !filterQuery.trim()}
-            style={{
-              padding: '9px 16px', borderRadius: '12px', flexShrink: 0,
-              background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)',
-              color: '#fff', border: 'none', fontSize: '11px', fontWeight: 700,
-              letterSpacing: '0.05em', cursor: filterLoading || !filterQuery.trim() ? 'not-allowed' : 'pointer',
-              opacity: filterLoading || !filterQuery.trim() ? 0.5 : 1,
-              transition: 'all 0.2s ease',
-            }}
+            className="px-4 py-2 rounded-xl shrink-0 bg-gradient-to-br from-[#C1122F] to-[#8B0D22] text-white font-bold text-xs tracking-wider transition-all shadow-md shadow-[#C1122F]/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            {filterLoading ? '...' : 'Match'}
+            {filterLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Match'}
           </button>
         </div>
       </div>
 
       {filterResult && (
-        <div style={{
-          padding: '12px 16px', borderRadius: '12px', background: '#FFFDF9',
-          borderLeft: '3px solid #D4AF37', fontSize: '13px', fontFamily: 'var(--jn-font-serif)',
-          fontStyle: 'italic', lineHeight: 1.6, color: '#2A2321',
-        }}>
+        <div className="p-3.5 rounded-xl bg-stone-50 border-l-3 border-[#D4AF37] font-serif text-xs italic leading-relaxed text-neutral-800 text-left animate-fadeIn">
           {filterResult}
         </div>
       )}
@@ -272,11 +218,12 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
       {/* ── AI Recommendations: Loading skeleton ── */}
       {loading && (
         <div className="space-y-3">
-          <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', color: 'var(--jn-ink-faint)', fontStyle: 'italic', textAlign: 'center', padding: '4px 0' }}>
-            ⏳ Consulting the registrar for your ideal stay…
+          <p className="font-sans text-xs text-neutral-400 italic text-center py-2 flex items-center justify-center gap-2">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Consulting the registrar for your ideal stay…
           </p>
           {[1, 2, 3].map(i => (
-            <div key={i} className="skeleton" style={{ height: '80px', borderRadius: '12px' }} />
+            <div key={i} className="animate-pulse bg-stone-100 h-20 rounded-xl" />
           ))}
         </div>
       )}
@@ -285,7 +232,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
       {!loading && (
         <div className="space-y-3">
           {displayHotels.length === 0 && (
-            <p style={{ textAlign: 'center', color: 'var(--jn-ink-faint)', fontFamily: 'var(--jn-font-serif)', fontSize: '13px', padding: '20px 0', fontStyle: 'italic' }}>
+            <p className="text-center text-neutral-400 font-serif text-xs py-5 italic">
               No AI recommendations yet. Try the search above!
             </p>
           )}
@@ -298,93 +245,90 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
               <div
                 key={hotel.id}
                 id={`hotel-card-${hotel.id}`}
-                className={`hotel-card ${isBaseCamp ? 'selected' : ''}`}
-                style={isHighlighted ? { boxShadow: '0 0 0 2px #D4AF37, 0 8px 24px rgba(212,175,55,0.25)', transform: 'scale(1.01)' } : {}}
+                className={`p-4 rounded-2xl border transition-all text-left ${
+                  isBaseCamp 
+                    ? 'border-[#C1122F] bg-[#C1122F]/5' 
+                    : 'border-stone-200 bg-white hover:border-stone-300'
+                } ${
+                  isHighlighted 
+                    ? 'ring-2 ring-[#D4AF37] shadow-lg shadow-[#D4AF37]/25 scale-[1.01]' 
+                    : 'shadow-sm'
+                }`}
               >
                 <button
                   onClick={() => setExpandedId(isExpanded ? null : hotel.id)}
-                  style={{ width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+                  className="w-full bg-transparent border-none p-0 cursor-pointer text-left focus:outline-none"
                 >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div className="flex items-start gap-3">
                     {hotel.image ? (
-                      <div style={{
-                        width: '52px',
-                        height: '52px',
-                        borderRadius: '50%',
-                        border: '2px double #D4AF37',
-                        padding: '1.5px',
-                        background: '#FAF6EE',
-                        boxShadow: '0 4px 8px rgba(139,90,43,0.15)',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}>
+                      <div className="w-13 h-13 rounded-full border border-stone-250 p-0.5 bg-stone-50 shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
                         <img 
                           src={hotel.image} 
                           alt={hotel.name}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            borderRadius: '50%',
-                            objectFit: 'cover'
-                          }}
+                          className="w-full h-full rounded-full object-cover"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                     ) : (
-                      <span style={{
-                        fontSize: '24px', padding: '8px', borderRadius: '12px', flexShrink: 0,
-                        background: isBaseCamp ? 'rgba(209,26,56,0.08)' : '#FAF6EE',
-                        border: isBaseCamp ? '1px solid rgba(209,26,56,0.2)' : '1px solid rgba(139,90,75,0.1)',
-                      }}>{hotel.emoji}</span>
+                      <span className={`text-2.5xl p-2 rounded-xl shrink-0 flex items-center justify-center ${
+                        isBaseCamp 
+                          ? 'bg-[#C1122F]/10 border border-[#C1122F]/20' 
+                          : 'bg-stone-50 border border-stone-200'
+                      }`}>
+                        {hotel.emoji}
+                      </span>
                     )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <h5 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '15px', fontWeight: 700, color: '#2A2321', margin: '0 0 6px', lineHeight: 1.2 }}>
+                    <div className="flex-1 min-w-0">
+                      <h5 className="font-serif text-sm font-bold text-neutral-800 mb-1.5 leading-tight flex flex-wrap items-center gap-1.5">
                         {hotel.name}
-                        {isBaseCamp && <span style={{ fontSize: '10px', background: '#D11A38', color: '#fff', padding: '1px 6px', borderRadius: '999px', marginLeft: '8px', fontWeight: 700, fontFamily: 'var(--jn-font-sans)', letterSpacing: '0.04em' }}>✓ Selected</span>}
+                        {isBaseCamp && (
+                          <span className="text-[9px] bg-[#C1122F] text-white px-2 py-0.5 rounded-full font-bold tracking-wider uppercase">
+                            ✓ Selected
+                          </span>
+                        )}
                       </h5>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: rec.reason ? '8px' : 0 }}>
-                        <span style={{ padding: '2px 8px', borderRadius: '999px', background: '#FAF6EE', border: '1px solid rgba(139,90,75,0.15)', fontSize: '10px', fontFamily: 'var(--jn-font-sans)', fontWeight: 700, color: '#8B5A4B' }}>
+                      <div className="flex flex-wrap gap-1.5 mb-1.5">
+                        <span className="px-2 py-0.5 rounded-full bg-stone-100 border border-stone-200 text-[10px] font-sans font-bold text-stone-600">
                           {hotel.tier}
                         </span>
-                        <span style={{ padding: '2px 8px', borderRadius: '999px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', fontSize: '10px', fontFamily: 'var(--jn-font-sans)', fontWeight: 700, color: '#059669' }}>
+                        <span className="px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-[10px] font-sans font-bold text-green-700">
                           {hotel.cost}
                         </span>
                       </div>
                       {rec.reason && (
-                        <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '12px', fontStyle: 'italic', color: '#BA0C2F', margin: 0, lineHeight: 1.5 }}>
+                        <p className="font-serif text-xs italic text-[#C1122F] m-0 leading-relaxed">
                           “{rec.reason}”
                         </p>
                       )}
                     </div>
-                    <span style={{ color: 'rgba(92,84,81,0.4)', fontSize: '10px', flexShrink: 0, marginTop: '4px' }}>{isExpanded ? '▲' : '▼'}</span>
+                    <span className="text-neutral-400 shrink-0 mt-1">
+                      {isExpanded ? (
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      )}
+                    </span>
                   </div>
                 </button>
 
                 {isExpanded && (
-                  <div style={{ borderTop: '1px dashed rgba(209,26,56,0.12)', marginTop: '12px', paddingTop: '12px' }}>
-                    <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '13px', color: '#5C5451', lineHeight: 1.65, margin: '0 0 10px' }}>{hotel.desc}</p>
-                    <div style={{ display: 'flex', gap: '8px', fontSize: '11px', fontFamily: 'var(--jn-font-sans)', fontWeight: 700, color: 'rgba(92,84,81,0.75)', marginBottom: '14px', flexWrap: 'wrap' }}>
+                  <div className="border-t border-dashed border-[#C1122F]/15 mt-3 pt-3 animate-fadeIn">
+                    <p className="font-sans text-xs text-neutral-600 leading-relaxed mb-2.5">{hotel.desc}</p>
+                    <div className="flex gap-2 text-[10px] font-sans font-bold text-neutral-500 mb-3.5 flex-wrap">
                       <span>{hotel.neighborhood}</span>
                       <span>&bull;</span>
                       <span>🚗 {hotel.dist}</span>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <div className="flex gap-2 flex-wrap">
                       {isBaseCamp ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '999px', background: '#D11A38', color: '#fff', fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em' }}>
+                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#C1122F] text-white text-xs font-bold tracking-wider">
                           ✓ Your Base Camp
                         </span>
                       ) : (
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedHotel(hotel); awardXP(50, 'Established Base Camp'); playCampStampSound() }}
-                          style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '6px',
-                            padding: '7px 14px', borderRadius: '999px',
-                            background: 'rgba(209,26,56,0.06)', border: '1.5px solid rgba(209,26,56,0.25)',
-                            color: '#D11A38', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
-                            letterSpacing: '0.04em', transition: 'all 0.2s ease',
-                          }}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#C1122F]/5 border border-[#C1122F]/25 text-[#C1122F] hover:bg-[#C1122F]/10 text-xs font-bold cursor-pointer tracking-wider transition-colors focus:outline-none"
                         >
                           Set as Base Camp
                         </button>
@@ -393,13 +337,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                         href={hotel.bookingUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '6px',
-                          padding: '7px 14px', borderRadius: '999px',
-                          background: '#FAF6EE', border: '1px solid rgba(212,175,55,0.4)',
-                          color: '#2A2321', fontSize: '11px', fontWeight: 700,
-                          textDecoration: 'none', letterSpacing: '0.04em',
-                        }}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-stone-50 border border-stone-300 hover:bg-stone-100 text-[#2A2321] text-xs font-bold no-underline tracking-wider transition-colors"
                       >
                         Book on Booking.com
                       </a>

@@ -1,4 +1,5 @@
 import { useVibe } from '../hooks/useVibe'
+import { ShieldAlert, Sun, Clock } from 'lucide-react'
 
 // Helper to calculate estimated home currency equivalents
 const getHomeCurrencyEquivalent = (costStr) => {
@@ -24,6 +25,14 @@ const getHomeCurrencyEquivalent = (costStr) => {
   return null
 }
 
+// Helper to render Lucide icons based on alert type
+const AlertIcon = ({ type }) => {
+  if (type === 'modesty') return <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+  if (type === 'heat') return <Sun className="w-3.5 h-3.5 text-red-600 shrink-0" />
+  if (type === 'friday') return <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+  return null
+}
+
 // Helper to determine safety and custom dress code mods
 const getTouristAlerts = (spotName, spotMood) => {
   const alerts = []
@@ -32,7 +41,6 @@ const getTouristAlerts = (spotName, spotMood) => {
   if (lower.includes('mosque') || lower.includes('temple') || lower.includes('grave') || lower.includes('burial')) {
     alerts.push({
       type: 'modesty',
-      icon: '🧕',
       text: 'Modest Dress: Long pants/skirts & covered shoulders required.',
       color: 'bg-amber-500/10 border-amber-500/20 text-amber-900'
     })
@@ -41,7 +49,6 @@ const getTouristAlerts = (spotName, spotMood) => {
   if (spotMood === 'empires' || spotMood === 'sea' || lower.includes('fort') || lower.includes('tree') || lower.includes('burial') || lower.includes('sandbank')) {
     alerts.push({
       type: 'heat',
-      icon: '☀️',
       text: 'Midday Heat Alert: Wear sunscreen & stay hydrated. Peak sun 11am-3pm.',
       color: 'bg-red-500/10 border-red-500/20 text-red-900'
     })
@@ -50,7 +57,6 @@ const getTouristAlerts = (spotName, spotMood) => {
   if (lower.includes('souq') || lower.includes('mosque') || lower.includes('cafe')) {
     alerts.push({
       type: 'friday',
-      icon: '🕌',
       text: 'Friday Schedule: Traditional shops close Friday mornings for prayers.',
       color: 'bg-blue-500/10 border-blue-500/20 text-blue-900'
     })
@@ -68,7 +74,7 @@ const getLiveOpeningStatus = (spotName) => {
   if (day === 5 && hours >= 10 && hours <= 13 && (lower.includes('souq') || lower.includes('cafe'))) {
     return {
       open: false,
-      text: '🔴 CLOSED FOR FRIDAY PRAYERS',
+      text: 'CLOSED FOR FRIDAY PRAYERS',
       color: 'bg-red-500/10 text-red-800 border-red-500/20'
     }
   }
@@ -77,7 +83,7 @@ const getLiveOpeningStatus = (spotName) => {
     const isOpen = hours >= 6 && hours <= 18
     return {
       open: isOpen,
-      text: isOpen ? '🟢 OPEN (SUNRISE - SUNSET)' : '🔴 CLOSED (NIGHT HOURS)',
+      text: isOpen ? 'OPEN (SUNRISE - SUNSET)' : 'CLOSED (NIGHT HOURS)',
       color: isOpen ? 'bg-green-500/10 text-green-800 border-green-500/20' : 'bg-red-500/10 text-red-800 border-red-500/20'
     }
   }
@@ -85,7 +91,7 @@ const getLiveOpeningStatus = (spotName) => {
   const isAttractionOpen = hours >= 9 && hours <= 20
   return {
     open: isAttractionOpen,
-    text: isAttractionOpen ? '🟢 OPEN NOW (9 AM - 8 PM)' : '🔴 CLOSED (OPENS 9 AM)',
+    text: isAttractionOpen ? 'OPEN NOW (9 AM - 8 PM)' : 'CLOSED (OPENS 9 AM)',
     color: isAttractionOpen ? 'bg-green-500/10 text-green-800 border-green-500/20' : 'bg-red-500/10 text-red-800 border-red-500/20'
   }
 }
@@ -180,6 +186,8 @@ export default function LocationCard({ spot, onScan }) {
                 src={capturedPhotos[spot.id] || spot.image}
                 alt={spot.name}
                 className="w-full h-full object-cover block relative z-10"
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   e.target.style.display = 'none';
                 }}
@@ -248,7 +256,7 @@ export default function LocationCard({ spot, onScan }) {
                         key={idx} 
                         className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-[9.5px] font-sans font-bold select-none animate-fadeIn ${al.color}`}
                       >
-                        <span className="text-xs shrink-0">{al.icon}</span>
+                        <AlertIcon type={al.type} />
                         <span>{al.text}</span>
                       </div>
                     ))}
@@ -306,7 +314,8 @@ export default function LocationCard({ spot, onScan }) {
                     {(() => {
                       const status = getLiveOpeningStatus(spot.name)
                       return (
-                        <span className={`px-1.5 py-0.5 rounded border text-[7.5px] uppercase tracking-wider font-black select-none ${status.color}`}>
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[7.5px] uppercase tracking-wider font-black select-none ${status.color}`}>
+                          <span className={`w-1 h-1 rounded-full shrink-0 ${status.open ? 'bg-green-500' : 'bg-red-500'}`} />
                           {status.text}
                         </span>
                       )
