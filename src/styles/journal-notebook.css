@@ -35,8 +35,8 @@
   --jn-ink-faint:     rgba(42, 35, 33, 0.65);
 
   /* Gold accent */
-  --jn-gold:          #d4af37;
-  --jn-gold-muted:    rgba(212, 175, 55, 0.3);
+  --jn-gold:          #C5A880;
+  --jn-gold-muted:    rgba(197, 168, 128, 0.3);
 
   /* Semantic */
   --jn-green:         #2e7d32;
@@ -139,51 +139,51 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(193, 18, 47, 0.96); /* Rich Crimson with high opacity */
+  background: var(--jn-parchment);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--jn-border);
+  box-shadow: var(--jn-shadow-sm);
   transition: all 0.3s ease;
 }
 
-/* Header Text / Brand overrides for Crimson Background */
+/* Header Text / Brand overrides */
 .jn-header .jn-brand-title {
-  color: #ffffff;
+  color: var(--jn-ink);
 }
 
 .jn-header .jn-brand-arabic {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--jn-ink-faint);
 }
 
-/* Stats and Buttons overrides on Crimson Background */
+/* Stats and Buttons overrides */
 .jn-header .jn-xp-pill {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
+  background: transparent;
+  border: 1px solid var(--jn-border);
+  color: var(--jn-ink);
 }
 
 .jn-header .jn-utility-btn--edit {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--jn-ink);
+  background: transparent;
+  border: 1px solid var(--jn-border);
 }
 
 .jn-header .jn-utility-btn--edit:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(193, 18, 47, 0.05);
+  border-color: var(--jn-crimson);
+  color: var(--jn-crimson);
 }
 
 .jn-header .jn-utility-btn-rank {
-  background: var(--jn-gold);
-  border-color: rgba(255, 255, 255, 0.35);
-  color: #ffffff;
+  background: var(--jn-gold-muted);
+  border: 1px solid var(--jn-gold);
+  color: var(--jn-gold);
 }
 
 .jn-header .jn-utility-btn-rank:hover {
-  background: #f1c40f; /* Brighter gold for hover feedback */
-  border-color: rgba(255, 255, 255, 0.55);
-  color: #ffffff;
+  background: var(--jn-gold);
+  color: var(--jn-parchment);
 }
 
 .jn-header-inner {
@@ -1528,19 +1528,19 @@
   /* Book: open dual-page grid — clean */
   .jn-book {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;
-    border-width: 1px;
-    border-radius: var(--jn-r-xl);
-    height: 82dvh;
-    max-height: 780px;
+    grid-template-columns: 380px 1fr;
+    gap: 32px;
+    height: auto;
+    max-height: none;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
   }
 
   .jn-page {
-    height: 100%;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(193, 18, 47, 0.25) transparent;
+    height: auto;
+    overflow-y: visible;
   }
 
   .jn-page::-webkit-scrollbar {
@@ -1580,29 +1580,24 @@
 
   /* Clean divider between pages */
   .jn-page--left {
-    border-right: 1px solid rgba(0, 0, 0, 0.06);
-    position: relative;
+    position: sticky;
+    top: calc(var(--jn-header-h) + 24px);
+    max-height: calc(100vh - var(--jn-header-h) - 48px);
+    overflow-y: auto;
+    background: var(--jn-parchment);
+    border: 1px solid var(--jn-border);
+    border-radius: var(--jn-r-xl);
+    padding: 24px;
+    box-shadow: var(--jn-shadow-md);
   }
 
-  /* No spine shadow */
-  .jn-page--left::after {
-    display: none;
-  }
-
-  /* No right page shadow */
-  .jn-page--right::before {
-    display: none;
-  }
-
-  /* Binder rings overlay (center) */
-  .jn-book .jn-page--left {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .jn-book .jn-page--right {
-    grid-column: 2;
-    grid-row: 1;
+  .jn-page--right {
+    background: var(--jn-parchment);
+    border: 1px solid var(--jn-border);
+    border-radius: var(--jn-r-xl);
+    padding: 24px;
+    box-shadow: var(--jn-shadow-md);
+    min-height: 500px;
   }
 
   /* Mobile tabs row: hidden on desktop, but the grid layout starts from row 2 */

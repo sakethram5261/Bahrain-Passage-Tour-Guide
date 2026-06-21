@@ -48,6 +48,15 @@ import { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
 import AIHotelPanel, { HOTELS_DB } from './AIHotelPanel'
 import LangToggle from './LangToggle'
 import { useLang } from '../context/LangContext'
+import { 
+  playTypewriterClick as playTypewriterClickCentral,
+  playRiddleCorrect,
+  playRiddleIncorrect,
+  playDaySealStamp,
+  playRankUpChime,
+  playPhraseFeedbackTone,
+  playCampStampSound
+} from '../services/audioUtils'
 
 const WayfarerMap = lazy(() => import('./WayfarerMap'))
 const TourChatbot = lazy(() => import('./TourChatbot'))
@@ -106,26 +115,9 @@ function useSpring(target, stiffness = 180, damping = 22) {
 }
 
 /* ─── Phrase pronunciation (Web Audio API) ───────────────────────────────── */
-function playPhrase(phraseText) {
+function playPhrase(phraseText, soundVolume = 0.5, soundMuted = false) {
   // 1. Play standard organic click feedback tone
-  try {
-    const AC  = window.AudioContext || window.webkitAudioContext
-    if (AC) {
-      const ctx  = new AC()
-      const osc  = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(330, ctx.currentTime)
-      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.08)
-      gain.gain.setValueAtTime(0, ctx.currentTime)
-      gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.02)
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22)
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.start()
-      osc.stop(ctx.currentTime + 0.22)
-    }
-  } catch { /* ignore */ }
+  playPhraseFeedbackTone(soundVolume, soundMuted)
 
   // 2. Perform high-fidelity browser speech synthesis in Arabic
   try {
@@ -209,6 +201,9 @@ export default function JournalNotebook({ onBack }) {
   const [shopAlert,       setShopAlert]       = useState(null)
   const [riddleModalOpen, setRiddleModalOpen] = useState(false)
   const [imageErrors,     setImageErrors]     = useState({})
+  const playTypewriterClick = useCallback((pitchMultiplier = 1.0) => {
+    playTypewriterClickCentral(pitchMultiplier, soundVolume, soundMuted)
+  }, [soundVolume, soundMuted])
   const [baseCampPromptOpen, setBaseCampPromptOpen] = useState(false)
   const [quickInfoOpen, setQuickInfoOpen] = useState(false)
   const [selectedKsake, setSelectedKsake] = useState(null)
@@ -240,37 +235,6 @@ export default function JournalNotebook({ onBack }) {
   const displayXP = useSpring(xp, 120, 18)
 
   /* ── Sound effects helper ────────────────────────────────────────────────── */
-  const playTypewriterClick = (pitchMultiplier = 1.0) => {
-    if (soundMuted) return
-    try {
-      const AC = window.AudioContext || window.webkitAudioContext
-      if (!AC) return
-      const ctx = new AC()
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      const filter = ctx.createBiquadFilter()
-      
-      osc.type = 'sine'
-      const startFreq = 1100 * pitchMultiplier
-      osc.frequency.setValueAtTime(startFreq, ctx.currentTime)
-      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.04)
-      
-      filter.type = 'bandpass'
-      filter.frequency.setValueAtTime(500, ctx.currentTime)
-      filter.Q.setValueAtTime(5, ctx.currentTime)
-      
-      gain.gain.setValueAtTime(0, ctx.currentTime)
-      gain.gain.linearRampToValueAtTime(0.12 * soundVolume, ctx.currentTime + 0.003)
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.035)
-      
-      osc.connect(filter)
-      filter.connect(gain)
-      gain.connect(ctx.destination)
-      
-      osc.start()
-      osc.stop(ctx.currentTime + 0.04)
-    } catch { /* ignore */ }
-  }
 
   /* ── Rank up detection ───────────────────────────────────────────────────── */
   useEffect(() => {
@@ -283,29 +247,7 @@ export default function JournalNotebook({ onBack }) {
       setShowRankUpModal(true)
       prevRankIdRef.current = rank.id
       
-      try {
-        const AC = window.AudioContext || window.webkitAudioContext
-        if (AC && !soundMuted) {
-          const ctx = new AC()
-          const playNote = (freq, delay, dur) => {
-            const osc = ctx.createOscillator()
-            const gain = ctx.createGain()
-            osc.type = 'triangle'
-            osc.frequency.setValueAtTime(freq, ctx.currentTime + delay)
-            gain.gain.setValueAtTime(0, ctx.currentTime + delay)
-            gain.gain.linearRampToValueAtTime(0.2 * soundVolume, ctx.currentTime + delay + 0.05)
-            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + dur - 0.05)
-            osc.connect(gain)
-            gain.connect(ctx.destination)
-            osc.start(ctx.currentTime + delay)
-            osc.stop(ctx.currentTime + delay + dur)
-          }
-          playNote(261.63, 0, 0.2) // C4
-          playNote(329.63, 0.15, 0.2) // E4
-          playNote(392.00, 0.3, 0.2) // G4
-          playNote(523.25, 0.45, 0.5) // C5
-        }
-      } catch { /* ignore */ }
+      playRankUpChime(soundVolume, soundMuted)
     }
   }, [rank, soundMuted, soundVolume])
 
@@ -458,26 +400,7 @@ export default function JournalNotebook({ onBack }) {
     const startX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2
     const startY = rect ? rect.top + rect.height / 2 : window.innerHeight / 2
     
-    if (!soundMuted) {
-      try {
-        const AC = window.AudioContext || window.webkitAudioContext
-        if (AC) {
-          const ctx = new AC()
-          const osc = ctx.createOscillator()
-          const gain = ctx.createGain()
-          osc.type = 'sawtooth'
-          osc.frequency.setValueAtTime(90, ctx.currentTime)
-          osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 0.25)
-          gain.gain.setValueAtTime(0, ctx.currentTime)
-          gain.gain.linearRampToValueAtTime(0.24 * soundVolume, ctx.currentTime + 0.02)
-          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.24)
-          osc.connect(gain)
-          gain.connect(ctx.destination)
-          osc.start()
-          osc.stop(ctx.currentTime + 0.3)
-        }
-      } catch { /* ignore */ }
-    }
+    playDaySealStamp(soundVolume, soundMuted)
 
     setTimeout(() => {
       triggerCoinFlyout(startX, startY)
@@ -513,24 +436,7 @@ export default function JournalNotebook({ onBack }) {
       const startX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2
       const startY = rect ? rect.top + rect.height / 2 : window.innerHeight / 2
 
-      try {
-        const AC = window.AudioContext || window.webkitAudioContext
-        if (AC && !soundMuted) {
-          const ctx = new AC()
-          const osc = ctx.createOscillator()
-          const gain = ctx.createGain()
-          osc.type = 'sine'
-          osc.frequency.setValueAtTime(440, ctx.currentTime)
-          osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15)
-          gain.gain.setValueAtTime(0, ctx.currentTime)
-          gain.gain.linearRampToValueAtTime(0.15 * soundVolume, ctx.currentTime + 0.02)
-          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25)
-          osc.connect(gain)
-          gain.connect(ctx.destination)
-          osc.start()
-          osc.stop(ctx.currentTime + 0.3)
-        }
-      } catch { /* ignore */ }
+      playRiddleCorrect(soundVolume, soundMuted)
       
       setTimeout(() => {
         triggerCoinFlyout(startX, startY)
@@ -540,23 +446,7 @@ export default function JournalNotebook({ onBack }) {
         solveRiddle(activeSpot.id)
       }, 700)
     } else {
-      try {
-        const AC = window.AudioContext || window.webkitAudioContext
-        if (AC && !soundMuted) {
-          const ctx = new AC()
-          const osc = ctx.createOscillator()
-          const gain = ctx.createGain()
-          osc.type = 'sawtooth'
-          osc.frequency.setValueAtTime(120, ctx.currentTime)
-          gain.gain.setValueAtTime(0, ctx.currentTime)
-          gain.gain.linearRampToValueAtTime(0.2 * soundVolume, ctx.currentTime + 0.05)
-          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2)
-          osc.connect(gain)
-          gain.connect(ctx.destination)
-          osc.start()
-          osc.stop(ctx.currentTime + 0.25)
-        }
-      } catch { /* ignore */ }
+      playRiddleIncorrect(soundVolume, soundMuted)
       
       setRiddleError("Wrong answer, traveler! Read the guide comments closely.")
       setTimeout(() => {
@@ -598,34 +488,12 @@ export default function JournalNotebook({ onBack }) {
   /* ── Almanac data ─────────────────────────────────────────────────────────── */
   const almanac = getAlmanac ? getAlmanac() : { metrics: [] }
 
-  /* ── Spot Details Helper ──────────────────────────────────────────────────── */
-  const renderSpotDetails = () => {
+  /* ── Spot Details Helpers ──────────────────────────────────────────────────── */
+  const renderSpotAbout = () => {
     if (!activeSpot) return null
     return (
       <div className="space-y-5">
         <p className="jn-description">{activeSpot.desc}</p>
-
-        {/* Action buttons row — Lens capture, virtual tour, riddle */}
-        <div className="jn-action-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '14px', marginBottom: '14px' }}>
-          <button
-            className="jn-action-btn jn-action-btn--primary"
-            onClick={() => setLensOpenSpot(activeSpot)}
-            aria-label="Open camera lens simulator to capture photo"
-            style={{ flex: '1 1 120px' }}
-          >
-            {capturedPhotos[activeSpot.id] ? 'Retake Photo' : 'Capture Photo'}
-          </button>
-          {hasVirtualTour(activeSpot.id) && (
-            <button
-              className="jn-action-btn jn-action-btn--ghost"
-              onClick={() => setTourOpen(true)}
-              aria-label="Open virtual tour clip"
-              style={{ flex: '1 1 120px' }}
-            >
-              Virtual Tour
-            </button>
-          )}
-        </div>
 
         {/* What You Can Find Here */}
         <div className="jn-insider-box" role="complementary" aria-label="What you can find here">
@@ -634,105 +502,12 @@ export default function JournalNotebook({ onBack }) {
         </div>
 
         {/* Estimated Cost / Budget */}
-        <div className="jn-insider-box" style={{ background: '#fffdf9', border: '1px solid var(--jn-gold-muted)', padding: '15px' }} role="complementary" aria-label="Estimated Cost / Budget">
+        <div className="jn-insider-box" style={{ background: 'var(--jn-input-bg, #fffdf9)', border: '1px solid var(--jn-gold-muted)', padding: '15px' }} role="complementary" aria-label="Estimated Cost / Budget">
           <span className="jn-tag jn-tag--green">Estimated Cost</span>
           <p className="jn-insider-text" style={{ fontWeight: 'bold', marginTop: '5px' }}>
             {activeSpot.pathCost || activeSpot.budgetCost || 'Free Entry'}
           </p>
         </div>
-
-        {/* Journal reflections textarea */}
-        <div style={{ marginBottom: 'var(--jn-sp-lg)' }}>
-          <label
-            htmlFor={`reflection-${activeSpot.id}`}
-            style={{
-              display: 'block',
-              fontFamily: 'var(--jn-font-sans)',
-              fontSize: '10px',
-              fontWeight: '800',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: 'var(--jn-crimson)',
-              marginBottom: '6px',
-            }}
-          >
-            My Notes
-          </label>
-          <textarea
-            id={`reflection-${activeSpot.id}`}
-            value={localReflection}
-            onChange={handleReflectionChange}
-            placeholder="Jot down your thoughts, observations, or memories from this spot…"
-            rows={3}
-            style={{
-              width: '100%',
-              fontFamily: 'var(--jn-font-serif)',
-              fontSize: '13px',
-              lineHeight: 1.6,
-              color: 'var(--jn-ink)',
-              background: '#fffdf9',
-              border: '1px solid rgba(193,18,47,0.15)',
-              borderRadius: 'var(--jn-r-md)',
-              padding: '10px 14px',
-              resize: 'none',
-              outline: 'none',
-              boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.04)',
-              transition: 'border-color 0.2s ease',
-            }}
-            onFocus={e => e.target.style.borderColor = 'var(--jn-crimson)'}
-            onBlur={e => e.target.style.borderColor = 'rgba(193,18,47,0.15)'}
-          />
-        </div>
-
-        {/* Riddle Quest */}
-        {RIDDLES[activeSpot.id] && (
-          <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70">
-            <div className="flex justify-between items-center mb-2 select-none">
-              <span className="font-sans text-[11px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
-                Riddle
-              </span>
-              {solvedRiddles[activeSpot.id] ? (
-                <span className="text-[11px] bg-green-100 text-green-800 font-extrabold px-2 py-0.5 rounded-full">
-                  ✓ Solved (+35 XP)
-                </span>
-              ) : (
-                <span className="text-[11px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full">
-                  Unsolved (+35 XP)
-                </span>
-              )}
-            </div>
-
-            <p className="font-serif text-[14px] text-bronze-charcoal leading-relaxed font-bold mb-3">
-              "{RIDDLES[activeSpot.id].question}"
-            </p>
-
-            {solvedRiddles[activeSpot.id] ? (
-              <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/10 space-y-1">
-                <p className="font-sans text-[11px] uppercase tracking-wider text-green-700 font-extrabold select-none">Insider Discovery Reveal:</p>
-                <p className="font-serif text-[13px] text-bronze-charcoal leading-relaxed italic font-semibold">
-                  {RIDDLES[activeSpot.id].insider}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                {RIDDLES[activeSpot.id].options.map((opt, oIdx) => (
-                  <button
-                    key={oIdx}
-                    onClick={() => handleAnswerRiddle(oIdx)}
-                    className="w-full p-2.5 text-left rounded-lg border border-red-500/10 hover:border-bahrain-red bg-white hover:bg-red-500/5 text-[13px] font-sans font-bold text-bronze-charcoal transition-all cursor-pointer active:scale-99"
-                  >
-                    {opt}
-                  </button>
-                ))}
-                {riddleError && (
-                  <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-sans text-[11px] font-bold animate-scaleIn select-none">
-                    ❌ {riddleError}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Next Itinerary Item Button */}
         <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px dashed rgba(186,12,47,0.15)', display: 'flex', justifyContent: 'flex-end' }}>
@@ -768,6 +543,128 @@ export default function JournalNotebook({ onBack }) {
     )
   }
 
+  const renderSpotSidebar = () => {
+    if (!activeSpot) return null
+    return (
+      <div className="space-y-5">
+        {/* Action buttons row — Lens capture, virtual tour */}
+        <div className="jn-action-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '14px', marginBottom: '14px' }}>
+          <button
+            className="jn-action-btn jn-action-btn--primary"
+            onClick={() => setLensOpenSpot(activeSpot)}
+            aria-label="Open camera lens simulator to capture photo"
+            style={{ flex: '1 1 120px' }}
+          >
+            {capturedPhotos[activeSpot.id] ? 'Retake Photo' : 'Capture Photo'}
+          </button>
+          {hasVirtualTour(activeSpot.id) && (
+            <button
+              className="jn-action-btn jn-action-btn--ghost"
+              onClick={() => setTourOpen(true)}
+              aria-label="Open virtual tour clip"
+              style={{ flex: '1 1 120px' }}
+            >
+              Virtual Tour
+            </button>
+          )}
+        </div>
+
+        {/* Journal reflections textarea */}
+        <div style={{ marginBottom: 'var(--jn-sp-lg)' }}>
+          <label
+            htmlFor={`reflection-${activeSpot.id}`}
+            style={{
+              display: 'block',
+              fontFamily: 'var(--jn-font-sans)',
+              fontSize: '10px',
+              fontWeight: '800',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: 'var(--jn-crimson)',
+              marginBottom: '6px',
+            }}
+          >
+            My Notes
+          </label>
+          <textarea
+            id={`reflection-${activeSpot.id}`}
+            value={localReflection}
+            onChange={handleReflectionChange}
+            placeholder="Jot down your thoughts, observations, or memories from this spot…"
+            rows={3}
+            style={{
+              width: '100%',
+              fontFamily: 'var(--jn-font-serif)',
+              fontSize: '13px',
+              lineHeight: 1.6,
+              color: 'var(--jn-ink)',
+              background: 'var(--jn-input-bg, #fffdf9)',
+              border: '1px solid rgba(193,18,47,0.15)',
+              borderRadius: 'var(--jn-r-md)',
+              padding: '10px 14px',
+              resize: 'none',
+              outline: 'none',
+              boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.04)',
+              transition: 'border-color 0.2s ease',
+            }}
+            onFocus={e => e.target.style.borderColor = 'var(--jn-crimson)'}
+            onBlur={e => e.target.style.borderColor = 'rgba(193,18,47,0.15)'}
+          />
+        </div>
+
+        {/* Riddle Quest */}
+        {RIDDLES[activeSpot.id] && (
+          <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70 dark:bg-stone-900/60 dark:border-stone-800">
+            <div className="flex justify-between items-center mb-2 select-none">
+              <span className="font-sans text-[11px] tracking-widest uppercase text-bahrain-red dark:text-[#C5A880] font-bold flex items-center gap-1">
+                Riddle
+              </span>
+              {solvedRiddles[activeSpot.id] ? (
+                <span className="text-[11px] bg-green-100 text-green-800 dark:bg-green-950/80 dark:text-green-400 font-extrabold px-2 py-0.5 rounded-full">
+                  ✓ Solved (+35 XP)
+                </span>
+              ) : (
+                <span className="text-[11px] bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-400 font-extrabold px-2 py-0.5 rounded-full">
+                  Unsolved (+35 XP)
+                </span>
+              )}
+            </div>
+
+            <p className="font-serif text-[14px] text-bronze-charcoal dark:text-[#EDEBE6] leading-relaxed font-bold mb-3">
+              "{RIDDLES[activeSpot.id].question}"
+            </p>
+
+            {solvedRiddles[activeSpot.id] ? (
+              <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/10 dark:border-green-500/20 space-y-1">
+                <p className="font-sans text-[11px] uppercase tracking-wider text-green-700 dark:text-green-400 font-extrabold select-none">Insider Discovery Reveal:</p>
+                <p className="font-serif text-[13px] text-bronze-charcoal dark:text-[#EDEBE6] leading-relaxed italic font-semibold">
+                  {RIDDLES[activeSpot.id].insider}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {RIDDLES[activeSpot.id].options.map((opt, oIdx) => (
+                  <button
+                    key={oIdx}
+                    onClick={() => handleAnswerRiddle(oIdx)}
+                    className="w-full p-2.5 text-left rounded-lg border border-red-500/10 dark:border-stone-800 hover:border-bahrain-red dark:hover:border-[#C5A880] bg-white dark:bg-stone-900 hover:bg-red-500/5 dark:hover:bg-stone-800 text-[13px] font-sans font-bold text-bronze-charcoal dark:text-[#EDEBE6] transition-all cursor-pointer active:scale-99"
+                  >
+                    {opt}
+                  </button>
+                ))}
+                {riddleError && (
+                  <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400 font-sans text-[11px] font-bold animate-scaleIn select-none">
+                    ❌ {riddleError}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   /* RENDER */
   return (
     <div className="jn-root" role="main" aria-label="Bahrain Passage Journal Notebook">
@@ -786,7 +683,9 @@ export default function JournalNotebook({ onBack }) {
             </span>
           </div>
 
-          <div className="jn-header-right" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="jn-header-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <LangToggle />
+
             {/* XP progress pill */}
             <div className="jn-xp-pill" aria-label={`${displayXP} XP earned`}>
               <span className="jn-xp-num">{displayXP} XP</span>
@@ -1155,9 +1054,13 @@ export default function JournalNotebook({ onBack }) {
 
                   <hr className="jn-divider" aria-hidden="true" />
 
-                  {/* On desktop: hide details on left page (rendered on right page instead) */}
+                  {/* On desktop: hide description/cost details on left page (rendered on right page instead) */}
                   <div className="jn-desktop-hidden-details">
-                    {renderSpotDetails()}
+                    {renderSpotAbout()}
+                  </div>
+                  {/* Sidebar spot note/riddles/action row always visible on left page */}
+                  <div className="jn-sidebar-spot-always">
+                    {renderSpotSidebar()}
                   </div>
                 </div>
               ) : null}
@@ -1209,10 +1112,10 @@ export default function JournalNotebook({ onBack }) {
                     <div className="space-y-4">
                       <div className="jn-section-heading">
                         <h2 className="jn-section-title">About This Spot</h2>
-                        <span className="jn-section-subtitle">Details & Riddle</span>
+                        <span className="jn-section-subtitle">Details</span>
                       </div>
                       <hr className="jn-divider" aria-hidden="true" />
-                      {renderSpotDetails()}
+                      {renderSpotAbout()}
                     </div>
                   )}
                   {isSealStep && (
@@ -1582,7 +1485,7 @@ export default function JournalNotebook({ onBack }) {
                       <button
                         key={idx}
                         className="jn-phrase-card"
-                        onClick={() => playPhrase(p.arabic)}
+                        onClick={() => playPhrase(p.arabic, soundVolume, soundMuted)}
                         aria-label={`Hear pronunciation of ${p.label}`}
                       >
                         <div className="jn-phrase-card-content">
@@ -1747,21 +1650,7 @@ export default function JournalNotebook({ onBack }) {
                     setSelectedHotel(hotel)
                     awardXP(50, 'Established Base Camp')
                     setBaseCampPromptOpen(false)
-                    try {
-                      const ctx = new (window.AudioContext || window.webkitAudioContext)()
-                      const osc = ctx.createOscillator()
-                      const gain = ctx.createGain()
-                      osc.type = 'sine'
-                      osc.frequency.setValueAtTime(587.33, ctx.currentTime)
-                      osc.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.15)
-                      gain.gain.setValueAtTime(0, ctx.currentTime)
-                      gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.02)
-                      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5)
-                      osc.connect(gain)
-                      gain.connect(ctx.destination)
-                      osc.start()
-                      osc.stop(ctx.currentTime + 0.5)
-                    } catch { /* ignore */ }
+                    playCampStampSound(soundVolume, soundMuted)
                   }}
                   style={{
                     display: 'flex',

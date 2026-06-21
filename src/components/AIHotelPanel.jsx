@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useVibe } from '../hooks/useVibe'
 import { callLocalAI, buildHotelAdvisorPrompt } from '../services/aiService'
+import { playCampStampSound } from '../services/audioUtils'
 import { HOTELS_DB } from '../data/hotelsData'
 import { ConciergeBell, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 
@@ -8,7 +9,7 @@ import { ConciergeBell, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 export { HOTELS_DB }
 
 export default function AIHotelPanel({ moods, tier, duration, autoLoad = true }) {
-  const { selectedHotel, setSelectedHotel, awardXP } = useVibe()
+  const { selectedHotel, setSelectedHotel, awardXP, soundVolume, soundMuted } = useVibe()
   const [recommendations, setRecommendations] = useState(null)
   const [loading, setLoading] = useState(autoLoad)
   const [filterQuery, setFilterQuery] = useState('')
@@ -58,25 +59,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const playCampStampSound = () => {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)()
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(587.33, ctx.currentTime) // D5
-      osc.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.15) // D6
-      gain.gain.setValueAtTime(0, ctx.currentTime)
-      gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.02)
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5)
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.start()
-      osc.stop(ctx.currentTime + 0.5)
-    } catch (audioErr) {
-      console.warn('[AIHotelPanel] Audio playback failed:', audioErr.message)
-    }
-  }
+  // Centralized audio used on selection
 
   const handleFilter = async () => {
     if (!filterQuery.trim()) return
@@ -327,7 +310,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                         </span>
                       ) : (
                         <button
-                          onClick={(e) => { e.stopPropagation(); setSelectedHotel(hotel); awardXP(50, 'Established Base Camp'); playCampStampSound() }}
+                          onClick={(e) => { e.stopPropagation(); setSelectedHotel(hotel); awardXP(50, 'Established Base Camp'); playCampStampSound(soundVolume, soundMuted) }}
                           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#C1122F]/5 border border-[#C1122F]/25 text-[#C1122F] hover:bg-[#C1122F]/10 text-xs font-bold cursor-pointer tracking-wider transition-colors focus:outline-none"
                         >
                           Set as Base Camp

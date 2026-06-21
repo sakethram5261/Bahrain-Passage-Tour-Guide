@@ -170,6 +170,110 @@ export function playCampStampSound(soundVolume = 1, soundMuted = false) {
   } catch { /* ignore */ }
 }
 
+export function playRiddleCorrect(soundVolume = 1, soundMuted = false) {
+  if (soundMuted) return
+  const ctx = getAudioContext()
+  if (!ctx) return
+  try {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(440, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15)
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.15 * soundVolume, ctx.currentTime + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.3)
+  } catch { /* ignore */ }
+}
+
+export function playRiddleIncorrect(soundVolume = 1, soundMuted = false) {
+  if (soundMuted) return
+  const ctx = getAudioContext()
+  if (!ctx) return
+  try {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(120, ctx.currentTime)
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.2 * soundVolume, ctx.currentTime + 0.05)
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.25)
+  } catch { /* ignore */ }
+}
+
+export function playDaySealStamp(soundVolume = 1, soundMuted = false) {
+  if (soundMuted) return
+  const ctx = getAudioContext()
+  if (!ctx) return
+  try {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(90, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 0.25)
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.24 * soundVolume, ctx.currentTime + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.24)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.3)
+  } catch { /* ignore */ }
+}
+
+export function playRankUpChime(soundVolume = 1, soundMuted = false) {
+  if (soundMuted) return
+  const ctx = getAudioContext()
+  if (!ctx) return
+  try {
+    const playNote = (freq, delay, dur) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + delay)
+      gain.gain.setValueAtTime(0, ctx.currentTime + delay)
+      gain.gain.linearRampToValueAtTime(0.2 * soundVolume, ctx.currentTime + delay + 0.05)
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + dur - 0.05)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(ctx.currentTime + delay)
+      osc.stop(ctx.currentTime + delay + dur)
+    }
+    playNote(261.63, 0, 0.2) // C4
+    playNote(329.63, 0.15, 0.2) // E4
+    playNote(392.00, 0.3, 0.2) // G4
+    playNote(523.25, 0.45, 0.5) // C5
+  } catch { /* ignore */ }
+}
+
+export function playPhraseFeedbackTone(soundVolume = 1, soundMuted = false) {
+  if (soundMuted) return
+  const ctx = getAudioContext()
+  if (!ctx) return
+  try {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(330, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.08)
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.04 * soundVolume, ctx.currentTime + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.22)
+  } catch { /* ignore */ }
+}
+
 export function resetAudioContext() {
   if (audioCtx) {
     audioCtx.close()

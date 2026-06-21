@@ -4,7 +4,7 @@
  */
 import { useLang } from '../context/LangContext'
 
-export default function LangToggle({ style = {}, className = '' }) {
+export default function LangToggle({ className = '' }) {
   const { lang, toggle } = useLang()
   const isAr = lang === 'ar'
 
@@ -15,29 +15,14 @@ export default function LangToggle({ style = {}, className = '' }) {
       aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
       aria-pressed={isAr}
       title={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
+      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-stone-200 dark:border-[#2E2724] bg-stone-100/80 dark:bg-[#1C1816]/80 text-[#1C1917] dark:text-[#EDEBE6] hover:bg-stone-200/90 dark:hover:bg-[#24201E] text-[10px] font-extrabold tracking-wider cursor-pointer transition-all select-none hover:scale-102 active:scale-98 ${className}`}
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 4,
-        padding: '4px 10px',
-        borderRadius: 999,
-        background: 'rgba(255,255,255,0.15)',
-        border: '1px solid rgba(255,255,255,0.3)',
-        color: '#fff',
-        fontSize: 11,
-        fontWeight: 800,
-        letterSpacing: '0.08em',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        userSelect: 'none',
-        fontFamily: isAr ? '"Noto Naskh Arabic", "Scheherazade New", serif' : '"Playfair Display", serif',
-        ...style,
+        fontFamily: isAr ? '"Noto Naskh Arabic", "Scheherazade New", serif' : '"Outfit", sans-serif',
       }}
-      className={className}
     >
-      <span style={{ opacity: isAr ? 0.55 : 1, transition: 'opacity 0.2s' }}>EN</span>
-      <span style={{ opacity: 0.4, fontSize: 9 }}>|</span>
-      <span style={{ opacity: isAr ? 1 : 0.55, transition: 'opacity 0.2s' }}>عر</span>
+      <span style={{ opacity: isAr ? 0.55 : 1, transition: 'opacity 0.15s' }}>EN</span>
+      <span style={{ opacity: 0.25, fontSize: 9 }}>|</span>
+      <span style={{ opacity: isAr ? 1 : 0.55, transition: 'opacity 0.15s' }}>عر</span>
     </button>
   )
 }
