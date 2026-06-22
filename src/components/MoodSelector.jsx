@@ -39,7 +39,8 @@ const MOODS = [
 ]
 
 export default function MoodSelector({ onConfirm, onBack }) {
-  const { selectedMoods, setSelectedMoods, duration, setDuration } = useVibe()
+  const { selectedMoods, setSelectedMoods, duration, setDuration, quickStart } = useVibe()
+
 
   const containerRef = useRef(null)
   const cardsRef = useRef([])
@@ -352,12 +353,20 @@ export default function MoodSelector({ onConfirm, onBack }) {
           </button>
 
           <button
+            onClick={quickStart}
+            className="w-full py-3.5 rounded-xl font-sans font-black text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer border border-[#C1122F]/20 bg-[#C1122F]/5 text-[#C1122F] hover:bg-[#C1122F] hover:text-white hover:scale-[1.01] active:scale-[0.99] h-[48px] flex items-center justify-center gap-1 shadow-sm"
+          >
+            ⚡ Quick Start (Skip Curation)
+          </button>
+
+          <button
             onClick={() => setSelectedMoods(allSelected ? [] : ['empires', 'sea', 'spice', 'lights'])}
             className="w-full text-[11px] tracking-widest uppercase font-bold py-2.5 transition-all duration-300 cursor-pointer text-center hover:underline text-[#C1122F] bg-transparent border-none"
           >
             {allSelected ? 'Clear All' : 'Select All'}
           </button>
         </div>
+
       </div>
     </div>
   )

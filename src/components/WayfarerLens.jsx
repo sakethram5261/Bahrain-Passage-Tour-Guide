@@ -33,6 +33,20 @@ export default function WayfarerLens({ spot, onClose }) {
   const [scanLog, setScanLog] = useState('Standby for snapshot alignment...')
   const [photoRank, setPhotoRank] = useState('')
 
+  // Optical Alignment Simulator states
+  const [focus, setFocus] = useState(() => Math.floor(Math.random() * 30) + 15) // start defocused
+  const [exposure, setExposure] = useState(() => Math.floor(Math.random() * 30) + 70) // start overexposed
+  const [targetFocus] = useState(() => Math.floor(Math.random() * 40) + 50) // target focus (50-90)
+  const [targetExposure] = useState(() => Math.floor(Math.random() * 30) + 35) // target exposure (35-65)
+
+  const focusDiff = Math.abs(focus - targetFocus)
+  const exposureDiff = Math.abs(exposure - targetExposure)
+  const blurAmount = Math.max(0, Math.min(10, (focusDiff - 4) / 4))
+  const exposureDir = exposure > targetExposure ? 1 : -1
+  const brightnessAmount = 1 + (exposureDir * Math.max(0, (exposureDiff - 4) / 100) * 1.2)
+  const isAligned = focusDiff <= 8 && exposureDiff <= 8
+
+
   useEffect(() => {
     let active = true
 
@@ -298,7 +312,14 @@ export default function WayfarerLens({ spot, onClose }) {
               {/* Camera Viewfinder Viewport */}
               <div className="relative w-64 h-64 rounded-2xl border border-white/20 overflow-hidden shadow-lg mb-6 bg-zinc-950 flex items-center justify-center">
                 
-                <div className="absolute inset-0 z-0">
+                <div 
+                  className="absolute inset-0 z-0"
+                  style={{
+                    filter: `blur(${blurAmount}px) brightness(${brightnessAmount}) contrast(1.1)`,
+                    transition: 'filter 0.1s ease-out'
+                  }}
+                >
+
                   {permission === 'granted' ? (
                     <video 
                       ref={videoCallbackRef}
@@ -346,15 +367,58 @@ export default function WayfarerLens({ spot, onClose }) {
                 <div className="absolute z-20 w-3 h-3 border-r border-b border-[#C1122F]/60 top-1/2 left-1/2 translate-x-1 translate-y-1" />
               </div>
 
-              {/* Viewport instruction text */}
-              <div className="flex flex-col items-center gap-1.5 max-w-xs text-center select-none">
+              {/* Viewport instruction text & sliders */}
+              <div className="flex flex-col items-center gap-1.5 w-full max-w-xs text-center select-none">
                 <span className="font-sans text-[9px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
-                  {permission === 'granted' ? 'Lens Aligned' : 'Simulating Reticle'}
+                  {permission === 'granted' ? 'Lens Connected' : 'Simulating Horizon'}
                 </span>
-                <p className="font-sans text-[10px] text-bronze-muted leading-relaxed">
-                  Point at the landmark's horizon and snap a physical Polaroid picture for your scrapbook.
-                </p>
+                
+                {/* Vintage focus and exposure controls */}
+                <div className="w-full mt-2 space-y-3 bg-[#FCFBF8] border border-red-500/10 p-3 rounded-2xl shadow-sm text-left">
+                  <div className="flex justify-between items-center text-[8px] font-sans font-bold uppercase tracking-wider">
+                    <span className={focusDiff <= 8 ? 'text-emerald-700 font-extrabold' : 'text-bahrain-red'}>
+                      {focusDiff <= 8 ? '✓ Focal Alignment Lock' : '⚡ Focal Depth Calibration'}
+                    </span>
+                    <span className="font-mono text-bronze-muted">{focus}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={focus}
+                    disabled={capturing || scanning}
+                    onChange={(e) => setFocus(parseInt(e.target.value))}
+                    className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-bahrain-red"
+                  />
+
+                  <div className="flex justify-between items-center text-[8px] font-sans font-bold uppercase tracking-wider pt-1">
+                    <span className={exposureDiff <= 8 ? 'text-emerald-700 font-extrabold' : 'text-bahrain-red'}>
+                      {exposureDiff <= 8 ? '✓ Exposure Balance Lock' : '⚡ Light Exposure Control'}
+                    </span>
+                    <span className="font-mono text-bronze-muted">{exposure}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={exposure}
+                    disabled={capturing || scanning}
+                    onChange={(e) => setExposure(parseInt(e.target.value))}
+                    className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-bahrain-red"
+                  />
+
+                  {isAligned ? (
+                    <div className="text-[8.5px] font-sans font-black text-emerald-800 uppercase tracking-widest text-center animate-pulse pt-1">
+                      🎯 LENS SECURED — CAPTURE STAGE READY
+                    </div>
+                  ) : (
+                    <div className="text-[8px] font-sans font-bold text-bahrain-red/60 uppercase tracking-widest text-center pt-1">
+                      ⚠ Adjust Dials to Align Optic Reticle
+                    </div>
+                  )}
+                </div>
               </div>
+
 
             </div>
           ) : (
@@ -452,8 +516,10 @@ export default function WayfarerLens({ spot, onClose }) {
               {/* Massive Retro Shutter Button */}
               <button
                 onClick={handleCapture}
-                disabled={capturing || scanning}
-                className="w-16 h-16 rounded-full border-4 border-white bg-bahrain-red hover:bg-bahrain-dark transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center relative outline-none disabled:opacity-50"
+                disabled={capturing || scanning || !isAligned}
+                className={`w-16 h-16 rounded-full border-4 border-white transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center relative outline-none ${
+                  isAligned ? 'bg-bahrain-red hover:bg-red-700' : 'bg-neutral-300 border-neutral-100 cursor-not-allowed opacity-60'
+                }`}
               >
                 <div className="absolute inset-1 rounded-full border border-white/20" />
                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/50 font-sans">
@@ -461,8 +527,9 @@ export default function WayfarerLens({ spot, onClose }) {
                 </span>
               </button>
               <span className="font-sans text-[8px] tracking-widest text-bronze-muted/50 uppercase mt-2">
-                {scanning ? 'Analysing Photo Strata...' : 'Press Shutter to Capture'}
+                {scanning ? 'Analysing Photo Strata...' : isAligned ? 'Press Shutter to Capture' : 'Lenses Defocused'}
               </span>
+
             </div>
           ) : (
             <button

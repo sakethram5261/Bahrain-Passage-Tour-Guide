@@ -54,8 +54,13 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
         if (useCache) responseCache.set(cacheKey, data.text)
         return data.text
       }
-      // Server said fallback: true — use static text silently
-      if (data.fallback) return fallbackText
+      // Server said fallback: true — use static text
+      if (data.fallback) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('ai-fallback-triggered'))
+        }
+        return fallbackText
+      }
     } else {
       const errText = await response.text().catch(() => '')
       console.warn(`[aiService] Proxy returned HTTP ${response.status}:`, errText.slice(0, 200))
@@ -71,6 +76,9 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
     }
   }
 
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('ai-fallback-triggered'))
+  }
   return fallbackText
 }
 

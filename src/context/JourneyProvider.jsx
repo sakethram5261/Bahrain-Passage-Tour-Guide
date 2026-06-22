@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { JourneyContext } from './JourneyContext'
 import { playPageSwish } from '../services/audioUtils'
+import { spotsCatalog } from '../hooks/useItinerary'
+
 
 const safeGetJSON = (key, defaultValue) => {
   try {
@@ -62,11 +64,18 @@ export function JourneyProvider({ children }) {
   const [solvedRiddles, setSolvedRiddles] = useState(() => safeGetJSON('bp_solvedRiddles', {}))
   const [passportStamps, setPassportStamps] = useState(() => safeGetJSON('bp_passportStamps', []))
   const [pearlsCollected, setPearlsCollected] = useState(() => safeGetJSON('bp_pearlsCollected', []))
+  const [falconsCalled, setFalconsCalled] = useState(() => safeGetJSON('bp_falconsCalled', []))
   const [selectedHotel, setSelectedHotel] = useState(() => safeGetJSON('bp_selectedHotel', null))
+
 
   // ── Audio ─────────────────────────────────────────────────────────────
   const [soundVolume, setSoundVolume] = useState(() => safeGetNum('bp_soundVolume', 0.5))
   const [soundMuted, setSoundMuted] = useState(() => safeGetStr('bp_soundMuted', '0') === '1')
+
+  // ── Travel Bag / Saffron Theme ─────────────────────────────────────────
+  const [purchasedItems, setPurchasedItems] = useState(() => safeGetJSON('bp_purchasedItems', {}))
+  const [saffronThemeActive, setSaffronThemeActive] = useState(() => safeGetJSON('bp_saffronThemeActive', false))
+
 
   // ── UI state ──────────────────────────────────────────────────────────
   const [activeLeaf, setActiveLeaf] = useState(() => safeGetStr('bp_activeLeaf', 'chronicles'))
@@ -114,6 +123,8 @@ export function JourneyProvider({ children }) {
         localStorage.setItem('bp_journalReflections', JSON.stringify(journalReflections))
         localStorage.setItem('bp_soundVolume', soundVolume)
         localStorage.setItem('bp_soundMuted', soundMuted ? '1' : '0')
+        localStorage.setItem('bp_purchasedItems', JSON.stringify(purchasedItems))
+        localStorage.setItem('bp_saffronThemeActive', JSON.stringify(saffronThemeActive))
         localStorage.setItem('bp_activeLeaf', activeLeaf)
         localStorage.setItem('bp_xp', xp)
         localStorage.setItem('bp_xpLog', JSON.stringify(xpLog))
@@ -121,13 +132,16 @@ export function JourneyProvider({ children }) {
         localStorage.setItem('bp_goldFils', goldFils)
         localStorage.setItem('bp_passportStamps', JSON.stringify(passportStamps))
         localStorage.setItem('bp_pearlsCollected', JSON.stringify(pearlsCollected))
+        localStorage.setItem('bp_falconsCalled', JSON.stringify(falconsCalled))
         localStorage.setItem('bp_selectedHotel', selectedHotel ? JSON.stringify(selectedHotel) : '')
         localStorage.setItem('bp_collectedKeepsakes', JSON.stringify(collectedKeepsakes))
         localStorage.setItem('bp_chatHistory', JSON.stringify(chatHistory))
       } catch (e) { console.error(e) }
     }, 200)
     return () => clearTimeout(timer)
-  }, [step, selectedMoods, tier, duration, unlockedDays, completedDays, currentDayTab, itinerarySpots, capturedPhotos, lensStories, journalReflections, soundVolume, soundMuted, activeLeaf, xp, xpLog, solvedRiddles, goldFils, passportStamps, pearlsCollected, selectedHotel, collectedKeepsakes, chatHistory])
+  }, [step, selectedMoods, tier, duration, unlockedDays, completedDays, currentDayTab, itinerarySpots, capturedPhotos, lensStories, journalReflections, soundVolume, soundMuted, purchasedItems, saffronThemeActive, activeLeaf, xp, xpLog, solvedRiddles, goldFils, passportStamps, pearlsCollected, falconsCalled, selectedHotel, collectedKeepsakes, chatHistory])
+
+
 
   const awardXP = useCallback((amount, reason) => {
     setXp(prev => prev + amount)
@@ -215,22 +229,28 @@ export function JourneyProvider({ children }) {
     setGoldFils(1200)
     setPassportStamps([])
     setPearlsCollected([])
+    setFalconsCalled([])
     setChatHistory([])
     setStep(1)
+    setPurchasedItems({})
+    setSaffronThemeActive(false)
     try {
       const keys = [
         'bp_step', 'bp_selectedMoods', 'bp_tier', 'bp_duration',
         'bp_unlockedDays', 'bp_completedDays', 'bp_currentDayTab',
         'bp_itinerarySpots', 'bp_capturedPhotos', 'bp_lensStories',
         'bp_collectedKeepsakes', 'bp_journalReflections', 'bp_soundVolume', 'bp_soundMuted',
+        'bp_purchasedItems', 'bp_saffronThemeActive',
         'bp_activeLeaf', 'bp_xp', 'bp_xpLog', 'bp_solvedRiddles', 'bp_goldFils',
-        'bp_passportStamps', 'bp_pearlsCollected', 'bp_chatHistory'
+        'bp_passportStamps', 'bp_pearlsCollected', 'bp_falconsCalled', 'bp_chatHistory'
       ]
+
       keys.forEach(k => localStorage.removeItem(k))
     } catch (e) {
       console.error(e)
     }
   }
+
 
   const transitionSetStep = useCallback((val) => {
     if (document.startViewTransition) {
@@ -245,6 +265,56 @@ export function JourneyProvider({ children }) {
   const playOrganicPageSwish = useCallback(() => {
     playPageSwish(soundVolume, soundMuted)
   }, [soundMuted, soundVolume])
+
+  const quickStart = useCallback(() => {
+    playOrganicPageSwish()
+    const moods = selectedMoods.length > 0 ? selectedMoods : ['empires', 'spice']
+    setSelectedMoods(moods)
+    const dur = duration || 3
+
+    const filtered = spotsCatalog.filter(s => moods.includes(s.mood) && s.id !== 'airport-arrival' && s.id !== 'airport-departure')
+    const mapped = filtered.map((item, idx) => {
+      const targetDay = (idx % dur) + 1
+      return {
+        ...item,
+        day: targetDay,
+        pathGuide: tier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
+        pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
+      }
+    })
+
+    const arrivalSpot = spotsCatalog.find(s => s.id === 'airport-arrival')
+    const departureSpot = spotsCatalog.find(s => s.id === 'airport-departure')
+    if (arrivalSpot) {
+      mapped.push({
+        ...arrivalSpot,
+        day: 1,
+        pathGuide: tier === 'Wandering' ? arrivalSpot.budgetGuide : arrivalSpot.premiumGuide,
+        pathCost: tier === 'Wandering' ? arrivalSpot.budgetCost : arrivalSpot.premiumCost
+      })
+    }
+    if (departureSpot) {
+      mapped.push({
+        ...departureSpot,
+        day: dur,
+        pathGuide: tier === 'Wandering' ? departureSpot.budgetGuide : departureSpot.premiumGuide,
+        pathCost: tier === 'Wandering' ? departureSpot.budgetCost : departureSpot.premiumCost
+      })
+    }
+
+    const sorted = mapped.sort((a, b) => {
+      if (a.day !== b.day) return a.day - b.day
+      if (a.id === 'airport-arrival') return -1
+      if (b.id === 'airport-arrival') return 1
+      if (a.id === 'airport-departure') return 1
+      if (b.id === 'airport-departure') return -1
+      return 0
+    })
+
+    setItinerarySpots(sorted)
+    setStep(5)
+  }, [selectedMoods, duration, tier, setSelectedMoods, setItinerarySpots, setStep, playOrganicPageSwish])
+
 
   return (
     <JourneyContext.Provider value={{
@@ -299,10 +369,13 @@ export function JourneyProvider({ children }) {
       spendFils,
       pearlsCollected,
       setPearlsCollected,
+      falconsCalled,
+      setFalconsCalled,
       selectedHotel,
       setSelectedHotel,
       collectedKeepsakes,
       unlockKeepsake,
+
 
       // Audio
       soundVolume,
@@ -310,6 +383,13 @@ export function JourneyProvider({ children }) {
       soundMuted,
       setSoundMuted,
       playOrganicPageSwish,
+
+      // Travel Bag / Saffron Theme
+      purchasedItems,
+      setPurchasedItems,
+      saffronThemeActive,
+      setSaffronThemeActive,
+      quickStart,
 
       // UI
       activeLeaf,
@@ -323,3 +403,4 @@ export function JourneyProvider({ children }) {
     </JourneyContext.Provider>
   )
 }
+

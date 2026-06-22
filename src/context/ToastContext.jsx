@@ -7,7 +7,8 @@
  *   toast.error('Couldn\'t load that. Tap to retry.')
  *   toast.info('XP earned!')
  */
-import { createContext, useContext, useState, useCallback, useRef } from 'react'
+import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react'
+
 
 const ToastContext = createContext(null)
 
@@ -40,6 +41,21 @@ export function ToastProvider({ children }) {
     error:   (msg, dur) => addToast('error',   msg, dur),
     info:    (msg, dur) => addToast('info',     msg, dur),
   }
+
+  // Subscribe to AI fallback events
+  useEffect(() => {
+    let lastToastTime = 0
+    const handleFallback = () => {
+      const now = Date.now()
+      if (now - lastToastTime > 8000) {
+        addToast('info', 'AI Concierge offline. Using local guide database.', 4000)
+        lastToastTime = now
+      }
+    }
+    window.addEventListener('ai-fallback-triggered', handleFallback)
+    return () => window.removeEventListener('ai-fallback-triggered', handleFallback)
+  }, [addToast])
+
 
   return (
     <ToastContext.Provider value={{ toast }}>

@@ -174,7 +174,12 @@ export default function JournalNotebook({ onBack }) {
     selectedHotel,
     setSelectedHotel,
     playOrganicPageSwish,
+    purchasedItems = {},
+    setPurchasedItems = () => {},
+    saffronThemeActive = false,
+    setSaffronThemeActive = () => {},
   } = useVibe() || {}
+
 
   /* ── Language + Toast context ──────────────────────────────────────────── */
   const { lang, isRTL } = useLang()
@@ -471,6 +476,24 @@ export default function JournalNotebook({ onBack }) {
 
   const handleRequestHint = async (spotId) => {
     if (riddleHints[spotId] || hintLoading) return
+
+    const scrollCount = purchasedItems['riddle-hint'] || 0
+    if (scrollCount > 0) {
+      setPurchasedItems(prev => ({
+        ...prev,
+        'riddle-hint': scrollCount - 1
+      }))
+      toast.success("Consumed 1 Riddle Scroll Clue!")
+    } else {
+      if (goldFils >= 150) {
+        spendFils(150)
+        toast.success("Spent 150 Fils for a Clue Hint!")
+      } else {
+        toast.error("Requires a Riddle Scroll Clue or 150 Fils to request a hint.")
+        return
+      }
+    }
+
     setHintLoading(true)
     const riddle = RIDDLES[spotId]
     if (!riddle) {
@@ -481,7 +504,7 @@ export default function JournalNotebook({ onBack }) {
     const hint = await callLocalAI(
       system,
       user,
-      `Pay attention to the historical clues in ${activeSpot.name}'s description.`,
+      `Guide Clue: ${riddle.insider}`,
       { maxTokens: 100 }
     )
     setRiddleHints(prev => ({ ...prev, [spotId]: hint }))
@@ -496,9 +519,25 @@ export default function JournalNotebook({ onBack }) {
     }
     if (spendFils(item.cost)) {
       awardXP(item.xpReward || 20, `Bought ${item.name}`)
-      toast.success(`Purchased ${item.name}! +${item.xpReward || 20} XP`)
+      if (item.id === 'keepsake-bag') {
+        const uncollected = spotsCatalog.filter(s => s.keepsakeId && !collectedKeepsakes.includes(s.id))
+        if (uncollected.length > 0) {
+          const randSpot = uncollected[Math.floor(Math.random() * uncollected.length)]
+          unlockKeepsake(randSpot.id)
+          toast.success(`Grab-bag unlocked keepsake: ${randSpot.keepsakeEmoji} ${randSpot.keepsakeName}!`)
+        } else {
+          toast.success(`Grab-bag purchased! All keepsakes already unlocked. (+${item.xpReward} XP)`)
+        }
+      } else {
+        setPurchasedItems(prev => ({
+          ...prev,
+          [item.id]: (prev[item.id] || 0) + 1
+        }))
+        toast.success(`Purchased ${item.name}! Added to Travel Gear. (+${item.xpReward || 20} XP)`)
+      }
     }
   }
+
 
   /* ── Keyboard: Escape closes overlays ────────────────────────────────────── */
   useEffect(() => {
@@ -540,6 +579,102 @@ export default function JournalNotebook({ onBack }) {
             {activeSpot.pathCost || activeSpot.budgetCost || 'Free Entry'}
           </p>
         </div>
+
+        {/* Coastal / Island Pearl Searching */}
+        {activeSpot.category === 'coast' && (
+          <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/40 relative overflow-hidden select-none">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-sans text-[11px] tracking-widest uppercase text-blue-700 font-bold flex items-center gap-1">
+                🌊 Pearl Diving Reef
+              </span>
+              {(pearlsCollected || []).includes(activeSpot.id) && (
+                <span className="text-[11px] bg-blue-100 text-blue-800 font-extrabold px-2 py-0.5 rounded-full">
+                  ✓ Found Pearl (+30 XP)
+                </span>
+              )}
+            </div>
+            {(purchasedItems['pearl-hook'] || 0) > 0 ? (
+              (pearlsCollected || []).includes(activeSpot.id) ? (
+                <p className="font-serif text-[12px] text-blue-800 leading-relaxed font-medium italic">
+                  You already cast your Generational Oyster Hook here and retrieved a rare Basra Pearl!
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <p className="font-serif text-[12px] text-blue-900 leading-relaxed">
+                    The warm Sitra reefs are home to wild pearl oysters. Cast your hook to search for hidden gems.
+                  </p>
+                  <button
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect()
+                      const startX = rect.left + rect.width / 2
+                      const startY = rect.top + rect.height / 2
+                      setPearlsCollected(prev => [...(prev || []), activeSpot.id])
+                      awardXP(30, 'Harvested Basra Pearl')
+                      setGoldFils(prev => prev + 100)
+                      triggerCoinFlyout(startX, startY)
+                      toast.success("Succesfully dived! Found a natural Basra Pearl! +100 Fils, +30 XP")
+                    }}
+                    className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-sans text-[11px] uppercase tracking-wider font-extrabold rounded-lg shadow-sm cursor-pointer transition-all active:scale-98"
+                  >
+                    Search for Pearls
+                  </button>
+                </div>
+              )
+            ) : (
+              <div className="p-2.5 rounded-lg bg-blue-100/50 border border-blue-200 text-blue-800 font-sans text-[11px] font-bold flex items-center gap-2">
+                🔒 Requires Generational Oyster Hook from Souq Shop.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Falconry Majlis Fort/Desert */}
+        {(activeSpot.category === 'fort' || activeSpot.category === 'desert') && (
+          <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/40 relative overflow-hidden select-none">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-sans text-[11px] tracking-widest uppercase text-amber-700 font-bold flex items-center gap-1">
+                🦅 Falconry Training
+              </span>
+              {(falconsCalled || []).includes(activeSpot.id) && (
+                <span className="text-[11px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full">
+                  ✓ Falcon Called (+50 XP)
+                </span>
+              )}
+            </div>
+            {(purchasedItems['falcon-glove'] || 0) > 0 ? (
+              (falconsCalled || []).includes(activeSpot.id) ? (
+                <p className="font-serif text-[12px] text-amber-800 leading-relaxed font-medium italic">
+                  A beautiful wild desert falcon has landed on your Falconer Glove here!
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <p className="font-serif text-[12px] text-amber-900 leading-relaxed">
+                    This location has open winds and thermal drafts. Equip your glove and whistle to call a wild falcon.
+                  </p>
+                  <button
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect()
+                      const startX = rect.left + rect.width / 2
+                      const startY = rect.top + rect.height / 2
+                      setFalconsCalled(prev => [...(prev || []), activeSpot.id])
+                      awardXP(50, 'Called Falcon to Glove')
+                      setGoldFils(prev => prev + 100)
+                      triggerCoinFlyout(startX, startY)
+                      toast.success("A soaring falcon has landed on your glove! +100 Fils, +50 XP")
+                    }}
+                    className="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-sans text-[11px] uppercase tracking-wider font-extrabold rounded-lg shadow-sm cursor-pointer transition-all active:scale-98"
+                  >
+                    Call Falcon
+                  </button>
+                </div>
+              )
+            ) : (
+              <div className="p-2.5 rounded-lg bg-amber-100/50 border border-amber-200 text-amber-800 font-sans text-[11px] font-bold flex items-center gap-2">
+                🔒 Requires Falconer Glove from Souq Shop.
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Next Itinerary Item Button */}
         <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px dashed rgba(186,12,47,0.15)', display: 'flex', justifyContent: 'flex-end' }}>
@@ -618,6 +753,88 @@ export default function JournalNotebook({ onBack }) {
           >
             My Notes
           </label>
+          {/* Writing Prompt Chips */}
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--jn-ink-faint)', alignSelf: 'center', marginRight: '4px' }}>Prompts:</span>
+            <button
+              type="button"
+              onClick={() => {
+                const header = "\n- Cardamom/Saffron scent: \n- Traditional flavors tasted: \n"
+                const newVal = (localReflection ? localReflection + header : header).trim()
+                setLocalReflection(newVal)
+                saveJournalReflection(activeSpot.id, newVal)
+                playTypewriterClick(1.2)
+                toast.success("Appended Food & Aromas template!")
+              }}
+              style={{
+                fontSize: '10px',
+                fontWeight: 'bold',
+                padding: '4px 8px',
+                borderRadius: '9999px',
+                border: '1px solid var(--jn-border-color)',
+                background: 'var(--jn-paper)',
+                color: 'var(--jn-ink)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--jn-crimson)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--jn-border-color)'; e.currentTarget.style.background = 'var(--jn-paper)' }}
+            >
+              Food & Aromas 🍯
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const header = "\n- Coral stone & wood details: \n- Geometry & structural design: \n"
+                const newVal = (localReflection ? localReflection + header : header).trim()
+                setLocalReflection(newVal)
+                saveJournalReflection(activeSpot.id, newVal)
+                playTypewriterClick(1.2)
+                toast.success("Appended Architecture template!")
+              }}
+              style={{
+                fontSize: '10px',
+                fontWeight: 'bold',
+                padding: '4px 8px',
+                borderRadius: '9999px',
+                border: '1px solid var(--jn-border-color)',
+                background: 'var(--jn-paper)',
+                color: 'var(--jn-ink)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--jn-crimson)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--jn-border-color)'; e.currentTarget.style.background = 'var(--jn-paper)' }}
+            >
+              Architecture 🏺
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const header = "\n- Sounds & street ambient: \n- Warmth of local greetings: \n"
+                const newVal = (localReflection ? localReflection + header : header).trim()
+                setLocalReflection(newVal)
+                saveJournalReflection(activeSpot.id, newVal)
+                playTypewriterClick(1.2)
+                toast.success("Appended Local Vibe template!")
+              }}
+              style={{
+                fontSize: '10px',
+                fontWeight: 'bold',
+                padding: '4px 8px',
+                borderRadius: '9999px',
+                border: '1px solid var(--jn-border-color)',
+                background: 'var(--jn-paper)',
+                color: 'var(--jn-ink)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--jn-crimson)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--jn-border-color)'; e.currentTarget.style.background = 'var(--jn-paper)' }}
+            >
+              Local Vibe 📝
+            </button>
+          </div>
           <textarea
             id={`reflection-${activeSpot.id}`}
             value={localReflection}
@@ -734,7 +951,7 @@ export default function JournalNotebook({ onBack }) {
                         opacity: hintLoading ? 0.6 : 1
                       }}
                     >
-                      {hintLoading ? '🧙‍♂️ Consulting elders...' : '✨ Request Hint'}
+                      {hintLoading ? '🧙‍♂️ Consulting elders...' : (purchasedItems['riddle-hint'] || 0) > 0 ? `📜 Use Clue Scroll (${purchasedItems['riddle-hint']} left)` : '✨ Request Hint (150 Fils)'}
                     </button>
                   )}
                 </div>
@@ -748,7 +965,8 @@ export default function JournalNotebook({ onBack }) {
 
   /* RENDER */
   return (
-    <div className="jn-root" role="main" aria-label="Bahrain Passage Journal Notebook">
+    <div className={`jn-root ${saffronThemeActive ? 'jn-saffron-theme' : ''}`} role="main" aria-label="Bahrain Passage Journal Notebook">
+
 
 
       {/* ── Fixed minimal header ────────────────────────────────────────────── */}
@@ -806,6 +1024,32 @@ export default function JournalNotebook({ onBack }) {
               title="View Explorer Passport"
             >
               <span>{rank.label}</span>
+            </button>
+
+            {/* Print / Export Travelogue */}
+            <button
+              onClick={() => {
+                playTypewriterClick(1.1)
+                window.print()
+              }}
+              className="jn-utility-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '6px',
+                minWidth: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: 'rgba(193, 18, 47, 0.05)',
+                border: '1px solid rgba(193, 18, 47, 0.15)',
+                color: 'var(--jn-crimson)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              title="Print / Export Travelogue"
+            >
+              <span className="text-[14px]">🖨️</span>
             </button>
 
             {/* Edit trip / back */}
@@ -1518,13 +1762,16 @@ export default function JournalNotebook({ onBack }) {
                   <hr className="jn-divider" aria-hidden="true" />
 
                   {/* Fils balance */}
-                  <div className="jn-fils-bar">
-                    <span className="jn-fils-label">Fils Balance</span>
-                    <span className="jn-fils-amount">{(goldFils || 0).toLocaleString()} Fils</span>
+                  <div className="jn-fils-bar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className="jn-fils-label">Fils Balance</span>
+                      <span className="jn-fils-amount">{(goldFils || 0).toLocaleString()} Fils</span>
+                    </div>
+                    <span style={{ fontSize: '9px', color: 'var(--jn-ink-faint)', alignSelf: 'flex-start', marginTop: '2px', fontFamily: 'var(--jn-font-sans)', fontWeight: 'bold' }}>
+                      Note: 1,000 Fils = 1 BHD (Bahraini Dinar)
+                    </span>
                   </div>
-                  <p style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', color: 'var(--jn-ink-faint)', marginTop: '-6px', marginBottom: '14px', fontStyle: 'italic' }}>
-                    Earn Fils by capturing spots and solving riddles
-                  </p>
+
                   {/* Souq shop button */}
                   <button
                     className="jn-action-btn jn-action-btn--amber jn-action-btn--full"
@@ -1560,6 +1807,69 @@ export default function JournalNotebook({ onBack }) {
                       </p>
                     )}
                   </div>
+
+                  {/* Travel Gear / Inventory Cabinet */}
+                  <div className="jn-keepsake-cabinet" style={{ marginTop: '20px' }}>
+                    <span className="jn-keepsake-cabinet-label">Travel Gear & Curated Goods</span>
+                    <div className="space-y-2 mt-2">
+                      {shopItems.filter(item => item.id !== 'keepsake-bag').map(item => {
+                        const count = purchasedItems[item.id] || 0
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between p-2.5 rounded-xl border border-red-500/10 bg-white/50"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-xl shrink-0">{item.emoji}</span>
+                              <div className="text-left">
+                                <h5 className="font-serif text-[11px] font-bold text-bronze-charcoal leading-tight">
+                                  {item.name}
+                                </h5>
+                                <p className="font-sans text-[8.5px] text-bronze-muted leading-tight max-w-[180px] mt-0.5">
+                                  {item.id === 'saffron-halwa' && saffronThemeActive
+                                    ? "Saffron Gold interface theme is active!"
+                                    : item.desc}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="font-mono text-[10px] font-bold bg-red-500/5 text-bahrain-red px-2 py-0.5 rounded border border-red-500/10">
+                                x{count}
+                              </span>
+                              {item.id === 'saffron-halwa' && count > 0 && (
+                                <button
+                                  onClick={() => {
+                                    setPurchasedItems(prev => {
+                                      const next = { ...prev }
+                                      if (next['saffron-halwa'] > 0) next['saffron-halwa']--
+                                      return next
+                                    })
+                                    setSaffronThemeActive(true)
+                                    toast.success("Mmm! Cardamom, almonds and saffron threads! Saffron Gold Theme activated!")
+                                  }}
+                                  className="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white font-sans text-[8px] uppercase tracking-wider font-extrabold cursor-pointer"
+                                >
+                                  Eat
+                                </button>
+                              )}
+                              {item.id === 'saffron-halwa' && saffronThemeActive && (
+                                <button
+                                  onClick={() => {
+                                    setSaffronThemeActive(false)
+                                    toast.success("Switched back to default Crimson Theme.")
+                                  }}
+                                  className="px-2 py-1 rounded bg-neutral-200 hover:bg-neutral-300 text-neutral-700 font-sans text-[8px] uppercase tracking-wider font-extrabold cursor-pointer"
+                                >
+                                  Reset
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
 
                 </div>
               )}
@@ -1653,10 +1963,16 @@ export default function JournalNotebook({ onBack }) {
 
 
 
-            <div className="jn-shop-fils-bar">
-              <span>Your Fils Balance</span>
-              <strong>{(goldFils || 0).toLocaleString()} Fils</strong>
+            <div className="jn-shop-fils-bar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className="flex justify-between w-full">
+                <span>Your Fils Balance</span>
+                <strong>{(goldFils || 0).toLocaleString()} Fils</strong>
+              </div>
+              <span style={{ fontSize: '9px', opacity: 0.65, fontFamily: 'var(--jn-font-sans)', marginTop: '2px', fontWeight: 'bold' }}>
+                Note: 1,000 Fils = 1 BHD (Bahraini Dinar)
+              </span>
             </div>
+
 
             <p className="jn-shop-intro">
               "Marhaban traveler! Spend your golden Fils on spice guild halwa, falcon hoods, or pearl hunt clue scrolls."
@@ -2153,7 +2469,7 @@ export default function JournalNotebook({ onBack }) {
                           opacity: hintLoading ? 0.6 : 1
                         }}
                       >
-                        {hintLoading ? '🧙‍♂️ Consulting elders...' : '✨ Request Hint'}
+                        {hintLoading ? '🧙‍♂️ Consulting elders...' : (purchasedItems['riddle-hint'] || 0) > 0 ? `📜 Use Clue Scroll (${purchasedItems['riddle-hint']} left)` : '✨ Request Hint (150 Fils)'}
                       </button>
                     )}
                   </div>
@@ -2371,6 +2687,78 @@ export default function JournalNotebook({ onBack }) {
           </div>
         </div>
       )}
+
+      {/* ── Print / Export Travelogue Output (Hidden on screen) ── */}
+      <div className="jn-print-layout hidden print:block bg-white text-stone-900 p-8 font-sans">
+        <div className="border-b-2 border-stone-800 pb-4 mb-6 text-center">
+          <h1 className="text-3xl font-serif font-bold text-stone-950 tracking-tight">Bahrain Passage</h1>
+          <p className="text-xs uppercase tracking-widest text-stone-600 font-semibold mt-1">Official Explorer Travelogue</p>
+          <div className="flex justify-between items-center text-xs text-stone-500 mt-4 px-4 font-mono">
+            <span>Explorer Rank: {rank.label} ({rank.arabic})</span>
+            <span>Total XP: {xp}</span>
+            <span>Unlocks: {(collectedKeepsakes || []).length} Keepsakes</span>
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {Array.from({ length: duration }, (_, i) => i + 1).map(dNum => {
+            const daySpots = locations.filter(s => s.day === dNum)
+            if (daySpots.length === 0) return null
+            return (
+              <div key={dNum} className="space-y-6" style={{ pageBreakBefore: dNum > 1 ? 'always' : 'auto' }}>
+                <h2 className="text-xl font-serif font-bold border-b border-stone-300 pb-2 text-stone-800 uppercase tracking-wider">
+                  Day {dNum} Itinerary
+                </h2>
+                
+                <div className="space-y-6">
+                  {daySpots.map(spot => {
+                    const photo = capturedPhotos[spot.id]
+                    const reflection = journalReflections[spot.id] || ''
+                    const hasRiddle = solvedRiddles[spot.id]
+                    return (
+                      <div key={spot.id} className="jn-print-spot-card border border-stone-200 rounded-lg p-4 bg-stone-50/50 space-y-4" style={{ pageBreakInside: 'avoid' }}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="text-lg font-serif font-semibold text-stone-950">
+                              {spot.name}
+                            </h3>
+                            <p className="text-xs text-stone-500 font-mono">{spot.coords}</p>
+                          </div>
+                          {hasRiddle && (
+                            <span className="text-[10px] uppercase font-bold text-stone-600 px-2 py-0.5 border border-stone-300 rounded bg-white">
+                              ✓ Riddle Solved
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-sm text-stone-700 font-serif leading-relaxed">
+                          {spot.desc}
+                        </p>
+
+                        {/* Photo if captured */}
+                        {photo && (
+                          <div className="max-w-md mx-auto border border-stone-350 p-2 bg-white rounded shadow-sm">
+                            <img src={photo} alt={spot.name} className="w-full h-48 object-cover rounded" />
+                            <p className="text-center text-[10px] text-stone-500 italic mt-1.5 font-serif">Wayfarer Lens Snapshot</p>
+                          </div>
+                        )}
+
+                        {/* Reflections */}
+                        <div className="space-y-1.5 pt-2 border-t border-stone-200">
+                          <h5 className="text-xs uppercase font-extrabold tracking-wider text-stone-600">Journal Reflections:</h5>
+                          <p className="text-sm text-stone-800 font-serif leading-relaxed italic bg-white p-3 border border-stone-200 rounded min-h-[50px] whitespace-pre-wrap">
+                            {reflection.trim() || 'No reflection recorded for this landmark.'}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }

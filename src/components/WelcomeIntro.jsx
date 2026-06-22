@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import gsap from 'gsap'
+import { useVibe } from '../hooks/useVibe'
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -131,6 +133,8 @@ export default function WelcomeIntro({ onComplete }) {
   const onCompleteRef  = useRef(onComplete)
 
   const [showMorphLetters, setShowMorphLetters] = useState(false)
+  const { quickStart } = useVibe()
+
 
   useEffect(() => { onCompleteRef.current = onComplete }, [onComplete])
 
@@ -668,13 +672,21 @@ export default function WelcomeIntro({ onComplete }) {
         </div>
       </div>
 
-      {/* ── Skip Intro — pill button ──────────────────────────────────────── */}
+      {/* ── Skip Intro & Quick Start buttons ───────────────────────────────── */}
       <button
         onClick={(e) => { e.stopPropagation(); exitIntro() }}
         className="jn-intro-skip-btn"
       >
         Skip Intro →
       </button>
+
+      <button
+        onClick={(e) => { e.stopPropagation(); quickStart() }}
+        className="jn-intro-quick-btn"
+      >
+        ⚡ Quick Start
+      </button>
+
 
 
 
@@ -698,7 +710,7 @@ export default function WelcomeIntro({ onComplete }) {
          .jn-intro-skip-btn {
           position: absolute;
           bottom: 2.8rem;
-          left: 50%;
+          left: calc(50% - 95px);
           transform: translateX(-50%);
           background: rgba(255, 255, 255, 0.03);
           border: 0.5px solid rgba(255, 255, 255, 0.15);
@@ -730,6 +742,42 @@ export default function WelcomeIntro({ onComplete }) {
         .jn-intro-skip-btn:active {
           transform: translateX(-50%) translateY(0);
         }
+        .jn-intro-quick-btn {
+          position: absolute;
+          bottom: 2.8rem;
+          left: calc(50% + 95px);
+          transform: translateX(-50%);
+          background: rgba(193, 18, 47, 0.25);
+          border: 1.2px solid rgba(193, 18, 47, 0.75);
+          border-radius: 100px;
+          color: #FAF9F6;
+          opacity: 0.95;
+          font-size: 0.65rem;
+          font-family: "Outfit", sans-serif;
+          font-weight: 800;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          cursor: pointer;
+          padding: 0.58rem 1.4rem;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          z-index: 10000;
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          user-select: none;
+          box-shadow: 0 4px 25px rgba(193, 18, 47, 0.2);
+        }
+        .jn-intro-quick-btn:hover {
+          opacity: 1;
+          border-color: #FAF9F6;
+          background: #C1122F;
+          color: #white;
+          transform: translateX(-50%) translateY(-2px);
+          box-shadow: 0 10px 30px rgba(193, 18, 47, 0.4), 0 0 15px rgba(193, 18, 47, 0.3);
+        }
+        .jn-intro-quick-btn:active {
+          transform: translateX(-50%) translateY(0);
+        }
+
         @keyframes rotateArabesque {
           from { transform: translate(-50%, -50%) rotate(0deg); }
           to { transform: translate(-50%, -50%) rotate(-360deg); }

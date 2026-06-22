@@ -754,7 +754,7 @@ export default function Dashboard() {
                                           RIDDLES[activeSpot.id].options
                                         )
                                         const hint = await callLocalAI(system, user,
-                                          'Look closely at the most ancient aspect of this location — the answer relates to what this place is most historically known for.',
+                                          `Guide Clue: ${RIDDLES[activeSpot.id].insider}`,
                                           { cacheKey: `hint:${activeSpot.id}`, maxTokens: 80 }
                                         )
                                         setGoldFils(prev => prev - 50)
