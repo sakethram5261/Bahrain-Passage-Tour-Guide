@@ -626,7 +626,7 @@ export default function WelcomeIntro({ onComplete }) {
             style={{
               position: 'absolute',
               display: 'flex',
-              gap: '0.5rem',
+              gap: '0.6rem',
               alignItems: 'center',
             }}
           >
@@ -634,8 +634,8 @@ export default function WelcomeIntro({ onComplete }) {
               <span
                 key={i}
                 style={{
-                  width: 5, height: 5, borderRadius: '50%',
-                  background: '#D4AF37', display: 'inline-block',
+                  width: 6, height: 6, borderRadius: '50%',
+                  background: '#C5A880', display: 'inline-block',
                   animation: `introDot 1.3s ease-in-out ${i * 0.26}s infinite`,
                 }}
               />
@@ -652,7 +652,7 @@ export default function WelcomeIntro({ onComplete }) {
               fontSize: 'clamp(0.68rem,1.85vw,0.82rem)',
               color: '#FAF9F6',
               opacity: 0,
-              letterSpacing: '0.32em',
+              letterSpacing: '0.35em',
               textTransform: 'uppercase',
               userSelect: 'none',
               margin: 0,
@@ -695,37 +695,37 @@ export default function WelcomeIntro({ onComplete }) {
         .jn-intro-text-container {
           transform: translateY(-10px);
         }
-        .jn-intro-skip-btn {
+         .jn-intro-skip-btn {
           position: absolute;
           bottom: 2.8rem;
           left: 50%;
           transform: translateX(-50%);
-          background: rgba(15, 12, 11, 0.45);
-          border: 1px solid rgba(250, 249, 246, 0.22);
+          background: rgba(255, 255, 255, 0.03);
+          border: 0.5px solid rgba(255, 255, 255, 0.15);
           border-radius: 100px;
           color: #FAF9F6;
           opacity: 0.65;
-          font-size: 0.72rem;
-          font-family: "Playfair Display", "Georgia", serif;
-          font-weight: 700;
-          font-style: italic;
-          letter-spacing: 0.18em;
+          font-size: 0.65rem;
+          font-family: "Outfit", sans-serif;
+          font-weight: 500;
+          letter-spacing: 0.22em;
           text-transform: uppercase;
           cursor: pointer;
           padding: 0.58rem 1.4rem;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           z-index: 10000;
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           user-select: none;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
         .jn-intro-skip-btn:hover {
           opacity: 1;
-          border-color: rgba(212, 175, 55, 0.8);
-          background: rgba(193, 18, 47, 0.8);
+          border-color: #C5A880;
+          background: #FAF9F6;
+          color: #1C1917;
           transform: translateX(-50%) translateY(-2px);
-          box-shadow: 0 6px 24px rgba(193, 18, 47, 0.4), 0 0 12px rgba(212, 175, 55, 0.3);
+          box-shadow: 0 10px 30px rgba(255, 255, 255, 0.08), 0 0 12px rgba(197, 168, 128, 0.15);
         }
         .jn-intro-skip-btn:active {
           transform: translateX(-50%) translateY(0);

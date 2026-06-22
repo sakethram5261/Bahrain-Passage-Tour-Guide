@@ -117,8 +117,8 @@ export default function MoodSelector({ onConfirm, onBack }) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto"
-      style={{ background: '#FAF9F6', opacity: 0 }}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto bg-[#FAF9F6] dark:bg-[#12100E] text-stone-900 dark:text-[#EDEBE6]"
+      style={{ opacity: 0 }}
     >
       {/* Bahrain flag-inspired top banner (modestly adjusted) */}
       <div className="w-full relative overflow-hidden shrink-0" style={{ background: '#D11A38', minHeight: '145px' }}>
@@ -131,7 +131,8 @@ export default function MoodSelector({ onConfirm, onBack }) {
         >
           <path
             d="M0,0 L80,24 L160,0 L240,24 L320,0 L400,24 L480,0 L560,24 L640,0 L720,24 L800,0 L880,24 L960,0 L1040,24 L1120,0 L1200,24 L1200,35 L0,35 Z"
-            fill="#FAF9F6"
+            fill="currentColor"
+            className="text-[#FAF9F6] dark:text-[#12100E]"
           />
         </svg>
 
@@ -183,32 +184,18 @@ export default function MoodSelector({ onConfirm, onBack }) {
           {MOODS.map((mood, i) => {
             const active = selectedMoods.includes(mood.id)
             return (
-                <button
-                  key={mood.id}
-                  ref={el => cardsRef.current[i] = el}
-                  onClick={() => toggle(mood.id)}
-                  onMouseMove={(e) => handleMouseMove(e, cardsRef.current[i])}
-                  onMouseLeave={() => handleMouseLeave(cardsRef.current[i], active)}
-                  aria-pressed={active}
-                  aria-label={`${mood.label} - ${mood.tagline}${active ? ' (selected)' : ''}`}
-                  className={`relative rounded-2xl p-4 text-left cursor-pointer group overflow-hidden ${
-                    active ? 'jn-vibe-card-active-glow' : 'jn-vibe-card-glow'
-                  }`}
-                style={{
-                  perspective: '1000px',
-                  transformStyle: 'preserve-3d',
-                  background: active 
-                    ? 'linear-gradient(135deg, #C1122F 0%, #8f0d22 100%)' 
-                    : 'linear-gradient(135deg, #FCFBF8 0%, #EFEBE4 100%)',
-                  border: `2px solid ${active ? '#C1122F' : 'rgba(139,90,75,0.15)'}`,
-                  boxShadow: active
-                    ? '0 12px 36px rgba(193,18,47,0.38), 0 2px 8px rgba(0,0,0,0.12)'
-                    : '0 4px 20px rgba(42,35,33,0.06), 0 1px 3px rgba(0,0,0,0.03)',
-                  transition: 'border 0.25s, box-shadow 0.25s, background 0.25s',
-                }}
+              <button
+                key={mood.id}
+                ref={el => cardsRef.current[i] = el}
+                onClick={() => toggle(mood.id)}
+                onMouseMove={(e) => handleMouseMove(e, cardsRef.current[i])}
+                onMouseLeave={() => handleMouseLeave(cardsRef.current[i], active)}
+                aria-pressed={active}
+                aria-label={`${mood.label} - ${mood.tagline}${active ? ' (selected)' : ''}`}
+                className={`relative rounded-2xl p-4 text-left cursor-pointer group overflow-hidden jn-vibe-card ${
+                  active ? 'jn-vibe-card--active' : 'jn-vibe-card--inactive'
+                }`}
               >
-
-
                 {/* Hover effect for inactive */}
                 {!active && (
                   <div
@@ -221,12 +208,11 @@ export default function MoodSelector({ onConfirm, onBack }) {
                   <div className="flex items-start justify-between">
                     {/* Stylized Badge Container for Emojis */}
                     <div
-                      className="w-11 h-11 rounded-full flex items-center justify-center border transition-all duration-300"
-                      style={{
-                        background: active ? 'rgba(212, 175, 55, 0.15)' : 'rgba(139, 90, 75, 0.05)',
-                        borderColor: active ? '#D4AF37' : 'rgba(139, 90, 75, 0.25)',
-                        boxShadow: active ? '0 0 10px rgba(212, 175, 55, 0.4)' : 'none',
-                      }}
+                      className={`w-11 h-11 rounded-full flex items-center justify-center border transition-all duration-300 ${
+                        active
+                          ? 'bg-[#C5A880]/15 border-[#C5A880] shadow-[0_0_10px_rgba(197,168,128,0.4)]'
+                          : 'bg-stone-200/20 dark:bg-stone-850/40 border-stone-300/60 dark:border-stone-700/60'
+                      }`}
                     >
                       <span className="text-xl">{mood.icon}</span>
                     </div>
@@ -234,32 +220,29 @@ export default function MoodSelector({ onConfirm, onBack }) {
                     {/* Simple Checkmark Circle */}
                     <div
                       className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all duration-200 border ${
-                        active ? 'bg-[#C1122F] border-[#C1122F] text-white' : 'border-[#D6D3D1] text-transparent'
+                        active ? 'bg-[#C1122F] border-[#C1122F] text-white' : 'border-stone-300 dark:border-stone-700 text-transparent'
                       }`}
                     >
                       ✓
                     </div>
                   </div>
 
-                    <div>
+                  <div>
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <span
-                        className="font-serif text-xl font-semibold"
-                        style={{ color: active ? '#fff' : '#2A2321' }}
-                      >
+                      <span className={`font-serif text-xl font-semibold ${
+                        active ? 'text-white' : 'text-stone-900 dark:text-stone-100'
+                      }`}>
                         {mood.label}
                       </span>
-                      <span
-                        className="font-sans text-[12px]"
-                        style={{ color: active ? 'rgba(255,255,255,0.75)' : 'rgba(92,84,81,0.6)' }}
-                      >
+                      <span className={`font-sans text-[12px] ${
+                        active ? 'text-white/75' : 'text-[#5C5451] dark:text-[#EDEBE6]/60'
+                      }`}>
                         {mood.arabic}
                       </span>
                     </div>
-                    <p
-                      className="text-[13px] mt-0.5 leading-snug font-sans"
-                      style={{ color: active ? 'rgba(255,255,255,0.9)' : '#5C5451' }}
-                    >
+                    <p className={`text-[13px] mt-0.5 leading-snug font-sans ${
+                      active ? 'text-white/90' : 'text-stone-600 dark:text-stone-400'
+                    }`}>
                       {mood.tagline}
                     </p>
                   </div>
@@ -268,12 +251,11 @@ export default function MoodSelector({ onConfirm, onBack }) {
                     {mood.spots.slice(0, 2).map(s => (
                       <span
                         key={s}
-                        className="text-[11.5px] px-1.5 py-0.5 rounded font-sans font-semibold"
-                        style={{
-                          background: active ? 'rgba(255,255,255,0.18)' : 'rgba(209,26,56,0.06)',
-                          color: active ? 'rgba(255,255,255,0.9)' : '#D11A38',
-                          border: `1px solid ${active ? 'rgba(255,255,255,0.25)' : 'rgba(209,26,56,0.15)'}`,
-                        }}
+                        className={`text-[11.5px] px-1.5 py-0.5 rounded font-sans font-semibold border ${
+                          active
+                            ? 'bg-white/10 text-white/90 border-white/20'
+                            : 'bg-red-500/5 dark:bg-red-900/10 text-[#D11A38] dark:text-[#E25C70] border-red-500/10 dark:border-red-500/20'
+                        }`}
                       >
                         {s}
                       </span>
@@ -287,12 +269,12 @@ export default function MoodSelector({ onConfirm, onBack }) {
 
         {/* Stay Duration Selector */}
         <div 
-          className="bg-white border border-red-500/10 rounded-2xl p-4 shadow-sm select-none transition-all duration-300 animate-fadeIn"
+          className="bg-white dark:bg-[#1C1816] border border-stone-200 dark:border-[#2E2724] rounded-2xl p-4 shadow-sm select-none transition-all duration-300 animate-fadeIn"
           style={{
             boxShadow: '0 2px 12px rgba(42,35,33,0.04), 0 1px 3px rgba(0,0,0,0.02)'
           }}
         >
-          <label className="font-serif text-[14.5px] font-extrabold text-[#2A2321] flex items-center justify-center md:justify-start gap-1.5">
+          <label className="font-serif text-[14.5px] font-extrabold text-[#2A2321] dark:text-[#EDEBE6] flex items-center justify-center md:justify-start gap-1.5">
             How long is your stay?
           </label>
           
@@ -303,7 +285,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
                 if (el) el.scrollBy({ left: -120, behavior: 'smooth' })
               }}
               aria-label="Scroll left"
-              className="shrink-0 w-7 h-7 rounded-full bg-white border border-red-500/15 flex items-center justify-center text-[#5C5451] hover:bg-red-50 cursor-pointer transition-all"
+              className="shrink-0 w-7 h-7 rounded-full bg-white dark:bg-[#12100E] border border-stone-200 dark:border-stone-850 flex items-center justify-center text-[#5C5451] dark:text-[#EDEBE6] hover:bg-stone-50 dark:hover:bg-stone-800 cursor-pointer transition-all"
             >
               ◀
             </button>
@@ -327,8 +309,8 @@ export default function MoodSelector({ onConfirm, onBack }) {
                     onClick={() => setDuration(d)}
                     className={`snap-center flex-shrink-0 w-16 py-3 rounded-xl border text-center font-sans text-xs font-black transition-all duration-300 cursor-pointer ${
                       active
-                        ? 'bg-[#C1122F] border-[#D4AF37] text-white shadow-[0_4px_12px_rgba(193,18,47,0.3)] scale-[1.05]'
-                        : 'bg-[#FCFBF8] border-red-500/10 text-[#5C5451] hover:border-red-500/30 hover:shadow-sm'
+                        ? 'bg-[#C1122F] border-[#C5A880] text-white shadow-[0_4px_12px_rgba(193,18,47,0.3)] scale-[1.05]'
+                        : 'bg-[#FCFBF8] dark:bg-[#12100E] border-stone-200 dark:border-stone-850 text-[#5C5451] dark:text-[#EDEBE6] hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-sm'
                     }`}
                     style={{
                       boxShadow: active ? '0 4px 12px rgba(193,18,47,0.35), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none',
@@ -346,7 +328,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
                 if (el) el.scrollBy({ left: 120, behavior: 'smooth' })
               }}
               aria-label="Scroll right"
-              className="shrink-0 w-7 h-7 rounded-full bg-white border border-red-500/15 flex items-center justify-center text-[#5C5451] hover:bg-red-50 cursor-pointer transition-all"
+              className="shrink-0 w-7 h-7 rounded-full bg-white dark:bg-[#12100E] border border-stone-200 dark:border-stone-850 flex items-center justify-center text-[#5C5451] dark:text-[#EDEBE6] hover:bg-stone-50 dark:hover:bg-stone-800 cursor-pointer transition-all"
             >
               ▶
             </button>
@@ -358,20 +340,11 @@ export default function MoodSelector({ onConfirm, onBack }) {
           <button
             onClick={handleConfirm}
             disabled={noneSelected}
-            className="w-full py-4 rounded-xl font-sans font-bold text-sm tracking-widest uppercase transition-all duration-200 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
-            style={{
-              height: '54px',
-              background: noneSelected
-                ? 'var(--color-surface-2)'
-                : 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
-              color: noneSelected ? 'var(--color-text-faint)' : '#fff',
-              border: noneSelected 
-                ? '1px dashed var(--color-border)' 
-                : 'none',
-              boxShadow: noneSelected
-                ? 'none'
-                : 'var(--shadow-md)',
-            }}
+            className={`w-full py-4 rounded-xl font-sans font-bold text-sm tracking-widest uppercase transition-all duration-200 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] h-[54px] border ${
+              noneSelected
+                ? 'bg-stone-100 dark:bg-stone-900/40 border-dashed border-stone-300 dark:border-stone-800 text-stone-400 dark:text-stone-600'
+                : 'bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white border-transparent shadow-md shadow-red-500/10'
+            }`}
           >
             {noneSelected
               ? 'Pick at least one vibe'
@@ -380,12 +353,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
 
           <button
             onClick={() => setSelectedMoods(allSelected ? [] : ['empires', 'sea', 'spice', 'lights'])}
-            className="w-full text-[11px] tracking-widest uppercase font-bold py-2.5 transition-all duration-300 cursor-pointer text-center hover:underline"
-            style={{
-              color: '#C1122F',
-              background: 'transparent',
-              border: 'none',
-            }}
+            className="w-full text-[11px] tracking-widest uppercase font-bold py-2.5 transition-all duration-300 cursor-pointer text-center hover:underline text-[#C1122F] dark:text-[#C5A880] bg-transparent border-none"
           >
             {allSelected ? 'Clear All' : 'Select All'}
           </button>

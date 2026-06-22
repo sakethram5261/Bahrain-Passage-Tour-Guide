@@ -289,32 +289,27 @@ function Bubble({ msg }) {
       animation: 'chatMsgIn 0.25s cubic-bezier(0.16,1,0.3,1) both',
     }}>
       {!isUser && (
-        <div style={{
-          width: 28, height: 28, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #D11A38, #A81028)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, marginRight: 8, flexShrink: 0, marginTop: 2,
-          boxShadow: '0 2px 6px rgba(209,26,56,0.35)',
-        }}>
+        <div className="w-7 h-7 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 flex items-center justify-center text-xs mr-2 shrink-0 mt-0.5 border border-stone-300/40 dark:border-stone-750">
           🏛️
         </div>
       )}
-      <div style={{
-        maxWidth: '78%',
-        padding: '9px 13px',
-        borderRadius: isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
-        background: isUser
-          ? 'linear-gradient(135deg, #D11A38, #A81028)'
-          : '#fff',
-        color: isUser ? '#fff' : '#2A2321',
-        fontSize: 14,
-        lineHeight: 1.55,
-        fontFamily: '"Outfit", sans-serif',
-        border: isUser ? 'none' : '1px solid rgba(209,26,56,0.1)',
-        boxShadow: isUser
-          ? '0 4px 12px rgba(209,26,56,0.25)'
-          : '0 1px 4px rgba(42,35,33,0.06)',
-      }}>
+      <div 
+        className={isUser 
+          ? 'bg-gradient-to-br from-[#C1122F] to-[#8B0D22] text-white border-transparent' 
+          : 'bg-white dark:bg-[#1C1816] text-[#1C1917] dark:text-[#EDEBE6] border border-stone-200/80 dark:border-stone-800'
+        }
+        style={{
+          maxWidth: '78%',
+          padding: '9px 13px',
+          borderRadius: isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
+          fontSize: 14,
+          lineHeight: 1.55,
+          fontFamily: '"Outfit", sans-serif',
+          boxShadow: isUser
+            ? '0 4px 12px rgba(193,18,47,0.18)'
+            : '0 1px 4px rgba(42,35,33,0.04)',
+        }}
+      >
         <div>{renderText(msg.text)}</div>
         
         {/* Applied actions badge */}
@@ -324,22 +319,27 @@ function Bubble({ msg }) {
             display: 'flex',
             flexDirection: 'column',
             gap: 4,
-            borderTop: isUser ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(209,26,56,0.12)',
+            borderTop: isUser ? '1px solid rgba(255,255,255,0.2)' : '1px solid var(--jn-divider-light, rgba(0,0,0,0.06))',
             paddingTop: 6,
           }}>
             {msg.actionsApplied.map((act, i) => (
-              <div key={i} style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-                fontSize: 12,
-                background: isUser ? 'rgba(255,255,255,0.18)' : 'rgba(209,26,56,0.08)',
-                color: isUser ? '#fff' : '#D11A38',
-                padding: '2px 6px',
-                borderRadius: 6,
-                fontWeight: 600,
-                alignSelf: 'flex-start',
-              }}>
+              <div 
+                key={i} 
+                className={isUser
+                  ? 'bg-white/20 text-white'
+                  : 'bg-[#C1122F]/5 dark:bg-[#C5A880]/10 border border-[#C1122F]/10 dark:border-[#C5A880]/20 text-[#C1122F] dark:text-[#C5A880]'
+                }
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 12,
+                  padding: '2px 6px',
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  alignSelf: 'flex-start',
+                }}
+              >
                 ⚙️ {act}
               </div>
             ))}
@@ -1104,32 +1104,11 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         <button
           onClick={() => setOpen(o => !o)}
           title="Ask your local guide"
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            zIndex: 10000,
-            width: 52,
-            height: 52,
-            borderRadius: '50%',
-            background: open
-              ? '#2A2321'
-              : 'radial-gradient(circle, #e6b800 0%, #b38600 100%)',
-            border: open ? '2px solid rgba(212,175,55,0.4)' : '2.5px double #ffffff',
-            boxShadow: open
-              ? '0 10px 30px rgba(0,0,0,0.35)'
-              : '0 10px 30px rgba(179,134,0,0.5), inset 0 2px 2px rgba(255,255,255,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            fontSize: 20,
-            color: '#fff',
-            transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
-            transform: open ? 'scale(0.92)' : 'scale(1)',
-          }}
-          onMouseEnter={e => { if (!open) e.currentTarget.style.transform = 'scale(1.1)' }}
-          onMouseLeave={e => { if (!open) e.currentTarget.style.transform = 'scale(1)' }}
+          className={`fixed bottom-6 right-6 z-[10000] w-[52px] h-[52px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 border backdrop-blur-md hover:scale-105 active:scale-95 ${
+            open
+              ? 'bg-stone-900 dark:bg-[#EDEBE6] border-stone-800 dark:border-stone-200 text-stone-50 dark:text-stone-950 shadow-lg'
+              : 'bg-white/75 dark:bg-[#1C1816]/75 border-stone-200/80 dark:border-stone-850 text-[#C1122F] dark:text-[#C5A880] shadow-md shadow-stone-250/20 dark:shadow-none'
+          }`}
         >
           {open ? '✕' : '🏛️'}
         </button>
@@ -1138,79 +1117,34 @@ Always make sure the response is a valid JSON object. Do not include markdown co
       {/* Chat panel — shown always in embedded mode, or when open in standalone mode */}
       {(embedded || open) && (
         <div
-          style={{
-            ...(embedded ? {
-              // Embedded: fill the parent container (no position:fixed, full height)
-              position: 'relative',
-              width: '100%',
-              height: 'min(480px, calc(100vh - 220px))',
-            } : {
-              // Standalone: floating fixed panel
-              position: 'fixed',
-              bottom: '88px',
-              right: '24px',
-              zIndex: 249,
-              width: 'min(370px, calc(100vw - 48px))',
-              height: 'min(540px, calc(100vh - 120px))',
-              animation: 'chatPanelUp 0.35s cubic-bezier(0.16,1,0.3,1) both',
-            }),
-            borderRadius: '24px',
-            background: '#FCFBF8',
-            border: '4px double rgba(193,18,47,0.3)',
-            boxShadow: '0 20px 50px rgba(42,35,33,0.25), inset 0 0 0 1px rgba(193,18,47,0.05)',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}
+          className={`flex flex-col overflow-hidden bg-stone-50 dark:bg-[#12100E] ${
+            embedded
+              ? 'relative w-full h-[min(480px,calc(100vh-220px))] rounded-2xl border border-stone-200 dark:border-stone-850'
+              : 'fixed top-0 right-0 bottom-0 z-[9999] w-[min(420px,100vw)] h-[100dvh] border-l border-stone-200 dark:border-stone-850 md:rounded-l-2xl shadow-2xl animate-chatDrawerIn'
+          }`}
         >
           {/* Header */}
-          <div style={{
-            background: 'linear-gradient(135deg, #D11A38 0%, #A81028 100%)',
-            padding: '14px 18px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            flexShrink: 0,
-          }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: '50%',
-              background: 'rgba(255,255,255,0.18)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 18, border: '1.5px solid rgba(255,255,255,0.3)',
-            }}>🏛️</div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: '"Outfit", sans-serif', letterSpacing: 0.2 }}>
+          <div className="bg-stone-100 dark:bg-stone-900/90 border-b border-stone-200 dark:border-stone-850 px-[18px] py-[14px] flex items-center gap-2.5 shrink-0">
+            <div className="w-9 h-9 rounded-full bg-stone-200/60 dark:bg-stone-800 flex items-center justify-center text-lg border border-stone-300/40 dark:border-stone-700 text-[#C1122F] dark:text-[#C5A880]">
+              🏛️
+            </div>
+            <div className="flex-1 flex flex-col">
+              <div className="text-stone-900 dark:text-stone-100 font-sans font-bold text-xs tracking-wide uppercase">
                 Bahrain Passage Guide
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', fontWeight: 500, fontFamily: '"Outfit", sans-serif', marginTop: '2px' }}>
+              <div className="text-stone-500 dark:text-stone-400 text-[10px] font-medium mt-0.5 uppercase tracking-wider">
                 Local travel assistant
               </div>
             </div>
-            <div style={{
-              width: 8, height: 8, borderRadius: '50%',
-              background: provider === 'fallback' ? '#fca5a5' : '#4ade80',
-              boxShadow: provider === 'fallback' ? '0 0 6px rgba(252,165,165,0.8)' : '0 0 6px rgba(74,222,128,0.8)',
-              flexShrink: 0,
-            }} />
-            {onClose && (
+            <div className={`w-2 h-2 rounded-full shrink-0 ${
+              provider === 'fallback' 
+                ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' 
+                : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]'
+            }`} />
+            {(onClose || !embedded) && (
               <button
-                onClick={onClose}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  cursor: 'pointer',
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  padding: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: '8px',
-                  transition: 'color 0.2s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)'}
+                onClick={onClose || (() => setOpen(false))}
+                className="bg-transparent border-none text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 cursor-pointer text-lg font-bold p-1 flex items-center justify-center ml-2 transition-colors duration-200"
               >
                 ✕
               </button>
@@ -1219,34 +1153,14 @@ Always make sure the response is a valid JSON object. Do not include markdown co
 
           {/* API Error Banner */}
           {apiError && (
-            <div style={{
-              background: '#FEE2E2',
-              borderBottom: '1px solid #FCA5A5',
-              padding: '8px 12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              fontSize: '11.5px',
-              color: '#991B1B',
-              fontFamily: '"Outfit", sans-serif',
-              fontWeight: 500,
-              animation: 'chatMsgIn 0.2s ease-out',
-            }}>
-              <span style={{ fontSize: 13 }}>⚠️</span>
-              <div style={{ flex: 1 }}>
+            <div className="bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-900/50 px-3 py-2 flex items-center gap-2 text-[11.5px] text-red-700 dark:text-red-300 font-sans font-medium">
+              <span className="text-sm">⚠️</span>
+              <div className="flex-1">
                 <strong>{apiError.provider} error:</strong> {apiError.message}. Auto-switched to Offline Fallback.
               </div>
               <button 
                 onClick={() => setApiError(null)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#991B1B',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  fontSize: 12,
-                  padding: '2px 4px',
-                }}
+                className="bg-transparent border-none text-red-700 dark:text-red-300 cursor-pointer font-bold text-xs p-1"
               >
                 ✕
               </button>
@@ -1254,39 +1168,22 @@ Always make sure the response is a valid JSON object. Do not include markdown co
           )}
 
           {/* Messages */}
-          <div style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '14px 14px 8px',
-            display: 'flex',
-            flexDirection: 'column',
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(209,26,56,0.2) transparent',
-            background: '#FAF9F6',
-          }}>
+          <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col bg-stone-50 dark:bg-[#12100E] scrollbar-thin">
             {messages.map((msg, i) => <Bubble key={i} msg={msg} />)}
             {typing && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <div style={{
-                  width: 26, height: 26, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #D11A38, #A81028)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 12, boxShadow: '0 2px 6px rgba(209,26,56,0.3)',
-                }}>🏛️</div>
-                <div style={{
-                  display: 'flex', gap: 4, padding: '9px 13px',
-                  background: '#fff',
-                  borderRadius: '4px 14px 14px 14px',
-                  border: '1px solid rgba(209,26,56,0.12)',
-                  boxShadow: '0 1px 4px rgba(42,35,33,0.06)',
-                }}>
-                  {[0, 1, 2].map(i => (
-                    <div key={i} style={{
-                      width: 6, height: 6, borderRadius: '50%',
-                      background: '#D11A38',
-                      opacity: 0.5,
-                      animation: `typingDot 1.2s ease-in-out ${i * 0.2}s infinite`,
-                    }} />
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-[26px] h-[26px] rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 flex items-center justify-center text-xs border border-stone-300/40 dark:border-stone-700">
+                  🏛️
+                </div>
+                <div className="flex gap-1 px-3.5 py-2.5 bg-white dark:bg-[#1C1816] rounded-2xl rounded-tl-sm border border-stone-200/80 dark:border-stone-800 shadow-sm">
+                  {[0, 1, 2].map(idx => (
+                    <div 
+                      key={idx} 
+                      className="w-1.5 h-1.5 rounded-full bg-[#C1122F] dark:bg-[#C5A880] opacity-50"
+                      style={{
+                        animation: `typingDot 1.2s ease-in-out ${idx * 0.2}s infinite`,
+                      }}
+                    />
                   ))}
                 </div>
               </div>
@@ -1295,42 +1192,12 @@ Always make sure the response is a valid JSON object. Do not include markdown co
           </div>
 
           {/* Quick questions */}
-          <div style={{
-            padding: '6px 12px',
-            display: 'flex',
-            gap: 6,
-            overflowX: 'auto',
-            flexShrink: 0,
-            borderTop: '1px solid rgba(209,26,56,0.1)',
-            background: '#FAF9F6',
-            scrollbarWidth: 'none',
-          }}>
+          <div className="px-3 py-2 flex gap-1.5 overflow-x-auto shrink-0 border-t border-stone-200 dark:border-stone-850 bg-stone-100/50 dark:bg-stone-900/50 no-scrollbar">
             {QUICK_QUESTIONS.map((q, i) => (
               <button
                 key={i}
                 onClick={() => sendMessage(q.label)}
-                style={{
-                  flexShrink: 0,
-                  padding: '4px 10px',
-                  borderRadius: 20,
-                  background: 'rgba(209,26,56,0.06)',
-                  border: '1px solid rgba(209,26,56,0.2)',
-                  color: '#D11A38',
-                  fontSize: 12,
-                  fontFamily: '"Outfit", sans-serif',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.18s',
-                  whiteSpace: 'nowrap',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = 'rgba(209,26,56,0.12)'
-                  e.currentTarget.style.borderColor = 'rgba(209,26,56,0.35)'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = 'rgba(209,26,56,0.06)'
-                  e.currentTarget.style.borderColor = 'rgba(209,26,56,0.2)'
-                }}
+                className="shrink-0 px-3 py-1 rounded-full bg-white dark:bg-stone-850 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 text-[11px] font-sans font-medium tracking-wide uppercase transition-all duration-150 hover:bg-stone-50 dark:hover:bg-stone-800 hover:border-stone-300 dark:hover:border-stone-700 cursor-pointer"
               >
                 {q.label}
               </button>
@@ -1338,76 +1205,37 @@ Always make sure the response is a valid JSON object. Do not include markdown co
           </div>
 
           {/* Input */}
-          <div style={{
-            padding: '10px 12px 4px',
-            borderTop: '1px solid rgba(209,26,56,0.1)',
-            display: 'flex',
-            gap: 8,
-            flexShrink: 0,
-            background: '#fff',
-          }}>
+          <div className="p-3 flex gap-2 shrink-0 border-t border-stone-200 dark:border-stone-850 bg-white dark:bg-[#1C1816]">
             <input
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKey}
               placeholder="Ask me to set budget, change duration, etc..."
-              style={{
-                flex: 1,
-                background: '#FAF9F6',
-                border: '1px solid rgba(209,26,56,0.15)',
-                borderRadius: 12,
-                padding: '9px 13px',
-                color: '#2A2321',
-                fontSize: 16,
-                fontFamily: '"Outfit", sans-serif',
-                outline: 'none',
-                transition: 'border-color 0.2s',
-              }}
-              onFocus={e => { e.target.style.borderColor = 'rgba(209,26,56,0.45)' }}
-              onBlur={e => { e.target.style.borderColor = 'rgba(209,26,56,0.15)' }}
+              className="flex-1 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 focus:border-[#C1122F] dark:focus:border-[#C5A880] rounded-xl px-3.5 py-2 text-stone-900 dark:text-stone-100 text-sm placeholder-stone-400 dark:placeholder-stone-600 outline-none transition-colors duration-150"
             />
             <button
               onClick={() => sendMessage(input)}
               disabled={!input.trim()}
-              style={{
-                width: 38, height: 38,
-                borderRadius: 12,
-                background: input.trim()
-                  ? 'linear-gradient(135deg, #D11A38, #A81028)'
-                  : 'rgba(209,26,56,0.08)',
-                border: 'none',
-                color: input.trim() ? '#fff' : 'rgba(209,26,56,0.35)',
-                fontSize: 15,
-                cursor: input.trim() ? 'pointer' : 'not-allowed',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-                transition: 'all 0.2s',
-                boxShadow: input.trim() ? '0 3px 10px rgba(209,26,56,0.3)' : 'none',
-              }}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-none transition-all duration-150 ${
+                input.trim()
+                  ? 'bg-[#C1122F] dark:bg-[#C5A880] text-white dark:text-stone-950 cursor-pointer hover:opacity-90 active:scale-95 shadow-md shadow-red-500/10'
+                  : 'bg-stone-100 dark:bg-stone-900 text-stone-350 dark:text-stone-700 cursor-not-allowed'
+              }`}
             >
               ↑
             </button>
           </div>
-          <div style={{
-            fontSize: '9px',
-            color: 'rgba(92,84,81,0.5)',
-            textAlign: 'center',
-            background: '#fff',
-            paddingBottom: '8px',
-            fontFamily: '"Outfit", sans-serif',
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-          }}>
+          <div className="text-[9px] text-stone-400 dark:text-stone-600 text-center bg-white dark:bg-[#1C1816] pb-2 font-sans tracking-widest uppercase shrink-0">
             Powered by {apiProviderName}
           </div>
         </div>
       )}
 
       <style>{`
-        @keyframes chatPanelUp {
-          from { opacity: 0; transform: translateY(16px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
+        @keyframes chatDrawerIn {
+          from { transform: translateX(100%); }
+          to   { transform: translateX(0); }
         }
         @keyframes chatMsgIn {
           from { opacity: 0; transform: translateY(8px); }

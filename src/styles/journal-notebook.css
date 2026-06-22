@@ -2504,4 +2504,35 @@
   }
 }
 
+/* Editorial Modern Vibe Cards for Mood Selector */
+.jn-vibe-card {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s, transform 0.3s;
+}
+
+.jn-vibe-card--inactive {
+  background: linear-gradient(135deg, #FCFBF8 0%, #EFEBE4 100%) !important;
+  border: 1px solid rgba(139, 90, 75, 0.15) !important;
+  color: #2A2321 !important;
+  box-shadow: 0 4px 20px rgba(42, 35, 33, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+.jn-vibe-card--active {
+  background: linear-gradient(135deg, #C1122F 0%, #8f0d22 100%) !important;
+  border: 2px solid #C1122F !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 36px rgba(193, 18, 47, 0.35), 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .jn-vibe-card--inactive {
+    background: linear-gradient(135deg, #1C1816 0%, #24201E 100%) !important;
+    border: 1.5px solid #2E2724 !important;
+    color: #EDEBE6 !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35) !important;
+  }
+}
+
+
 

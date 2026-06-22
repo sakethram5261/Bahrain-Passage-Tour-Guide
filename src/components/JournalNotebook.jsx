@@ -1879,42 +1879,32 @@ export default function JournalNotebook({ onBack }) {
               <button
                 onClick={() => setChatOpen(v => !v)}
                 aria-label={chatOpen ? 'Close AI Guide' : 'Open AI Guide'}
+                className="fixed z-[200] w-[52px] h-[52px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 border backdrop-blur-md hover:scale-105 active:scale-95"
                 style={{
-                  position: 'fixed',
                   bottom: fabBottom,
                   right: '20px',
-                  zIndex: 200,
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '50%',
-                  background: chatOpen ? '#2A2321' : 'linear-gradient(135deg, #D11A38, #A81028)',
-                  color: '#fff',
-                  border: '2px solid rgba(255,255,255,0.15)',
-                  boxShadow: '0 8px 24px rgba(209,26,56,0.4)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '22px',
-                  cursor: 'pointer',
-                  transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
-                  transform: chatOpen ? 'scale(0.92)' : 'scale(1)',
+                  background: chatOpen
+                    ? 'var(--color-text)'
+                    : 'rgba(250, 250, 249, 0.75)',
+                  borderColor: chatOpen
+                    ? 'var(--color-border)'
+                    : 'rgba(193, 18, 47, 0.2)',
+                  color: chatOpen ? 'var(--color-surface)' : 'var(--color-primary)',
+                  boxShadow: chatOpen
+                    ? '0 10px 30px rgba(0,0,0,0.15)'
+                    : '0 10px 25px rgba(193, 18, 47, 0.15)',
                 }}
               >
-                {chatOpen ? '✕' : <MessageSquare size={22} />}
+                {chatOpen ? '✕' : <MessageSquare size={20} />}
               </button>
 
               {/* Chatbot panel — slides up when open */}
               {chatOpen && (
                 <div
+                  className="fixed z-[199] w-[min(380px,calc(100vw-32px))] overflow-hidden rounded-2xl border border-stone-200 dark:border-stone-850 bg-stone-50 dark:bg-[#12100E] shadow-2xl shadow-stone-900/10 dark:shadow-none"
                   style={{
-                    position: 'fixed',
                     bottom: panelBottom,
                     right: '16px',
-                    width: 'min(380px, calc(100vw - 32px))',
-                    zIndex: 199,
-                    borderRadius: '20px',
-                    overflow: 'hidden',
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(209,26,56,0.12)',
                     animation: 'slideInRight 0.3s cubic-bezier(0.16,1,0.3,1) both',
                   }}
                 >
