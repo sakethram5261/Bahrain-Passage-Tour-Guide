@@ -139,51 +139,56 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--jn-parchment);
+  background: #C1122F !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--jn-border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
   box-shadow: var(--jn-shadow-sm);
   transition: all 0.3s ease;
 }
 
 /* Header Text / Brand overrides */
 .jn-header .jn-brand-title {
-  color: var(--jn-ink);
+  color: #FFFFFF !important;
+}
+
+.jn-header .jn-brand-title em {
+  color: rgba(255, 255, 255, 0.85) !important;
 }
 
 .jn-header .jn-brand-arabic {
-  color: var(--jn-ink-faint);
+  color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Stats and Buttons overrides */
 .jn-header .jn-xp-pill {
-  background: transparent;
-  border: 1px solid var(--jn-border);
-  color: var(--jn-ink);
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #FFFFFF !important;
 }
 
 .jn-header .jn-utility-btn--edit {
-  color: var(--jn-ink);
-  background: transparent;
-  border: 1px solid var(--jn-border);
+  color: #FFFFFF !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 
 .jn-header .jn-utility-btn--edit:hover {
-  background: rgba(193, 18, 47, 0.05);
-  border-color: var(--jn-crimson);
-  color: var(--jn-crimson);
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-color: #FFFFFF !important;
+  color: #FFFFFF !important;
 }
 
 .jn-header .jn-utility-btn-rank {
-  background: var(--jn-gold-muted);
-  border: 1px solid var(--jn-gold);
-  color: var(--jn-gold);
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #FFFFFF !important;
 }
 
 .jn-header .jn-utility-btn-rank:hover {
-  background: var(--jn-gold);
-  color: var(--jn-parchment);
+  background: #FFFFFF !important;
+  color: #C1122F !important;
+  border-color: #FFFFFF !important;
 }
 
 .jn-header-inner {
