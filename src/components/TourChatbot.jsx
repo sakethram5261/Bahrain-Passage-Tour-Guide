@@ -289,14 +289,14 @@ function Bubble({ msg }) {
       animation: 'chatMsgIn 0.25s cubic-bezier(0.16,1,0.3,1) both',
     }}>
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 flex items-center justify-center text-xs mr-2 shrink-0 mt-0.5 border border-stone-300/40 dark:border-stone-750">
+        <div className="w-7 h-7 rounded-full bg-stone-200 text-stone-700 flex items-center justify-center text-xs mr-2 shrink-0 mt-0.5 border border-stone-300/40">
           🏛️
         </div>
       )}
       <div 
         className={isUser 
           ? 'bg-gradient-to-br from-[#C1122F] to-[#8B0D22] text-white border-transparent' 
-          : 'bg-white dark:bg-[#1C1816] text-[#1C1917] dark:text-[#EDEBE6] border border-stone-200/80 dark:border-stone-800'
+          : 'bg-white text-[#1C1917] border border-stone-200/80'
         }
         style={{
           maxWidth: '78%',
@@ -327,7 +327,7 @@ function Bubble({ msg }) {
                 key={i} 
                 className={isUser
                   ? 'bg-white/20 text-white'
-                  : 'bg-[#C1122F]/5 dark:bg-[#C5A880]/10 border border-[#C1122F]/10 dark:border-[#C5A880]/20 text-[#C1122F] dark:text-[#C5A880]'
+                  : 'bg-[#C1122F]/5 border border-[#C1122F]/10 text-[#C1122F]'
                 }
                 style={{
                   display: 'inline-flex',
@@ -1106,8 +1106,8 @@ Always make sure the response is a valid JSON object. Do not include markdown co
           title="Ask your local guide"
           className={`fixed bottom-6 right-6 z-[10000] w-[52px] h-[52px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 border backdrop-blur-md hover:scale-105 active:scale-95 ${
             open
-              ? 'bg-stone-900 dark:bg-[#EDEBE6] border-stone-800 dark:border-stone-200 text-stone-50 dark:text-stone-950 shadow-lg'
-              : 'bg-white/75 dark:bg-[#1C1816]/75 border-stone-200/80 dark:border-stone-850 text-[#C1122F] dark:text-[#C5A880] shadow-md shadow-stone-250/20 dark:shadow-none'
+              ? 'bg-stone-900 border-stone-800 text-stone-50 shadow-lg'
+              : 'bg-white/75 border-stone-200/80 text-[#C1122F] shadow-md shadow-stone-250/20'
           }`}
         >
           {open ? '✕' : '🏛️'}
@@ -1117,22 +1117,22 @@ Always make sure the response is a valid JSON object. Do not include markdown co
       {/* Chat panel — shown always in embedded mode, or when open in standalone mode */}
       {(embedded || open) && (
         <div
-          className={`flex flex-col overflow-hidden bg-stone-50 dark:bg-[#12100E] ${
+          className={`flex flex-col overflow-hidden bg-stone-50 ${
             embedded
-              ? 'relative w-full h-[min(480px,calc(100vh-220px))] rounded-2xl border border-stone-200 dark:border-stone-850'
-              : 'fixed top-0 right-0 bottom-0 z-[9999] w-[min(420px,100vw)] h-[100dvh] border-l border-stone-200 dark:border-stone-850 md:rounded-l-2xl shadow-2xl animate-chatDrawerIn'
+              ? 'relative w-full h-[min(480px,calc(100vh-220px))] rounded-2xl border border-stone-200'
+              : 'fixed top-0 right-0 bottom-0 z-[9999] w-[min(420px,100vw)] h-[100dvh] border-l border-stone-200 md:rounded-l-2xl shadow-2xl animate-chatDrawerIn'
           }`}
         >
           {/* Header */}
-          <div className="bg-stone-100 dark:bg-stone-900/90 border-b border-stone-200 dark:border-stone-850 px-[18px] py-[14px] flex items-center gap-2.5 shrink-0">
-            <div className="w-9 h-9 rounded-full bg-stone-200/60 dark:bg-stone-800 flex items-center justify-center text-lg border border-stone-300/40 dark:border-stone-700 text-[#C1122F] dark:text-[#C5A880]">
+          <div className="bg-stone-100 border-b border-stone-200 px-[18px] py-[14px] flex items-center gap-2.5 shrink-0">
+            <div className="w-9 h-9 rounded-full bg-stone-200/60 flex items-center justify-center text-lg border border-stone-300/40 text-[#C1122F]">
               🏛️
             </div>
             <div className="flex-1 flex flex-col">
-              <div className="text-stone-900 dark:text-stone-100 font-sans font-bold text-xs tracking-wide uppercase">
+              <div className="text-stone-900 font-sans font-bold text-xs tracking-wide uppercase">
                 Bahrain Passage Guide
               </div>
-              <div className="text-stone-500 dark:text-stone-400 text-[10px] font-medium mt-0.5 uppercase tracking-wider">
+              <div className="text-stone-500 text-[10px] font-medium mt-0.5 uppercase tracking-wider">
                 Local travel assistant
               </div>
             </div>
@@ -1144,7 +1144,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
             {(onClose || !embedded) && (
               <button
                 onClick={onClose || (() => setOpen(false))}
-                className="bg-transparent border-none text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 cursor-pointer text-lg font-bold p-1 flex items-center justify-center ml-2 transition-colors duration-200"
+                className="bg-transparent border-none text-stone-500 hover:text-stone-800 cursor-pointer text-lg font-bold p-1 flex items-center justify-center ml-2 transition-colors duration-200"
               >
                 ✕
               </button>
@@ -1153,14 +1153,14 @@ Always make sure the response is a valid JSON object. Do not include markdown co
 
           {/* API Error Banner */}
           {apiError && (
-            <div className="bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-900/50 px-3 py-2 flex items-center gap-2 text-[11.5px] text-red-700 dark:text-red-300 font-sans font-medium">
+            <div className="bg-red-50 border-b border-red-200 px-3 py-2 flex items-center gap-2 text-[11.5px] text-red-700 font-sans font-medium">
               <span className="text-sm">⚠️</span>
               <div className="flex-1">
                 <strong>{apiError.provider} error:</strong> {apiError.message}. Auto-switched to Offline Fallback.
               </div>
               <button 
                 onClick={() => setApiError(null)}
-                className="bg-transparent border-none text-red-700 dark:text-red-300 cursor-pointer font-bold text-xs p-1"
+                className="bg-transparent border-none text-red-700 cursor-pointer font-bold text-xs p-1"
               >
                 ✕
               </button>
@@ -1168,18 +1168,18 @@ Always make sure the response is a valid JSON object. Do not include markdown co
           )}
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col bg-stone-50 dark:bg-[#12100E] scrollbar-thin">
+          <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col bg-stone-50 scrollbar-thin">
             {messages.map((msg, i) => <Bubble key={i} msg={msg} />)}
             {typing && (
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-[26px] h-[26px] rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 flex items-center justify-center text-xs border border-stone-300/40 dark:border-stone-700">
+                <div className="w-[26px] h-[26px] rounded-full bg-stone-200 text-stone-700 flex items-center justify-center text-xs border border-stone-300/40">
                   🏛️
                 </div>
-                <div className="flex gap-1 px-3.5 py-2.5 bg-white dark:bg-[#1C1816] rounded-2xl rounded-tl-sm border border-stone-200/80 dark:border-stone-800 shadow-sm">
+                <div className="flex gap-1 px-3.5 py-2.5 bg-white rounded-2xl rounded-tl-sm border border-stone-200/80 shadow-sm">
                   {[0, 1, 2].map(idx => (
                     <div 
-                      key={idx} 
-                      className="w-1.5 h-1.5 rounded-full bg-[#C1122F] dark:bg-[#C5A880] opacity-50"
+                       key={idx} 
+                      className="w-1.5 h-1.5 rounded-full bg-[#C1122F] opacity-50"
                       style={{
                         animation: `typingDot 1.2s ease-in-out ${idx * 0.2}s infinite`,
                       }}
@@ -1192,12 +1192,12 @@ Always make sure the response is a valid JSON object. Do not include markdown co
           </div>
 
           {/* Quick questions */}
-          <div className="px-3 py-2 flex gap-1.5 overflow-x-auto shrink-0 border-t border-stone-200 dark:border-stone-850 bg-stone-100/50 dark:bg-stone-900/50 no-scrollbar">
+          <div className="px-3 py-2 flex gap-1.5 overflow-x-auto shrink-0 border-t border-stone-200 bg-stone-100/50 no-scrollbar">
             {QUICK_QUESTIONS.map((q, i) => (
               <button
                 key={i}
                 onClick={() => sendMessage(q.label)}
-                className="shrink-0 px-3 py-1 rounded-full bg-white dark:bg-stone-850 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 text-[11px] font-sans font-medium tracking-wide uppercase transition-all duration-150 hover:bg-stone-50 dark:hover:bg-stone-800 hover:border-stone-300 dark:hover:border-stone-700 cursor-pointer"
+                className="shrink-0 px-3 py-1 rounded-full bg-white border border-stone-200 text-stone-700 text-[11px] font-sans font-medium tracking-wide uppercase transition-all duration-150 hover:bg-stone-50 hover:border-stone-300 cursor-pointer"
               >
                 {q.label}
               </button>
@@ -1205,28 +1205,28 @@ Always make sure the response is a valid JSON object. Do not include markdown co
           </div>
 
           {/* Input */}
-          <div className="p-3 flex gap-2 shrink-0 border-t border-stone-200 dark:border-stone-850 bg-white dark:bg-[#1C1816]">
+          <div className="p-3 flex gap-2 shrink-0 border-t border-stone-200 bg-white">
             <input
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKey}
               placeholder="Ask me to set budget, change duration, etc..."
-              className="flex-1 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 focus:border-[#C1122F] dark:focus:border-[#C5A880] rounded-xl px-3.5 py-2 text-stone-900 dark:text-stone-100 text-sm placeholder-stone-400 dark:placeholder-stone-600 outline-none transition-colors duration-150"
+              className="flex-1 bg-stone-50 border border-stone-200 focus:border-[#C1122F] rounded-xl px-3.5 py-2 text-stone-900 text-sm placeholder-stone-400 outline-none transition-colors duration-150"
             />
             <button
               onClick={() => sendMessage(input)}
               disabled={!input.trim()}
               className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-none transition-all duration-150 ${
                 input.trim()
-                  ? 'bg-[#C1122F] dark:bg-[#C5A880] text-white dark:text-stone-950 cursor-pointer hover:opacity-90 active:scale-95 shadow-md shadow-red-500/10'
-                  : 'bg-stone-100 dark:bg-stone-900 text-stone-350 dark:text-stone-700 cursor-not-allowed'
+                  ? 'bg-[#C1122F] text-white cursor-pointer hover:opacity-90 active:scale-95 shadow-md shadow-red-500/10'
+                  : 'bg-stone-100 text-stone-350 cursor-not-allowed'
               }`}
             >
               ↑
             </button>
           </div>
-          <div className="text-[9px] text-stone-400 dark:text-stone-600 text-center bg-white dark:bg-[#1C1816] pb-2 font-sans tracking-widest uppercase shrink-0">
+          <div className="text-[9px] text-stone-400 text-center bg-white pb-2 font-sans tracking-widest uppercase shrink-0">
             Powered by {apiProviderName}
           </div>
         </div>

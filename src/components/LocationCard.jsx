@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import { useVibe } from '../hooks/useVibe'
 import { ShieldAlert, Sun, Clock } from 'lucide-react'
 import { playTypewriterClick } from '../services/audioUtils'
@@ -106,9 +107,35 @@ export default function LocationCard({ spot, onScan }) {
     saveJournalReflection,
     soundVolume,
     soundMuted
-  } = useVibe()
+  } = useVibe() || {}
   
   const hasKeepsake = collectedKeepsakes && collectedKeepsakes.includes(spot.id)
+
+  const [localReflection, setLocalReflection] = useState(journalReflections[spot.id] || '')
+  const [saveState, setSaveState] = useState('saved')
+  const reflectionDebounceRef = useRef(null)
+
+  useEffect(() => {
+    setLocalReflection(journalReflections[spot.id] || '')
+  }, [spot.id])
+
+  const handleReflectionChange = (e) => {
+    const val = e.target.value
+    setLocalReflection(val)
+    playTypewriterClick(1.0, soundVolume, soundMuted)
+    setSaveState('typing')
+
+    if (reflectionDebounceRef.current) {
+      clearTimeout(reflectionDebounceRef.current)
+    }
+    reflectionDebounceRef.current = setTimeout(() => {
+      setSaveState('saving')
+      saveJournalReflection(spot.id, val)
+      setTimeout(() => {
+        setSaveState('saved')
+      }, 300)
+    }, 450)
+  }
 
   return (
     <div className="glass-panel rounded-3xl overflow-hidden p-6 md:p-8 flex flex-col transition-all duration-500 hover:shadow-md hover:border-red-500/10 w-full max-w-4xl mx-auto">
@@ -116,7 +143,7 @@ export default function LocationCard({ spot, onScan }) {
         
         {/* Left Column: Gallery Photo Card */}
         <div className="w-full md:w-[320px] shrink-0 flex flex-col items-center justify-start">
-          <div className="relative bg-white dark:bg-[#1C1816] p-4 shadow-md border border-stone-200 dark:border-[#2E2724] transition-all duration-300 w-full max-w-[290px] select-none rounded-xl">
+          <div className="relative bg-white p-4 shadow-md border border-stone-200 transition-all duration-300 w-full max-w-[290px] select-none rounded-xl">
             {/* Gold Star Keepsake sticker */}
             {hasKeepsake && (
               <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-amber-500/10 border-2 border-dashed border-amber-600/40 flex items-center justify-center rotate-12 text-amber-600 shadow-sm z-30 font-serif font-extrabold text-[12px] pointer-events-none select-none">
@@ -124,7 +151,7 @@ export default function LocationCard({ spot, onScan }) {
               </div>
             )}
 
-            <div className="w-full h-64 md:h-[240px] overflow-hidden relative border border-stone-100 dark:border-stone-800 bg-bahrain-dark flex items-center justify-center rounded-lg mb-3">
+            <div className="w-full h-64 md:h-[240px] overflow-hidden relative border border-stone-100 bg-bahrain-dark flex items-center justify-center rounded-lg mb-3">
               
               {/* Vintage Airmail Postcard Background (Reveals if image fails or is slow to load) */}
               <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-[#FCFBF8] border-8 border-double border-bahrain-red/20 text-center select-none z-0">
@@ -171,11 +198,11 @@ export default function LocationCard({ spot, onScan }) {
               </div>
             )}
 
-            <div className="flex flex-col text-left mt-2 border-t border-stone-100 dark:border-stone-800/80 pt-2.5">
-              <span className="font-serif text-[12px] text-stone-800 dark:text-[#EDEBE6] font-bold tracking-tight truncate">
+            <div className="flex flex-col text-left mt-2 border-t border-stone-100 pt-2.5">
+              <span className="font-serif text-[12px] text-stone-800 font-bold tracking-tight truncate">
                 {spot.name}
               </span>
-              <span className="font-sans text-[8px] text-stone-400 dark:text-stone-500 tracking-wider uppercase font-semibold mt-0.5">
+              <span className="font-sans text-[8px] text-stone-400 tracking-wider uppercase font-semibold mt-0.5">
                 {capturedPhotos[spot.id] ? 'Snapped Live' : 'Explorer Card'} • 2026
               </span>
             </div>
@@ -242,22 +269,27 @@ export default function LocationCard({ spot, onScan }) {
             </div>
 
             {/* Diary Reflections */}
-            <div className="p-4 rounded-2xl border border-stone-200 bg-white dark:bg-[#1C1816] shadow-sm relative overflow-hidden">
+            <div className="p-4 rounded-2xl border border-stone-200 bg-white shadow-sm relative overflow-hidden">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-sans text-[9px] tracking-wider uppercase text-neutral-400 font-extrabold flex items-center gap-1">
                   Notes
                 </span>
               </div>
               <textarea
-                value={journalReflections[spot.id] || ''}
-                onChange={(e) => {
-                  saveJournalReflection(spot.id, e.target.value)
-                  playTypewriterClick(1.0, soundVolume, soundMuted)
-                }}
+                value={localReflection}
+                onChange={handleReflectionChange}
                 placeholder="Jot down your notes and memories..."
                 rows="3"
-                className="w-full text-xs font-sans text-stone-700 dark:text-stone-300 placeholder-stone-400 border-none focus:outline-none resize-none focus:ring-0 leading-6 bg-transparent"
+                className="w-full text-xs font-sans text-stone-700 placeholder-stone-400 border-none focus:outline-none resize-none focus:ring-0 leading-6 bg-transparent"
               />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '10px', color: '#888', fontFamily: 'var(--jn-font-sans)', fontWeight: 'bold' }}>
+                <span style={{ color: saveState === 'saved' ? 'var(--jn-green, #1C6B3A)' : 'var(--jn-crimson, #BA0C2F)' }}>
+                  {saveState === 'typing' && '✍️ Typing...'}
+                  {saveState === 'saving' && '⚡ Saving...'}
+                  {saveState === 'saved' && '✓ Saved'}
+                </span>
+                <span>{localReflection.length} chars</span>
+              </div>
             </div>
 
             {/* Route Guidelines */}

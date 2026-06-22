@@ -60,6 +60,8 @@ import {
 
 const WayfarerMap = lazy(() => import('./WayfarerMap'))
 const TourChatbot = lazy(() => import('./TourChatbot'))
+import { useToast } from '../context/ToastContext'
+import { callLocalAI, buildRiddleHintPrompt } from '../services/aiService'
 
 
 /* ─── Tabs definition ──────────────────────────────────────────────────────── */
@@ -164,6 +166,7 @@ export default function JournalNotebook({ onBack }) {
     awardXP = () => {},
     soundVolume = 0.5,
     soundMuted = false,
+    setSoundMuted = () => {},
     journalReflections = {},
     saveJournalReflection = () => {},
     showPassportCard = false,
@@ -175,6 +178,7 @@ export default function JournalNotebook({ onBack }) {
 
   /* ── Language + Toast context ──────────────────────────────────────────── */
   const { lang, isRTL } = useLang()
+  const { toast } = useToast()
 
   /* ── Dynamic itinerary loading ──────────────────────────────────────────── */
   const { locations = [], loading = false } = useItinerary(selectedMoods, tier, duration, curatedItinerary)
@@ -198,9 +202,11 @@ export default function JournalNotebook({ onBack }) {
   const [tourOpen,        setTourOpen]        = useState(false)
   const [lensOpenSpot,    setLensOpenSpot]    = useState(null)
   const [shopOpen,        setShopOpen]        = useState(false)
-  const [shopAlert,       setShopAlert]       = useState(null)
   const [riddleModalOpen, setRiddleModalOpen] = useState(false)
   const [imageErrors,     setImageErrors]     = useState({})
+  const [riddleHints,     setRiddleHints]     = useState({})
+  const [hintLoading,     setHintLoading]     = useState(false)
+  const [saveState,       setSaveState]       = useState('saved')
   const playTypewriterClick = useCallback((pitchMultiplier = 1.0) => {
     playTypewriterClickCentral(pitchMultiplier, soundVolume, soundMuted)
   }, [soundVolume, soundMuted])
@@ -363,14 +369,20 @@ export default function JournalNotebook({ onBack }) {
     setLocalReflection(val)
     playTypewriterClick()
     
+    setSaveState('typing')
+    
     if (reflectionDebounceRef.current) {
       clearTimeout(reflectionDebounceRef.current)
     }
     reflectionDebounceRef.current = setTimeout(() => {
+      setSaveState('saving')
       if (activeSpot) {
         saveJournalReflection(activeSpot.id, val)
       }
-    }, 400)
+      setTimeout(() => {
+        setSaveState('saved')
+      }, 300)
+    }, 450)
   }
 
   /* ── Tab switch ──────────────────────────────────────────────────────────── */
@@ -444,6 +456,7 @@ export default function JournalNotebook({ onBack }) {
       
       setTimeout(() => {
         solveRiddle(activeSpot.id)
+        toast.success("Riddle solved! +35 XP earned.")
       }, 700)
     } else {
       playRiddleIncorrect(soundVolume, soundMuted)
@@ -456,15 +469,34 @@ export default function JournalNotebook({ onBack }) {
     }
   }
 
+  const handleRequestHint = async (spotId) => {
+    if (riddleHints[spotId] || hintLoading) return
+    setHintLoading(true)
+    const riddle = RIDDLES[spotId]
+    if (!riddle) {
+      setHintLoading(false)
+      return
+    }
+    const { system, user } = buildRiddleHintPrompt(riddle.question, riddle.options)
+    const hint = await callLocalAI(
+      system,
+      user,
+      `Pay attention to the historical clues in ${activeSpot.name}'s description.`,
+      { maxTokens: 100 }
+    )
+    setRiddleHints(prev => ({ ...prev, [spotId]: hint }))
+    setHintLoading(false)
+  }
+
   /* ── Shop purchase ───────────────────────────────────────────────────────── */
   const handleBuyItem = (item) => {
     if (goldFils < item.cost) {
-      setShopAlert({ success: false, text: `Not enough Fils! You have ${goldFils.toLocaleString()} Fils.` })
+      toast.error(`Not enough Fils! You have ${goldFils.toLocaleString()} Fils.`)
       return
     }
     if (spendFils(item.cost)) {
       awardXP(item.xpReward || 20, `Bought ${item.name}`)
-      setShopAlert({ success: true, text: `✅ Purchased ${item.name}! +${item.xpReward || 20} XP` })
+      toast.success(`Purchased ${item.name}! +${item.xpReward || 20} XP`)
     }
   }
 
@@ -610,34 +642,42 @@ export default function JournalNotebook({ onBack }) {
             onFocus={e => e.target.style.borderColor = 'var(--jn-crimson)'}
             onBlur={e => e.target.style.borderColor = 'rgba(193,18,47,0.15)'}
           />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '10px', color: '#888', fontFamily: 'var(--jn-font-sans)', fontWeight: 'bold' }}>
+            <span style={{ color: saveState === 'saved' ? 'var(--jn-green, #1C6B3A)' : 'var(--jn-crimson, #BA0C2F)' }}>
+              {saveState === 'typing' && '✍️ Typing...'}
+              {saveState === 'saving' && '⚡ Saving...'}
+              {saveState === 'saved' && '✓ Saved'}
+            </span>
+            <span>{localReflection.length} chars</span>
+          </div>
         </div>
 
         {/* Riddle Quest */}
         {RIDDLES[activeSpot.id] && (
-          <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70 dark:bg-stone-900/60 dark:border-stone-800">
+          <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70">
             <div className="flex justify-between items-center mb-2 select-none">
-              <span className="font-sans text-[11px] tracking-widest uppercase text-bahrain-red dark:text-[#C5A880] font-bold flex items-center gap-1">
+              <span className="font-sans text-[11px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
                 Riddle
               </span>
               {solvedRiddles[activeSpot.id] ? (
-                <span className="text-[11px] bg-green-100 text-green-800 dark:bg-green-950/80 dark:text-green-400 font-extrabold px-2 py-0.5 rounded-full">
+                <span className="text-[11px] bg-green-100 text-green-800 font-extrabold px-2 py-0.5 rounded-full">
                   ✓ Solved (+35 XP)
                 </span>
               ) : (
-                <span className="text-[11px] bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-400 font-extrabold px-2 py-0.5 rounded-full">
+                <span className="text-[11px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full">
                   Unsolved (+35 XP)
                 </span>
               )}
             </div>
 
-            <p className="font-serif text-[14px] text-bronze-charcoal dark:text-[#EDEBE6] leading-relaxed font-bold mb-3">
+            <p className="font-serif text-[14px] text-bronze-charcoal leading-relaxed font-bold mb-3">
               "{RIDDLES[activeSpot.id].question}"
             </p>
 
             {solvedRiddles[activeSpot.id] ? (
-              <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/10 dark:border-green-500/20 space-y-1">
-                <p className="font-sans text-[11px] uppercase tracking-wider text-green-700 dark:text-green-400 font-extrabold select-none">Insider Discovery Reveal:</p>
-                <p className="font-serif text-[13px] text-bronze-charcoal dark:text-[#EDEBE6] leading-relaxed italic font-semibold">
+              <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/10 space-y-1">
+                <p className="font-sans text-[11px] uppercase tracking-wider text-green-700 font-extrabold select-none">Insider Discovery Reveal:</p>
+                <p className="font-serif text-[13px] text-bronze-charcoal leading-relaxed italic font-semibold">
                   {RIDDLES[activeSpot.id].insider}
                 </p>
               </div>
@@ -647,16 +687,57 @@ export default function JournalNotebook({ onBack }) {
                   <button
                     key={oIdx}
                     onClick={() => handleAnswerRiddle(oIdx)}
-                    className="w-full p-2.5 text-left rounded-lg border border-red-500/10 dark:border-stone-800 hover:border-bahrain-red dark:hover:border-[#C5A880] bg-white dark:bg-stone-900 hover:bg-red-500/5 dark:hover:bg-stone-800 text-[13px] font-sans font-bold text-bronze-charcoal dark:text-[#EDEBE6] transition-all cursor-pointer active:scale-99"
+                    className="w-full p-2.5 text-left rounded-lg border border-red-500/10 hover:border-bahrain-red bg-white hover:bg-red-500/5 text-[13px] font-sans font-bold text-bronze-charcoal transition-all cursor-pointer active:scale-99"
                   >
                     {opt}
                   </button>
                 ))}
                 {riddleError && (
-                  <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400 font-sans text-[11px] font-bold animate-scaleIn select-none">
+                  <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-sans text-[11px] font-bold animate-scaleIn select-none">
                     ❌ {riddleError}
                   </div>
                 )}
+                {/* Hint System */}
+                <div style={{ marginTop: '10px' }}>
+                  {riddleHints[activeSpot.id] ? (
+                    <div style={{
+                      padding: '10px',
+                      borderRadius: '8px',
+                      background: '#FFFBEB',
+                      border: '1px solid #FDE68A',
+                      color: '#B45309',
+                      fontSize: '12px',
+                      fontFamily: 'var(--jn-font-serif)',
+                      fontStyle: 'italic',
+                      lineHeight: '1.4'
+                    }}>
+                      <strong>💡 Clue:</strong> {riddleHints[activeSpot.id]}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleRequestHint(activeSpot.id)}
+                      disabled={hintLoading}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--jn-crimson)',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        fontFamily: 'var(--jn-font-sans)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        cursor: hintLoading ? 'not-allowed' : 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 0',
+                        opacity: hintLoading ? 0.6 : 1
+                      }}
+                    >
+                      {hintLoading ? '🧙‍♂️ Consulting elders...' : '✨ Request Hint'}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -684,6 +765,33 @@ export default function JournalNotebook({ onBack }) {
           </div>
 
           <div className="jn-header-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Audio Toggle */}
+            <button
+              onClick={() => setSoundMuted(!soundMuted)}
+              className="jn-utility-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '6px',
+                minWidth: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: 'rgba(193, 18, 47, 0.05)',
+                border: '1px solid rgba(193, 18, 47, 0.15)',
+                color: 'var(--jn-crimson)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              title={soundMuted ? "Unmute Sounds" : "Mute Sounds"}
+            >
+              {soundMuted ? (
+                <VolumeX className="w-[18px] h-[18px]" />
+              ) : (
+                <Volume2 className="w-[18px] h-[18px]" />
+              )}
+            </button>
+
             <LangToggle />
 
             {/* XP progress pill */}
@@ -1543,11 +1651,7 @@ export default function JournalNotebook({ onBack }) {
               <button className="jn-shop-close" onClick={() => setShopOpen(false)} aria-label="Close shop">✕ Exit Shop</button>
             </div>
 
-            {shopAlert && (
-              <div className={`jn-shop-alert ${shopAlert.success ? 'jn-shop-alert--success' : 'jn-shop-alert--error'}`}>
-                {shopAlert.text}
-              </div>
-            )}
+
 
             <div className="jn-shop-fils-bar">
               <span>Your Fils Balance</span>
@@ -1587,16 +1691,174 @@ export default function JournalNotebook({ onBack }) {
           aria-modal="true"
           onClick={(e) => { if (e.target === e.currentTarget) setSelectedKsake(null) }}
         >
-          <div className="jn-ksake-modal">
-            <button className="jn-ksake-close" onClick={() => setSelectedKsake(null)} aria-label="Close keepsake detail">✕ Close</button>
-            <div className="jn-ksake-header">
-              <span className="jn-ksake-emoji">{selectedKsake.keepsakeEmoji}</span>
-              <div>
-                <h4 className="jn-ksake-name">{selectedKsake.keepsakeName}</h4>
-                <span className="jn-ksake-from">{selectedKsake.name}</span>
+          <div className="jn-ksake-modal" style={{
+            maxWidth: '520px',
+            background: '#FDFBF7',
+            border: '2px solid #D4C3A3',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.15)',
+            backgroundImage: 'radial-gradient(rgba(186, 12, 47, 0.03) 1px, transparent 0)',
+            backgroundSize: '12px 12px',
+            padding: '24px',
+            position: 'relative',
+          }}>
+            {/* Vintage borders inside */}
+            <div style={{
+              position: 'absolute',
+              top: '8px', left: '8px', right: '8px', bottom: '8px',
+              border: '1px dashed #D4C3A3',
+              pointerEvents: 'none'
+            }} />
+            
+            {/* Header: Kingdom of Bahrain visa header */}
+            <div style={{
+              textAlign: 'center',
+              borderBottom: '2px solid #BA0C2F',
+              paddingBottom: '10px',
+              marginBottom: '18px',
+              position: 'relative'
+            }}>
+              <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#BA0C2F', fontWeight: '900', fontFamily: 'var(--jn-font-sans)' }}>
+                Kingdom of Bahrain · Entry Visa
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 'bold', fontFamily: 'var(--jn-font-serif)', color: '#1C1917', marginTop: '2px' }}>
+                تأشيرة دخول دلمون الأثرية
+              </div>
+              <button 
+                onClick={() => setSelectedKsake(null)} 
+                style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '4px',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '16px',
+                  color: '#78716C',
+                  cursor: 'pointer'
+                }}
+                aria-label="Close visa document"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '20px', flexWrap: 'wrap' }}>
+              {/* Photo component */}
+              <div style={{
+                flex: '1 1 180px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}>
+                <div style={{
+                  background: '#fff',
+                  padding: '10px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                  border: '1px solid #E7E5E4',
+                  borderRadius: '4px',
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}>
+                  <div style={{
+                    width: '100%',
+                    height: '140px',
+                    overflow: 'hidden',
+                    borderRadius: '2px',
+                    background: '#292524',
+                    position: 'relative'
+                  }}>
+                    <img 
+                      src={capturedPhotos[selectedKsake.id] || selectedKsake.image} 
+                      alt={selectedKsake.name} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => { e.target.style.display = 'none' }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: 'rgba(0,0,0,0.6)',
+                      color: '#fff',
+                      fontSize: '8px',
+                      fontFamily: 'var(--jn-font-sans)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      padding: '4px 6px',
+                      textAlign: 'center'
+                    }}>
+                      Wayfarer Photo ID
+                    </div>
+                  </div>
+                  <div style={{ marginTop: '8px', fontSize: '9px', color: '#78716C', fontFamily: 'var(--jn-font-sans)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Serial: #BP-{selectedKsake.id?.slice(0,8).toUpperCase() || 'KSAKE'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Visa details & stamp */}
+              <div style={{
+                flex: '1 2 240px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                position: 'relative'
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderBottom: '1px dashed #E7E5E4', paddingBottom: '4px' }}>
+                    <span style={{ color: '#78716C', fontWeight: 'bold', textTransform: 'uppercase' }}>Souvenir:</span>
+                    <span style={{ fontWeight: 'bold', color: '#1C1917' }}>{selectedKsake.keepsakeEmoji} {selectedKsake.keepsakeName}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderBottom: '1px dashed #E7E5E4', paddingBottom: '4px' }}>
+                    <span style={{ color: '#78716C', fontWeight: 'bold', textTransform: 'uppercase' }}>Site:</span>
+                    <span style={{ fontWeight: 'bold', color: '#1C1917' }}>{selectedKsake.name}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderBottom: '1px dashed #E7E5E4', paddingBottom: '4px' }}>
+                    <span style={{ color: '#78716C', fontWeight: 'bold', textTransform: 'uppercase' }}>Epoch/Period:</span>
+                    <span style={{ fontWeight: 'bold', color: '#BA0C2F' }}>{selectedKsake.period}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderBottom: '1px dashed #E7E5E4', paddingBottom: '4px' }}>
+                    <span style={{ color: '#78716C', fontWeight: 'bold', textTransform: 'uppercase' }}>Coordinates:</span>
+                    <span style={{ fontWeight: 'bold', color: '#78716C', fontFamily: 'monospace' }}>{selectedKsake.coords}</span>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '12px' }}>
+                  <span style={{ display: 'block', fontSize: '8px', textTransform: 'uppercase', color: '#A8A29E', fontWeight: 'bold', letterSpacing: '0.1em' }}>Cultural Description</span>
+                  <p style={{ margin: '2px 0 0 0', fontFamily: 'var(--jn-font-serif)', fontSize: '11px', lineHeight: '1.4', color: '#44403C', fontStyle: 'italic' }}>
+                    "{selectedKsake.keepsakeDesc}"
+                  </p>
+                </div>
+
+                {/* Circular entry stamp */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '-10px',
+                  right: '-10px',
+                  width: '74px',
+                  height: '74px',
+                  borderRadius: '50%',
+                  border: '2px double rgba(186, 12, 47, 0.45)',
+                  color: 'rgba(186, 12, 47, 0.55)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transform: 'rotate(-15deg)',
+                  pointerEvents: 'none',
+                  fontFamily: 'var(--jn-font-sans)',
+                  fontSize: '8px',
+                  fontWeight: '950',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  padding: '4px',
+                  boxSizing: 'border-box',
+                  background: 'rgba(253, 251, 247, 0.85)',
+                  boxShadow: '0 0 8px rgba(0,0,0,0.02)'
+                }}>
+                  <div style={{ fontSize: '6px', borderBottom: '1px solid rgba(186,12,47,0.3)', paddingBottom: '1px', marginBottom: '2px' }}>ENTRY SEAL</div>
+                  <div style={{ fontSize: '7px', fontWeight: 'black' }}>APPROVED</div>
+                  <div style={{ fontSize: '5px', marginTop: '1px', color: 'rgba(186,12,47,0.45)' }}>BP-PASSPORT</div>
+                </div>
               </div>
             </div>
-            <p className="jn-ksake-desc">"{selectedKsake.keepsakeDesc}"</p>
           </div>
         </div>
       )}
@@ -1860,6 +2122,41 @@ export default function JournalNotebook({ onBack }) {
                       ❌ {riddleError}
                     </p>
                   )}
+
+                  {/* Hint System */}
+                  <div style={{ marginTop: '12px' }}>
+                    {riddleHints[activeSpot.id] ? (
+                      <div className="jn-insider-reveal" style={{ background: '#FFFBEB', border: '1px solid #FDE68A', color: '#B45309', margin: 0, padding: '12px', borderRadius: '8px' }}>
+                        <strong style={{ color: '#D97706', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '4px' }}>💡 Clue:</strong>
+                        <p style={{ margin: 0, fontStyle: 'italic', fontSize: '12px', lineHeight: '1.4' }}>
+                          {riddleHints[activeSpot.id]}
+                        </p>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleRequestHint(activeSpot.id)}
+                        disabled={hintLoading}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--jn-crimson)',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          fontFamily: 'var(--jn-font-sans)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          cursor: hintLoading ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '4px 0',
+                          opacity: hintLoading ? 0.6 : 1
+                        }}
+                      >
+                        {hintLoading ? '🧙‍♂️ Consulting elders...' : '✨ Request Hint'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -1901,7 +2198,7 @@ export default function JournalNotebook({ onBack }) {
               {/* Chatbot panel — slides up when open */}
               {chatOpen && (
                 <div
-                  className="fixed z-[199] w-[min(380px,calc(100vw-32px))] overflow-hidden rounded-2xl border border-stone-200 dark:border-stone-850 bg-stone-50 dark:bg-[#12100E] shadow-2xl shadow-stone-900/10 dark:shadow-none"
+                  className="fixed z-[199] w-[min(380px,calc(100vw-32px))] overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 shadow-2xl shadow-stone-900/10"
                   style={{
                     bottom: panelBottom,
                     right: '16px',

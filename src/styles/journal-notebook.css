@@ -2530,14 +2530,6 @@
   box-shadow: 0 12px 36px rgba(193, 18, 47, 0.35), 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  .jn-vibe-card--inactive {
-    background: linear-gradient(135deg, #1C1816 0%, #24201E 100%) !important;
-    border: 1.5px solid #2E2724 !important;
-    color: #EDEBE6 !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35) !important;
-  }
-}
 
 
 
