@@ -909,18 +909,105 @@ export default function JournalNotebook({ onBack }) {
             .map(w => w.charAt(0).toUpperCase() + w.slice(1))
             .join(' ')
 
-          // Deduce category from keywords
           let category = 'culture'
-          if (/(cafe|restaurant|food|burger|coffee|coco|bake|eats|souq|market|dine|dining|pub|bar|bistro)/i.test(queryClean)) {
-            category = 'souq'
-          } else if (/(beach|island|sea|marine|resort|coast|reef|bay|water|shore|yacht|dive|boat)/i.test(queryClean)) {
-            category = 'coast'
-          } else if (/(fort|castle|ruin|archaeology|temple|tower|ancient|heritage|mosque|history)/i.test(queryClean)) {
+          let arabicName = `معلم ${capitalizedQuery}`
+          let desc = `A notable local landmark in Bahrain, highly appreciated for its unique character, welcoming environment, and local significance. It stands as an interesting stop for anyone wishing to explore the diverse facets of the island.`
+          let simpleTerms = `What this offers: A welcoming local landmark that showcases Bahrain's local character and community presence.`
+          let insider = `A great addition to your itinerary. Check their local schedules or visit during the late afternoon to see the area at its liveliest.`
+          let hours = 'Open daily 9:00 AM - 8:00 PM'
+          let cost = 'Free Entry'
+          let district = 'Manama, Bahrain'
+          let modestyAlert = ''
+          let safetyAlert = ''
+
+          // Parse and build custom metadata based on query type
+          if (/(hospital|clinic|medical|health|dentist|doctor|care)/i.test(queryClean)) {
+            category = 'modern'
+            const baseName = capitalizedQuery.replace(/(hospital|clinic|medical\s*center|medical)/gi, '').trim() || capitalizedQuery
+            arabicName = `مستشفى ${baseName}`
+            desc = `A key healthcare and medical facility in Bahrain, providing essential services, modern medical care, and wellness support. It stands as a vital community institution serving both local residents and visitors with dedicated professional staff.`
+            simpleTerms = `What this offers: Healthcare services, emergency care, and medical consultations in a professional local facility.`
+            insider = `Keep their contact number handy for emergencies. The facility has modern departments and a pharmacy nearby for prescriptions.`
+            hours = 'Open 24/7 (Emergency) • OPD 8:00 AM - 8:00 PM'
+            cost = 'Consultation fees apply'
+            district = 'Manama Medical District, Bahrain'
+          } else if (/(school|university|college|academy|institute|learning|library)/i.test(queryClean)) {
+            category = 'culture'
+            const baseName = capitalizedQuery.replace(/(school|university|college|academy)/gi, '').trim() || capitalizedQuery
+            arabicName = (queryClean.includes('university') || queryClean.includes('college')) ? `جامعة ${baseName}` : `مدرسة ${baseName}`
+            desc = `A respected educational institution in Bahrain, dedicated to academic excellence, learning, and research. It plays a central role in shaping the minds of future generations and serves as an intellectual landmark in the region.`
+            simpleTerms = `What this offers: Academic programs, educational resources, library facilities, and a vibrant student campus environment.`
+            insider = `Visitors should check at the main reception or security gate for visitor passes before exploring the campus or library facilities.`
+            hours = 'Open daily 7:30 AM - 4:00 PM'
+            cost = 'Free Entry (Visitor pass required)'
+            district = 'Isa Town Educational Area, Bahrain'
+          } else if (/(mosque|masjid|church|temple|synagogue|cathedral|spiritual|holy)/i.test(queryClean)) {
             category = 'fort'
+            const baseName = capitalizedQuery.replace(/(mosque|masjid|church|temple)/gi, '').trim() || capitalizedQuery
+            arabicName = (queryClean.includes('mosque') || queryClean.includes('masjid')) ? `مسجد ${baseName}` : `دار عبادة ${baseName}`
+            desc = `A beautiful and serene place of worship and reflection in Bahrain. It stands as an architectural and spiritual beacon, welcoming visitors to experience its peaceful ambiance, sacred design, and cultural significance.`
+            simpleTerms = `What this offers: A sacred space for prayer, spiritual reflection, and stunning local religious architecture.`
+            insider = `Dress modestly: shoulders and knees must be covered. Women should bring a headscarf. Avoid visiting during main congregational prayer times.`
+            hours = 'Open daily 9:00 AM - 9:00 PM (Visitor hours vary)'
+            cost = 'Free Entry'
+            district = 'Manama, Bahrain'
+            modestyAlert = 'Dress modestly: shoulders and knees covered'
+          } else if (/(hotel|resort|inn|suites|stay|hostel|villa|palace)/i.test(queryClean)) {
+            category = 'modern'
+            const baseName = capitalizedQuery.replace(/(hotel|resort|inn|suites)/gi, '').trim() || capitalizedQuery
+            arabicName = `فندق ${baseName}`
+            desc = `A premier hospitality destination in Bahrain, offering luxurious accommodations, exceptional dining, and top-tier amenities. It serves as a comfortable retreat for travelers and a popular gathering spot for local events.`
+            simpleTerms = `What this offers: High-quality lodging, leisure facilities, swimming pools, and multiple fine dining options.`
+            insider = `Even if you aren't staying overnight, visit their rooftop lounge or lobby cafe for great views and excellent Arabic coffee.`
+            hours = 'Open 24 hours'
+            cost = 'Varies by service'
+            district = 'Seef District, Manama'
+          } else if (/(cafe|restaurant|food|burger|coffee|coco|bake|eats|souq|market|dine|dining|pub|bar|bistro|kitchen|house)/i.test(queryClean)) {
+            category = 'souq'
+            const baseName = capitalizedQuery.replace(/(restaurant|cafe|coffee|house)/gi, '').trim() || capitalizedQuery
+            arabicName = (queryClean.includes('cafe') || queryClean.includes('coffee')) ? `مقهى ${baseName}` : `مطعم ${baseName}`
+            desc = `A highly regarded culinary establishment in Bahrain, celebrated for its delicious menu, warm ambiance, and excellent service. It offers an inviting atmosphere where locals and tourists gather to enjoy superb flavors and great company.`
+            simpleTerms = `What this offers: A delightful dining experience featuring high-quality dishes, refreshing drinks, and comfortable seating.`
+            insider = `A fantastic spot for food enthusiasts. Try their signature dishes and be sure to book a table in advance during busy weekend evenings.`
+            hours = 'Open daily 8:00 AM - 11:30 PM'
+            cost = '3-8 BHD per person'
+            district = 'Block 338 Adliya, Manama'
+          } else if (/(beach|island|sea|marine|coast|reef|bay|water|shore|yacht|dive|boat|park|garden|nature|wildlife)/i.test(queryClean)) {
+            category = 'coast'
+            arabicName = `ساحل ${capitalizedQuery}`
+            desc = `A scenic natural escape in Bahrain, beloved for its picturesque views, calming sea breeze, and outdoor recreation. It is a perfect spot for relaxation, water sports, and enjoying the island's coastal beauty.`
+            simpleTerms = `What this offers: Beautiful views, swimming, walking paths, and peaceful outdoor spots to unwind.`
+            insider = `Perfect for sunset watching. Bring your camera, some sunscreen, and enjoy the cool sea breeze during the late afternoon.`
+            hours = 'Open daily 24 hours'
+            cost = 'Free Entry'
+            district = 'Manama Waterfront, Bahrain'
+          } else if (/(fort|castle|ruin|archaeology|tower|ancient|heritage|history)/i.test(queryClean)) {
+            category = 'fort'
+            arabicName = `قلعة ${capitalizedQuery}`
+            desc = `A historic fort and archaeological marvel in Bahrain, rich in stories of ancient trade, defense, and culture. It serves as a majestic gateway to the kingdom's historic past, offering visitors incredible stone layouts and expansive views.`
+            simpleTerms = `What this offers: Archaeological exploration, ancient stone architecture, and stunning historical photo opportunities.`
+            insider = `Ideal for history lovers. Walk along the outer ramparts during the golden hour for perfect lighting and panoramic ocean and skyline views.`
+            hours = 'Open daily 8:00 AM - 6:00 PM'
+            cost = 'Free Entry'
+            district = 'Muharraq Island, Bahrain'
           } else if (/(desert|safari|camel|sakhir|dune|tree|stargaze|camp)/i.test(queryClean)) {
             category = 'desert'
-          } else if (/(mall|circuit|center|centre|tower|modern|avenue|city|plaza|mall|shopping|race)/i.test(queryClean)) {
+            arabicName = `صحراء ${capitalizedQuery}`
+            desc = `A mesmerizing desert landscape in Bahrain, boasting rolling sands, unique desert flora, and deep heritage. It is a favorite location for desert safaris, traditional camel sightings, and peaceful stargazing under clear night skies.`
+            simpleTerms = `What this offers: Desert exploration, dune vistas, stargazing, and authentic Arabian desert camp experiences.`
+            insider = `Dress warmly if visiting during winter nights as the desert temperature drops quickly. Make sure to travel in a 4WD vehicle for safety on dunes.`
+            hours = 'Open 24 hours'
+            cost = 'Free Entry'
+            district = 'Sakhir Desert, Bahrain'
+          } else if (/(mall|circuit|center|centre|avenue|city|plaza|shopping|race)/i.test(queryClean)) {
             category = 'modern'
+            arabicName = `مجمع ${capitalizedQuery}`
+            desc = `A modern, state-of-the-art retail and entertainment hub in Bahrain, showcasing the kingdom's rapid development and cosmopolitan lifestyle. It offers premium shopping, dining, and family-friendly activity centers.`
+            simpleTerms = `What this offers: Luxury brand shopping, global culinary options, entertainment, and modern indoor leisure.`
+            insider = `Excellent indoor climate control. Great for escaping the afternoon heat, and perfect for shopping high-end local and international brands.`
+            hours = 'Open daily 10:00 AM - 10:00 PM'
+            cost = 'Free Entry'
+            district = 'Seef District, Manama'
           }
 
           // Generate realistic coordinates in Bahrain (offsetting slightly from a central point)
@@ -931,34 +1018,22 @@ export default function JournalNotebook({ onBack }) {
           const lon = (50.5912 + randomOffsetLon).toFixed(4)
           const coords = `${lat}° N, ${lon}° E`
 
-          // Deduce a realistic district name
-          let district = 'Manama, Bahrain'
-          if (category === 'souq') district = 'Block 338 Adliya, Manama'
-          else if (category === 'coast') district = 'Manama Waterfront, Bahrain'
-          else if (category === 'desert') district = 'Sakhir Desert, Bahrain'
-          else if (category === 'fort') district = 'Muharraq Island, Bahrain'
-
-          // Create a realistic, culturally authentic description
-          const desc = `A popular local landmark in Bahrain, highly frequented for its vibrant atmosphere, welcoming hospitality, and regional charm. It stands as an authentic community hub loved by both residents and travelers looking to experience the true spirit of the island.`
-          const simpleTerms = `What this offers: A welcoming local spot where you can explore authentic daily life, connect with friendly residents, and enjoy the authentic flavors and sights of Bahrain.`
-          const insider = `A highly recommended local favorite. Speak to the staff for their seasonal recommendations, and try to visit during the twilight hours to enjoy the best local breeze.`
-
           parsed = {
             success: true,
             id: `custom-${queryClean.replace(/[^a-z0-9]/g, '-')}-${Math.floor(Math.random() * 1000)}`,
             name: capitalizedQuery,
-            arabic: category === 'souq' ? `مطعم ${capitalizedQuery}` : `معلم ${capitalizedQuery}`,
+            arabic: arabicName,
             desc: desc,
             simpleTerms: simpleTerms,
             where: district,
             coords: coords,
-            hours: 'Open daily 8:00 AM - 11:00 PM',
-            cost: category === 'souq' ? '3-6 BHD per person' : 'Free Entry',
-            modestyAlert: '',
-            safetyAlert: '',
+            hours: hours,
+            cost: cost,
+            modestyAlert: modestyAlert,
+            safetyAlert: safetyAlert,
             insider: insider,
             category: category,
-            period: 'Established Local Landmark',
+            period: category === 'fort' || category === 'desert' ? 'Historical Era' : 'Established Local Landmark',
             success: true
           }
         }
