@@ -71,14 +71,13 @@ export default async function handler(req, res) {
         generationConfig: {
           temperature,
           maxOutputTokens: maxTokens,
-          thinkingConfig: { thinkingBudget: 0 },
         },
       }
       if (useJson) {
         bodyPayload.generationConfig.responseMimeType = 'application/json'
       }
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${GEMINI_KEY}`
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

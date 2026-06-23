@@ -52,6 +52,48 @@ export const spotStories = {
   },
   'al-areen': {
     story: "A vast desert sanctuary home to the Arabian Oryx — saved from extinction in the 1970s through local breeding programmes. The landscape is a mix of gravel plains and sand dunes, with native desert shrubs. Book the early shuttle at 9:00 AM for the best chance to see the Oryx herds feeding before the heat sets in."
+  },
+  'beit-al-quran': {
+    story: "The air inside is cool and hushed, smelling faintly of old parchment and wood polish. As you walk past the glass cases, the golden illumination catches the intricate ink work of centuries-old scholars. It is a place where the modern world outside fades into silence, replaced by the rhythmic beauty of ancient scripts."
+  },
+  'saar-temple': {
+    story: "The wind whistles through the low stone walls, carrying the dust of millennia across the open plains. Standing here, you can almost hear the hum of a bustling village that thrived when the world was young. As the sun dips low, the site transforms into a portal to a bygone era of trade and ritual."
+  },
+  'al-khamis-mosque': {
+    story: "The mosque stands as a silent sentinel of history, its weathered stone walls telling stories of traders, pilgrims, and scholars. As you walk the grounds, the weight of over a thousand years of prayer and community settles upon you. The twin towers reach toward the sky, forever marking this spot as a cornerstone of faith."
+  },
+  'bin-matar-house': {
+    story: "Entering the courtyard, the temperature drops as the thick stone walls block the midday heat. The scent of jasmine and old wood fills the air, creating an atmosphere of refined tranquility. Art pieces now adorn the walls where pearl-trading contracts were once signed, bridging the gap between old wealth and modern expression."
+  },
+  'al-jasra-craft-center': {
+    story: "The rhythmic sound of looms clicking and chisels carving wood fills the workshop. Here, the hands of the elderly pass wisdom to the youth, ensuring that the patterns of the ancestors are never lost. You can touch the rough texture of the palm leaves and the smooth finish of the woodwork, feeling the direct connection to Bahrain's soul."
+  },
+  'durrat-al-bahrain-coast': {
+    story: "The water here is a shade of turquoise so vivid it seems painted. As the sun reflects off the gentle waves, the silence is broken only by the sound of the wind and the distant call of a seabird. It is a place where modern engineering meets the raw beauty of the Arabian Gulf, creating a sanctuary of peace."
+  },
+  'royal-camel-farm': {
+    story: "The camels look at you with long, curious lashes as they munch on their feed. Their gentle nature is surprising, and the sheer scale of the farm is impressive against the backdrop of the desert horizon. You can feel the warmth of the sun and hear the soft grunts of the herd, grounding you in the traditional life of the peninsula."
+  },
+  'bahrain-international-circuit': {
+    story: "The screech of tires and the smell of burning rubber create an electric atmosphere that vibrates through the desert floor. Under the bright floodlights at night, the track glows like a neon snake cutting through the darkness. It is the perfect marriage of raw power and sophisticated technology, drawing fans from across the globe."
+  },
+  'al-fateh-grand-mosque': {
+    story: "The sheer scale of the mosque is humbling, with light filtering through the intricate patterns of the dome to dance on the polished floors. The air is cool, quiet, and filled with a sense of profound reverence. As you walk through the halls, the outside world feels miles away, replaced by a serene focus on design and spirituality."
+  },
+  'manama-reef-walk': {
+    story: "The sea breeze carries the scent of salt and charcoal smoke from nearby food stalls. Families laugh and friends gather as the city lights begin to sparkle across the water like scattered diamonds. It is a living, breathing space that captures the pulse of Bahrain's modern maritime identity."
+  },
+  'bahrain-world-trade-center': {
+    story: "The towers rise like twin sails against the blue sky, reflecting the sunlight in a dazzling display of glass and steel. At night, the turbines are bathed in light, a futuristic sight that signals Bahrain's forward-looking spirit. It stands as a testament to human ingenuity in harmony with the environment."
+  },
+  'muharraq-cultural-center': {
+    story: "Passing through the narrow alleys of Muharraq, you suddenly find yourself in a courtyard filled with the sound of a lute. The restoration is so seamless that you feel like a guest in a home from a century ago, yet the conversations are entirely modern and global. It is a place where the past informs the future."
+  },
+  'al-ghous-house': {
+    story: "The wood of the house smells of salt and history, reminding you of the thousands of men who spent months at sea. Their lives were defined by the tides and the search for the perfect pearl. As you stand among their artifacts, you can almost hear the rhythmic rowing and the songs that kept their spirits high."
+  },
+  'ad-dair-village': {
+    story: "The village wakes up with the sun, the sound of fishing nets being mended echoing against the calm water. The air is thick with the scent of the sea and roasted spices from nearby kitchens. It is a place where time slows down, allowing you to appreciate the simplicity and warmth of traditional Bahraini life."
   }
 }
 

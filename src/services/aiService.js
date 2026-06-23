@@ -64,7 +64,7 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
         bodyPayload.generationConfig.responseMimeType = 'application/json'
       }
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${clientGeminiKey}`
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${clientGeminiKey}`
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

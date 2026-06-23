@@ -247,6 +247,90 @@ const RIDDLES = {
     options: ["Sahara Cheetah", "Arabian Oryx", "Persian Antelope"],
     correct: 1,
     insider: "The beautiful white Arabian Oryx was saved from extinction in the 1970s through local Sakhir desert breeding programs, now numbering in the hundreds."
+  },
+  'beit-al-quran': {
+    question: "Which century do the oldest manuscripts in this collection date back to?",
+    options: ["5th Century", "7th Century", "10th Century"],
+    correct: 1,
+    insider: "The 7th-century manuscripts are part of a rare collection that highlights the early spread of Islamic literacy in the Arabian Peninsula."
+  },
+  'saar-temple': {
+    question: "Which ancient civilization built the Saar Temple?",
+    options: ["Dilmun", "Sumerian", "Phoenician"],
+    correct: 0,
+    insider: "The Dilmun civilization was a major maritime hub connecting Mesopotamia and the Indus Valley, making Saar a strategic religious center."
+  },
+  'al-khamis-mosque': {
+    question: "What is unique about the Al Khamis Mosque's minarets?",
+    options: ["They are made of gold", "There are two of them", "They are submerged in water"],
+    correct: 1,
+    insider: "The twin minarets are a hallmark of the mosque's reconstruction phases during the medieval period, reflecting its architectural evolution."
+  },
+  'bin-matar-house': {
+    question: "What industry built the wealth of the Bin Matar family?",
+    options: ["Oil", "Pearl diving", "Textiles"],
+    correct: 1,
+    insider: "The Bin Matar family were prominent pearl merchants, and their house stands as a symbol of the prosperity Bahrain enjoyed during the peak of the pearling industry."
+  },
+  'al-jasra-craft-center': {
+    question: "Which natural material is commonly used in the weaving crafts found here?",
+    options: ["Date palm leaves", "Seaweed", "Cotton"],
+    correct: 0,
+    insider: "Palm weaving is a fundamental craft in Bahrain, traditionally used for everything from food storage to home insulation."
+  },
+  'durrat-al-bahrain-coast': {
+    question: "Where in Bahrain is this archipelago located?",
+    options: ["Northern tip", "Eastern coast", "Southern tip"],
+    correct: 2,
+    insider: "Durrat Al Bahrain is one of the largest man-made island projects in the region, designed to resemble a string of pearls."
+  },
+  'royal-camel-farm': {
+    question: "Camels are often referred to as what?",
+    options: ["Ships of the desert", "Kings of the plains", "Guardians of the sand"],
+    correct: 0,
+    insider: "Camels were the primary mode of transportation and the main source of sustenance for nomadic tribes in the Arabian Desert for thousands of years."
+  },
+  'bahrain-international-circuit': {
+    question: "Which major international racing event is held here annually?",
+    options: ["MotoGP", "Formula 1", "Le Mans"],
+    correct: 1,
+    insider: "The Bahrain International Circuit was the first Formula 1 track to be built in the Middle East, setting the standard for future tracks in the region."
+  },
+  'al-fateh-grand-mosque': {
+    question: "What is unique about the dome of the Al Fateh Mosque?",
+    options: ["It is made of gold", "It is the world's largest fiberglass dome", "It is made of recycled glass"],
+    correct: 1,
+    insider: "The dome was constructed using fiberglass, a modern engineering choice that allowed for its immense size and intricate lighting effects."
+  },
+  'manama-reef-walk': {
+    question: "What is the name of the popular spiced milk tea found along the corniche?",
+    options: ["Karak", "Matcha", "Earl Grey"],
+    correct: 0,
+    insider: "Karak tea, a blend of black tea, milk, sugar, and cardamom, is the definitive drink of the region and a cultural staple for socializing."
+  },
+  'bahrain-world-trade-center': {
+    question: "What is integrated into the design of these towers to provide renewable energy?",
+    options: ["Solar panels", "Wind turbines", "Hydro generators"],
+    correct: 1,
+    insider: "These were the first skyscrapers in the world to integrate large-scale wind turbines into their design."
+  },
+  'muharraq-cultural-center': {
+    question: "In which historic city is this center located?",
+    options: ["Manama", "Muharraq", "Riffa"],
+    correct: 1,
+    insider: "Muharraq is the former capital of Bahrain and is famed for its dense collection of traditional architecture and pearling history."
+  },
+  'al-ghous-house': {
+    question: "What was the main purpose of the pearl divers?",
+    options: ["Fishing", "Finding pearls", "Searching for shipwrecks"],
+    correct: 1,
+    insider: "Pearl diving was the backbone of Bahrain's economy for centuries before the discovery of oil in 1932."
+  },
+  'ad-dair-village': {
+    question: "What is the primary activity in Ad Dair village?",
+    options: ["Agriculture", "Fishing", "Jewelry making"],
+    correct: 1,
+    insider: "Fishing villages like Ad Dair are the guardians of Bahrain's maritime heritage, maintaining traditional methods that have been passed down for generations."
   }
 }
 
@@ -373,6 +457,7 @@ export default function JournalNotebook({ onBack }) {
     playOrganicPageSwish,
     purchasedItems = {},
     setPurchasedItems = () => {},
+    itinerarySpots = [],
     setItinerarySpots = () => {},
     falconsCalled = [],
     setFalconsCalled = () => {},
@@ -390,7 +475,7 @@ export default function JournalNotebook({ onBack }) {
   const { toast } = useToast()
 
   /* ── Dynamic itinerary loading ──────────────────────────────────────────── */
-  const { locations = [], loading = false } = useItinerary(selectedMoods, tier, duration, curatedItinerary)
+  const { locations = [], loading = false } = useItinerary(selectedMoods, tier, duration, null, itinerarySpots)
   
   // Filter spots active on the current selected day tab
   const activeSpots = locations.filter(s => s.day === currentDayTab)
@@ -754,26 +839,75 @@ export default function JournalNotebook({ onBack }) {
     
     try {
       const { system, user } = buildSpotSearchPrompt(searchQuery)
-      const responseText = await callLocalAI(
-        system,
-        user,
-        '',
-        { maxTokens: 800, useJson: true }
-      )
+      let responseText = null
+      try {
+        responseText = await callLocalAI(
+          system,
+          user,
+          '',
+          { maxTokens: 800, useJson: true }
+        )
+      } catch (err) {
+        console.warn("AI search service offline or timed out, falling back to local search:", err)
+      }
       
+      let parsed = null
       if (responseText && !responseText.includes('error')) {
         let cleaned = responseText.trim()
         if (cleaned.startsWith('```')) {
           cleaned = cleaned.replace(/^```json\s*/, '').replace(/```$/, '').trim()
         }
-        const parsed = JSON.parse(cleaned)
-        if (parsed.success) {
-          setSearchResults(parsed)
-        } else {
-          setSearchError(parsed.errorMsg || "Could not find any location by that name in Bahrain.")
+        try {
+          parsed = JSON.parse(cleaned)
+        } catch (jsonErr) {
+          console.warn("Failed to parse AI search JSON response:", jsonErr)
         }
+      }
+
+      // ── Client-side Fallback ───────────────────────────────────────────────
+      // If AI search is offline, timed out, or not successful, search our local spotsCatalog
+      if (!parsed || !parsed.success) {
+        const queryClean = searchQuery.toLowerCase().trim()
+        
+        // Find a matching spot in the local catalog
+        let matchedSpot = spotsCatalog.find(s => 
+          s.name.toLowerCase().includes(queryClean) || 
+          s.arabic.includes(queryClean) ||
+          (s.id && s.id.toLowerCase().includes(queryClean))
+        )
+        
+        // Fallback to description/simple terms search
+        if (!matchedSpot) {
+          matchedSpot = spotsCatalog.find(s => 
+            s.desc.toLowerCase().includes(queryClean) || 
+            (s.simpleTerms && s.simpleTerms.toLowerCase().includes(queryClean))
+          )
+        }
+        
+        if (matchedSpot) {
+          parsed = {
+            success: true,
+            id: matchedSpot.id,
+            name: matchedSpot.name,
+            arabic: matchedSpot.arabic,
+            desc: matchedSpot.desc,
+            where: matchedSpot.coords,
+            coords: matchedSpot.coords,
+            hours: 'Open daily 9:00 AM - 6:00 PM',
+            cost: matchedSpot.budgetCost || matchedSpot.premiumCost || 'Free Entry',
+            modestyAlert: matchedSpot.id === 'barbar-temple' ? 'Dress respectfully' : '',
+            safetyAlert: matchedSpot.id === 'jarada-island' ? 'Monitor tide timings closely' : '',
+            insider: matchedSpot.insider,
+            category: matchedSpot.category,
+            period: matchedSpot.period
+          }
+        }
+      }
+
+      if (parsed && parsed.success) {
+        setSearchResults(parsed)
       } else {
-        setSearchError("AI search service currently offline or timed out. Please try again.")
+        setSearchError(parsed?.errorMsg || "Could not find any location by that name in Bahrain.")
       }
     } catch (e) {
       console.error("Search error:", e)
@@ -786,6 +920,16 @@ export default function JournalNotebook({ onBack }) {
   const handleAddSearchedSpot = (spot) => {
     const spotId = spot.id || `spot-${Math.random().toString(36).substr(2, 9)}`
     
+    const CATEGORY_FALLBACK_IMAGES = {
+      fort: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG',
+      souq: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bab_al-Bahrain_Souq_2.jpg',
+      coast: 'https://commons.wikimedia.org/wiki/Special:FilePath/Colours_of_the_Persian_Gulf_ESA353290_(cropped_to_Jidda_Island).jpg',
+      modern: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Manama_Skyline_08.jpg',
+      desert: 'https://commons.wikimedia.org/wiki/Special:FilePath/2010-03_Tree_of_Life_Bahrain.jpg',
+      culture: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bahrain_National_Museum_Exterior_1.jpg',
+      default: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'
+    }
+
     const newSpot = {
       id: spotId,
       name: spot.name,
@@ -796,9 +940,9 @@ export default function JournalNotebook({ onBack }) {
       desc: spot.desc,
       simpleTerms: `What this offers: ${spot.desc}`,
       insider: spot.insider || 'Enjoy exploring this beautiful landmark.',
-      pathGuide: `Directions: ${spot.where}. Opening hours: ${spot.hours}`,
+      pathGuide: `Directions: ${spot.where || spot.coords || 'Bahrain'}. Opening hours: ${spot.hours || 'Open daily'}`,
       pathCost: spot.cost || 'Free Entry',
-      image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG',
+      image: spot.image || CATEGORY_FALLBACK_IMAGES[spot.category?.toLowerCase()] || CATEGORY_FALLBACK_IMAGES.default,
       day: currentDayTab,
       category: spot.category || 'culture'
     }
@@ -816,6 +960,110 @@ export default function JournalNotebook({ onBack }) {
     
     awardXP(20, `Added ${spot.name} to Route`)
     toast.success(`Successfully added ${spot.name} to Day ${currentDayTab} route!`)
+  }
+
+  const handleOptimizeRoute = () => {
+    // 1. Get the spots for the current day
+    const daySpots = itinerarySpots.filter(s => s.day === currentDayTab)
+    if (daySpots.length < 2) {
+      toast.error('Need at least 2 stops to optimize.')
+      return
+    }
+
+    // 2. Identify if we have an arrival and/or departure on this day
+    const arrivalSpot = daySpots.find(s => s.id === 'airport-arrival')
+    const departureSpot = daySpots.find(s => s.id === 'airport-departure')
+    
+    // 3. Filter spots to sort (exclude airport-arrival and airport-departure)
+    const spotsToSort = daySpots.filter(s => s.id !== 'airport-arrival' && s.id !== 'airport-departure')
+    
+    if (spotsToSort.length < 2) {
+      toast.success('Route is already optimized! Pinned airport stops are in correct place.')
+      return
+    }
+
+    // Helper to parse coordinate string into lat/lon object
+    const parseLatLon = (str) => {
+      if (!str) return { lat: 26.2, lon: 50.6 }
+      try {
+        const parts = str.split(',')
+        if (parts.length < 2) return { lat: 26.2, lon: 50.6 }
+        const lat = parseFloat(parts[0].replace(/[^\d.-]/g, ''))
+        const lon = parseFloat(parts[1].replace(/[^\d.-]/g, ''))
+        return isNaN(lat) || isNaN(lon) ? { lat: 26.2, lon: 50.6 } : { lat, lon }
+      } catch {
+        return { lat: 26.2, lon: 50.6 }
+      }
+    }
+
+    // Helper to compute Euclidean distance
+    const getDistance = (c1, c2) => {
+      const dLat = c1.lat - c2.lat
+      const dLon = c1.lon - c2.lon
+      return Math.sqrt(dLat * dLat + dLon * dLon)
+    }
+
+    // 4. Determine starting point
+    let startPos = null
+    if (selectedHotel) {
+      startPos = parseLatLon(selectedHotel.coords)
+    } else if (arrivalSpot) {
+      startPos = parseLatLon(arrivalSpot.coords)
+    } else {
+      // If no hotel or arrival, start from the first spot in the list
+      startPos = parseLatLon(spotsToSort[0].coords)
+    }
+
+    // 5. Nearest-neighbor TSP sort
+    const sorted = []
+    const remaining = [...spotsToSort]
+    let currentPos = startPos
+
+    while (remaining.length > 0) {
+      let bestIdx = -1
+      let bestDist = Infinity
+
+      for (let i = 0; i < remaining.length; i++) {
+        const spotCoords = parseLatLon(remaining[i].coords)
+        const dist = getDistance(currentPos, spotCoords)
+        if (dist < bestDist) {
+          bestDist = dist
+          bestIdx = i
+        }
+      }
+
+      if (bestIdx !== -1) {
+        const nextSpot = remaining.splice(bestIdx, 1)[0]
+        sorted.push(nextSpot)
+        currentPos = parseLatLon(nextSpot.coords)
+      } else {
+        break
+      }
+    }
+
+    // 6. Assemble the final day route
+    const updatedDaySpots = [
+      ...(arrivalSpot ? [arrivalSpot] : []),
+      ...sorted,
+      ...(departureSpot ? [departureSpot] : [])
+    ]
+
+    // 7. Reconstruct the global itinerary spots array
+    const newItinerarySpots = []
+    for (let d = 1; d <= duration; d++) {
+      if (d === currentDayTab) {
+        newItinerarySpots.push(...updatedDaySpots)
+      } else {
+        newItinerarySpots.push(...itinerarySpots.filter(s => s.day === d))
+      }
+    }
+
+    // 8. Update state, award XP and play stamp sound
+    setItinerarySpots(newItinerarySpots)
+    setCurrentSpotIndex(0) // reset active timeline selection to first spot to prevent index out-of-bounds
+    playCampStampSound(soundVolume, soundMuted)
+    awardXP(50, 'Geographic Route Optimized')
+    toast.success(`⚡ Magic Georoute optimized Day ${currentDayTab} route! +50 XP`)
   }
 
 
@@ -1243,6 +1491,11 @@ export default function JournalNotebook({ onBack }) {
     )
   }
 
+  const riddleCTAVisible = activeTab === 'info' && activeSpot && RIDDLES[activeSpot.id]
+  const fabBottom = riddleCTAVisible ? '158px' : '90px'
+  const panelBottom = riddleCTAVisible ? '222px' : '155px'
+  const quickInfoBottom = riddleCTAVisible ? '228px' : '160px'
+
   /* RENDER */
   return (
     <div className="jn-root" role="main" aria-label="Bahrain Passage Journal Notebook">
@@ -1267,20 +1520,6 @@ export default function JournalNotebook({ onBack }) {
             <button
               onClick={() => setSoundMuted(!soundMuted)}
               className="jn-utility-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '6px',
-                minWidth: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'rgba(193, 18, 47, 0.05)',
-                border: '1px solid rgba(193, 18, 47, 0.15)',
-                color: 'var(--jn-crimson)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
               title={soundMuted ? "Unmute Sounds" : "Mute Sounds"}
             >
               {soundMuted ? (
@@ -1302,33 +1541,11 @@ export default function JournalNotebook({ onBack }) {
               onClick={() => setShowPassportCard(true)}
               className="jn-utility-btn-rank"
               title="View Explorer Passport"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '9999px',
-                border: '1px solid rgba(212,175,55,0.3)',
-                background: 'rgba(212,175,55,0.08)',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                color: 'var(--jn-ink)'
-              }}
             >
               <span role="img" aria-label="Passport">📖</span>
-              <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{rank.label}</span>
+              <span className="jn-rank-label">{rank.label}</span>
               {passportStamps && passportStamps.length > 0 && (
-                <span 
-                  style={{ 
-                    fontSize: '9px', 
-                    background: 'var(--jn-crimson, #BA0C2F)', 
-                    color: '#fff', 
-                    borderRadius: '9999px', 
-                    padding: '1px 5px', 
-                    marginLeft: '2px',
-                    fontWeight: 'black'
-                  }}
-                >
+                <span className="jn-passport-stamp-badge">
                   {passportStamps.length}
                 </span>
               )}
@@ -1340,21 +1557,7 @@ export default function JournalNotebook({ onBack }) {
                 playTypewriterClick(1.1)
                 window.print()
               }}
-              className="jn-utility-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '6px',
-                minWidth: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'rgba(193, 18, 47, 0.05)',
-                border: '1px solid rgba(193, 18, 47, 0.15)',
-                color: 'var(--jn-crimson)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
+              className="jn-utility-btn jn-print-btn"
               title="Print / Export Travelogue"
             >
               <span className="text-[14px]">🖨️</span>
@@ -1676,10 +1879,6 @@ export default function JournalNotebook({ onBack }) {
                         }}
                       />
                     )}
-                    <div className="jn-stamp-postmark" aria-hidden="true">
-                      <span className="jn-postmark-text">{activeSpot.category?.toUpperCase() || 'BAHRAIN'}</span>
-                      <span className="jn-postmark-sub">ARCHIPELAGO</span>
-                    </div>
                   </figure>
 
                   {/* Title block */}
@@ -1797,9 +1996,48 @@ export default function JournalNotebook({ onBack }) {
               {activeTab === 'itinerary' && (
                 <div className="jn-mobile-shown-timeline">
                   <div className="space-y-4">
-                    <div className="jn-section-heading">
-                      <h2 className="jn-section-title">Today's Route</h2>
-                      <span className="jn-section-subtitle">Your itinerary for this day</span>
+                    <div className="jn-section-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                      <div>
+                        <h2 className="jn-section-title">Today's Route</h2>
+                        <span className="jn-section-subtitle">Your itinerary for this day</span>
+                      </div>
+                      {activeSpots.filter(s => s.id !== 'airport-arrival' && s.id !== 'airport-departure').length > 1 && (
+                        <button
+                          onClick={() => {
+                            playTypewriterClick(1.1)
+                            handleOptimizeRoute()
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: 'var(--jn-crimson)',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            fontFamily: 'var(--jn-font-sans)',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(186, 12, 47, 0.25)',
+                            transition: 'all 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#a00a18';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'var(--jn-crimson)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                          }}
+                          title="Geographically optimize your route for shortest travel time starting from your hotel"
+                        >
+                          ⚡ Optimize Route
+                        </button>
+                      )}
                     </div>
 
                     <hr className="jn-divider" aria-hidden="true" />
@@ -2963,90 +3201,82 @@ export default function JournalNotebook({ onBack }) {
 
       {/* AI GUIDE CHATBOT — Floating Action Button + Panel */}
       <>
-        {/* Floating chat button — lifts above riddle CTA when visible */}
-        {(() => {
-          const riddleCTAVisible = activeTab === 'info' && activeSpot && RIDDLES[activeSpot.id]
-          const fabBottom = riddleCTAVisible ? '158px' : '90px'
-          const panelBottom = riddleCTAVisible ? '222px' : '155px'
-          return (
-            <>
-              <button
-                onClick={() => setChatOpen(v => !v)}
-                aria-label={chatOpen ? 'Close AI Guide' : 'Open AI Guide'}
-                className="fixed z-[200] w-[52px] h-[52px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 border backdrop-blur-md hover:scale-105 active:scale-95"
-                style={{
-                  bottom: fabBottom,
-                  right: '20px',
-                  background: chatOpen
-                    ? 'var(--color-text)'
-                    : 'rgba(250, 250, 249, 0.75)',
-                  borderColor: chatOpen
-                    ? 'var(--color-border)'
-                    : 'rgba(193, 18, 47, 0.2)',
-                  color: chatOpen ? 'var(--color-surface)' : 'var(--color-primary)',
-                  boxShadow: chatOpen
-                    ? '0 10px 30px rgba(0,0,0,0.15)'
-                    : '0 10px 25px rgba(193, 18, 47, 0.15)',
-                }}
-              >
-                {chatOpen ? '✕' : <MessageSquare size={20} />}
-              </button>
+        <button
+          onClick={() => setChatOpen(v => !v)}
+          aria-label={chatOpen ? 'Close AI Guide' : 'Open AI Guide'}
+          className="fixed z-[200] w-[52px] h-[52px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 border backdrop-blur-md hover:scale-105 active:scale-95"
+          style={{
+            bottom: fabBottom,
+            right: '20px',
+            background: chatOpen
+              ? 'var(--color-text)'
+              : 'rgba(250, 250, 249, 0.75)',
+            borderColor: chatOpen
+              ? 'var(--color-border)'
+              : 'rgba(193, 18, 47, 0.2)',
+            color: chatOpen ? 'var(--color-surface)' : 'var(--color-primary)',
+            boxShadow: chatOpen
+              ? '0 10px 30px rgba(0,0,0,0.15)'
+              : '0 10px 25px rgba(193, 18, 47, 0.15)',
+          }}
+        >
+          {chatOpen ? '✕' : <MessageSquare size={20} />}
+        </button>
 
-              {/* Chatbot panel — slides up when open */}
-              {chatOpen && (
-                <div
-                  className="fixed z-[199] w-[min(380px,calc(100vw-32px))] overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 shadow-2xl shadow-stone-900/10"
-                  style={{
-                    bottom: panelBottom,
-                    right: '16px',
-                    animation: 'slideInRight 0.3s cubic-bezier(0.16,1,0.3,1) both',
-                  }}
-                >
-                  <Suspense fallback={<MapSkeleton label="Connecting with concierge..." height={350} />}>
-                    <TourChatbot
-                      activeSpotName={activeSpot?.name}
-                      embedded={true}
-                      onClose={() => setChatOpen(false)}
-                    />
-                  </Suspense>
-                </div>
-              )}
-            </>
-          )
-        })()}
+        {/* Chatbot panel — slides up when open */}
+        {chatOpen && (
+          <div
+            className="fixed z-[199] w-[min(380px,calc(100vw-32px))] overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 shadow-2xl shadow-stone-900/10"
+            style={{
+              bottom: panelBottom,
+              right: '16px',
+              animation: 'slideInRight 0.3s cubic-bezier(0.16,1,0.3,1) both',
+            }}
+          >
+            <Suspense fallback={<MapSkeleton label="Connecting with concierge..." height={350} />}>
+              <TourChatbot
+                activeSpotName={activeSpot?.name}
+                embedded={true}
+                onClose={() => setChatOpen(false)}
+              />
+            </Suspense>
+          </div>
+        )}
       </>
 
 
       {/* ⚡ Quick Info FAB */}
-      <button
-        id="quick-info-fab"
-        onClick={() => setQuickInfoOpen(true)}
-        aria-label="Quick map & current spot info"
-        title="Quick Info"
-        style={{
-          position: 'fixed',
-          bottom: 160,
-          right: 16,
-          width: 44,
-          height: 44,
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, #D4AF37 0%, #a88020 100%)',
-          border: '2px solid rgba(255,255,255,0.3)',
-          color: '#fff',
-          fontSize: 18,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          zIndex: 197,
-          boxShadow: '0 4px 16px rgba(212,175,55,0.4)',
-          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(212,175,55,0.6)' }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,175,55,0.4)' }}
-      >
-        <Zap size={18} />
-      </button>
+      {!chatOpen && (
+        <button
+          id="quick-info-fab"
+          onClick={() => setQuickInfoOpen(true)}
+          aria-label="Quick map & current spot info"
+          title="Quick Info"
+          style={{
+            position: 'fixed',
+            bottom: quickInfoBottom,
+            right: 16,
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #D4AF37 0%, #a88020 100%)',
+            border: '2px solid rgba(255,255,255,0.3)',
+            color: '#fff',
+            fontSize: 18,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            zIndex: 197,
+            boxShadow: '0 4px 16px rgba(212,175,55,0.4)',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(212,175,55,0.6)' }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,175,55,0.4)' }}
+        >
+          <Zap size={18} />
+        </button>
+      )}
 
       {/* Quick Info Sheet */}
       {quickInfoOpen && activeSpot && (
