@@ -1907,7 +1907,7 @@ export default function JournalNotebook({ onBack }) {
                             className="flex items-center justify-between p-2.5 rounded-xl border border-red-500/10 bg-white/50"
                           >
                             <div className="flex items-center gap-2.5">
-                              <span className="text-xl shrink-0">{item.emoji}</span>
+                                <span className="text-xl shrink-0">{item.emoji}</span>
                               <div className="text-left">
                                 <h5 className="font-serif text-[11px] font-bold text-bronze-charcoal leading-tight">
                                   {item.name}
@@ -1970,6 +1970,8 @@ export default function JournalNotebook({ onBack }) {
                   </div>
                   
                   <hr className="jn-divider" aria-hidden="true" />
+
+
 
                   {/* Search input field */}
                   <div style={{ display: 'flex', gap: '8px' }}>

@@ -37,6 +37,95 @@ export async function callLocalAI(systemPrompt, userPrompt, fallbackText = '', o
     return responseCache.get(cacheKey)
   }
 
+  // 1. Check for client-side API keys to bypass backend proxy limits
+  let clientGeminiKey = ''
+  let clientGroqKey = ''
+  
+  if (typeof window !== 'undefined') {
+    try {
+      clientGeminiKey = localStorage.getItem('bp_user_gemini_key') || (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) || ''
+      clientGroqKey = localStorage.getItem('bp_user_groq_key') || (import.meta.env && import.meta.env.VITE_GROQ_API_KEY) || ''
+    } catch (e) {
+      console.warn('[aiService] Failed to read client keys:', e)
+    }
+  }
+
+  if (clientGeminiKey) {
+    try {
+      const bodyPayload = {
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          temperature,
+          maxOutputTokens: maxTokens,
+        },
+      }
+      if (useJson) {
+        bodyPayload.generationConfig.responseMimeType = 'application/json'
+      }
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${clientGeminiKey}`
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload),
+        signal: AbortSignal.timeout(9000),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+        if (text) {
+          if (useCache) responseCache.set(cacheKey, text)
+          return text
+        }
+      } else {
+        const errText = await response.text().catch(() => '')
+        console.warn(`[aiService] Direct Gemini API returned HTTP ${response.status}:`, errText.slice(0, 200))
+      }
+    } catch (err) {
+      console.warn('[aiService] Direct Gemini API call failed:', err.message)
+    }
+  }
+
+  if (clientGroqKey) {
+    try {
+      const url = 'https://api.groq.com/openai/v1/chat/completions'
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${clientGroqKey}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature,
+          max_tokens: maxTokens,
+          response_format: useJson ? { type: 'json_object' } : undefined,
+        }),
+        signal: AbortSignal.timeout(9000),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const text = data.choices?.[0]?.message?.content?.trim()
+        if (text) {
+          if (useCache) responseCache.set(cacheKey, text)
+          return text
+        }
+      } else {
+        const errText = await response.text().catch(() => '')
+        console.warn(`[aiService] Direct Groq API returned HTTP ${response.status}:`, errText.slice(0, 200))
+      }
+    } catch (err) {
+      console.warn('[aiService] Direct Groq API call failed:', err.message)
+    }
+  }
+
   try {
     const response = await fetch('/api/ai', {
       method:  'POST',

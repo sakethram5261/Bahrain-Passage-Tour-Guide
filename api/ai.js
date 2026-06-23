@@ -59,6 +59,7 @@ export default async function handler(req, res) {
   }
 
   const GEMINI_KEY      = process.env.GEMINI_API_KEY || ''
+  const GROQ_API_KEY    = process.env.GROQ_API_KEY || ''
   const OPENROUTER_KEY  = process.env.OPENROUTER_API_KEY || ''
 
   // ── 1. Try Gemini direct ────────────────────────────────────────────────────
@@ -98,7 +99,43 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── 2. Try OpenRouter ───────────────────────────────────────────────────────
+  // ── 2. Try Groq direct ──────────────────────────────────────────────────────
+  if (GROQ_API_KEY) {
+    try {
+      const url = 'https://api.groq.com/openai/v1/chat/completions'
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature,
+          max_tokens: maxTokens,
+          response_format: useJson ? { type: 'json_object' } : undefined,
+        }),
+        signal: AbortSignal.timeout(8000),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const text = data.choices?.[0]?.message?.content?.trim()
+        if (text) return res.status(200).json({ text })
+      } else {
+        const errText = await response.text().catch(() => '')
+        console.warn(`[api/ai] Groq HTTP ${response.status}:`, errText.slice(0, 200))
+      }
+    } catch (err) {
+      console.warn('[api/ai] Groq error:', err.message)
+    }
+  }
+
+  // ── 3. Try OpenRouter ───────────────────────────────────────────────────────
   if (OPENROUTER_KEY) {
     const isDeepSeekKey = OPENROUTER_KEY.startsWith('sk-') && !OPENROUTER_KEY.startsWith('sk-or-v1-')
     const baseUrl = isDeepSeekKey ? 'https://api.deepseek.com/chat/completions' : OPENROUTER_BASE
