@@ -1,13 +1,35 @@
 import { useRef } from 'react'
 import { useVibe } from '../hooks/useVibe'
-import { getRank, getNextRank } from './DashboardData'
 import { spotsCatalog } from '../hooks/useItinerary'
-
 const MOOD_LABELS = { empires: 'Empires', sea: 'Sea', spice: 'Spice', lights: 'Lights' }
+
+const RANKS = [
+  { id: 'wanderer', label: 'Wanderer', arabic: 'مسافر', minXP: 0, color: '#5C5451' },
+  { id: 'nomad', label: 'Nomad', arabic: 'بدوي', minXP: 75, color: '#aa7c11' },
+  { id: 'merchant', label: 'Merchant', arabic: 'تاجر', minXP: 250, color: '#c07b2a' },
+  { id: 'chronicler', label: 'Chronicler', arabic: 'مؤرخ', minXP: 600, color: '#D11A38' },
+  { id: 'pearldiver', label: 'Pearl Diver', arabic: 'غواص لؤلؤ', minXP: 1200, color: '#2563eb' },
+  { id: 'dilmun', label: 'Dilmun Pearl', arabic: 'لؤلؤة دلمون', minXP: 2200, color: '#7c3aed' },
+]
+
+function getRank(xp) {
+  let rank = RANKS[0]
+  for (const r of RANKS) {
+    if (xp >= r.minXP) rank = r
+  }
+  return rank
+}
+
+function getNextRank(xp) {
+  for (const r of RANKS) {
+    if (xp < r.minXP) return r
+  }
+  return null
+}
 
 export default function PassportCard({ onClose }) {
   const {
-    xp, selectedMoods, tier, duration,
+    xp, selectedMoods, duration,
     completedDays, collectedKeepsakes, capturedPhotos,
     journalReflections, goldFils, passportStamps
   } = useVibe()
@@ -55,15 +77,16 @@ export default function PassportCard({ onClose }) {
       {/* Clean Stats Card Container */}
       <div
         ref={cardRef}
-        className="relative w-full max-w-sm rounded-2xl overflow-hidden bg-[#FAFAF9] border border-neutral-200 shadow-xl transition-all duration-300 p-6 space-y-5 text-neutral-900"
+        className="relative w-full max-w-sm rounded-2xl overflow-hidden border border-neutral-200 shadow-xl transition-all duration-300 p-6 space-y-5"
+        style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
       >
         {/* Header Title */}
         <div className="flex items-start justify-between border-b border-neutral-200 pb-3">
           <div>
-            <p className="text-[10px] tracking-[0.2em] uppercase font-bold text-[#C1122F]">
+            <p className="text-overline tracking-wide text-[var(--color-primary)]">
               Kingdom of Bahrain
             </p>
-            <h2 className="font-serif text-lg font-bold text-neutral-900 mt-0.5">Explorer Passport</h2>
+            <h2 className="font-serif text-title mt-1">Explorer Passport</h2>
           </div>
           <button 
             onClick={onClose} 
@@ -77,14 +100,18 @@ export default function PassportCard({ onClose }) {
         {/* User Rank Block */}
         <div className="bg-white p-4 rounded-xl border border-neutral-100 shadow-sm space-y-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl bg-neutral-50 border border-neutral-200 shadow-sm shrink-0">
+            <div 
+              className="w-12 h-12 rounded-full flex items-center justify-center text-2xl bg-neutral-50 border border-neutral-200 shadow-sm shrink-0"
+              role="img"
+              aria-label={`${rank.label} rank badge`}
+            >
               {emoji}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-1.5 justify-between">
                 <div className="flex items-baseline gap-1">
                   <span className="font-serif text-base font-bold text-neutral-900">{rank.label}</span>
-                  <span className="text-[11px] text-[#C1122F] font-bold">({rank.arabic})</span>
+                  <span className="text-[11px] text-[var(--color-primary)] font-bold">({rank.arabic})</span>
                 </div>
                 <span className="font-mono text-xs font-bold text-neutral-600">
                   {goldFils} Fils
@@ -100,11 +127,11 @@ export default function PassportCard({ onClose }) {
             <div className="space-y-1 pt-1">
               <div className="flex justify-between items-center text-[10.5px] font-bold text-neutral-500">
                 <span>Next Rank: {nextRank.label}</span>
-                <span className="text-[#C1122F] font-mono">{progress}%</span>
+                <span className="text-[var(--color-primary)] font-mono">{progress}%</span>
               </div>
               <div className="h-1 w-full rounded-full bg-neutral-100 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-[#C1122F] transition-all duration-500"
+                  className="h-full rounded-full bg-[var(--color-primary)] transition-all duration-500"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -120,9 +147,9 @@ export default function PassportCard({ onClose }) {
             { label: 'Snaps', value: spotsVisited },
             { label: 'Reflections', value: reflectionsWritten },
           ].map(stat => (
-            <div key={stat.label} className="text-center bg-white p-2.5 rounded-xl border border-neutral-100 shadow-xs">
+            <div key={stat.label} className="text-center bg-white p-2 rounded-xl border border-neutral-100 shadow-xs">
               <div className="font-mono font-bold text-[13px] text-neutral-900">{stat.value}</div>
-              <div className="text-[9px] text-neutral-400 font-sans font-bold mt-1 uppercase tracking-wider">{stat.label}</div>
+              <div className="text-overline tracking-wide text-[var(--color-text-faint)] mt-1 font-sans">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -130,7 +157,7 @@ export default function PassportCard({ onClose }) {
         {/* Visa Stamps list (simplified modern outline badges) */}
         {passportStamps && passportStamps.length > 0 && (
           <div className="bg-white p-3 rounded-xl border border-neutral-100 space-y-2">
-            <p className="text-[10px] tracking-[0.15em] uppercase text-neutral-400 font-sans font-bold">Visa Stamps</p>
+            <p className="text-overline tracking-wide text-[var(--color-text-faint)]">Visa Stamps</p>
             <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto">
               {passportStamps.map(spotId => {
                 const spot = spotsCatalog.find(s => s.id === spotId)
@@ -138,9 +165,9 @@ export default function PassportCard({ onClose }) {
                 return (
                   <span 
                     key={spotId} 
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-neutral-200 bg-neutral-50 text-xs font-medium text-neutral-700"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-neutral-200 bg-neutral-50 text-xs font-medium text-neutral-700"
                   >
-                    <span>{spot.keepsakeEmoji}</span>
+                    <span role="img" aria-label={spot.keepsakeName}>{spot.keepsakeEmoji}</span>
                     <span>{spot.name.split(' ')[0]}</span>
                   </span>
                 )
@@ -152,11 +179,12 @@ export default function PassportCard({ onClose }) {
         {/* Active vibes */}
         {selectedMoods.length > 0 && (
           <div className="flex flex-wrap gap-1.5 items-center">
-            <span className="text-[9px] uppercase tracking-wider font-bold text-neutral-400">Vibes:</span>
+            <span className="text-overline tracking-wide text-[var(--color-text-faint)]">Vibes:</span>
             {selectedMoods.map(m => (
               <span
                 key={m}
-                className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#C1122F]/5 text-[#C1122F] border border-[#C1122F]/10"
+                className="text-[10px] px-2 py-0.5 rounded-full font-semibold border"
+                style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)', borderColor: 'rgba(193, 18, 47, 0.1)' }}
               >
                 {MOOD_LABELS[m]}
               </span>
@@ -168,7 +196,7 @@ export default function PassportCard({ onClose }) {
         <div className="flex gap-2 pt-2">
           <button
             onClick={handleShare}
-            className="flex-1 py-2.5 rounded-xl bg-[#C1122F] hover:bg-[#8B0D22] text-white font-bold text-xs tracking-wider transition-all cursor-pointer shadow-md shadow-[#C1122F]/10 active:scale-98"
+            className="flex-1 py-2.5 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-bold text-xs tracking-wide transition-all cursor-pointer shadow-md active:scale-98"
           >
             Share Profile
           </button>

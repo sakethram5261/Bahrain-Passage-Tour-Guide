@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useVibe } from '../hooks/useVibe'
+import { callLocalAI } from '../services/aiService'
 
 // ─── Knowledge base ────────────────────────────────────────────────────────────
 const DESTINATIONS = {
@@ -295,8 +296,8 @@ function Bubble({ msg }) {
       )}
       <div 
         className={isUser 
-          ? 'bg-gradient-to-br from-[#C1122F] to-[#8B0D22] text-white border-transparent' 
-          : 'bg-white text-[#1C1917] border border-stone-200/80'
+          ? 'bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white border-transparent' 
+          : 'bg-white text-[var(--color-text)] border border-stone-200/80'
         }
         style={{
           maxWidth: '78%',
@@ -327,7 +328,7 @@ function Bubble({ msg }) {
                 key={i} 
                 className={isUser
                   ? 'bg-white/20 text-white'
-                  : 'bg-[#C1122F]/5 border border-[#C1122F]/10 text-[#C1122F]'
+                  : 'border'
                 }
                 style={{
                   display: 'inline-flex',
@@ -338,6 +339,7 @@ function Bubble({ msg }) {
                   borderRadius: 6,
                   fontWeight: 600,
                   alignSelf: 'flex-start',
+                  ...(!isUser ? { backgroundColor: 'var(--color-primary-soft)', borderColor: 'rgba(193, 18, 47, 0.1)', color: 'var(--color-primary)' } : {})
                 }}
               >
                 ⚙️ {act}
@@ -384,12 +386,7 @@ export default function TourChatbot({ activeSpotName, embedded = false, onClose 
     : (isDeepSeek(rawOpenRouterKey) ? rawOpenRouterKey : '')
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY
 
-  const [provider, setProvider] = useState(() => {
-    if (apiKey) return 'gemini'
-    if (deepSeekKey) return 'deepseek'
-    if (openRouterKey) return 'openrouter'
-    return 'fallback'
-  })
+  const [provider, setProvider] = useState('proxy')
 
   const [apiError, setApiError] = useState(null)
   const [ollamaAvailable, setOllamaAvailable] = useState(false)
@@ -405,7 +402,7 @@ export default function TourChatbot({ activeSpotName, embedded = false, onClose 
     checkOllama()
   }, [])
 
-  const apiProviderName = provider === 'deepseek' ? 'DeepSeek' : provider === 'openrouter' ? 'OpenRouter' : provider === 'gemini' ? 'Gemini' : provider === 'ollama' ? 'Ollama' : 'Offline Mode'
+  const apiProviderName = provider === 'proxy' ? 'AI Concierge' : provider === 'deepseek' ? 'DeepSeek' : provider === 'openrouter' ? 'OpenRouter' : provider === 'gemini' ? 'Gemini' : provider === 'ollama' ? 'Ollama' : 'Offline Mode'
 
   const [messages, setMessages] = useState([
     {
@@ -1026,6 +1023,91 @@ Always make sure the response is a valid JSON object. Do not include markdown co
     }
   }
 
+  const callProxyChatbotAPI = async (userText, chatHistory) => {
+    const historyText = chatHistory.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`).join('\n')
+    
+    const systemPrompt = `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
+You are embedded in a premium interactive travel journal app.
+The user can talk to you to get recommendations, ask about landmarks, or instruct you to update their trip parameters directly.
+
+Here is the current state of the user's trip:
+- Step in App: ${step} (1=Mood Selection, 4=Itinerary Generation/Sensory Hero, 5=Journal Left Page/Seal Day, 6=Full Journal)
+- Selected Vibes: ${JSON.stringify(selectedMoods)} (Possible: empires, sea, spice, lights)
+- Stay Duration: ${duration} days (Max 10)
+- Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
+- Current Day Viewed: ${currentDayTab}
+- Coins (Gold Fils): ${goldFils}
+- XP (Experience Points): ${xp}
+- Active Spot: ${activeSpotName || 'None'}
+- Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
+
+LANDMARK KNOWLEDGE BASE:
+${JSON.stringify(DESTINATIONS, null, 2)}
+
+DIRECTIONS:
+1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
+2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 gold fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
+3. You MUST respond with a valid JSON object matching the following structure:
+{
+  "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
+  "actions": [
+    { "type": "SET_TIER", "value": "Luxury" },
+    { "type": "SET_DURATION", "value": 5 },
+    { "type": "SET_STEP", "value": 5 },
+    { "type": "SET_DAY", "value": 2 },
+    { "type": "SET_MOODS", "value": ["empires", "sea"] },
+    { "type": "ADD_FILS", "value": 500 },
+    { "type": "ADD_XP", "value": 100 },
+    { "type": "RESET" }
+  ]
+}
+
+ACTIONS SPECIFICATION:
+- SET_TIER: value must be one of: "Wandering", "Curated", "Luxury".
+- SET_DURATION: value must be an integer between 1 and 10.
+- SET_STEP: value must be an integer between 1 and 6.
+- SET_DAY: value must be an integer between 1 and duration.
+- SET_MOODS: value must be an array containing subset of: "empires", "sea", "spice", "lights".
+- ADD_FILS: value must be an integer (positive or negative) to add to user's coins.
+- ADD_XP: value must be an integer to add to user's XP.
+- RESET: no value, resets progress.
+
+If no actions are requested, return an empty actions array: "actions": [].
+Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
+
+    const userPrompt = `Chat History:\n${historyText}\n\nLatest User Message: ${userText}`
+    
+    const rawResult = await callLocalAI(systemPrompt, userPrompt, '', { maxTokens: 1000, useJson: true, useCache: false })
+    if (!rawResult) {
+      throw new Error("EMPTY_RESPONSE_FROM_PROXY")
+    }
+
+    try {
+      const parsed = JSON.parse(rawResult.trim())
+      return {
+        text: parsed.text || "Processed request.",
+        actions: parsed.actions || []
+      }
+    } catch {
+      const jsonMatch = rawResult.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0].trim())
+          return {
+            text: parsed.text || "Processed request.",
+            actions: parsed.actions || []
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return {
+        text: rawResult,
+        actions: []
+      }
+    }
+  }
+
   const sendMessage = async (text) => {
     if (!text.trim()) return
     const userMsg = { role: 'user', text }
@@ -1037,7 +1119,9 @@ Always make sure the response is a valid JSON object. Do not include markdown co
 
     try {
       let apiResponse
-      if (provider === 'deepseek') {
+      if (provider === 'proxy') {
+        apiResponse = await callProxyChatbotAPI(text, messages)
+      } else if (provider === 'deepseek') {
         apiResponse = await callDeepSeekAPI(text, messages)
       } else if (provider === 'openrouter') {
         apiResponse = await callOpenRouterAPI(text, messages)
@@ -1107,7 +1191,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
           className={`fixed bottom-6 right-6 z-[10000] w-[52px] h-[52px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 border backdrop-blur-md hover:scale-105 active:scale-95 ${
             open
               ? 'bg-stone-900 border-stone-800 text-stone-50 shadow-lg'
-              : 'bg-white/75 border-stone-200/80 text-[#C1122F] shadow-md shadow-stone-250/20'
+              : 'bg-white/75 border-stone-200/80 text-[var(--color-primary)] shadow-md shadow-stone-250/20'
           }`}
         >
           {open ? '✕' : '🏛️'}
@@ -1125,7 +1209,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
         >
           {/* Header */}
           <div className="bg-stone-100 border-b border-stone-200 px-[18px] py-[14px] flex items-center gap-2.5 shrink-0">
-            <div className="w-9 h-9 rounded-full bg-stone-200/60 flex items-center justify-center text-lg border border-stone-300/40 text-[#C1122F]">
+            <div className="w-9 h-9 rounded-full bg-stone-200/60 flex items-center justify-center text-lg border border-stone-300/40 text-[var(--color-primary)]">
               🏛️
             </div>
             <div className="flex-1 flex flex-col">
@@ -1179,7 +1263,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
                   {[0, 1, 2].map(idx => (
                     <div 
                        key={idx} 
-                      className="w-1.5 h-1.5 rounded-full bg-[#C1122F] opacity-50"
+                      className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] opacity-50"
                       style={{
                         animation: `typingDot 1.2s ease-in-out ${idx * 0.2}s infinite`,
                       }}
@@ -1212,21 +1296,21 @@ Always make sure the response is a valid JSON object. Do not include markdown co
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKey}
               placeholder="Ask me to set budget, change duration, etc..."
-              className="flex-1 bg-stone-50 border border-stone-200 focus:border-[#C1122F] rounded-xl px-3.5 py-2 text-stone-900 text-sm placeholder-stone-400 outline-none transition-colors duration-150"
+              className="flex-1 bg-stone-50 border border-stone-200 focus:border-[var(--color-primary)] rounded-xl px-3.5 py-2 text-stone-900 text-sm placeholder-stone-400 outline-none transition-colors duration-150"
             />
             <button
               onClick={() => sendMessage(input)}
               disabled={!input.trim()}
               className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-none transition-all duration-150 ${
                 input.trim()
-                  ? 'bg-[#C1122F] text-white cursor-pointer hover:opacity-90 active:scale-95 shadow-md shadow-red-500/10'
+                  ? 'bg-[var(--color-primary)] text-white cursor-pointer hover:opacity-90 active:scale-95 shadow-md shadow-red-500/10'
                   : 'bg-stone-100 text-stone-350 cursor-not-allowed'
               }`}
             >
               ↑
             </button>
           </div>
-          <div className="text-[9px] text-stone-400 text-center bg-white pb-2 font-sans tracking-widest uppercase shrink-0">
+          <div className="text-[9px] text-stone-400 text-center bg-white pb-2 font-sans tracking-wide uppercase shrink-0">
             Powered by {apiProviderName}
           </div>
         </div>

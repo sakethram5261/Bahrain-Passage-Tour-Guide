@@ -458,8 +458,8 @@ export default function WelcomeIntro({ onComplete }) {
           />
           <defs>
             <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#1C1816" />
-              <stop offset="100%" stopColor="#0F0C0B" />
+              <stop offset="0%" stopColor="#C1122F" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#8B0D22" stopOpacity="0.3" />
             </linearGradient>
           </defs>
         </svg>
@@ -474,8 +474,8 @@ export default function WelcomeIntro({ onComplete }) {
           />
           <defs>
             <linearGradient id="goldGradBottom" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#1C1816" />
-              <stop offset="100%" stopColor="#0F0C0B" />
+              <stop offset="0%" stopColor="#C1122F" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#8B0D22" stopOpacity="0.3" />
             </linearGradient>
           </defs>
         </svg>
@@ -528,7 +528,7 @@ export default function WelcomeIntro({ onComplete }) {
               ref={slotTextRef}
               style={{
                 fontSize: 'clamp(2rem,7.2vw,3.4rem)',
-                fontWeight: 800,
+                fontWeight: 700,
                 color: '#FAF9F6',
                 textAlign: 'center',
                 userSelect: 'none',
@@ -558,7 +558,7 @@ export default function WelcomeIntro({ onComplete }) {
               <div style={{
                 fontFamily: '"Playfair Display","Georgia",serif',
                 fontSize: 'clamp(2rem,7.2vw,3.4rem)',
-                fontWeight: 800,
+                fontWeight: 700,
                 color: '#FAF9F6',
                 letterSpacing: '0.025em',
                 whiteSpace: 'nowrap',
@@ -639,7 +639,7 @@ export default function WelcomeIntro({ onComplete }) {
                 key={i}
                 style={{
                   width: 6, height: 6, borderRadius: '50%',
-                  background: '#C5A880', display: 'inline-block',
+                  background: 'var(--color-accent)', display: 'inline-block',
                   animation: `introDot 1.3s ease-in-out ${i * 0.26}s infinite`,
                 }}
               />
@@ -707,86 +707,6 @@ export default function WelcomeIntro({ onComplete }) {
         .jn-intro-text-container {
           transform: translateY(-10px);
         }
-         .jn-intro-skip-btn {
-          position: absolute;
-          bottom: 2.8rem;
-          left: calc(50% - 95px);
-          transform: translateX(-50%);
-          width: 170px;
-          height: 42px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0;
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 100px;
-          color: #FAF9F6;
-          opacity: 0.65;
-          font-size: 0.65rem;
-          font-family: "Outfit", sans-serif;
-          font-weight: 600;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          z-index: 10000;
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          user-select: none;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-        .jn-intro-skip-btn:hover {
-          opacity: 1;
-          border-color: #C5A880;
-          background: #FAF9F6;
-          color: #1C1917;
-          transform: translateX(-50%) translateY(-2px);
-          box-shadow: 0 10px 30px rgba(255, 255, 255, 0.08), 0 0 12px rgba(197, 168, 128, 0.15);
-        }
-        .jn-intro-skip-btn:active {
-          transform: translateX(-50%) translateY(0);
-        }
-        .jn-intro-quick-btn {
-          position: absolute;
-          bottom: 2.8rem;
-          left: calc(50% + 95px);
-          transform: translateX(-50%);
-          width: 170px;
-          height: 42px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0;
-          background: rgba(193, 18, 47, 0.25);
-          border: 1px solid rgba(193, 18, 47, 0.75);
-          border-radius: 100px;
-          color: #FAF9F6;
-          opacity: 0.95;
-          font-size: 0.65rem;
-          font-family: "Outfit", sans-serif;
-          font-weight: 700;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          z-index: 10000;
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          user-select: none;
-          box-shadow: 0 4px 25px rgba(193, 18, 47, 0.2);
-        }
-        .jn-intro-quick-btn:hover {
-          opacity: 1;
-          border-color: #FAF9F6;
-          background: #C1122F;
-          color: #white;
-          transform: translateX(-50%) translateY(-2px);
-          box-shadow: 0 10px 30px rgba(193, 18, 47, 0.4), 0 0 15px rgba(193, 18, 47, 0.3);
-        }
-        .jn-intro-quick-btn:active {
-          transform: translateX(-50%) translateY(0);
-        }
 
         @keyframes rotateArabesque {
           from { transform: translate(-50%, -50%) rotate(0deg); }
@@ -809,10 +729,6 @@ export default function WelcomeIntro({ onComplete }) {
             margin-top: 0.1rem !important;
             height: 50px !important;
           }
-          .jn-intro-skip-btn {
-            bottom: 2.2rem;
-            padding: 0.52rem 1.2rem;
-          }
         }
         @keyframes introDot {
           0%, 100% { opacity: 0.18; transform: scale(0.75) translateY(0);    }
@@ -833,4 +749,5 @@ export default function WelcomeIntro({ onComplete }) {
     </div>
   )
 }
+
 

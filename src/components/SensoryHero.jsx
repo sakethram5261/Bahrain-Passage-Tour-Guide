@@ -319,7 +319,11 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
   }, [selectedMoods, duration, tier, setItinerarySpots])
 
   useEffect(() => {
-    if (coverOpened) compileItinerary()
+    if (coverOpened) {
+      setTimeout(() => {
+        compileItinerary()
+      }, 0)
+    }
   }, [coverOpened, compileItinerary])
 
   useEffect(() => {
@@ -400,8 +404,8 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
           {itinerarySpots.length === 0 ? (
             <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-8 bg-[#1C1917] text-white">
               <BookOpen size={40} className="text-white/30 mb-4" />
-              <h3 className="font-serif text-2xl font-bold text-white mb-2">No Stops Selected</h3>
-              <p className="font-sans text-xs text-white/60 max-w-[280px] mb-6 leading-relaxed">
+              <h3 className="text-heading text-white mb-2">No Stops Selected</h3>
+              <p className="text-body text-white/60 max-w-[280px] mb-6 leading-relaxed">
                 You have removed all stops. Please go back to align your vibes and rebuild your itinerary!
               </p>
               <button
@@ -409,7 +413,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                   playClick(0.85)
                   if (onBack) onBack()
                 }}
-                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white font-sans text-xs uppercase tracking-widest font-bold cursor-pointer active:scale-95 transition-all"
+                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-caption font-semibold tracking-wide cursor-pointer active:scale-95 transition-all"
               >
                 Adjust Vibes
               </button>
@@ -446,10 +450,10 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                     {/* Background Slide Delete Indicator */}
                     {Math.abs(swipeOffsets[i] || 0) > 10 && (
                       <div className="absolute inset-0 bg-[#3b0a11] flex items-center justify-between px-10 text-red-400 z-0">
-                        <div style={{ opacity: Math.min(1, Math.abs(swipeOffsets[i] || 0) / 100) }} className="flex items-center gap-2 font-sans text-xs font-bold uppercase tracking-widest">
+                        <div style={{ opacity: Math.min(1, Math.abs(swipeOffsets[i] || 0) / 100) }} className="flex items-center gap-2 text-overline font-semibold">
                           <Trash2 size={16} /> Remove Stop
                         </div>
-                        <div style={{ opacity: Math.min(1, Math.abs(swipeOffsets[i] || 0) / 100) }} className="flex items-center gap-2 font-sans text-xs font-bold uppercase tracking-widest">
+                        <div style={{ opacity: Math.min(1, Math.abs(swipeOffsets[i] || 0) / 100) }} className="flex items-center gap-2 text-overline font-semibold">
                           Remove Stop <Trash2 size={16} />
                         </div>
                       </div>
@@ -467,17 +471,9 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                         transition: activePointerIdState === null ? 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease' : 'none'
                       }}
                     >
-                      {/* Swipe Left/Right Affordance arrows */}
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-30 bg-black/40 backdrop-blur-sm w-7 h-7 rounded-full flex items-center justify-center text-white/60 text-xs border border-white/10 opacity-60">
-                        ◀
-                      </div>
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-30 bg-black/40 backdrop-blur-sm w-7 h-7 rounded-full flex items-center justify-center text-white/60 text-xs border border-white/10 opacity-60">
-                        ▶
-                      </div>
-                      
                       <img
                         src={spot.image || 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'}
-                        alt={spot.name}
+                        alt="Bahrain travel destination"
                         className="absolute inset-0 w-full h-full object-cover opacity-80"
                         loading="lazy"
                         decoding="async"
@@ -493,13 +489,13 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                         
                         <div className="w-full flex justify-between items-start mt-8">
                          <div className="flex flex-col text-left max-w-[calc(100%-140px)] overflow-visible">
-                             <span className="font-mono text-[10.5px] md:text-sm tracking-[0.22em] text-white/80 uppercase font-black drop-shadow-md block w-full break-words">
-                               DAY {spot.day || 1} • {spot.period}
+                             <span className="font-mono text-overline text-white/70 block w-full break-words">
+                                DAY {spot.day || 1} • {spot.period}
                              </span>
-                             <h2 className="font-serif text-xl md:text-3xl lg:text-4xl font-black tracking-tight leading-tight mt-1 text-white drop-shadow-2xl w-full break-words">
+                             <h2 className="font-serif text-heading md:text-display font-bold tracking-tight leading-tight mt-1 text-white drop-shadow-2xl w-full break-words">
                                {spot.keepsakeEmoji || '📍'} {spot.name}
                              </h2>
-                             <span className="font-serif text-base md:text-xl italic text-[#ffb5c2] drop-shadow-xl font-semibold mt-1 w-full break-words">
+                             <span className="font-serif text-base md:text-xl italic text-[var(--color-primary-soft)] drop-shadow-xl font-semibold mt-1 w-full break-words">
                                {spot.arabic}
                              </span>
                            </div>
@@ -511,7 +507,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                               const remaining = itinerarySpots.filter((_, sIdx) => sIdx !== i)
                               setItinerarySpots(remaining)
                             }}
-                            className="pointer-events-auto shrink-0 px-4 py-2.5 rounded-full bg-red-950/45 hover:bg-red-700/80 border border-red-500/25 hover:border-red-500 text-red-200 hover:text-white font-sans text-[10px] uppercase tracking-widest font-extrabold transition-all duration-300 backdrop-blur-md cursor-pointer active:scale-95 shadow-md flex items-center gap-1.5 z-50"
+                            className="pointer-events-auto shrink-0 px-4 py-2.5 rounded-full bg-red-950/45 hover:bg-red-700/80 border border-red-500/25 hover:border-red-500 text-red-200 hover:text-white text-overline font-semibold transition-all duration-300 backdrop-blur-md cursor-pointer active:scale-95 shadow-md flex items-center gap-1.5 z-50"
                           >
                             <Trash2 size={11} className="text-red-400" />
                             Remove Stop
@@ -530,18 +526,18 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                               boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
                             }}
                           >
-                            <span className="font-sans text-[9.5px] tracking-[0.18em] text-[#D4AF37] uppercase font-bold block mb-2">
+                            <span className="text-overline text-[var(--color-accent)] block mb-2">
                               Guide Plan
                             </span>
-                            <p className="font-serif text-[13.5px] leading-relaxed text-white/90 font-medium">
+                            <p className="font-serif text-body-lg text-white/90">
                               {spot.pathGuide}
                             </p>
                             
                             <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
-                              <span className="font-sans text-[11px] tracking-[0.12em] text-[#FFE082] uppercase font-bold">
+                              <span className="text-caption font-semibold text-[var(--color-accent-soft)]">
                                 {spot.pathCost || spot.budgetCost || 'Free Entry'}
                               </span>
-                              <span className="font-mono text-[9px] text-white/50 tracking-wider">
+                              <span className="font-mono text-overline text-white/40">
                                 {spot.coords}
                               </span>
                             </div>
@@ -558,10 +554,10 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                               boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
                             }}
                           >
-                            <span className="font-sans text-[8.5px] tracking-[0.18em] text-white/60 uppercase font-bold block mb-1.5">
+                            <span className="text-overline text-white/50 block mb-1.5">
                               What to See
                             </span>
-                            <p className="font-serif text-[12px] text-white/80 leading-relaxed font-semibold">
+                            <p className="font-serif text-body text-white/80">
                               {spot.simpleTerms}
                             </p>
                           </div>
@@ -571,13 +567,12 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
  
                       {/* Gesture Guidance Tip */}
                       <div className="absolute bottom-[90px] left-0 right-0 text-center pointer-events-none z-30 select-none">
-                        <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-neutral-900/90 backdrop-blur-md border border-white/10 text-[11px] font-sans font-bold tracking-widest text-white uppercase">
+                        <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-neutral-900/90 backdrop-blur-md border border-white/10 text-overline text-white/80">
                           <span>↔ Swipe card to remove</span>
                           <span className="opacity-30">•</span>
                           <span>↕ Scroll for next</span>
                         </div>
                       </div>
- 
                     </div>
                   </SwiperSlide>
                 ))}
@@ -601,7 +596,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                     if (sealing || !isAtEnd) return
                     setConfirmOpen(true)
                   }}
-                  className={`pointer-events-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white font-sans text-xs uppercase tracking-widest font-bold flex items-center gap-2 shadow-[0_10px_30px_rgba(193,18,47,0.25)] transition-all hover:scale-105 active:scale-95 ${!isAtEnd ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`pointer-events-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-caption font-semibold tracking-wide flex items-center gap-2 shadow-[0_10px_30px_rgba(193,18,47,0.25)] transition-all hover:scale-105 active:scale-95 ${!isAtEnd ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <BookOpen size={13} className="text-white" />
                   <span>{sealing ? 'Confirming...' : isAtEnd ? 'Confirm Itinerary' : 'Scroll to review stops'}</span>
@@ -622,10 +617,10 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
           </div>
 
           <div className="space-y-2 text-center">
-            <p className="font-sans text-[8px] tracking-[0.3em] uppercase font-bold text-neutral-400">
+            <p className="text-overline text-[var(--color-text-faint)]">
               Kingdom of Bahrain
             </p>
-            <h3 className="font-serif text-xl font-bold text-neutral-900">
+            <h3 className="text-title text-[var(--color-text)]">
               Building your route...
             </h3>
           </div>
@@ -647,8 +642,8 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
       {confirmOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 border border-neutral-100">
-            <h4 className="font-serif text-xl font-bold text-neutral-900">Ready to begin your journey?</h4>
-            <p className="font-sans text-xs text-neutral-500 leading-relaxed">
+            <h4 className="text-title text-[var(--color-text)]">Ready to begin your journey?</h4>
+            <p className="text-body text-[var(--color-text-muted)] leading-relaxed">
               Confirming will seal your initial itinerary and unlock your digital travel journal. You can adjust settings or regenerate your trip at any time.
             </p>
             <div className="flex gap-3 justify-end pt-2">
@@ -657,7 +652,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                   playClick(0.85);
                   setConfirmOpen(false);
                 }}
-                className="px-4 py-2 rounded-xl text-neutral-600 border border-neutral-200 text-xs font-bold hover:bg-neutral-50 active:scale-95 transition-all"
+                className="px-4 py-2 rounded-xl text-neutral-600 border border-neutral-200 text-caption font-medium hover:bg-neutral-50 active:scale-95 transition-all"
               >
                 Go Back
               </button>
@@ -680,7 +675,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                     setSealing(false);
                   }, 550);
                 }}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-md"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-caption font-semibold hover:scale-105 active:scale-95 transition-all shadow-md"
               >
                 Confirm & Start
               </button>

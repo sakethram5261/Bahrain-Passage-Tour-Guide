@@ -155,7 +155,7 @@ export default function Timeline({ locations, loading, onScan }) {
   if (loading) {
     return (
       <div className="w-full py-24 flex items-center justify-center select-none">
-        <div className="w-10 h-10 border-2 border-red-500/10 border-t-bahrain-red rounded-full animate-spin" />
+        <div className="w-10 h-10 border-2 border-t-[var(--color-primary)] rounded-full animate-spin" style={{ borderColor: 'rgba(193, 18, 47, 0.1)' }} />
       </div>
     )
   }
@@ -165,7 +165,7 @@ export default function Timeline({ locations, loading, onScan }) {
       
       {/* Chapter Title block */}
       <div className="flex flex-col text-left pl-4 md:pl-0 mb-6 select-none">
-        <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
+        <span className="text-overline tracking-wide text-[var(--color-primary)]">
           Day {currentDayTab}
         </span>
         <h3 className="font-serif text-2xl text-bronze-charcoal font-semibold mt-1">
@@ -195,16 +195,20 @@ export default function Timeline({ locations, loading, onScan }) {
                 <LocationCard spot={activeSpot} onScan={onScan} />
               ) : (
                 /* Vintage Passport Sealing Page */
-                <div className="glass-panel rounded-3xl p-8 md:p-12 text-center max-w-2xl mx-auto min-h-[380px] flex flex-col justify-center items-center relative overflow-hidden border border-red-500/10 shadow-lg">
+                <div 
+                  className="glass-panel rounded-3xl p-8 md:p-12 text-center max-w-2xl mx-auto min-h-[380px] flex flex-col justify-center items-center relative overflow-hidden border shadow-lg"
+                  style={{ borderColor: 'rgba(193, 18, 47, 0.1)' }}
+                >
                   
                   {stamping && (
                     <div className="absolute inset-0 z-40 bg-white/80 flex items-center justify-center pointer-events-none">
                       <div 
                         ref={stampRef}
-                        className="w-36 h-36 border-4 border-double border-bahrain-red/80 rounded-full flex flex-col items-center justify-center rotate-6 text-bahrain-red shadow-lg bg-pearl-white opacity-0"
+                        className="w-36 h-36 border-4 border-double rounded-full flex flex-col items-center justify-center rotate-6 text-[var(--color-primary)] shadow-lg bg-pearl-white opacity-0"
+                        style={{ borderColor: 'rgba(193, 18, 47, 0.8)' }}
                       >
-                        <span className="font-serif text-[10px] tracking-widest uppercase font-bold">Authenticated</span>
-                        <span className="font-serif text-[8px] tracking-wider uppercase font-bold mt-1">Bahrain Entry</span>
+                        <span className="font-serif text-[10px] tracking-wide uppercase font-bold">Authenticated</span>
+                        <span className="font-serif text-[8px] tracking-wide uppercase font-bold mt-1">Bahrain Entry</span>
                         <span className="font-serif text-[6px] text-bronze-charcoal mt-1">2026-05-25</span>
                       </div>
                     </div>
@@ -212,11 +216,14 @@ export default function Timeline({ locations, loading, onScan }) {
 
                   {!isCompleted ? (
                     <div className="relative z-10 flex flex-col items-center max-w-md">
-                      <div className="w-20 h-20 border-2 border-dashed border-red-500/20 rounded-full flex items-center justify-center text-red-500/35 mb-6 select-none">
+                      <div 
+                        className="w-20 h-20 border-2 border-dashed rounded-full flex items-center justify-center mb-6 select-none"
+                        style={{ borderColor: 'rgba(193, 18, 47, 0.2)', color: 'rgba(193, 18, 47, 0.35)' }}
+                      >
                         🔒
                       </div>
 
-                      <span className="font-sans text-[8px] tracking-[0.2em] text-bahrain-red uppercase font-bold block mb-2 select-none">
+                      <span className="text-overline tracking-wide text-[var(--color-primary)] block mb-2 select-none">
                         Day Complete
                       </span>
                       <h4 className="font-serif text-2xl text-bronze-charcoal font-semibold mb-3">
@@ -228,7 +235,7 @@ export default function Timeline({ locations, loading, onScan }) {
                       
                       <button
                         onClick={handleSealDay}
-                        className="px-8 py-3 rounded-full bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer"
+                        className="px-8 py-3 rounded-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-sans text-xs uppercase tracking-wide font-semibold transition-all shadow-md cursor-pointer"
                       >
                         Complete Day
                       </button>
@@ -240,7 +247,7 @@ export default function Timeline({ locations, loading, onScan }) {
                       <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-green-600" />
-                          <span className="font-sans text-[8px] tracking-widest uppercase text-green-700 font-bold select-none">
+                          <span className="font-sans text-[8px] tracking-wide uppercase text-green-700 font-semibold select-none">
                             Day Complete
                           </span>
                         </div>
@@ -248,13 +255,17 @@ export default function Timeline({ locations, loading, onScan }) {
                           Day {currentDayTab} Insider Reward
                         </h4>
                         
-                        <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex justify-between items-start gap-4">
+                        <div 
+                          className="p-4 rounded-xl border flex justify-between items-start gap-4"
+                          style={{ backgroundColor: 'var(--color-primary-soft)', borderColor: 'rgba(193, 18, 47, 0.1)' }}
+                        >
                           <p className="font-serif text-xs italic text-bronze-charcoal leading-relaxed font-semibold flex-1">
                             {activeTheme.reward}
                           </p>
                           <button
                             onClick={() => speakPhrase(activeTheme.reward)}
-                            className="px-3 py-1.5 rounded-lg bg-white border border-red-500/15 hover:border-red-500/35 hover:shadow-sm text-[8px] uppercase font-sans font-bold tracking-widest text-bahrain-red transition-all cursor-pointer shrink-0 flex items-center gap-1.5 active:scale-95"
+                            className="px-3 py-1.5 rounded-lg bg-white border hover:shadow-sm text-[8px] uppercase font-sans font-semibold tracking-wide text-[var(--color-primary)] transition-all cursor-pointer shrink-0 flex items-center gap-1.5 active:scale-95"
+                            style={{ borderColor: 'rgba(193, 18, 47, 0.15)' }}
                           >
                             <span>🔊 Pronounce</span>
                           </button>
@@ -263,7 +274,7 @@ export default function Timeline({ locations, loading, onScan }) {
                         {currentDayTab < 5 && unlockedDays.includes(currentDayTab + 1) && (
                           <button
                             onClick={() => setCurrentDayTab(currentDayTab + 1)}
-                            className="px-5 py-2.5 rounded-lg border border-bahrain-red/20 text-bahrain-red hover:bg-red-500/5 text-[9px] uppercase tracking-widest font-bold transition-all cursor-pointer select-none"
+                            className="px-5 py-2.5 rounded-lg border border-[var(--color-primary)]/20 text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] text-[9px] uppercase tracking-wide font-semibold transition-all cursor-pointer select-none"
                           >
                             Next Day →
                           </button>
@@ -271,9 +282,12 @@ export default function Timeline({ locations, loading, onScan }) {
                       </div>
 
                       {/* Red Stamp Ink Mark */}
-                      <div className="w-32 h-32 border-4 border-double border-bahrain-red/70 rounded-full flex flex-col items-center justify-center rotate-12 text-bahrain-red bg-pearl-white/40 shrink-0 select-none shadow-sm">
-                        <span className="font-serif text-[8px] tracking-widest uppercase font-bold">Authenticated</span>
-                        <span className="font-serif text-[6px] tracking-wider uppercase font-bold mt-0.5">Bahrain Entry</span>
+                      <div 
+                        className="w-32 h-32 border-4 border-double rounded-full flex flex-col items-center justify-center rotate-12 text-[var(--color-primary)] bg-pearl-white/40 shrink-0 select-none shadow-sm"
+                        style={{ borderColor: 'rgba(193, 18, 47, 0.7)' }}
+                      >
+                        <span className="font-serif text-[8px] tracking-wide uppercase font-semibold">Authenticated</span>
+                        <span className="font-serif text-[6px] tracking-wide uppercase font-semibold mt-0.5">Bahrain Entry</span>
                         <span className="font-serif text-[5px] text-bronze-charcoal mt-1">Passage sealed</span>
                       </div>
 
@@ -288,7 +302,7 @@ export default function Timeline({ locations, loading, onScan }) {
             {/* Retro Editorial Navigation controls */}
             <div className="w-full max-w-4xl mx-auto flex justify-between items-center px-4 md:px-1 select-none">
               
-              <span className="font-sans text-[9px] tracking-wider uppercase text-bronze-muted/60 font-bold">
+              <span className="text-overline tracking-wide text-bronze-muted/60">
                 {isSealStep 
                   ? `Day Complete (${currentSpotIndex + 1} of ${totalSteps})` 
                   : `Stop ${currentSpotIndex + 1} of ${totalSteps}`
@@ -302,8 +316,9 @@ export default function Timeline({ locations, loading, onScan }) {
                     key={idx}
                     onClick={() => setCurrentSpotIndex(idx)}
                     className={`w-2 h-2 rounded-full cursor-pointer transition-all ${
-                      currentSpotIndex === idx ? 'bg-bahrain-red scale-110' : 'bg-red-500/15 hover:bg-red-500/30'
+                      currentSpotIndex === idx ? 'bg-[var(--color-primary)] scale-110' : 'hover:bg-red-500/30'
                     }`}
+                    style={currentSpotIndex !== idx ? { backgroundColor: 'rgba(193, 18, 47, 0.15)' } : {}}
                   />
                 ))}
               </div>
@@ -313,14 +328,16 @@ export default function Timeline({ locations, loading, onScan }) {
                 <button
                   disabled={currentSpotIndex === 0}
                   onClick={handlePrevStep}
-                  className="px-4 py-1.5 rounded-lg border border-red-500/10 text-bronze-charcoal hover:bg-red-500/5 text-[9px] uppercase tracking-widest font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
+                  className="px-4 py-1.5 rounded-lg border text-bronze-charcoal hover:bg-[var(--color-primary-soft)] text-[9px] uppercase tracking-wide font-semibold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
+                  style={{ borderColor: 'rgba(193, 18, 47, 0.1)' }}
                 >
                   ← Previous
                 </button>
                 <button
                   disabled={currentSpotIndex === totalSteps - 1}
                   onClick={handleNextStep}
-                  className="px-4 py-1.5 rounded-lg border border-red-500/10 text-bronze-charcoal hover:bg-red-500/5 text-[9px] uppercase tracking-widest font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
+                  className="px-4 py-1.5 rounded-lg border text-bronze-charcoal hover:bg-[var(--color-primary-soft)] text-[9px] uppercase tracking-wide font-semibold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
+                  style={{ borderColor: 'rgba(193, 18, 47, 0.1)' }}
                 >
                   Next →
                 </button>

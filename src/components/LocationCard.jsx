@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useVibe } from '../hooks/useVibe'
 import { ShieldAlert, Sun, Clock } from 'lucide-react'
 import { playTypewriterClick } from '../services/audioUtils'
@@ -111,13 +111,15 @@ export default function LocationCard({ spot, onScan }) {
   
   const hasKeepsake = collectedKeepsakes && collectedKeepsakes.includes(spot.id)
 
+  const [prevSpotId, setPrevSpotId] = useState(spot.id)
   const [localReflection, setLocalReflection] = useState(journalReflections[spot.id] || '')
   const [saveState, setSaveState] = useState('saved')
   const reflectionDebounceRef = useRef(null)
 
-  useEffect(() => {
+  if (spot.id !== prevSpotId) {
+    setPrevSpotId(spot.id)
     setLocalReflection(journalReflections[spot.id] || '')
-  }, [spot.id])
+  }
 
   const handleReflectionChange = (e) => {
     const val = e.target.value
@@ -146,44 +148,75 @@ export default function LocationCard({ spot, onScan }) {
           <div className="relative bg-white p-4 shadow-md border border-stone-200 transition-all duration-300 w-full max-w-[290px] select-none rounded-xl">
             {/* Gold Star Keepsake sticker */}
             {hasKeepsake && (
-              <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-amber-500/10 border-2 border-dashed border-amber-600/40 flex items-center justify-center rotate-12 text-amber-600 shadow-sm z-30 font-serif font-extrabold text-[12px] pointer-events-none select-none">
-                ★
-              </div>
+              <div
+                aria-label="Keepsake collected"
+                style={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: 'var(--color-accent)',
+                  zIndex: 30,
+                }}
+              />
             )}
 
             <div className="w-full h-64 md:h-[240px] overflow-hidden relative border border-stone-100 bg-bahrain-dark flex items-center justify-center rounded-lg mb-3">
               
               {/* Vintage Airmail Postcard Background (Reveals if image fails or is slow to load) */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-[#FCFBF8] border-8 border-double border-bahrain-red/20 text-center select-none z-0">
-                {/* Airmail red & white diagonal striped border */}
-                <div className="absolute inset-0 border-4 border-transparent" style={{
-                  backgroundImage: 'repeating-linear-gradient(45deg, #D11A38, #D11A38 8px, #FFFFFF 8px, #FFFFFF 16px, #4B85C4 16px, #4B85C4 24px, #FFFFFF 24px, #FFFFFF 32px)',
-                  opacity: 0.15,
-                  pointerEvents: 'none'
-                }} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-[var(--color-surface)] border-8 border-double border-[var(--color-primary-mid)] text-center select-none z-0">
                 <div className="z-10 flex flex-col items-center space-y-1">
-                  <span className="text-3xl animate-pulse">📮</span>
-                  <span className="font-serif text-[10px] text-bahrain-red font-bold tracking-wider uppercase">BAHRAIN POST</span>
-                  <span className="font-serif text-[11px] text-bronze-charcoal/80 font-medium italic mt-0.5 max-w-[180px] truncate">{spot.name}</span>
-                  <span className="font-serif text-[10px] text-bahrain-red/90 font-bold mt-0.5">{spot.arabic}</span>
-                  <span className="font-sans text-[7px] text-bronze-muted/60 uppercase tracking-widest font-semibold mt-1">Official Chronicle Card</span>
+                  <span className="text-overline text-[var(--color-primary)]">BAHRAIN POST</span>
+                  <span className="text-caption font-semibold text-[var(--color-text)] italic max-w-[180px] truncate">{spot.name}</span>
+                  <span className="text-caption font-bold text-[var(--color-primary)]">{spot.arabic}</span>
+                  <span className="text-overline text-[var(--color-text-faint)]">Official Chronicle Card</span>
                 </div>
               </div>
 
               {/* The actual photo (lays on top and hides if broken) */}
               <img
                 src={capturedPhotos[spot.id] || spot.image}
-                alt={spot.name}
+                alt={`${spot.name} — Bahrain`}
                 className="w-full h-full object-cover block relative z-10"
                 loading="lazy"
                 decoding="async"
                 onError={(e) => {
-                  e.target.style.display = 'none';
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.style.setProperty('display', 'flex');
                 }}
               />
+              <div
+                style={{
+                  display: 'none',
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  background: 'var(--color-surface-2, #F5F5F4)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '16px',
+                  boxSizing: 'border-box',
+                  zIndex: 10
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--font-serif, "Playfair Display", Georgia, serif)',
+                    fontSize: '14px',
+                    color: 'var(--color-text-muted, #78716C)',
+                    textAlign: 'center',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {spot.name}
+                </span>
+              </div>
               
               {capturedPhotos[spot.id] && (
-                <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/60 text-[7px] font-mono text-white tracking-widest uppercase font-bold z-20">
+                <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/60 font-mono text-overline text-white z-20">
                   Captured Snap
                 </div>
               )}
@@ -191,18 +224,18 @@ export default function LocationCard({ spot, onScan }) {
 
             {/* Distress Ink Postmark Stamp overlay */}
             {capturedPhotos[spot.id] && (
-              <div className="postmark-stamp">
+              <div className="postmark-stamp" aria-hidden="true">
                 <span className="font-serif text-[6px] tracking-widest text-bahrain-red block uppercase font-extrabold">Sealed</span>
                 <span className="font-serif text-[5px] text-bahrain-red/60 uppercase block font-bold mt-0.5">MANAMA</span>
                 <span className="font-mono text-[4px] text-bahrain-red/80 block uppercase font-bold mt-0.5">25.05.2026</span>
               </div>
             )}
 
-            <div className="flex flex-col text-left mt-2 border-t border-stone-100 pt-2.5">
-              <span className="font-serif text-[12px] text-stone-800 font-bold tracking-tight truncate">
+            <div className="flex flex-col text-left mt-2 border-t border-stone-100 pt-2">
+              <span className="text-body font-semibold text-[var(--color-text)] truncate">
                 {spot.name}
               </span>
-              <span className="font-sans text-[8px] text-stone-400 tracking-wider uppercase font-semibold mt-0.5">
+              <span className="text-overline text-[var(--color-text-faint)]">
                 {capturedPhotos[spot.id] ? 'Snapped Live' : 'Explorer Card'} • 2026
               </span>
             </div>
@@ -216,21 +249,21 @@ export default function LocationCard({ spot, onScan }) {
             {/* Meta Epoch & Calligraphy */}
             <div className="flex justify-between items-start border-b border-red-500/10 pb-2">
               <div className="flex flex-col">
-                <span className="font-sans text-[8px] tracking-[0.15em] text-bronze-muted/50 uppercase font-bold">
+                <span className="text-overline text-[var(--color-text-faint)]">
                   {spot.period}
                 </span>
-                <span className="font-sans text-[8px] tracking-wider text-bahrain-red font-bold font-mono mt-0.5">
+                <span className="font-mono text-caption text-[var(--color-text-faint)]">
                   {spot.coords}
                 </span>
               </div>
-              <span className="font-serif text-lg text-bahrain-red italic font-medium">
+              <span className="font-serif text-title text-bahrain-red italic font-medium">
                 {spot.arabic}
               </span>
             </div>
 
             {/* Title & Narrative */}
             <div>
-              <h3 className="font-serif text-2xl md:text-3xl text-bronze-charcoal font-semibold tracking-tight">
+              <h3 className="text-heading text-bronze-charcoal tracking-tight">
                 {spot.name}
               </h3>
               
@@ -239,11 +272,11 @@ export default function LocationCard({ spot, onScan }) {
                 const alerts = getTouristAlerts(spot.name, spot.mood)
                 if (alerts.length === 0) return null
                 return (
-                  <div className="flex flex-col gap-1.5 mt-2 mb-3">
+                  <div className="flex flex-col gap-2 mt-2 mb-3">
                     {alerts.map((al, idx) => (
                       <div 
                         key={idx} 
-                        className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-[9.5px] font-sans font-bold select-none animate-fadeIn ${al.color}`}
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-caption font-medium select-none animate-fadeIn ${al.color}`}
                       >
                         <AlertIcon type={al.type} />
                         <span>{al.text}</span>
@@ -253,17 +286,17 @@ export default function LocationCard({ spot, onScan }) {
                 )
               })()}
 
-              <p className="font-sans text-xs text-bronze-muted leading-relaxed mt-2.5 font-medium">
+              <p className="font-sans text-xs text-bronze-muted leading-relaxed mt-2 font-medium">
                 {spot.desc}
               </p>
             </div>
 
             {/* Storyteller's Secret (AI Dynamic Decipher or Local Tip) */}
             <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10">
-              <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold block mb-1">
+              <span className="text-overline text-[var(--color-primary)] block mb-1">
                 {lensStories[spot.id] ? 'Local Insights' : 'Local Story'}
               </span>
-              <p className="font-serif text-[12px] italic text-bronze-charcoal leading-relaxed font-semibold">
+              <p className="font-serif text-body italic text-bronze-charcoal leading-relaxed">
                 {lensStories[spot.id] || spot.insider}
               </p>
             </div>
@@ -271,7 +304,7 @@ export default function LocationCard({ spot, onScan }) {
             {/* Diary Reflections */}
             <div className="p-4 rounded-2xl border border-stone-200 bg-white shadow-sm relative overflow-hidden">
               <div className="flex justify-between items-center mb-2">
-                <span className="font-sans text-[9px] tracking-wider uppercase text-neutral-400 font-extrabold flex items-center gap-1">
+                <span className="text-overline text-[var(--color-text-faint)] flex items-center gap-1">
                   Notes
                 </span>
               </div>
@@ -282,13 +315,16 @@ export default function LocationCard({ spot, onScan }) {
                 rows="3"
                 className="w-full text-xs font-sans text-stone-700 placeholder-stone-400 border-none focus:outline-none resize-none focus:ring-0 leading-6 bg-transparent"
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '10px', color: '#888', fontFamily: 'var(--jn-font-sans)', fontWeight: 'bold' }}>
-                <span style={{ color: saveState === 'saved' ? 'var(--jn-green, #1C6B3A)' : 'var(--jn-crimson, #BA0C2F)' }}>
-                  {saveState === 'typing' && '✍️ Typing...'}
-                  {saveState === 'saving' && '⚡ Saving...'}
-                  {saveState === 'saved' && '✓ Saved'}
+              <div className="flex justify-between items-center mt-2">
+                <span 
+                  className="text-caption font-medium"
+                  style={{ color: saveState === 'saved' ? 'var(--color-success)' : 'var(--color-text-faint)' }}
+                >
+                  {saveState === 'typing' && 'Typing...'}
+                  {saveState === 'saving' && 'Saving...'}
+                  {saveState === 'saved' && 'Saved'}
                 </span>
-                <span>{localReflection.length} chars</span>
+                <span className="text-caption font-medium text-[var(--color-text-faint)]">{localReflection.length} chars</span>
               </div>
             </div>
 
@@ -296,7 +332,7 @@ export default function LocationCard({ spot, onScan }) {
             <div className="p-4 rounded-2xl bg-pearl-bg border border-red-500/5">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2 border-b border-red-500/5 pb-2">
                 <div className="flex flex-col text-left">
-                  <span className="font-sans text-[8px] tracking-widest uppercase text-bronze-muted/70 font-bold">
+                  <span className="text-overline text-[var(--color-text-faint)]">
                     Pathway Details
                   </span>
                   
@@ -305,7 +341,7 @@ export default function LocationCard({ spot, onScan }) {
                     {(() => {
                       const status = getLiveOpeningStatus(spot.name)
                       return (
-                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[7.5px] uppercase tracking-wider font-black select-none ${status.color}`}>
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded border text-overline select-none ${status.color}`}>
                           <span className={`w-1 h-1 rounded-full shrink-0 ${status.open ? 'bg-green-500' : 'bg-red-500'}`} />
                           {status.text}
                         </span>
@@ -315,14 +351,14 @@ export default function LocationCard({ spot, onScan }) {
                 </div>
 
                 <div className="flex flex-col items-end gap-1 shrink-0">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     {/* Currency converted cost badge */}
                     <div className="flex flex-col items-end">
-                      <span className="px-2 py-0.5 rounded-md bg-white border border-red-500/10 text-[8px] uppercase tracking-wider font-extrabold text-bahrain-red">
+                      <span className="px-2 py-1 rounded-md bg-white border border-red-500/10 text-caption font-semibold text-bahrain-red">
                         Est. Cost: {spot.pathCost}
                       </span>
                       {getHomeCurrencyEquivalent(spot.pathCost) && (
-                        <span className="text-[7.5px] font-sans font-bold text-bronze-muted/50 mt-0.5">
+                        <span className="text-caption font-normal text-[var(--color-text-faint)]">
                           {getHomeCurrencyEquivalent(spot.pathCost)}
                         </span>
                       )}
@@ -333,7 +369,7 @@ export default function LocationCard({ spot, onScan }) {
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.name + ', Bahrain')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-2 py-1 rounded bg-amber-500/10 border border-amber-600/30 text-[8px] uppercase tracking-widest font-black text-amber-800 hover:bg-amber-500/20 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                      className="px-2 py-1 rounded bg-amber-500/10 border border-amber-600/30 text-caption font-semibold text-amber-800 hover:bg-amber-500/20 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
                       title="Open Directions in Google Maps"
                     >
                       Directions
@@ -341,7 +377,7 @@ export default function LocationCard({ spot, onScan }) {
                   </div>
                 </div>
               </div>
-              <p className="font-sans text-xs text-bronze-muted leading-relaxed font-semibold">
+              <p className="text-body text-bronze-muted leading-relaxed">
                 {spot.pathGuide}
               </p>
             </div>
@@ -349,13 +385,13 @@ export default function LocationCard({ spot, onScan }) {
 
           {/* Action Trigger */}
           <div className="pt-4 border-t border-red-500/10 mt-6 flex justify-between items-center gap-3">
-            <span className="font-sans text-[8px] tracking-widest uppercase text-bronze-muted/40 font-bold">
-              Optics Port Ready
+            <span className="text-overline text-[var(--color-text-faint)]">
+              Scan location
             </span>
 
             <button
               onClick={() => onScan(spot)}
-              className={`px-5 py-2 rounded-xl text-[9px] tracking-widest uppercase font-bold transition-all cursor-pointer shadow-sm ${
+              className={`px-5 py-2 rounded-xl text-caption font-semibold tracking-wide uppercase transition-all cursor-pointer shadow-sm ${
                 capturedPhotos[spot.id]
                   ? 'bg-green-600 hover:bg-green-700 text-white border border-green-600'
                   : 'bg-bahrain-red hover:bg-bahrain-dark text-white border border-bahrain-red'

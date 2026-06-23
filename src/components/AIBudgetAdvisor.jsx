@@ -55,7 +55,8 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
 
   const daysLeft = totalDays - currentDay
   const filsPerDayLeft = daysLeft > 0 ? Math.round(goldFils / daysLeft) : goldFils
-  const budgetColor = goldFils > 500 ? 'emerald' : goldFils > 200 ? 'amber' : 'rose'  const headerBg = {
+  const budgetColor = goldFils > 500 ? 'emerald' : goldFils > 200 ? 'amber' : 'rose'
+  const headerBg = {
     emerald: 'bg-emerald-50/50 border-emerald-100/50',
     amber: 'bg-amber-50/50 border-amber-100/50',
     rose: 'bg-rose-50/50 border-rose-100/50',

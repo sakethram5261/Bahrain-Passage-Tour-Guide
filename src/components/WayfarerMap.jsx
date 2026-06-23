@@ -112,6 +112,8 @@ export default function WayfarerMap({ locations, onClose }) {
     setPearlsCollected,
     duration,
     selectedHotel,
+    soundVolume = 0.5,
+    soundMuted = false,
   } = useVibe()
 
   // ── Local state ───────────────────────────────────────────────────────────
@@ -322,7 +324,7 @@ export default function WayfarerMap({ locations, onClose }) {
   const resetZoom = (e) => { e.stopPropagation(); setZoom(1); setPan({ x: 0, y: 0 }) }
 
   // ── AI Narrator ───────────────────────────────────────────────────────────
-  const loadAiNarration = async (spot) => {
+  const loadAiNarration = useCallback(async (spot) => {
     if (aiNarration[spot.id]) return
     setAiLoading(true)
     const { system, user } = buildSpotNarratorPrompt(spot.name, spot.desc)
@@ -332,9 +334,9 @@ export default function WayfarerMap({ locations, onClose }) {
     )
     setAiNarration(prev => ({ ...prev, [spot.id]: text }))
     setAiLoading(false)
-  }
+  }, [aiNarration])
 
-  const loadAiNavTip = async (spot) => {
+  const loadAiNavTip = useCallback(async (spot) => {
     if (aiNavTip[spot.id]) return
     const { system, user } = buildLocationNavPrompt(spot.name)
     const text = await callLocalAI(system, user,
@@ -342,7 +344,7 @@ export default function WayfarerMap({ locations, onClose }) {
       { cacheKey: `nav:${spot.id}`, maxTokens: 60 }
     )
     setAiNavTip(prev => ({ ...prev, [spot.id]: text }))
-  }
+  }, [aiNavTip])
 
   // When spot is selected, load AI content
   useEffect(() => {
@@ -352,7 +354,7 @@ export default function WayfarerMap({ locations, onClose }) {
         loadAiNavTip(selectedSpot)
       })
     }
-  }, [selectedSpot?.id])
+  }, [selectedSpot, loadAiNarration, loadAiNavTip])
 
   // ── Spot click handlers ───────────────────────────────────────────────────
   const handleSpotClick = useCallback((spot) => {
@@ -361,7 +363,7 @@ export default function WayfarerMap({ locations, onClose }) {
     if (idx !== -1) setCurrentSpotIndex(idx)
     setSelectedSpot(spot)
     setShowBottomSheet(true)
-  }, [activeSpots])
+  }, [activeSpots, setCurrentSpotIndex])
 
   const handleMapNodeClick = useCallback((spot) => {
     if (dragMoved.current > 6) return
@@ -389,7 +391,7 @@ export default function WayfarerMap({ locations, onClose }) {
       handleSpotClick(spot)
       setPearlAlert({ success: false, text: `Not quite — keep searching for the ancient landmark!` })
     }
-  }, [activeSpots, riddleSpot, pearlsCollected, handleSpotClick])
+  }, [activeSpots, riddleSpot, pearlsCollected, handleSpotClick, awardXP, passportStamps, setGoldFils, setPassportStamps, setPearlsCollected, soundVolume, soundMuted])
 
   // ── Close ─────────────────────────────────────────────────────────────────
   const handleClose = () => {
@@ -427,9 +429,12 @@ export default function WayfarerMap({ locations, onClose }) {
       <style>{mapStyles}</style>
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-3 bg-[#FAF9F6] border-b border-red-500/10 shrink-0">
+      <div 
+        className="flex items-center justify-between px-4 md:px-6 py-3 border-b shrink-0"
+        style={{ backgroundColor: 'var(--color-surface)', borderColor: 'rgba(193, 18, 47, 0.1)' }}
+      >
         <div>
-          <span className="font-sans text-[11px] tracking-[0.25em] text-bahrain-red uppercase font-bold block">
+          <span className="text-overline tracking-wide text-[var(--color-primary)] block">
             Route Map
           </span>
           <h2 className="font-serif text-lg font-bold text-bronze-charcoal leading-tight">
@@ -441,7 +446,7 @@ export default function WayfarerMap({ locations, onClose }) {
         </div>
         <button
           onClick={handleClose}
-          className="w-9 h-9 rounded-full bg-bahrain-red hover:bg-red-700 text-white font-bold text-sm flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-md"
+          className="w-9 h-9 rounded-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-bold text-sm flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-md"
         >
           ✕
         </button>
@@ -451,7 +456,10 @@ export default function WayfarerMap({ locations, onClose }) {
       <div className="flex-1 flex overflow-hidden">
 
         {/* Sidebar */}
-        <div className="hidden md:flex w-56 shrink-0 flex-col bg-[#FCFBF8] border-r border-red-500/8 overflow-y-auto scrollbar-none">
+        <div 
+          className="hidden md:flex w-56 shrink-0 flex-col border-r overflow-y-auto scrollbar-none"
+          style={{ backgroundColor: 'var(--color-surface-2)', borderColor: 'rgba(193, 18, 47, 0.08)' }}
+        >
           <div className="p-3 space-y-3">
             {days.map(day => {
               const daySpots = locations.filter(s => s.day === day)
@@ -464,11 +472,12 @@ export default function WayfarerMap({ locations, onClose }) {
                     onClick={() => setOpenDays(prev => ({ ...prev, [day]: !prev[day] }))}
                     className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl transition-all cursor-pointer ${
                       isActiveDay
-                        ? 'bg-bahrain-red text-white shadow-sm'
-                        : 'bg-red-500/5 text-bronze-charcoal hover:bg-red-500/10'
+                        ? 'bg-[var(--color-primary)] text-white shadow-sm'
+                        : 'text-bronze-charcoal hover:bg-[var(--color-primary-soft)]'
                     }`}
+                    style={!isActiveDay ? { backgroundColor: 'rgba(193, 18, 47, 0.05)' } : {}}
                   >
-                    <span className="font-sans text-[13px] font-extrabold uppercase tracking-wider">
+                    <span className="font-sans text-[13px] font-semibold uppercase tracking-wide">
                       Day {day}
                     </span>
                     <span className="text-[12px] opacity-70">{daySpots.length} stops {isOpen ? '▲' : '▼'}</span>
@@ -486,12 +495,12 @@ export default function WayfarerMap({ locations, onClose }) {
                             onClick={() => handleSpotClick(spot)}
                             className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-all cursor-pointer group ${
                               isSelected
-                                ? 'bg-bahrain-red/10 border border-bahrain-red text-bronze-charcoal'
-                                : 'hover:bg-red-500/5 border border-transparent'
+                                ? 'bg-[var(--color-primary)]/10 border border-[var(--color-primary)] text-bronze-charcoal'
+                                : 'hover:bg-[var(--color-primary-soft)] border border-transparent'
                             }`}
                           >
-                            <span className={`w-5 h-5 rounded-full text-[11px] font-extrabold flex items-center justify-center shrink-0 ${
-                              isSelected ? 'bg-bahrain-red text-white' : 'bg-red-500/10 text-bahrain-red'
+                            <span className={`w-5 h-5 rounded-full text-[11px] font-semibold flex items-center justify-center shrink-0 ${
+                              isSelected ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
                             }`}>
                               {idx + 1}
                             </span>
@@ -516,7 +525,7 @@ export default function WayfarerMap({ locations, onClose }) {
             <div className="mt-auto p-3 border-t border-amber-600/15">
               <button
                 onClick={() => setShowClueScroll(prev => !prev)}
-                className="w-full px-3 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-sans text-[12px] uppercase tracking-widest font-black transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
+                className="w-full px-3 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-sans text-[12px] uppercase tracking-wide font-semibold transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
               >
                 <span className="chest-shake">📜</span>
                 {showClueScroll ? 'Close Scroll' : 'Pearl Hunt Clue'}
@@ -539,7 +548,10 @@ export default function WayfarerMap({ locations, onClose }) {
         <div className="flex-1 flex flex-col overflow-hidden">
 
           {/* Mobile: horizontal stops strip */}
-          <div className="flex md:hidden items-center gap-2 px-3 py-2 bg-[#FCFBF8] border-b border-red-500/8 overflow-x-auto scrollbar-none shrink-0 snap-x snap-mandatory overscroll-x-contain" style={{ scrollbarWidth: 'none', scrollPadding: '0 12px' }}>
+          <div 
+            className="flex md:hidden items-center gap-2 px-3 py-2 border-b overflow-x-auto scrollbar-none shrink-0 snap-x snap-mandatory overscroll-x-contain" 
+            style={{ scrollbarWidth: 'none', scrollPadding: '0 12px', backgroundColor: 'var(--color-surface-2)', borderColor: 'rgba(193, 18, 47, 0.08)' }}
+          >
             {activeSpots.map((spot, idx) => {
               const isSelected = selectedSpot?.id === spot.id
               return (
@@ -548,12 +560,13 @@ export default function WayfarerMap({ locations, onClose }) {
                   onClick={() => handleSpotClick(spot)}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border shrink-0 text-[13px] font-bold transition-all cursor-pointer snap-start ${
                     isSelected
-                      ? 'bg-bahrain-red text-white border-bahrain-red shadow-sm scale-105'
-                      : 'bg-white text-bronze-charcoal border-red-500/10 hover:border-red-500/30'
+                      ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-sm scale-105'
+                      : 'bg-white text-bronze-charcoal hover:border-[var(--color-primary-soft)]'
                   }`}
+                  style={!isSelected ? { borderColor: 'rgba(193, 18, 47, 0.1)' } : {}}
                 >
-                  <span className={`w-3.5 h-3.5 rounded-full text-[10px] font-extrabold flex items-center justify-center ${
-                    isSelected ? 'bg-white text-bahrain-red' : 'bg-bahrain-red text-white'
+                  <span className={`w-3.5 h-3.5 rounded-full text-[10px] font-semibold flex items-center justify-center ${
+                    isSelected ? 'bg-white text-[var(--color-primary)]' : 'bg-[var(--color-primary)] text-white'
                   }`}>{idx + 1}</span>
                   <span className="font-serif truncate max-w-[80px]">{spot.name.split('(')[0].trim()}</span>
                 </button>
@@ -770,7 +783,7 @@ export default function WayfarerMap({ locations, onClose }) {
                         fill={
                           hasPearl ? '#f59e0b'
                           : scanned ? '#10b981'
-                          : isSelected ? '#C1122F'
+                          : isSelected ? 'var(--color-primary)'
                           : isActive ? '#E53E3E'
                           : 'rgba(90,70,65,0.28)'
                         }
@@ -822,13 +835,13 @@ export default function WayfarerMap({ locations, onClose }) {
                         fill="rgba(212,175,55,0.06)" stroke="rgba(212,175,55,0.45)" strokeWidth="1.5" />
 
                       {/* Main gold key circle */}
-                      <circle cx="0" cy="0" r="9" fill="#FFFDF9" stroke="#D4AF37" strokeWidth="1.8" />
+                      <circle cx="0" cy="0" r="9" fill="#FFFDF9" stroke="var(--color-accent)" strokeWidth="1.8" />
                       <text x="0" y="3" textAnchor="middle" fontSize="9" style={{ pointerEvents: 'none' }}>🔑</text>
 
                       {/* Label text */}
                       <text x="0" y="-13"
                         textAnchor="middle" fontSize="6.5"
-                        fontWeight="900" fontFamily="serif" fill="#BA0C2F"
+                        fontWeight="900" fontFamily="serif" fill="var(--color-primary)"
                         style={{ pointerEvents: 'none' }}
                       >
                         BASE CAMP
@@ -839,12 +852,12 @@ export default function WayfarerMap({ locations, onClose }) {
 
                 {/* Border frame (inside transform) */}
                 <rect x="1" y="1" width={MAP_W-2} height={MAP_H-2}
-                  fill="none" stroke="#2a1a10" strokeWidth={1.2/zoom} />
+                  fill="none" stroke="var(--color-text)" strokeWidth={1.2/zoom} />
                 <rect x="5" y="5" width={MAP_W-10} height={MAP_H-10}
-                  fill="none" stroke="#2a1a10" strokeWidth={0.5/zoom} strokeDasharray={`3,4`} />
+                  fill="none" stroke="var(--color-text)" strokeWidth={0.5/zoom} strokeDasharray={`3,4`} />
 
                 {/* Lat/Lon ticks */}
-                <g fill="#3b2f2b" fontSize={7/zoom} fontFamily="monospace" fontWeight="bold" opacity="0.7">
+                <g fill="var(--color-text-muted)" fontSize={7/zoom} fontFamily="monospace" fontWeight="bold" opacity="0.7">
                   <text x="75" y="13" textAnchor="middle">50°27'E</text>
                   <text x="210" y="13" textAnchor="middle">50°35'E</text>
                   <text x="345" y="13" textAnchor="middle">50°43'E</text>
@@ -860,9 +873,12 @@ export default function WayfarerMap({ locations, onClose }) {
                 className="absolute pointer-events-none z-30 fade-in"
                 style={{ left: Math.min(hoverPos.x + 14, containerWidth - 200), top: Math.max(hoverPos.y - 60, 4) }}
               >
-                <div className="bg-white/97 border border-bahrain-red/25 rounded-xl px-3 py-2 shadow-lg text-left min-w-[150px] max-w-[200px]">
+                <div 
+                  className="bg-white/97 border rounded-xl px-3 py-2 shadow-lg text-left min-w-[150px] max-w-[200px]"
+                  style={{ borderColor: 'rgba(193, 18, 47, 0.25)' }}
+                >
                   <div className="font-serif text-[13px] font-bold text-bronze-charcoal truncate">{hoveredSpot.name.split('(')[0]}</div>
-                  <div className="font-sans text-[12px] text-bahrain-red italic font-semibold mt-0.5">{hoveredSpot.arabic}</div>
+                  <div className="font-sans text-[12px] text-[var(--color-primary)] italic font-semibold mt-0.5">{hoveredSpot.arabic}</div>
                   <div className="flex items-center gap-1 mt-1 text-[11px] text-bronze-muted font-sans uppercase">
                     <span>{CAT_ICON[hoveredSpot.category] || '📍'}</span>
                     <span>{hoveredSpot.period?.split(',')[0]}</span>
@@ -876,8 +892,8 @@ export default function WayfarerMap({ locations, onClose }) {
               <div className={`absolute bottom-24 left-3 right-3 md:bottom-4 z-40 p-3 rounded-2xl border text-[13px] font-bold shadow-lg fade-in flex justify-between items-center ${
                 pearlAlert.success
                   ? 'bg-emerald-500/95 border-emerald-400 text-white'
-                  : 'bg-[#FAF9F6] border-rose-400/40 text-rose-800'
-              }`}>
+                  : 'border-rose-400/40 text-rose-800'
+              }`} style={!pearlAlert.success ? { backgroundColor: 'var(--color-surface)' } : {}}>
                 <span>{pearlAlert.text}</span>
                 <button onClick={() => setPearlAlert(null)} className="ml-2 shrink-0 text-[12px] px-1.5 py-0.5 rounded bg-black/10 hover:bg-black/20 cursor-pointer">✕</button>
               </div>
@@ -886,7 +902,7 @@ export default function WayfarerMap({ locations, onClose }) {
             {/* Zoom controls */}
             <div className="absolute right-3 top-3 flex flex-col gap-1.5 z-20">
               {[['＋', zoomIn, 'Zoom in'], ['－', zoomOut, 'Zoom out'], ['⟲', resetZoom, 'Reset view']].map(([label, fn, title]) => (
-                <button key={label} onClick={fn} title={title}
+                <button key={label} onClick={fn} title={title} aria-label={title}
                   className="w-8 h-8 rounded-lg bg-white/90 backdrop-blur border border-amber-500/20 shadow-sm flex items-center justify-center text-sm font-bold text-bronze-charcoal hover:bg-white transition-all hover:scale-105 active:scale-95 cursor-pointer">
                   {label}
                 </button>
@@ -894,14 +910,14 @@ export default function WayfarerMap({ locations, onClose }) {
             </div>
 
             {/* Map projection label */}
-            <div className="absolute bottom-1 left-2 font-mono text-[10px] tracking-widest text-bronze-muted/40 uppercase select-none">
+            <div className="absolute bottom-1 left-2 font-mono text-[10px] tracking-wide text-bronze-muted/40 uppercase select-none">
               Bahrain WGS84 · Mercator
             </div>
           </div>
 
           {/* ── Desktop Selected Spot Detail Card (sticky bottom strip) ── */}
           {selectedSpot && (
-            <div className="hidden md:flex shrink-0 bg-[#FCFBF8] border-t-2 border-double border-amber-600/30 px-5 py-3.5 gap-4 items-start fade-in">
+            <div className="hidden md:flex shrink-0 bg-[var(--color-surface-2)] border-t-2 border-double border-amber-600/30 px-5 py-3.5 gap-4 items-start fade-in">
               <span className="text-3xl p-2.5 bg-amber-500/8 rounded-2xl border border-amber-500/12 shrink-0">
                 {CAT_ICON[selectedSpot.category] || '📍'}
               </span>
@@ -910,12 +926,12 @@ export default function WayfarerMap({ locations, onClose }) {
                   <h4 className="font-serif text-[15px] font-bold text-bronze-charcoal leading-tight">
                     {selectedSpot.name}
                   </h4>
-                  <span className="font-serif text-sm text-bahrain-red italic font-bold">{selectedSpot.arabic}</span>
+                  <span className="font-serif text-sm text-[var(--color-primary)] italic font-bold">{selectedSpot.arabic}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5 text-[11px] font-sans text-bronze-muted/70 font-bold uppercase tracking-wide flex-wrap">
                   <span>{selectedSpot.period}</span>
                   <span>•</span>
-                  <span className="text-bahrain-red/80">{selectedSpot.coords}</span>
+                  <span className="text-[var(--color-primary)]/80">{selectedSpot.coords}</span>
                   <span>•</span>
                   <span className="px-1.5 py-0.5 rounded bg-emerald-700/10 text-emerald-800">
                     {selectedSpot.pathCost || selectedSpot.budgetCost || 'Free'}
@@ -932,7 +948,7 @@ export default function WayfarerMap({ locations, onClose }) {
                 )}
                 {aiNarration[selectedSpot.id] && (
                   <div className="mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-300/30">
-                    <span className="font-sans text-[7.5px] uppercase tracking-wider text-amber-700 font-extrabold block mb-1">
+                    <span className="font-sans text-[7.5px] uppercase tracking-wide text-amber-700 font-semibold block mb-1">
                       Local Recollection
                     </span>
                     <p className="font-serif text-[10.5px] italic text-bronze-charcoal leading-relaxed">
@@ -951,13 +967,13 @@ export default function WayfarerMap({ locations, onClose }) {
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedSpot.name + ', Bahrain')}`}
                   target="_blank" rel="noopener noreferrer"
-                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-sm"
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[12px] uppercase tracking-wide font-semibold rounded-xl transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-sm"
                 >
                   Directions
                 </a>
                 <button
                   onClick={handleClose}
-                  className="px-4 py-2 bg-bahrain-red hover:bg-red-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+                  className="px-4 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-sans text-[12px] uppercase tracking-wide font-semibold rounded-xl transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
                 >
                   View Spot
                 </button>
@@ -971,12 +987,13 @@ export default function WayfarerMap({ locations, onClose }) {
       {/* ── Mobile Bottom Sheet ── */}
       {showBottomSheet && selectedSpot && (
         <div className="md:hidden fixed inset-x-0 bottom-0 z-[400] slide-up">
-          <div className="bg-[#FCFBF8] border-t-2 border-double border-amber-600/30 rounded-t-3xl shadow-2xl p-5 max-h-[72vh] overflow-y-auto scrollbar-none">
+          <div className="bg-[var(--color-surface-2)] border-t-2 border-double border-amber-600/30 rounded-t-3xl shadow-2xl p-5 max-h-[72vh] overflow-y-auto scrollbar-none">
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-1 bg-bronze-muted/20 rounded-full mx-auto absolute left-1/2 -translate-x-1/2 top-3" />
               <button
                 onClick={() => setShowBottomSheet(false)}
-                className="ml-auto text-bronze-muted hover:text-bahrain-red text-[13px] font-bold cursor-pointer"
+                aria-label="Close bottom sheet"
+                className="ml-auto text-bronze-muted hover:text-[var(--color-primary)] text-[13px] font-bold cursor-pointer"
               >
                 ✕
               </button>
@@ -987,7 +1004,7 @@ export default function WayfarerMap({ locations, onClose }) {
               </span>
               <div className="flex-1 min-w-0">
                 <h4 className="font-serif text-base font-bold text-bronze-charcoal">{selectedSpot.name}</h4>
-                <span className="font-serif text-sm text-bahrain-red italic font-bold">{selectedSpot.arabic}</span>
+                <span className="font-serif text-sm text-[var(--color-primary)] italic font-bold">{selectedSpot.arabic}</span>
                 <div className="flex items-center gap-2 mt-1 text-[11px] text-bronze-muted font-bold uppercase tracking-wide">
                   <span>{selectedSpot.period?.split(',')[0]}</span>
                   <span className="px-1.5 py-0.5 rounded bg-emerald-700/10 text-emerald-800">
@@ -1000,7 +1017,7 @@ export default function WayfarerMap({ locations, onClose }) {
 
             {aiNarration[selectedSpot.id] && (
               <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-300/30">
-                <span className="font-sans text-[11px] uppercase tracking-wider text-amber-700 font-extrabold block mb-1">Local Recollection</span>
+                <span className="font-sans text-[11px] uppercase tracking-wide text-amber-700 font-semibold block mb-1">Local Recollection</span>
                 <p className="font-serif text-[13.5px] italic text-bronze-charcoal leading-relaxed">"{aiNarration[selectedSpot.id]}"</p>
               </div>
             )}
@@ -1013,13 +1030,13 @@ export default function WayfarerMap({ locations, onClose }) {
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedSpot.name + ', Bahrain')}`}
                 target="_blank" rel="noopener noreferrer"
-                className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl text-center transition-all shadow-sm"
+                className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-sans text-[12px] uppercase tracking-wide font-semibold rounded-xl text-center transition-all shadow-sm"
               >
                 Google Maps
               </a>
               <button
                 onClick={handleClose}
-                className="flex-1 py-3 bg-bahrain-red hover:bg-red-800 text-white font-sans text-[12px] uppercase tracking-wider font-extrabold rounded-xl transition-all shadow-sm cursor-pointer"
+                className="flex-1 py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-sans text-[12px] uppercase tracking-wide font-semibold rounded-xl transition-all shadow-sm cursor-pointer"
               >
                 View Spot
               </button>

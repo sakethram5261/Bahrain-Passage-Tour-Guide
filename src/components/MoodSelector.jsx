@@ -118,11 +118,11 @@ export default function MoodSelector({ onConfirm, onBack }) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto bg-[#FAF9F6] text-stone-900"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto bg-[var(--color-surface)] text-stone-900"
       style={{ opacity: 0 }}
     >
       {/* Bahrain flag-inspired top banner (modestly adjusted) */}
-      <div className="w-full relative overflow-hidden shrink-0" style={{ background: '#D11A38', minHeight: '145px' }}>
+      <div className="w-full relative overflow-hidden shrink-0" style={{ background: 'var(--color-primary)', minHeight: '145px' }}>
         {/* Serrated white edge at bottom — mimics the Bahrain flag's zigzag */}
         <svg
           className="absolute bottom-0 left-0 w-full"
@@ -133,7 +133,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
           <path
             d="M0,0 L80,24 L160,0 L240,24 L320,0 L400,24 L480,0 L560,24 L640,0 L720,24 L800,0 L880,24 L960,0 L1040,24 L1120,0 L1200,24 L1200,35 L0,35 Z"
             fill="currentColor"
-            className="text-[#FAF9F6]"
+            className="text-[var(--color-surface)]"
           />
         </svg>
 
@@ -167,7 +167,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
         </svg>
 
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-7 pb-10">
-          <p className="font-sans text-[11.5px] tracking-[0.45em] uppercase font-bold text-white/65 mb-1.5">
+          <p className="text-overline tracking-wide text-white/65 mb-1.5">
             Kingdom of Bahrain · مملكة البحرين
           </p>
           <h1 className="font-serif text-3xl md:text-4xl font-semibold text-white leading-tight">
@@ -211,9 +211,10 @@ export default function MoodSelector({ onConfirm, onBack }) {
                     <div
                       className={`w-11 h-11 rounded-full flex items-center justify-center border transition-all duration-300 ${
                         active
-                          ? 'bg-[#C5A880]/15 border-[#C5A880] shadow-[0_0_10px_rgba(197,168,128,0.4)]'
+                          ? 'shadow-[0_0_10px_rgba(197,168,128,0.4)]'
                           : 'bg-stone-200/20 border-stone-300/60'
                       }`}
+                      style={active ? { backgroundColor: 'rgba(197, 168, 128, 0.15)', borderColor: 'var(--color-accent)' } : {}}
                     >
                       <span className="text-xl">{mood.icon}</span>
                     </div>
@@ -221,8 +222,9 @@ export default function MoodSelector({ onConfirm, onBack }) {
                     {/* Simple Checkmark Circle */}
                     <div
                       className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all duration-200 border ${
-                        active ? 'bg-[#C1122F] border-[#C1122F] text-white' : 'border-stone-300 text-transparent'
+                        active ? 'text-white' : 'border-stone-300 text-transparent'
                       }`}
+                      style={active ? { backgroundColor: 'var(--color-primary)', borderColor: 'var(--color-primary)' } : {}}
                     >
                       ✓
                     </div>
@@ -236,7 +238,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
                         {mood.label}
                       </span>
                       <span className={`font-sans text-[12px] ${
-                        active ? 'text-white/75' : 'text-[#5C5451]'
+                        active ? 'text-white/75' : 'text-[var(--color-text-muted)]'
                       }`}>
                         {mood.arabic}
                       </span>
@@ -255,8 +257,9 @@ export default function MoodSelector({ onConfirm, onBack }) {
                         className={`text-[11.5px] px-1.5 py-0.5 rounded font-sans font-semibold border ${
                           active
                             ? 'bg-white/10 text-white/90 border-white/20'
-                            : 'bg-red-500/5 text-[#D11A38] border-red-500/10'
+                            : 'border-transparent'
                         }`}
+                        style={!active ? { backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)', borderColor: 'rgba(193, 18, 47, 0.1)' } : {}}
                       >
                         {s}
                       </span>
@@ -275,7 +278,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
             boxShadow: '0 2px 12px rgba(42,35,33,0.04), 0 1px 3px rgba(0,0,0,0.02)'
           }}
         >
-          <label className="font-serif text-[14.5px] font-extrabold text-[#2A2321] flex items-center justify-center md:justify-start gap-1.5">
+          <label className="font-serif text-[14.5px] font-semibold text-[var(--color-text)] flex items-center justify-center md:justify-start gap-1.5">
             How long is your stay?
           </label>
           
@@ -286,7 +289,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
                 if (el) el.scrollBy({ left: -120, behavior: 'smooth' })
               }}
               aria-label="Scroll left"
-              className="shrink-0 w-7 h-7 rounded-full bg-white border border-stone-200 flex items-center justify-center text-[#5C5451] hover:bg-stone-50 cursor-pointer transition-all"
+              className="shrink-0 w-7 h-7 rounded-full bg-white border border-stone-200 flex items-center justify-center text-[var(--color-text-muted)] hover:bg-stone-50 cursor-pointer transition-all"
             >
               ◀
             </button>
@@ -308,16 +311,18 @@ export default function MoodSelector({ onConfirm, onBack }) {
                   <button
                     key={d}
                     onClick={() => setDuration(d)}
-                    className={`snap-center flex-shrink-0 w-16 py-3 rounded-xl border text-center font-sans text-xs font-black transition-all duration-300 cursor-pointer ${
+                    className={`snap-center flex-shrink-0 w-16 py-3 rounded-xl border text-center font-sans text-xs font-semibold transition-all duration-300 cursor-pointer ${
                       active
-                        ? 'bg-[#C1122F] border-[#C5A880] text-white shadow-[0_4px_12px_rgba(193,18,47,0.3)] scale-[1.05]'
-                        : 'bg-[#FCFBF8] border-stone-200 text-[#5C5451] hover:border-stone-300 hover:shadow-sm'
+                        ? 'text-white scale-[1.05]'
+                        : 'bg-[var(--color-surface-2)] border-stone-200 text-[var(--color-text-muted)] hover:border-stone-300 hover:shadow-sm'
                     }`}
                     style={{
+                      backgroundColor: active ? 'var(--color-primary)' : '',
+                      borderColor: active ? 'var(--color-accent)' : '',
                       boxShadow: active ? '0 4px 12px rgba(193,18,47,0.35), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none',
                     }}
                   >
-                    <div className="text-[9px] uppercase opacity-75 font-medium">{d === 1 ? 'Day' : 'Days'}</div>
+                    <div className="text-overline tracking-wide opacity-75 font-medium">{d === 1 ? 'Day' : 'Days'}</div>
                     <div className="text-sm font-bold mt-0.5">{d}</div>
                   </button>
                 )
@@ -329,7 +334,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
                 if (el) el.scrollBy({ left: 120, behavior: 'smooth' })
               }}
               aria-label="Scroll right"
-              className="shrink-0 w-7 h-7 rounded-full bg-white border border-stone-200 flex items-center justify-center text-[#5C5451] hover:bg-stone-50 cursor-pointer transition-all"
+              className="shrink-0 w-7 h-7 rounded-full bg-white border border-stone-200 flex items-center justify-center text-[var(--color-text-muted)] hover:bg-stone-50 cursor-pointer transition-all"
             >
               ▶
             </button>
@@ -341,10 +346,10 @@ export default function MoodSelector({ onConfirm, onBack }) {
           <button
             onClick={handleConfirm}
             disabled={noneSelected}
-            className={`w-full py-4 rounded-xl font-sans font-bold text-sm tracking-widest uppercase transition-all duration-200 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] h-[54px] border ${
+            className={`w-full py-4 rounded-xl font-sans font-semibold text-sm tracking-wide uppercase transition-all duration-200 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] h-[54px] border ${
               noneSelected
                 ? 'bg-stone-100 border-dashed border-stone-300 text-stone-400'
-                : 'bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white border-transparent shadow-md shadow-red-500/10'
+                : 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white border-transparent shadow-md shadow-red-500/10'
             }`}
           >
             {noneSelected
@@ -354,14 +359,15 @@ export default function MoodSelector({ onConfirm, onBack }) {
 
           <button
             onClick={quickStart}
-            className="w-full py-3.5 rounded-xl font-sans font-black text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer border border-[#C1122F]/20 bg-[#C1122F]/5 text-[#C1122F] hover:bg-[#C1122F] hover:text-white hover:scale-[1.01] active:scale-[0.99] h-[48px] flex items-center justify-center gap-1 shadow-sm"
+            className="w-full py-3.5 rounded-xl font-sans font-semibold text-xs tracking-wide uppercase transition-all duration-200 cursor-pointer border hover:bg-[var(--color-primary)] hover:text-white hover:scale-[1.01] active:scale-[0.99] h-[48px] flex items-center justify-center gap-1 shadow-sm"
+            style={{ borderColor: 'rgba(193, 18, 47, 0.2)', backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}
           >
             ⚡ Quick Start (Skip Curation)
           </button>
 
           <button
             onClick={() => setSelectedMoods(allSelected ? [] : ['empires', 'sea', 'spice', 'lights'])}
-            className="w-full text-[11px] tracking-widest uppercase font-bold py-2.5 transition-all duration-300 cursor-pointer text-center hover:underline text-[#C1122F] bg-transparent border-none"
+            className="w-full text-[11px] tracking-wide uppercase font-semibold py-2.5 transition-all duration-300 cursor-pointer text-center hover:underline text-[var(--color-primary)] bg-transparent border-none"
           >
             {allSelected ? 'Clear All' : 'Select All'}
           </button>
