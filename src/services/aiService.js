@@ -240,27 +240,34 @@ Reply in this exact format: "PLACE: [name] | REASON: [1 sentence why they'd love
 }
 
 export function buildSpotSearchPrompt(searchQuery) {
+  const escapedQuery = searchQuery.replace(/"/g, '\\"')
   return {
-    system: `You are a helpful Bahraini tour guide.
-Provide detailed information about the location queried: "${searchQuery}".
-The location must be in Bahrain. If the queried place is not in Bahrain, set success to false and write an error message in errorMsg.
+    system: `You are an extremely helpful and knowledgeable local Bahraini tour guide.
+Provide detailed information about the location queried: "${escapedQuery}".
+
+IMPORTANT CONTEXT FOR SEARCH:
+- The search is specifically for locations within the Kingdom of Bahrain.
+- If the user searches for any local business, establishment, restaurant, cafe, hotel, mall, street, park, or shop (even if the name is somewhat generic or popular globally, like "Cocos", "Alosra", "The Avenues", "Lost Paradise of Dilmun", "City Centre", "Starbucks", "McDonalds", "Clay Restaurant"), you must find or map the matching location or branch in Bahrain and return success: true.
+- Do not be overly restrictive. If a place exists in Bahrain, describe that specific Bahraini location, its neighborhood (e.g., Adliya, Saar, Seef, Manama), and its local details.
+- Only set success to false and return an error message in errorMsg if the place is explicitly and obviously completely outside of Bahrain and has no relevance to a Bahrain traveler (e.g., "Eiffel Tower", "London Eye", "Statue of Liberty", "Central Park NY").
+
 You must reply with a valid JSON object. Do not wrap the JSON in markdown code blocks or backticks.
 The JSON object must have the following keys:
 - name: Official English name of the place
-- arabic: Arabic script of the name (e.g. "جامع أحمد الفاتح")
-- desc: A small paragraph describing the place, its historical/cultural significance, and what visitors do there (2-3 sentences)
-- where: Precise description of where it is located in Bahrain (e.g., Al Juffair, Manama, Muharraq)
-- coords: Approx GPS coordinates (e.g., "26.2185° N, 50.5912° E")
-- hours: Standard opening hours (e.g., "Open daily 9:00 AM - 5:00 PM, closed Fridays")
-- cost: Estimated entry cost / fee (e.g., "Free Entry", "2 BHD")
+- arabic: Arabic script of the name (e.g. "جامع أحمد الفاتح" or "مطعم كوكوز")
+- desc: A small paragraph describing the place, its local appeal, its significance, and what visitors do there (2-3 sentences)
+- where: Precise description of where it is located in Bahrain (e.g., Block 338 Adliya, Seef District, Manama, Saar)
+- coords: Approx GPS coordinates in Bahrain (e.g., "26.2185° N, 50.5912° E")
+- hours: Standard opening hours (e.g., "Open daily 9:00 AM - 11:00 PM")
+- cost: Estimated entry cost, fee, or average price tier (e.g., "Free Entry", "3-8 BHD per person", "2 BHD")
 - modestyAlert: A string with modesty dress warning if it's a religious/governmental site, otherwise empty
 - safetyAlert: Any heat, timing, or safety warnings, otherwise empty
-- insider: One cool insider tip or local observation about it
+- insider: One cool insider tip, signature dish, or local observation about it
 - category: one of: fort, souq, coast, modern, desert, culture
-- period: historical period or era (e.g. "Dilmun Era" or "Modern Era")
-- success: boolean (true if the place is in Bahrain, false otherwise)
+- period: historical period or era (e.g. "Dilmun Era", "Modern Era", "Established 1998")
+- success: boolean (true if the place is in Bahrain or has a matching branch/location in Bahrain, false otherwise)
 - errorMsg: error message string if success is false`,
-    user: `Provide details about this place in Bahrain: "${searchQuery}".`
+    user: `Provide details about this place in Bahrain: "${escapedQuery}".`
   }
 }
 

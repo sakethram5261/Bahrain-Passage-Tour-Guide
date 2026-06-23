@@ -1,12 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { useVibe } from '../hooks/useVibe'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { Mousewheel, Pagination } from 'swiper/modules'
-import { Trash2, BookOpen } from 'lucide-react'
+import { Trash2, BookOpen, ChevronDown, ChevronUp } from 'lucide-react'
 import { playTypewriterClick } from '../services/audioUtils'
 import { callLocalAI } from '../services/aiService'
-import 'swiper/css'
-import 'swiper/css/pagination'
 
 const guidePhrases = [
   `Assembling your personalized guide...`,
@@ -22,16 +18,6 @@ const guidePhrases = [
   `Itinerary ready! Click below to view.`
 ]
 
-const categoryImages = {
-  fort: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG',
-  souq: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bab_al-Bahrain_Souq_2.jpg',
-  coast: 'https://commons.wikimedia.org/wiki/Special:FilePath/Colours_of_the_Persian_Gulf_ESA353290_(cropped_to_Jidda_Island).jpg',
-  modern: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Manama_Skyline_08.jpg',
-  desert: 'https://commons.wikimedia.org/wiki/Special:FilePath/2010-03_Tree_of_Life_Bahrain.jpg',
-  culture: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bahrain_National_Museum_Exterior_1.jpg',
-  default: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'
-}
-
 export default function SensoryHero({ onBack }) {
   const {
     setStep = () => {},
@@ -44,21 +30,23 @@ export default function SensoryHero({ onBack }) {
     soundMuted = false,
   } = useVibe()
 
-  const [coverOpened] = useState(true)
   const [showPreviewOverview, setShowPreviewOverview] = useState(false)
   const [terminalLogs, setTerminalLogs] = useState([])
   const [logsComplete, setLogsComplete] = useState(false)
   const [contentLoaded, setContentLoaded] = useState(false)
   const [sealing, setSealing] = useState(false) 
-  const [isAtEnd, setIsAtEnd] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  
+  // Accordion expanded states for spots
+  const [expandedSpots, setExpandedSpots] = useState({})
 
-  // Swipe-to-delete variables and handlers
-  const [swipeOffsets, setSwipeOffsets] = useState({})
-  const [activePointerIdState, setActivePointerIdState] = useState(null)
-  const pointerStartX = useRef(0)
-  const activePointerId = useRef(null)
+  const contentRef = useRef(null)
+  const logsEndRef = useRef(null)
   const intervalRef = useRef(null)
+
+  const playClick = useCallback((pitchMultiplier = 1.0) => {
+    playTypewriterClick(pitchMultiplier, soundVolume, soundMuted)
+  }, [soundMuted, soundVolume])
 
   const handleSkipCuration = () => {
     if (intervalRef.current) {
@@ -69,82 +57,13 @@ export default function SensoryHero({ onBack }) {
     setShowPreviewOverview(true)
   }
 
-  const swipeStartX = useRef(0)
-  const swipeStartY = useRef(0)
-  const swipeActivated = useRef(false)
-
-  const handlePointerDown = (e, _index) => {
-    if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.pointer-events-auto')) return
-    if (e.button !== undefined && e.button !== 0) return
-    swipeStartX.current = e.clientX
-    swipeStartY.current = e.clientY
-    swipeActivated.current = false
-    pointerStartX.current = e.clientX
-    activePointerId.current = e.pointerId
-    setActivePointerIdState(e.pointerId)
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId)
-    } catch { /* ignore */ }
-  };
-
-  const handlePointerMove = (e, index) => {
-    if (activePointerId.current !== e.pointerId) return
-    const diffX = e.clientX - pointerStartX.current
-    const diffY = e.clientY - swipeStartY.current
-    if (!swipeActivated.current && Math.abs(diffY) > Math.abs(diffX) * 2) {
-      return
-    }
-    if (Math.abs(diffX) > 20) swipeActivated.current = true
-    if (!swipeActivated.current) return
-    setSwipeOffsets(prev => ({
+  const toggleSpotExpand = (spotId) => {
+    playClick(0.95)
+    setExpandedSpots(prev => ({
       ...prev,
-      [index]: diffX
+      [spotId]: !prev[spotId]
     }))
-  };
-
-  const handlePointerUp = (e, index) => {
-    if (activePointerId.current !== e.pointerId) return
-    activePointerId.current = null
-    setActivePointerIdState(null)
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId)
-    } catch { /* ignore */ }
-
-    if (!swipeActivated.current) {
-      setSwipeOffsets(prev => ({ ...prev, [index]: 0 }))
-      return
-    }
-
-    const offset = swipeOffsets[index] || 0
-    if (Math.abs(offset) > 140) {
-      playClick(0.75)
-      setSwipeOffsets(prev => ({
-        ...prev,
-        [index]: offset > 0 ? window.innerWidth : -window.innerWidth
-      }))
-      setTimeout(() => {
-        const remaining = itinerarySpots.filter((_, sIdx) => sIdx !== index)
-        setItinerarySpots(remaining)
-        setSwipeOffsets(prev => {
-          const next = { ...prev }
-          delete next[index]
-          return next
-        })
-      }, 250)
-    } else {
-      setSwipeOffsets(prev => ({
-        ...prev,
-        [index]: 0
-      }))
-    }
-  };
-
-  const contentRef = useRef(null)
-  const logsEndRef = useRef(null)
-
-  const playClick = useCallback((pitchMultiplier = 1.0) => {
-    playTypewriterClick(pitchMultiplier, soundVolume, soundMuted)
-  }, [soundMuted, soundVolume])
+  }
 
   const compileItinerary = useCallback(async () => {
     let compiledSpots = []
@@ -202,108 +121,67 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
           if (cleaned.startsWith('```')) {
             cleaned = cleaned.replace(/^```json\s*/, '').replace(/```$/, '').trim()
           }
-          const parsed = JSON.parse(cleaned)
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            compiledSpots = parsed.map(item => {
-              const cat = item.category ? item.category.toLowerCase() : 'culture'
-              const imgUrl = categoryImages[cat] || categoryImages.default
-              return {
+          try {
+            const parsed = JSON.parse(cleaned)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              compiledSpots = parsed.map(item => ({
                 ...item,
-                image: imgUrl,
-                pathGuide: tier === 'Wandering' ? (item.budgetGuide || item.pathGuide) : (item.premiumGuide || item.pathGuide),
-                pathCost: tier === 'Wandering' ? (item.budgetCost || item.pathCost) : (item.premiumCost || item.pathCost)
-              }
-            })
-
-            // Append arrival/departure
-            if (localCatalog && Array.isArray(localCatalog)) {
-              const arrivalSpot = localCatalog.find(s => s.id === 'airport-arrival')
-              const departureSpot = localCatalog.find(s => s.id === 'airport-departure')
-              if (arrivalSpot) {
-                compiledSpots.push({
-                  ...arrivalSpot,
-                  day: 1,
-                  pathGuide: tier === 'Wandering' ? arrivalSpot.budgetGuide : arrivalSpot.premiumGuide,
-                  pathCost: tier === 'Wandering' ? arrivalSpot.budgetCost : arrivalSpot.premiumCost
-                })
-              }
-              if (departureSpot) {
-                compiledSpots.push({
-                  ...departureSpot,
-                  day: duration || 1,
-                  pathGuide: tier === 'Wandering' ? departureSpot.budgetGuide : departureSpot.premiumGuide,
-                  pathCost: tier === 'Wandering' ? departureSpot.budgetCost : departureSpot.premiumCost
-                })
-              }
+                pathGuide: tier === 'Wandering' ? (item.budgetGuide || item.desc) : (item.premiumGuide || item.desc),
+                pathCost: tier === 'Wandering' ? (item.budgetCost || 'Free Entry') : (item.premiumCost || 'Free Entry'),
+                image: categoryImages[item.category?.toLowerCase()] || categoryImages.default
+              }))
+              aiFetched = true
+              setTerminalLogs(logs => [...logs, `Successfully compiled ${compiledSpots.length} customized AI stops!`])
             }
-            aiFetched = true
-            setTerminalLogs(logs => [...logs, "Successfully compiled personalized spots via Gemini AI!"])
+          } catch (jsonErr) {
+            console.warn("AI itinerary JSON parsing failed, using catalog:", jsonErr)
           }
         }
       }
-    } catch (e) {
-      console.warn("AI generation failed, falling back to local database:", e)
+    } catch (aiErr) {
+      console.error("AI itinerary compilation failed:", aiErr)
     }
 
-    if (!aiFetched) {
-      try {
-        if (localCatalog && Array.isArray(localCatalog)) {
-          const filtered = localCatalog.filter(s => selectedMoods && selectedMoods.includes(s.mood) && s.id !== 'airport-arrival' && s.id !== 'airport-departure')
-          compiledSpots = filtered.map((item, idx) => {
-            const targetDay = (idx % (duration || 1)) + 1
-            return {
-              ...item,
-              day: targetDay,
-              pathGuide: tier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
-              pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
-            }
-          })
-
-          const arrivalSpot = localCatalog.find(s => s.id === 'airport-arrival')
-          const departureSpot = localCatalog.find(s => s.id === 'airport-departure')
-
-          if (arrivalSpot) {
-            compiledSpots.push({
-              ...arrivalSpot,
-              day: 1,
-              pathGuide: tier === 'Wandering' ? arrivalSpot.budgetGuide : arrivalSpot.premiumGuide,
-              pathCost: tier === 'Wandering' ? arrivalSpot.budgetCost : arrivalSpot.premiumCost
-            })
-          }
-
-          if (departureSpot) {
-            compiledSpots.push({
-              ...departureSpot,
-              day: duration || 1,
-              pathGuide: tier === 'Wandering' ? departureSpot.budgetGuide : departureSpot.premiumGuide,
-              pathCost: tier === 'Wandering' ? departureSpot.budgetCost : departureSpot.premiumCost
-            })
-          }
+    if (!aiFetched && localCatalog) {
+      setTerminalLogs(logs => [...logs, "AI service busy. Assembling travel route from authentic local catalog..."])
+      const filtered = localCatalog.filter(s => selectedMoods.includes(s.mood) && s.id !== 'airport-arrival' && s.id !== 'airport-departure')
+      compiledSpots = filtered.map((item, idx) => {
+        const targetDay = (idx % duration) + 1
+        return {
+          ...item,
+          day: targetDay,
+          pathGuide: tier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
+          pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
         }
-      } catch (catalogErr) {
-        console.error("Catalog filtering error handled safely:", catalogErr)
+      })
+      setTerminalLogs(logs => [...logs, `Retrieved ${compiledSpots.length} authentic stops from catalog.`])
+    }
+
+    // Append Airport arrival & departures automatically
+    if (localCatalog) {
+      const arrivalSpot = localCatalog.find(s => s.id === 'airport-arrival')
+      const departureSpot = localCatalog.find(s => s.id === 'airport-departure')
+      
+      if (arrivalSpot) {
+        compiledSpots.push({
+          ...arrivalSpot,
+          day: 1,
+          pathGuide: tier === 'Wandering' ? arrivalSpot.budgetGuide : arrivalSpot.premiumGuide,
+          pathCost: tier === 'Wandering' ? arrivalSpot.budgetCost : arrivalSpot.premiumCost
+        })
+      }
+      if (departureSpot) {
+        compiledSpots.push({
+          ...departureSpot,
+          day: duration,
+          pathGuide: tier === 'Wandering' ? departureSpot.budgetGuide : departureSpot.premiumGuide,
+          pathCost: tier === 'Wandering' ? departureSpot.budgetCost : departureSpot.premiumCost
+        })
       }
     }
 
-    if (!compiledSpots || compiledSpots.length === 0) {
-      compiledSpots = [{
-        id: 'emergency-fallback-gate',
-        name: 'Bab Al Bahrain',
-        arabic: 'باب البحرين',
-        mood: 'empires',
-        coords: '26.2361° N, 50.5772° E',
-        period: '1949 Modern Era',
-        desc: 'The historic gateway to the Manama Souq.',
-        simpleTerms: 'A beautiful historical archway marking the entrance to the old city bazaar.',
-        insider: 'Grab a fresh hot chai from the local market stalls right behind the gate area.',
-        pathGuide: 'Walk through the grand archway directly into the historical souq alleys.',
-        pathCost: 'Free Entry',
-        image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bab_al-Bahrain_Souq_1.jpg',
-        day: 1
-      }]
-    }
-
-    compiledSpots.sort((a, b) => {
+    // Sort spots by day, keeping arrival at start of Day 1 and departure at end of final day
+    const sorted = compiledSpots.sort((a, b) => {
       if (a.day !== b.day) return a.day - b.day
       if (a.id === 'airport-arrival') return -1
       if (b.id === 'airport-arrival') return 1
@@ -311,37 +189,26 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
       if (b.id === 'airport-departure') return -1
       return 0
     })
-    
-    queueMicrotask(() => {
-      setItinerarySpots(compiledSpots)
-      setContentLoaded(true)
-    })
+
+    setItinerarySpots(sorted)
+    setContentLoaded(true)
+    setTerminalLogs(logs => [...logs, "Travel blueprint fully loaded! Welcome to Bahrain."])
   }, [selectedMoods, duration, tier, setItinerarySpots])
 
+  // Terminal compilation cycle
   useEffect(() => {
-    if (coverOpened) {
-      setTimeout(() => {
-        compileItinerary()
-      }, 0)
-    }
-  }, [coverOpened, compileItinerary])
-
-  useEffect(() => {
-    if (!coverOpened) return
     let active = true
-    let activeLogIndex = 0
-    queueMicrotask(() => {
-      setTerminalLogs([guidePhrases[0]])
-    })
+    setTerminalLogs([guidePhrases[0]])
 
-
+    let phraseIdx = 1
     intervalRef.current = setInterval(() => {
       if (active) {
-        const next = activeLogIndex + 1
-        if (next < guidePhrases.length) {
-          playClick(1.0 + Math.random() * 0.25)
-          setTerminalLogs(logs => [...logs, guidePhrases[next]])
-          activeLogIndex = next
+        if (phraseIdx < guidePhrases.length - 1) {
+          setTerminalLogs(logs => [...logs, guidePhrases[phraseIdx]])
+          phraseIdx++
+          if (phraseIdx === 2) {
+            compileItinerary()
+          }
         } else {
           clearInterval(intervalRef.current)
           setLogsComplete(true)
@@ -353,7 +220,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
       active = false
       clearInterval(intervalRef.current)
     }
-  }, [coverOpened, playClick])
+  }, [compileItinerary])
 
   useEffect(() => {
     if (logsEndRef.current) logsEndRef.current.scrollIntoView({ behavior: 'smooth' })
@@ -365,6 +232,15 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
     }
   }, [logsComplete, contentLoaded])
 
+  // Group spots by day for rendering
+  const spotsByDay = {}
+  itinerarySpots.forEach(spot => {
+    const d = spot.day || 1
+    if (!spotsByDay[d]) spotsByDay[d] = []
+    spotsByDay[d].push(spot)
+  })
+  const sortedDays = Object.keys(spotsByDay).sort((a, b) => Number(a) - Number(b))
+
   return (
     <div 
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden transition-colors duration-700 ${
@@ -372,40 +248,50 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
       }`}
     >
       <style>{`
-        .swiper-pagination-vertical {
-          right: 18px !important;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .swiper-pagination-bullet {
-          width: 7px !important;
-          height: 7px !important;
-          background: rgba(255, 255, 255, 0.45) !important;
-          opacity: 0.65 !important;
-          border-radius: 99px !important;
-          transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        }
-        .swiper-pagination-bullet-active {
-          width: 7px !important;
-          height: 26px !important;
-          background: #D4AF37 !important;
-          opacity: 1 !important;
-          box-shadow: 0 0 10px rgba(212, 175, 55, 0.75);
-        }
-        .swiper-button-next, .swiper-button-prev { color: rgba(255,255,255,0.8); }
-        .swiper-button-next:hover, .swiper-button-prev:hover { color: #fff; transform: scale(1.1); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-screenEntry { animation: fadeIn 0.8s ease forwards; }
+        .animate-screenEntry { animation: fadeIn 0.6s ease forwards; }
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: rgba(255,255,255,0.02);
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,0.12);
+          border-radius: 99px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background: rgba(255,255,255,0.22);
+        }
       `}</style>
 
       {showPreviewOverview ? (
-        <div ref={contentRef} className="w-full h-full relative animate-screenEntry">
+        <div ref={contentRef} className="w-full h-full flex flex-col relative animate-screenEntry bg-[#1a1210] text-white">
+          
+          {/* Header Block */}
+          <div className="w-full max-w-3xl mx-auto px-6 pt-10 pb-5 shrink-0 border-b border-white/5">
+            <div className="flex flex-col text-center md:text-left md:flex-row md:justify-between md:items-end gap-3">
+              <div>
+                <span className="font-mono text-[10px] text-[var(--color-accent-soft)] tracking-widest uppercase block">PREVIEW ITINERARY</span>
+                <h1 className="font-serif text-3xl md:text-4xl font-bold mt-1 text-white">Your Custom Passage</h1>
+                <span className="font-serif text-sm italic text-white/50 block mt-1">
+                  Tailored to your selected vibes and budget tier
+                </span>
+              </div>
+              <div className="shrink-0 font-mono text-[11px] text-white/55 bg-white/5 border border-white/10 px-3.5 py-2 rounded-full inline-flex items-center gap-2 self-center select-none">
+                <span>📍 {itinerarySpots.length} Stops</span>
+                <span className="opacity-35">•</span>
+                <span>📅 {duration} Day{duration > 1 ? 's' : ''}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Scrollable Content Feed */}
           {itinerarySpots.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-8 bg-[#1C1917] text-white">
+            <div className="flex-1 flex flex-col justify-center items-center text-center p-8 bg-[#1a1210] text-white">
               <BookOpen size={40} className="text-white/30 mb-4" />
-              <h3 className="text-heading text-white mb-2">No Stops Selected</h3>
-              <p className="text-body text-white/60 max-w-[280px] mb-6 leading-relaxed">
+              <h3 className="text-xl font-bold text-white mb-2">No Stops Selected</h3>
+              <p className="text-sm text-white/60 max-w-[280px] mb-6 leading-relaxed">
                 You have removed all stops. Please go back to align your vibes and rebuild your itinerary!
               </p>
               <button
@@ -413,197 +299,190 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                   playClick(0.85)
                   if (onBack) onBack()
                 }}
-                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-caption font-semibold tracking-wide cursor-pointer active:scale-95 transition-all"
+                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-xs font-bold tracking-wider cursor-pointer active:scale-95 transition-all"
               >
                 Adjust Vibes
               </button>
             </div>
           ) : (
-            <>
-              <Swiper
-                direction={'vertical'}
-                grabCursor={true}
-                slidesPerView={1}
-                speed={550}
-                resistanceRatio={0.9}
-                mousewheel={{
-                  sensitivity: 1.0,
-                  releaseOnEdges: true,
-                }}
-                keyboard={{
-                  enabled: true,
-                }}
-                pagination={{ clickable: false }}
-                modules={[Pagination, Mousewheel]}
-                className="w-full h-full"
-                onSlideChange={(swiper) => {
-                  playClick(1.0)
-                  setIsAtEnd(swiper.isEnd)
-                }}
-                onReachEnd={() => setIsAtEnd(true)}
-              >
-                {itinerarySpots.map((spot, i) => (
-                  <SwiperSlide 
-                    key={spot.id + i}
-                    className="w-full h-full overflow-hidden relative"
-                  >
-                    {/* Background Slide Delete Indicator */}
-                    {Math.abs(swipeOffsets[i] || 0) > 10 && (
-                      <div className="absolute inset-0 bg-[#3b0a11] flex items-center justify-between px-10 text-red-400 z-0">
-                        <div style={{ opacity: Math.min(1, Math.abs(swipeOffsets[i] || 0) / 100) }} className="flex items-center gap-2 text-overline font-semibold">
-                          <Trash2 size={16} /> Remove Stop
-                        </div>
-                        <div style={{ opacity: Math.min(1, Math.abs(swipeOffsets[i] || 0) / 100) }} className="flex items-center gap-2 text-overline font-semibold">
-                          Remove Stop <Trash2 size={16} />
-                        </div>
-                      </div>
-                    )}
-
-                    <div 
-                      className="w-full h-full relative select-none cursor-grab active:cursor-grabbing touch-pan-y z-10"
-                      onPointerDown={(e) => handlePointerDown(e, i)}
-                      onPointerMove={(e) => handlePointerMove(e, i)}
-                      onPointerUp={(e) => handlePointerUp(e, i)}
-                      onPointerCancel={(e) => handlePointerUp(e, i)}
-                      style={{
-                        transform: `translateX(${swipeOffsets[i] || 0}px)`,
-                        opacity: 1 - Math.abs(swipeOffsets[i] || 0) / (window.innerWidth || 500),
-                        transition: activePointerIdState === null ? 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease' : 'none'
-                      }}
-                    >
-                      <img
-                        src={spot.image || 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'}
-                        alt="Bahrain travel destination"
-                        className="absolute inset-0 w-full h-full object-cover opacity-80"
-                        loading="lazy"
-                        decoding="async"
-                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling?.classList.remove('hidden') }}
-                      />
-                      <div className="absolute inset-0 w-full h-full hidden flex items-center justify-center bg-gradient-to-br from-[#2A2321] to-[#1a1210]">
-                        <span className="text-6xl opacity-40">{spot.keepsakeEmoji || '📍'}</span>
-                      </div>
-                      
-                      <div className="absolute inset-0 bg-gradient-to-tr from-[#1a1210]/95 via-[#1a1210]/60 to-[#BA0C2F]/80" />
- 
-                      <div className="absolute inset-0 flex flex-col justify-between items-center py-16 px-6 max-w-4xl mx-auto text-white h-full pointer-events-none">
-                        
-                        <div className="w-full flex justify-between items-start mt-8">
-                         <div className="flex flex-col text-left max-w-[calc(100%-140px)] overflow-visible">
-                             <span className="font-mono text-overline text-white/70 block w-full break-words">
-                                DAY {spot.day || 1} • {spot.period}
-                             </span>
-                             <h2 className="font-serif text-heading md:text-display font-bold tracking-tight leading-tight mt-1 text-white drop-shadow-2xl w-full break-words">
-                               {spot.keepsakeEmoji || '📍'} {spot.name}
-                             </h2>
-                             <span className="font-serif text-base md:text-xl italic text-[var(--color-primary-soft)] drop-shadow-xl font-semibold mt-1 w-full break-words">
-                               {spot.arabic}
-                             </span>
-                           </div>
- 
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              playClick(0.75)
-                              const remaining = itinerarySpots.filter((_, sIdx) => sIdx !== i)
-                              setItinerarySpots(remaining)
-                            }}
-                            className="pointer-events-auto shrink-0 px-4 py-2.5 rounded-full bg-red-950/45 hover:bg-red-700/80 border border-red-500/25 hover:border-red-500 text-red-200 hover:text-white text-overline font-semibold transition-all duration-300 backdrop-blur-md cursor-pointer active:scale-95 shadow-md flex items-center gap-1.5 z-50"
-                          >
-                            <Trash2 size={11} className="text-red-400" />
-                            Remove Stop
-                          </button>
-                        </div>
- 
-                        <div className="w-full mt-auto space-y-5 mb-16 pointer-events-auto">
-                          {/* Integrated Details Panel - Premium Dark Glassmorphism */}
-                          <div 
-                            className="rounded-2xl p-5 border shadow-2xl relative overflow-hidden"
-                            style={{
-                              background: 'linear-gradient(135deg, rgba(20, 15, 15, 0.75) 0%, rgba(10, 5, 5, 0.55) 100%)',
-                              borderColor: 'rgba(212, 175, 55, 0.22)',
-                              backdropFilter: 'blur(16px)',
-                              WebkitBackdropFilter: 'blur(16px)',
-                              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-                            }}
-                          >
-                            <span className="text-overline text-[var(--color-accent)] block mb-2">
-                              Guide Plan
-                            </span>
-                            <p className="font-serif text-body-lg text-white/90">
-                              {spot.pathGuide}
-                            </p>
-                            
-                            <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
-                              <span className="text-caption font-semibold text-[var(--color-accent-soft)]">
-                                {spot.pathCost || spot.budgetCost || 'Free Entry'}
-                              </span>
-                              <span className="font-mono text-overline text-white/40">
-                                {spot.coords}
-                              </span>
-                            </div>
-                          </div>
- 
-                          {/* What You Can Find Here - Subtle Complementary Glassmorphism */}
-                          <div 
-                            className="rounded-xl p-4 border"
-                            style={{
-                              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%)',
-                              borderColor: 'rgba(255, 255, 255, 0.08)',
-                              backdropFilter: 'blur(12px)',
-                              WebkitBackdropFilter: 'blur(12px)',
-                              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-                            }}
-                          >
-                            <span className="text-overline text-white/50 block mb-1.5">
-                              What to See
-                            </span>
-                            <p className="font-serif text-body text-white/80">
-                              {spot.simpleTerms}
-                            </p>
-                          </div>
-                        </div>
- 
-                      </div>
- 
-                      {/* Gesture Guidance Tip */}
-                      <div className="absolute bottom-[90px] left-0 right-0 text-center pointer-events-none z-30 select-none">
-                        <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-neutral-900/90 backdrop-blur-md border border-white/10 text-overline text-white/80">
-                          <span>↔ Swipe card to remove</span>
-                          <span className="opacity-30">•</span>
-                          <span>↕ Scroll for next</span>
-                        </div>
-                      </div>
+            <div className="flex-1 overflow-y-auto w-full max-w-3xl mx-auto px-6 py-6 space-y-8 scrollbar-thin">
+              {sortedDays.map((dayNum) => {
+                const daySpots = spotsByDay[dayNum] || []
+                return (
+                  <div key={dayNum} className="space-y-4">
+                    
+                    {/* Day Divider Header */}
+                    <div className="flex items-center gap-3 select-none">
+                      <span className="font-mono text-[10px] uppercase tracking-widest text-[#D4AF37] font-extrabold bg-[#D4AF37]/10 border border-[#D4AF37]/25 px-3 py-1 rounded-full">
+                        Day {dayNum}
+                      </span>
+                      <div className="flex-1 h-[1px] bg-gradient-to-r from-white/10 to-transparent" />
                     </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
- 
-              {/* Floating Actions */}
-              <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4 z-50 px-6 pointer-events-none">
-                <button
-                  onClick={() => {
-                    playClick(0.85)
-                    if (onBack) onBack()
-                  }}
-                  className="pointer-events-auto px-6 py-3 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 text-white font-bold text-xs tracking-wider transition-all active:scale-95"
-                >
-                  ❮ Back
-                </button>
-                
-                <button
-                  disabled={sealing || !isAtEnd}
-                  onClick={() => {
-                    if (sealing || !isAtEnd) return
-                    setConfirmOpen(true)
-                  }}
-                  className={`pointer-events-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-caption font-semibold tracking-wide flex items-center gap-2 shadow-[0_10px_30px_rgba(193,18,47,0.25)] transition-all hover:scale-105 active:scale-95 ${!isAtEnd ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <BookOpen size={13} className="text-white" />
-                  <span>{sealing ? 'Confirming...' : isAtEnd ? 'Confirm Itinerary' : 'Scroll to review stops'}</span>
-                </button>
-              </div>
-            </>
+
+                    {/* Spot Cards List */}
+                    <div className="space-y-3">
+                      {daySpots.map((spot, idx) => {
+                        const isExpanded = !!expandedSpots[spot.id]
+                        const isAirport = spot.id === 'airport-arrival' || spot.id === 'airport-departure'
+                        return (
+                          <div 
+                            key={spot.id + idx}
+                            className="w-full rounded-2xl border transition-all duration-300 overflow-hidden"
+                            style={{
+                              background: isExpanded 
+                                ? 'linear-gradient(135deg, rgba(30, 22, 20, 0.9) 0%, rgba(15, 10, 8, 0.7) 100%)' 
+                                : 'linear-gradient(135deg, rgba(25, 18, 16, 0.55) 0%, rgba(12, 8, 6, 0.4) 100%)',
+                              borderColor: isExpanded ? 'rgba(212, 175, 55, 0.3)' : 'rgba(255, 255, 255, 0.08)',
+                              boxShadow: isExpanded 
+                                ? '0 12px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08)' 
+                                : '0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                            }}
+                          >
+                            {/* Main Row */}
+                            <div 
+                              onClick={() => toggleSpotExpand(spot.id)}
+                              className="flex items-center gap-4 p-4 cursor-pointer select-none"
+                            >
+                              {/* Thumbnail */}
+                              <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-[#1c1917] border border-white/10">
+                                <img
+                                  src={spot.image || 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'}
+                                  alt={spot.name}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling?.classList.remove('hidden') }}
+                                />
+                                <div className="absolute inset-0 hidden flex items-center justify-center bg-[#2A2321]">
+                                  <span className="text-xl">{spot.keepsakeEmoji || '📍'}</span>
+                                </div>
+                              </div>
+
+                              {/* Center Info */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-mono text-[9px] text-white/50 uppercase tracking-wider">
+                                    {spot.period || 'Ancient Era'}
+                                  </span>
+                                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                                  <span className="font-mono text-[9px] text-[#D4AF37] uppercase tracking-wider">
+                                    {spot.category || 'culture'}
+                                  </span>
+                                </div>
+                                <h3 className="font-serif text-[15px] font-bold text-white mt-0.5 truncate flex items-center gap-1.5">
+                                  <span>{spot.keepsakeEmoji || '📍'}</span>
+                                  <span className="truncate">{spot.name}</span>
+                                </h3>
+                                <p className="font-serif text-[12px] italic text-white/60 mt-0.5 truncate">
+                                  {spot.arabic}
+                                </p>
+                              </div>
+
+                              {/* Actions / Expand State */}
+                              <div className="flex items-center gap-3 shrink-0 pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+                                
+                                {/* Remove Stop Button (Disabled for Airport checkpoints to preserve route stability) */}
+                                {!isAirport && (
+                                  <button
+                                    onClick={() => {
+                                      playClick(0.75)
+                                      const remaining = itinerarySpots.filter(s => s.id !== spot.id)
+                                      setItinerarySpots(remaining)
+                                    }}
+                                    className="p-2 rounded-full bg-red-950/20 hover:bg-red-700/45 border border-red-500/15 hover:border-red-500/45 text-red-400 hover:text-red-200 transition-all cursor-pointer active:scale-95"
+                                    title="Remove Stop"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                )}
+
+                                {/* Toggle Accordion Button */}
+                                <button
+                                  onClick={() => toggleSpotExpand(spot.id)}
+                                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white transition-all cursor-pointer active:scale-95"
+                                >
+                                  {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                                </button>
+
+                              </div>
+                            </div>
+
+                            {/* Expandable Accordion Panel */}
+                            {isExpanded && (
+                              <div className="border-t border-white/5 p-4 space-y-4 bg-black/20 animate-fadeIn">
+                                
+                                {/* Guide Plan Details */}
+                                <div className="space-y-1">
+                                  <span className="font-mono text-[9px] text-[#D4AF37] uppercase tracking-widest block">
+                                    Guide Plan
+                                  </span>
+                                  <p className="font-serif text-[13px] text-white/90 leading-relaxed">
+                                    {spot.pathGuide || spot.desc}
+                                  </p>
+                                </div>
+
+                                {/* What to See */}
+                                {spot.simpleTerms && (
+                                  <div className="space-y-1 pt-2 border-t border-white/5">
+                                    <span className="font-mono text-[9px] text-white/40 uppercase tracking-widest block">
+                                      What to See
+                                    </span>
+                                    <p className="font-serif text-[12px] text-white/75 leading-relaxed">
+                                      {spot.simpleTerms}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Extra details (cost, coords) */}
+                                <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px] font-mono">
+                                  <span className="text-[#D4AF37] font-bold">
+                                    💰 {spot.pathCost || 'Free Entry'}
+                                  </span>
+                                  <span className="text-white/30">
+                                    🌐 {spot.coords}
+                                  </span>
+                                </div>
+
+                              </div>
+                            )}
+
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                  </div>
+                )
+              })}
+            </div>
           )}
+
+          {/* Bottom Footer Actions (Sticky) */}
+          <div className="w-full shrink-0 border-t border-white/5 bg-[#140e0d]/80 backdrop-blur-md py-5 px-6">
+            <div className="max-w-3xl mx-auto flex justify-center gap-4">
+              <button
+                onClick={() => {
+                  playClick(0.85)
+                  if (onBack) onBack()
+                }}
+                className="px-6 py-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs tracking-wider transition-all active:scale-95 cursor-pointer"
+              >
+                ❮ Adjust Vibes
+              </button>
+              
+              <button
+                disabled={sealing || itinerarySpots.length === 0}
+                onClick={() => {
+                  if (sealing || itinerarySpots.length === 0) return
+                  setConfirmOpen(true)
+                }}
+                className={`px-8 py-3 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-xs font-bold tracking-wider flex items-center gap-2 shadow-[0_10px_30px_rgba(193,18,47,0.25)] transition-all hover:scale-103 active:scale-97 cursor-pointer ${itinerarySpots.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <BookOpen size={13} className="text-white" />
+                <span>{sealing ? 'Confirming...' : 'Confirm & Start Journey'}</span>
+              </button>
+            </div>
+          </div>
+
         </div>
       ) : (
         /* LOADING STAGE */
