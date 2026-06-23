@@ -141,7 +141,7 @@ export function getGuideThoughts(spot) {
 
 export const shopItems = [
   { id: 'riddle-hint', name: 'Riddle Scroll Clue', desc: 'Consumable scroll providing poetic guidance for active coordinate riddles.', cost: 150, emoji: '📜', xpReward: 10 },
-  { id: 'saffron-halwa', name: 'Saffron Halwa Plate', desc: 'Eat this traditional golden dessert to temporarily unlock the warm saffron interface theme.', cost: 300, emoji: '🍯', xpReward: 25 },
+  { id: 'saffron-halwa', name: 'Saffron Halwa Plate', desc: 'A traditional sweet recipe cooked in copper vats. Eat it to enjoy the rich, warm flavors of Bahrain!', cost: 300, emoji: '🍯', xpReward: 25 },
   { id: 'pearl-hook', name: 'Generational Oyster Hook', desc: 'Allows you to search for Basra Pearls in Sitra reefs and Jarada Island.', cost: 400, emoji: '🪝', xpReward: 30 },
   { id: 'falcon-glove', name: 'Falconer Leather Glove', desc: 'Equip to interact with wild falcons at Arad Fort or Al Areen Sakhir Park.', cost: 400, emoji: '🧤', xpReward: 30 },
   { id: 'keepsake-bag', name: 'Bazaar Keepsake Grab-bag', desc: 'Instantly unlocks a random traditional souvenir keepsake.', cost: 600, emoji: '🛍️', xpReward: 50 }

@@ -74,7 +74,6 @@ export function JourneyProvider({ children }) {
 
   // ── Travel Bag / Saffron Theme ─────────────────────────────────────────
   const [purchasedItems, setPurchasedItems] = useState(() => safeGetJSON('bp_purchasedItems', {}))
-  const [saffronThemeActive, setSaffronThemeActive] = useState(() => safeGetJSON('bp_saffronThemeActive', false))
 
 
   // ── UI state ──────────────────────────────────────────────────────────
@@ -124,7 +123,6 @@ export function JourneyProvider({ children }) {
         localStorage.setItem('bp_soundVolume', soundVolume)
         localStorage.setItem('bp_soundMuted', soundMuted ? '1' : '0')
         localStorage.setItem('bp_purchasedItems', JSON.stringify(purchasedItems))
-        localStorage.setItem('bp_saffronThemeActive', JSON.stringify(saffronThemeActive))
         localStorage.setItem('bp_activeLeaf', activeLeaf)
         localStorage.setItem('bp_xp', xp)
         localStorage.setItem('bp_xpLog', JSON.stringify(xpLog))
@@ -139,7 +137,7 @@ export function JourneyProvider({ children }) {
       } catch (e) { console.error(e) }
     }, 200)
     return () => clearTimeout(timer)
-  }, [step, selectedMoods, tier, duration, unlockedDays, completedDays, currentDayTab, itinerarySpots, capturedPhotos, lensStories, journalReflections, soundVolume, soundMuted, purchasedItems, saffronThemeActive, activeLeaf, xp, xpLog, solvedRiddles, goldFils, passportStamps, pearlsCollected, falconsCalled, selectedHotel, collectedKeepsakes, chatHistory])
+  }, [step, selectedMoods, tier, duration, unlockedDays, completedDays, currentDayTab, itinerarySpots, capturedPhotos, lensStories, journalReflections, soundVolume, soundMuted, purchasedItems, activeLeaf, xp, xpLog, solvedRiddles, goldFils, passportStamps, pearlsCollected, falconsCalled, selectedHotel, collectedKeepsakes, chatHistory])
 
 
 
@@ -233,14 +231,13 @@ export function JourneyProvider({ children }) {
     setChatHistory([])
     setStep(1)
     setPurchasedItems({})
-    setSaffronThemeActive(false)
     try {
       const keys = [
         'bp_step', 'bp_selectedMoods', 'bp_tier', 'bp_duration',
         'bp_unlockedDays', 'bp_completedDays', 'bp_currentDayTab',
         'bp_itinerarySpots', 'bp_capturedPhotos', 'bp_lensStories',
         'bp_collectedKeepsakes', 'bp_journalReflections', 'bp_soundVolume', 'bp_soundMuted',
-        'bp_purchasedItems', 'bp_saffronThemeActive',
+        'bp_purchasedItems',
         'bp_activeLeaf', 'bp_xp', 'bp_xpLog', 'bp_solvedRiddles', 'bp_goldFils',
         'bp_passportStamps', 'bp_pearlsCollected', 'bp_falconsCalled', 'bp_chatHistory'
       ]
@@ -387,8 +384,6 @@ export function JourneyProvider({ children }) {
       // Travel Bag / Saffron Theme
       purchasedItems,
       setPurchasedItems,
-      saffronThemeActive,
-      setSaffronThemeActive,
       quickStart,
 
       // UI

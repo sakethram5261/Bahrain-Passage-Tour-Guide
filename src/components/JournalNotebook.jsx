@@ -178,10 +178,13 @@ export default function JournalNotebook({ onBack }) {
     playOrganicPageSwish,
     purchasedItems = {},
     setPurchasedItems = () => {},
-    saffronThemeActive = false,
-    setSaffronThemeActive = () => {},
     setItinerarySpots = () => {},
+    falconsCalled = [],
+    setFalconsCalled = () => {},
+    pearlsCollected = [],
+    setPearlsCollected = () => {},
   } = useVibe() || {}
+
 
 
   /* ── Language + Toast context ──────────────────────────────────────────── */
@@ -1048,7 +1051,7 @@ export default function JournalNotebook({ onBack }) {
 
   /* RENDER */
   return (
-    <div className={`jn-root ${saffronThemeActive ? 'jn-saffron-theme' : ''}`} role="main" aria-label="Bahrain Passage Journal Notebook">
+    <div className="jn-root" role="main" aria-label="Bahrain Passage Journal Notebook">
 
 
 
@@ -1910,9 +1913,7 @@ export default function JournalNotebook({ onBack }) {
                                   {item.name}
                                 </h5>
                                 <p className="font-sans text-[8.5px] text-bronze-muted leading-tight max-w-[180px] mt-0.5">
-                                  {item.id === 'saffron-halwa' && saffronThemeActive
-                                    ? "Saffron Gold interface theme is active!"
-                                    : item.desc}
+                                  {item.desc}
                                 </p>
                               </div>
                             </div>
@@ -1928,23 +1929,12 @@ export default function JournalNotebook({ onBack }) {
                                       if (next['saffron-halwa'] > 0) next['saffron-halwa']--
                                       return next
                                     })
-                                    setSaffronThemeActive(true)
-                                    toast.success("Mmm! Cardamom, almonds and saffron threads! Saffron Gold Theme activated!")
+                                    awardXP(25, "Consumed traditional Saffron Halwa")
+                                    toast.success("Mmm! Cardamom, almonds and saffron threads! Delicious sweet halwa tasted. (+25 XP)")
                                   }}
                                   className="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white font-sans text-[8px] uppercase tracking-wider font-extrabold cursor-pointer"
                                 >
                                   Eat
-                                </button>
-                              )}
-                              {item.id === 'saffron-halwa' && saffronThemeActive && (
-                                <button
-                                  onClick={() => {
-                                    setSaffronThemeActive(false)
-                                    toast.success("Switched back to default Crimson Theme.")
-                                  }}
-                                  className="px-2 py-1 rounded bg-neutral-200 hover:bg-neutral-300 text-neutral-700 font-sans text-[8px] uppercase tracking-wider font-extrabold cursor-pointer"
-                                >
-                                  Reset
                                 </button>
                               )}
                             </div>
