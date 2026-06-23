@@ -30,7 +30,8 @@ import {
   HelpCircle,
   Volume2,
   VolumeX,
-  Languages
+  Languages,
+  Search
 } from 'lucide-react'
 import { useVibe } from '../hooks/useVibe'
 import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
@@ -61,7 +62,7 @@ import {
 const WayfarerMap = lazy(() => import('./WayfarerMap'))
 const TourChatbot = lazy(() => import('./TourChatbot'))
 import { useToast } from '../context/ToastContext'
-import { callLocalAI, buildRiddleHintPrompt } from '../services/aiService'
+import { callLocalAI, buildRiddleHintPrompt, buildSpotSearchPrompt } from '../services/aiService'
 
 
 /* ─── Tabs definition ──────────────────────────────────────────────────────── */
@@ -70,6 +71,7 @@ const TABS = [
   { id: 'itinerary',  label: 'Route' },
   { id: 'map',        label: 'Map' },
   { id: 'hotels',     label: 'Hotels' },
+  { id: 'search',     label: 'Search' },
   { id: 'souvenirs',  label: 'Souvenirs' },
   { id: 'phrasebook', label: 'Phrases' },
 ]
@@ -178,6 +180,7 @@ export default function JournalNotebook({ onBack }) {
     setPurchasedItems = () => {},
     saffronThemeActive = false,
     setSaffronThemeActive = () => {},
+    setItinerarySpots = () => {},
   } = useVibe() || {}
 
 
@@ -218,6 +221,12 @@ export default function JournalNotebook({ onBack }) {
   const [baseCampPromptOpen, setBaseCampPromptOpen] = useState(false)
   const [quickInfoOpen, setQuickInfoOpen] = useState(false)
   const [selectedKsake, setSelectedKsake] = useState(null)
+
+  // Search states
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState(null)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchError, setSearchError] = useState(null)
 
   useEffect(() => {
     if (!selectedHotel) {
@@ -536,6 +545,80 @@ export default function JournalNotebook({ onBack }) {
         toast.success(`Purchased ${item.name}! Added to Travel Gear. (+${item.xpReward || 20} XP)`)
       }
     }
+  }
+
+  /* ── Search Handlers ──────────────────────────────────────────────────────── */
+  const handleSearchSubmit = async () => {
+    if (!searchQuery.trim()) return
+    setSearchLoading(true)
+    setSearchError(null)
+    setSearchResults(null)
+    playTypewriterClick(1.0)
+    
+    try {
+      const { system, user } = buildSpotSearchPrompt(searchQuery)
+      const responseText = await callLocalAI(
+        system,
+        user,
+        '',
+        { maxTokens: 800, useJson: true }
+      )
+      
+      if (responseText && !responseText.includes('error')) {
+        let cleaned = responseText.trim()
+        if (cleaned.startsWith('```')) {
+          cleaned = cleaned.replace(/^```json\s*/, '').replace(/```$/, '').trim()
+        }
+        const parsed = JSON.parse(cleaned)
+        if (parsed.success) {
+          setSearchResults(parsed)
+        } else {
+          setSearchError(parsed.errorMsg || "Could not find any location by that name in Bahrain.")
+        }
+      } else {
+        setSearchError("AI search service currently offline or timed out. Please try again.")
+      }
+    } catch (e) {
+      console.error("Search error:", e)
+      setSearchError("An error occurred during search. Please verify your query.")
+    } finally {
+      setSearchLoading(false)
+    }
+  }
+
+  const handleAddSearchedSpot = (spot) => {
+    const spotId = spot.id || `spot-${Math.random().toString(36).substr(2, 9)}`
+    
+    const newSpot = {
+      id: spotId,
+      name: spot.name,
+      arabic: spot.arabic || 'معلم بحريني',
+      mood: spot.mood || 'culture',
+      coords: spot.coords || '26.2° N, 50.6° E',
+      period: spot.period || 'Modern Era',
+      desc: spot.desc,
+      simpleTerms: `What this offers: ${spot.desc}`,
+      insider: spot.insider || 'Enjoy exploring this beautiful landmark.',
+      pathGuide: `Directions: ${spot.where}. Opening hours: ${spot.hours}`,
+      pathCost: spot.cost || 'Free Entry',
+      image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG',
+      day: currentDayTab,
+      category: spot.category || 'culture'
+    }
+    
+    setItinerarySpots(prev => {
+      // Find the airport departure if it is on the same day, and insert before it
+      const departureIndex = prev.findIndex(s => s.id === 'airport-departure' && s.day === currentDayTab)
+      if (departureIndex !== -1) {
+        const next = [...prev]
+        next.splice(departureIndex, 0, newSpot)
+        return next
+      }
+      return [...prev, newSpot]
+    })
+    
+    awardXP(20, `Added ${spot.name} to Route`)
+    toast.success(`Successfully added ${spot.name} to Day ${currentDayTab} route!`)
   }
 
 
@@ -1105,6 +1188,7 @@ export default function JournalNotebook({ onBack }) {
                   case 'itinerary': return <MapPin size={size} />;
                   case 'map': return <Map size={size} />;
                   case 'hotels': return <Hotel size={size} />;
+                  case 'search': return <Search size={size} />;
                   case 'souvenirs': return <Gift size={size} />;
                   case 'phrasebook': return <BookOpen size={size} />;
                   default: return null;
@@ -1883,6 +1967,190 @@ export default function JournalNotebook({ onBack }) {
                   </div>
                   <hr className="jn-divider" aria-hidden="true" />
                   <AIHotelPanel moods={selectedMoods} tier={tier} duration={duration} autoLoad={true} />
+                </div>
+              )}
+
+
+              {/* ─── SUB-TAB: SEARCH ─── */}
+              {activeTab === 'search' && (
+                <div className="space-y-5 animate-fadeIn">
+                  <div className="jn-section-heading">
+                    <h2 className="jn-section-title">Spot Search</h2>
+                    <span className="jn-section-subtitle">Find & explore any landmark in Bahrain</span>
+                  </div>
+                  
+                  <hr className="jn-divider" aria-hidden="true" />
+
+                  {/* Search input field */}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSearchSubmit()
+                      }}
+                      placeholder="e.g. Al Fateh Grand Mosque, King Fahd Causeway..."
+                      style={{
+                        flex: 1,
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                        border: '1.5px solid var(--jn-border-color, #E7E5E4)',
+                        fontFamily: 'var(--jn-font-sans)',
+                        fontSize: '13px',
+                        background: 'var(--jn-paper, #FCFBF8)',
+                        color: 'var(--jn-ink, #1C1917)',
+                        outline: 'none',
+                      }}
+                    />
+                    <button
+                      onClick={handleSearchSubmit}
+                      disabled={searchLoading}
+                      className="jn-action-btn jn-action-btn--primary"
+                      style={{
+                        padding: '10px 18px',
+                        fontSize: '12px',
+                        fontWeight: '800',
+                        textTransform: 'uppercase',
+                        borderRadius: '12px',
+                        minWidth: '90px'
+                      }}
+                    >
+                      {searchLoading ? 'Searching' : 'Search'}
+                    </button>
+                  </div>
+
+                  {/* Suggestions list */}
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--jn-ink-faint, #A8A29E)' }}>Examples:</span>
+                    {[
+                      { label: '🕌 Al Fateh Mosque', val: 'Al Fateh Grand Mosque' },
+                      { label: '🏎️ BIC Formula 1', val: 'Bahrain International Circuit' },
+                      { label: '🌉 Causeway', val: 'King Fahd Causeway' },
+                      { label: '🪵 Bu Maher Fort', val: 'Bu Maher Fort' }
+                    ].map((item) => (
+                      <button
+                        key={item.val}
+                        onClick={() => {
+                          setSearchQuery(item.val);
+                          // Perform search right after setting state
+                          setTimeout(() => {
+                            const btn = document.querySelector('.jn-action-btn--primary');
+                            if (btn) btn.click();
+                          }, 50);
+                        }}
+                        style={{
+                          fontSize: '10.5px',
+                          fontWeight: 'bold',
+                          padding: '4px 10px',
+                          borderRadius: '9999px',
+                          border: '1px solid var(--jn-border-color, #E7E5E4)',
+                          background: 'var(--jn-paper, #FCFBF8)',
+                          color: 'var(--jn-ink, #1C1917)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--jn-crimson)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--jn-border-color)'; e.currentTarget.style.background = 'var(--jn-paper)' }}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Loading State */}
+                  {searchLoading && (
+                    <div style={{ padding: '40px 20px', textAlign: 'center' }} className="space-y-3">
+                      <div className="inline-block w-8 h-8 rounded-full border-2 border-dashed border-[#C1122F] animate-spin" style={{ animation: 'spin 1.5s linear infinite' }} />
+                      <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontStyle: 'italic', color: 'var(--jn-ink-muted)' }}>
+                        Consulting cultural archives for details...
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Search Error State */}
+                  {searchError && (
+                    <div className="p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 font-sans text-xs text-center font-bold">
+                      ⚠️ {searchError}
+                    </div>
+                  )}
+
+                  {/* Search Result Display */}
+                  {searchResults && (
+                    <div className="glass-panel rounded-3xl p-5 border border-red-500/10 space-y-4 animate-fadeIn">
+                      <div className="flex justify-between items-start border-b border-red-500/10 pb-2">
+                        <div className="flex flex-col text-left">
+                          <span className="font-sans text-[9px] tracking-wider text-bahrain-red font-mono uppercase">
+                            {searchResults.coords} • {searchResults.period || 'Modern Era'}
+                          </span>
+                          <h3 className="font-serif text-xl font-bold text-stone-900 mt-0.5 leading-tight">
+                            {searchResults.name}
+                          </h3>
+                        </div>
+                        <span className="font-serif text-base text-bahrain-red italic shrink-0">
+                          {searchResults.arabic}
+                        </span>
+                      </div>
+                      
+                      <p className="font-sans text-xs text-stone-700 leading-relaxed text-left">
+                        {searchResults.desc}
+                      </p>
+
+                      <div className="grid grid-cols-2 gap-3 text-left">
+                        <div className="p-3 rounded-xl bg-stone-100/50 border border-stone-200">
+                          <span className="font-sans text-[8px] uppercase tracking-widest text-[#B8860B] font-bold block">Opening Hours</span>
+                          <span className="font-sans text-[11px] text-stone-800 font-semibold block mt-1 leading-snug">{searchResults.hours}</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-stone-100/50 border border-stone-200">
+                          <span className="font-sans text-[8px] uppercase tracking-widest text-[#B8860B] font-bold block">Estimated Cost</span>
+                          <span className="font-sans text-[11px] text-stone-800 font-semibold block mt-1 leading-snug">{searchResults.cost}</span>
+                        </div>
+                      </div>
+
+                      {/* Modesty or Safety Warning alerts */}
+                      {(searchResults.modestyAlert || searchResults.safetyAlert) && (
+                        <div className="space-y-1.5 text-left">
+                          {searchResults.modestyAlert && (
+                            <div className="flex items-center gap-2.5 p-2.5 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-900 text-[10px] font-sans font-bold select-none">
+                              <span>🕌 Modesty Warning: {searchResults.modestyAlert}</span>
+                            </div>
+                          )}
+                          {searchResults.safetyAlert && (
+                            <div className="flex items-center gap-2.5 p-2.5 rounded-xl border bg-red-500/10 border-red-500/20 text-red-900 text-[10px] font-sans font-bold select-none">
+                              <span>⚠️ Tip: {searchResults.safetyAlert}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Insider Observation */}
+                      <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-left">
+                        <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold block mb-1">Local Observation</span>
+                        <p className="font-serif text-[11.5px] italic text-stone-800 leading-relaxed font-semibold">
+                          "{searchResults.insider}"
+                        </p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex justify-between items-center pt-2 border-t border-red-500/10">
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchResults.name + ', Bahrain')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 border border-amber-500/20 font-sans text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 text-center cursor-pointer pointer-events-auto"
+                        >
+                          Directions
+                        </a>
+
+                        <button
+                          onClick={() => handleAddSearchedSpot(searchResults)}
+                          className="px-4 py-2 rounded-xl bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 cursor-pointer pointer-events-auto"
+                        >
+                          Add to Day {currentDayTab} Route
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

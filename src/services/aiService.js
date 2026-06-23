@@ -149,3 +149,29 @@ Reply in this exact format: "PLACE: [name] | REASON: [1 sentence why they'd love
     user: `Traveler loves: ${moodList}. Budget tier: ${tier}. Already visiting: ${existing}. Suggest one hidden gem they'd genuinely love.`,
   }
 }
+
+export function buildSpotSearchPrompt(searchQuery) {
+  return {
+    system: `You are a helpful Bahraini tour guide.
+Provide detailed information about the location queried: "${searchQuery}".
+The location must be in Bahrain. If the queried place is not in Bahrain, set success to false and write an error message in errorMsg.
+You must reply with a valid JSON object. Do not wrap the JSON in markdown code blocks or backticks.
+The JSON object must have the following keys:
+- name: Official English name of the place
+- arabic: Arabic script of the name (e.g. "جامع أحمد الفاتح")
+- desc: A small paragraph describing the place, its historical/cultural significance, and what visitors do there (2-3 sentences)
+- where: Precise description of where it is located in Bahrain (e.g., Al Juffair, Manama, Muharraq)
+- coords: Approx GPS coordinates (e.g., "26.2185° N, 50.5912° E")
+- hours: Standard opening hours (e.g., "Open daily 9:00 AM - 5:00 PM, closed Fridays")
+- cost: Estimated entry cost / fee (e.g., "Free Entry", "2 BHD")
+- modestyAlert: A string with modesty dress warning if it's a religious/governmental site, otherwise empty
+- safetyAlert: Any heat, timing, or safety warnings, otherwise empty
+- insider: One cool insider tip or local observation about it
+- category: one of: fort, souq, coast, modern, desert, culture
+- period: historical period or era (e.g. "Dilmun Era" or "Modern Era")
+- success: boolean (true if the place is in Bahrain, false otherwise)
+- errorMsg: error message string if success is false`,
+    user: `Provide details about this place in Bahrain: "${searchQuery}".`
+  }
+}
+

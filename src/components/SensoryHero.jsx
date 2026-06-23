@@ -4,11 +4,13 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Mousewheel, Pagination } from 'swiper/modules'
 import { Trash2, BookOpen } from 'lucide-react'
 import { playTypewriterClick } from '../services/audioUtils'
+import { callLocalAI } from '../services/aiService'
 import 'swiper/css'
 import 'swiper/css/pagination'
 
 const guidePhrases = [
   `Assembling your personalized guide...`,
+  `Querying Gemini AI for custom spots...`,
   `Selecting points of interest for Day 1...`,
   `Loading historical details and background info...`,
   `Mapping coastal forts in Muharraq...`,
@@ -19,6 +21,16 @@ const guidePhrases = [
   `Preparing your custom travel passport...`,
   `Itinerary ready! Click below to view.`
 ]
+
+const categoryImages = {
+  fort: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG',
+  souq: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bab_al-Bahrain_Souq_2.jpg',
+  coast: 'https://commons.wikimedia.org/wiki/Special:FilePath/Colours_of_the_Persian_Gulf_ESA353290_(cropped_to_Jidda_Island).jpg',
+  modern: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Manama_Skyline_08.jpg',
+  desert: 'https://commons.wikimedia.org/wiki/Special:FilePath/2010-03_Tree_of_Life_Bahrain.jpg',
+  culture: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bahrain_National_Museum_Exterior_1.jpg',
+  default: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'
+}
 
 export default function SensoryHero({ onBack }) {
   const {
@@ -146,42 +158,131 @@ export default function SensoryHero({ onBack }) {
       console.error("Dynamic catalog chunk load protected:", importErr)
     }
 
+    let aiFetched = false
     try {
-      if (localCatalog && Array.isArray(localCatalog)) {
-        const filtered = localCatalog.filter(s => selectedMoods && selectedMoods.includes(s.mood) && s.id !== 'airport-arrival' && s.id !== 'airport-departure')
-        compiledSpots = filtered.map((item, idx) => {
-          const targetDay = (idx % (duration || 1)) + 1
-          return {
-            ...item,
-            day: targetDay,
-            pathGuide: tier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
-            pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
+      if (selectedMoods && selectedMoods.length > 0) {
+        setTerminalLogs(logs => [...logs, "Consulting Gemini travel planner for custom spots..."])
+
+        const systemPrompt = `You are a highly knowledgeable Bahraini travel planner.
+Generate a list of interesting, culturally rich, and fun spots in Bahrain tailored to the traveler's selected vibes/moods, budget tier, and duration.
+You must return a valid JSON array of spot objects.
+Each spot object must contain the following keys exactly:
+- id: unique string in kebab-case
+- name: English name
+- arabic: Arabic script of the name (e.g. "موقع قلعة البحرين")
+- mood: one of: empires, spice, sea, lights, desert, culture
+- coords: approx coordinates, e.g. "26.2339° N, 50.5198° E"
+- period: historical period or "Modern Era"
+- desc: brief description (1-2 sentences)
+- simpleTerms: What this offers: description of what a visitor actually does there (1-2 sentences)
+- insider: an insider secret, unique tip, or personal observation (1 sentence)
+- budgetGuide: how a budget-conscious traveler can enjoy it (1 sentence)
+- premiumGuide: a curated, luxury or premium experience there (1 sentence)
+- budgetCost: estimate cost (e.g., "Free Entry" or "Under 1 BHD")
+- premiumCost: estimate cost (e.g., "15 BHD" or "40 BHD")
+- category: one of: fort, souq, coast, modern, desert, culture
+- keepsakeId: unique stamp identifier, e.g. "custom-X"
+- keepsakeName: name of custom keepsake
+- keepsakeEmoji: single emoji representing the keepsake
+- keepsakeDesc: description of the keepsake
+
+Please generate exactly ${duration * 2} spots (excluding airport arrival/departure) spread across the ${duration} days, or a minimum of 4 spots if the duration is 1 day.
+Assign a "day" field (integer from 1 to ${duration}) to each spot to distribute them evenly across the days.
+Do NOT wrap the JSON inside markdown code blocks (e.g. no \`\`\`json). Return ONLY valid JSON array.`;
+
+        const userPrompt = `Generate a customized itinerary for a ${duration}-day trip to Bahrain.
+Traveler Vibes/Moods: ${selectedMoods.join(', ')}
+Budget Tier: ${tier}
+Generate exactly ${duration * 2} spots distributed evenly across the ${duration} days.
+Make the spots highly engaging and authentic to Bahrain. Do not include airport arrival or departure in the generated spots, as those will be appended automatically.`;
+
+        const responseText = await callLocalAI(systemPrompt, userPrompt, '', { maxTokens: 1800, useJson: true })
+        if (responseText && !responseText.includes('error')) {
+          let cleaned = responseText.trim()
+          if (cleaned.startsWith('```')) {
+            cleaned = cleaned.replace(/^```json\s*/, '').replace(/```$/, '').trim()
           }
-        })
+          const parsed = JSON.parse(cleaned)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            compiledSpots = parsed.map(item => {
+              const cat = item.category ? item.category.toLowerCase() : 'culture'
+              const imgUrl = categoryImages[cat] || categoryImages.default
+              return {
+                ...item,
+                image: imgUrl,
+                pathGuide: tier === 'Wandering' ? (item.budgetGuide || item.pathGuide) : (item.premiumGuide || item.pathGuide),
+                pathCost: tier === 'Wandering' ? (item.budgetCost || item.pathCost) : (item.premiumCost || item.pathCost)
+              }
+            })
 
-        const arrivalSpot = localCatalog.find(s => s.id === 'airport-arrival')
-        const departureSpot = localCatalog.find(s => s.id === 'airport-departure')
-
-        if (arrivalSpot) {
-          compiledSpots.push({
-            ...arrivalSpot,
-            day: 1,
-            pathGuide: tier === 'Wandering' ? arrivalSpot.budgetGuide : arrivalSpot.premiumGuide,
-            pathCost: tier === 'Wandering' ? arrivalSpot.budgetCost : arrivalSpot.premiumCost
-          })
-        }
-
-        if (departureSpot) {
-          compiledSpots.push({
-            ...departureSpot,
-            day: duration || 1,
-            pathGuide: tier === 'Wandering' ? departureSpot.budgetGuide : departureSpot.premiumGuide,
-            pathCost: tier === 'Wandering' ? departureSpot.budgetCost : departureSpot.premiumCost
-          })
+            // Append arrival/departure
+            if (localCatalog && Array.isArray(localCatalog)) {
+              const arrivalSpot = localCatalog.find(s => s.id === 'airport-arrival')
+              const departureSpot = localCatalog.find(s => s.id === 'airport-departure')
+              if (arrivalSpot) {
+                compiledSpots.push({
+                  ...arrivalSpot,
+                  day: 1,
+                  pathGuide: tier === 'Wandering' ? arrivalSpot.budgetGuide : arrivalSpot.premiumGuide,
+                  pathCost: tier === 'Wandering' ? arrivalSpot.budgetCost : arrivalSpot.premiumCost
+                })
+              }
+              if (departureSpot) {
+                compiledSpots.push({
+                  ...departureSpot,
+                  day: duration || 1,
+                  pathGuide: tier === 'Wandering' ? departureSpot.budgetGuide : departureSpot.premiumGuide,
+                  pathCost: tier === 'Wandering' ? departureSpot.budgetCost : departureSpot.premiumCost
+                })
+              }
+            }
+            aiFetched = true
+            setTerminalLogs(logs => [...logs, "Successfully compiled personalized spots via Gemini AI!"])
+          }
         }
       }
-    } catch (catalogErr) {
-      console.error("Catalog filtering error handled safely:", catalogErr)
+    } catch (e) {
+      console.warn("AI generation failed, falling back to local database:", e)
+    }
+
+    if (!aiFetched) {
+      try {
+        if (localCatalog && Array.isArray(localCatalog)) {
+          const filtered = localCatalog.filter(s => selectedMoods && selectedMoods.includes(s.mood) && s.id !== 'airport-arrival' && s.id !== 'airport-departure')
+          compiledSpots = filtered.map((item, idx) => {
+            const targetDay = (idx % (duration || 1)) + 1
+            return {
+              ...item,
+              day: targetDay,
+              pathGuide: tier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
+              pathCost: tier === 'Wandering' ? item.budgetCost : item.premiumCost
+            }
+          })
+
+          const arrivalSpot = localCatalog.find(s => s.id === 'airport-arrival')
+          const departureSpot = localCatalog.find(s => s.id === 'airport-departure')
+
+          if (arrivalSpot) {
+            compiledSpots.push({
+              ...arrivalSpot,
+              day: 1,
+              pathGuide: tier === 'Wandering' ? arrivalSpot.budgetGuide : arrivalSpot.premiumGuide,
+              pathCost: tier === 'Wandering' ? arrivalSpot.budgetCost : arrivalSpot.premiumCost
+            })
+          }
+
+          if (departureSpot) {
+            compiledSpots.push({
+              ...departureSpot,
+              day: duration || 1,
+              pathGuide: tier === 'Wandering' ? departureSpot.budgetGuide : departureSpot.premiumGuide,
+              pathCost: tier === 'Wandering' ? departureSpot.budgetCost : departureSpot.premiumCost
+            })
+          }
+        }
+      } catch (catalogErr) {
+        console.error("Catalog filtering error handled safely:", catalogErr)
+      }
     }
 
     if (!compiledSpots || compiledSpots.length === 0) {
@@ -228,6 +329,7 @@ export default function SensoryHero({ onBack }) {
     queueMicrotask(() => {
       setTerminalLogs([guidePhrases[0]])
     })
+
 
     intervalRef.current = setInterval(() => {
       if (active) {
