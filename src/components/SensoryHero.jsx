@@ -1,20 +1,41 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { useVibe } from '../hooks/useVibe'
-import { Trash2, BookOpen, ChevronDown, ChevronUp } from 'lucide-react'
+import { 
+  Trash2, 
+  BookOpen, 
+  ChevronDown, 
+  ChevronUp, 
+  Landmark, 
+  Waves, 
+  Coffee, 
+  Building2, 
+  Compass, 
+  MapPin 
+} from 'lucide-react'
 import { playTypewriterClick } from '../services/audioUtils'
 import { callLocalAI } from '../services/aiService'
 
+const CATEGORY_ICONS = {
+  fort: Landmark,
+  souq: Coffee,
+  coast: Waves,
+  modern: Building2,
+  desert: Compass,
+  culture: BookOpen,
+  default: MapPin
+}
+
 const guidePhrases = [
   `Assembling your personalized guide...`,
-  `Querying Gemini AI for custom spots...`,
-  `Selecting points of interest for Day 1...`,
-  `Loading historical details and background info...`,
-  `Mapping coastal forts in Muharraq...`,
-  `Checking tide conditions for Jarada Island...`,
-  `Retrieving transport options and ferry schedules...`,
-  `Optimizing walking routes for the day...`,
-  `Getting recommendations for local cafes...`,
-  `Preparing your custom travel passport...`,
+  `Analyzing historical archives and geographic data...`,
+  `Selecting cultural routes and points of interest...`,
+  `Loading historical details and archival records...`,
+  `Mapping coastal landmarks in Muharraq...`,
+  `Verifying tidal conditions for Jarada Island...`,
+  `Consulting regional transit and sea schedules...`,
+  `Optimizing geographic routes and walking paths...`,
+  `Retrieving recommendations for local culinary ateliers...`,
+  `Preparing your custom travel chronicle passport...`,
   `Itinerary ready! Click below to view.`
 ]
 
@@ -80,7 +101,7 @@ export default function SensoryHero({ onBack }) {
     let aiFetched = false
     try {
       if (selectedMoods && selectedMoods.length > 0) {
-        setTerminalLogs(logs => [...logs, "Consulting Gemini travel planner for custom spots..."])
+        setTerminalLogs(logs => [...logs, "Analyzing local archives and heritage registries..."])
 
         const systemPrompt = `You are a highly knowledgeable Bahraini travel planner.
 Generate a list of interesting, culturally rich, and fun spots in Bahrain tailored to the traveler's selected vibes/moods, budget tier, and duration.
@@ -131,7 +152,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                 image: categoryImages[item.category?.toLowerCase()] || categoryImages.default
               }))
               aiFetched = true
-              setTerminalLogs(logs => [...logs, `Successfully compiled ${compiledSpots.length} customized AI stops!`])
+              setTerminalLogs(logs => [...logs, `Successfully cataloged ${compiledSpots.length} tailored cultural locations!`])
             }
           } catch (jsonErr) {
             console.warn("AI itinerary JSON parsing failed, using catalog:", jsonErr)
@@ -143,7 +164,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
     }
 
     if (!aiFetched && localCatalog) {
-      setTerminalLogs(logs => [...logs, "AI service busy. Assembling travel route from authentic local catalog..."])
+      setTerminalLogs(logs => [...logs, "Archival server offline. Compiling itinerary from local heritage database..."])
       const filtered = localCatalog.filter(s => selectedMoods.includes(s.mood) && s.id !== 'airport-arrival' && s.id !== 'airport-departure')
       compiledSpots = filtered.map((item, idx) => {
         const targetDay = (idx % duration) + 1
@@ -369,7 +390,10 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                                   </span>
                                 </div>
                                 <h3 className="font-serif text-[15px] font-bold text-white mt-0.5 truncate flex items-center gap-1.5">
-                                  <span>{spot.keepsakeEmoji || '📍'}</span>
+                                  {(() => {
+                                    const IconComponent = CATEGORY_ICONS[spot.category?.toLowerCase()] || CATEGORY_ICONS.default
+                                    return <IconComponent size={13} className="text-[#D4AF37] shrink-0" strokeWidth={1.75} />
+                                  })()}
                                   <span className="truncate">{spot.name}</span>
                                 </h3>
                                 <p className="font-serif text-[12px] italic text-white/60 mt-0.5 truncate">
@@ -435,10 +459,10 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                                 {/* Extra details (cost, coords) */}
                                 <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px] font-mono">
                                   <span className="text-[#D4AF37] font-bold">
-                                    💰 {spot.pathCost || 'Free Entry'}
+                                    Est. Cost: {spot.pathCost || 'Free Entry'}
                                   </span>
-                                  <span className="text-white/30">
-                                    🌐 {spot.coords}
+                                  <span className="text-white/35">
+                                    {spot.coords}
                                   </span>
                                 </div>
 

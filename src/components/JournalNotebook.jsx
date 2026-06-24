@@ -26,7 +26,8 @@ import {
   MessageSquare,
   Volume2,
   VolumeX,
-  Search
+  Search,
+  Lock
 } from 'lucide-react'
 import { useVibe } from '../hooks/useVibe'
 import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
@@ -68,11 +69,11 @@ function getRank(xp) {
 }
 
 const shopItems = [
-  { id: 'riddle-hint', name: 'Riddle Scroll Clue', desc: 'Consumable scroll providing poetic guidance for active coordinate riddles.', cost: 150, emoji: '📜', xpReward: 10 },
-  { id: 'saffron-halwa', name: 'Saffron Halwa Plate', desc: 'A traditional sweet recipe cooked in copper vats. Eat it to enjoy the rich, warm flavors of Bahrain!', cost: 300, emoji: '🍯', xpReward: 25 },
-  { id: 'pearl-hook', name: 'Generational Oyster Hook', desc: 'Allows you to search for Basra Pearls in Sitra reefs and Jarada Island.', cost: 400, emoji: '🪝', xpReward: 30 },
-  { id: 'falcon-glove', name: 'Falconer Leather Glove', desc: 'Equip to interact with wild falcons at Arad Fort or Al Areen Sakhir Park.', cost: 400, emoji: '🧤', xpReward: 30 },
-  { id: 'keepsake-bag', name: 'Bazaar Keepsake Grab-bag', desc: 'Instantly unlocks a random traditional souvenir keepsake.', cost: 600, emoji: '🛍️', xpReward: 50 }
+  { id: 'riddle-hint', name: 'Riddle Scroll Clue', desc: 'A hand-written parchment scroll providing poetic guidance to help decipher coordinate riddles.', cost: 150, emoji: '📜', xpReward: 10 },
+  { id: 'saffron-halwa', name: 'Saffron Halwa Plate', desc: 'A traditional delicacy prepared in copper vats, showcasing the rich cardamom and saffron heritage of Muharraq.', cost: 300, emoji: '🍯', xpReward: 25 },
+  { id: 'pearl-hook', name: 'Generational Oyster Hook', desc: 'A historic diving tool allowing you to search for natural Basra Pearls in local reefs and sandbanks.', cost: 400, emoji: '🪝', xpReward: 30 },
+  { id: 'falcon-glove', name: 'Falconer Leather Glove', desc: 'A premium protective leather glove used to interact with trained falcons at heritage centers.', cost: 400, emoji: '🧤', xpReward: 30 },
+  { id: 'keepsake-bag', name: 'Atelier Keepsake Collection', desc: 'A curated bundle that immediately unlocks a random traditional heritage keepsake.', cost: 600, emoji: '🛍️', xpReward: 50 }
 ]
 
 const ALMANAC_DATA = {
@@ -351,7 +352,7 @@ const TABS = [
   { id: 'map',        label: 'Map' },
   { id: 'hotels',     label: 'Hotels' },
   { id: 'search',     label: 'Search' },
-  { id: 'souvenirs',  label: 'Souvenirs' },
+  { id: 'souvenirs',  label: 'Artifacts' },
   { id: 'phrasebook', label: 'Phrases' },
 ]
 
@@ -2170,7 +2171,10 @@ export default function JournalNotebook({ onBack }) {
                           }}
                           title="Geographically optimize your route for shortest travel time starting from your hotel"
                         >
-                          ⚡ Optimize Route
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Zap size={11} strokeWidth={2} />
+                            Optimize Route
+                          </span>
                         </button>
                       )}
                     </div>
@@ -2436,8 +2440,8 @@ export default function JournalNotebook({ onBack }) {
               {activeTab === 'souvenirs' && (
                 <div className="space-y-4">
                   <div className="jn-section-heading">
-                    <h2 className="jn-section-title">Souvenirs</h2>
-                    <span className="jn-section-subtitle">Your collection</span>
+                    <h2 className="jn-section-title">Artifacts & Keepsakes</h2>
+                    <span className="jn-section-subtitle">Your Curated Collection</span>
                   </div>
 
                   <hr className="jn-divider" aria-hidden="true" />
@@ -2457,14 +2461,14 @@ export default function JournalNotebook({ onBack }) {
                   <button
                     className="jn-action-btn jn-action-btn--amber jn-action-btn--full"
                     onClick={() => { setShopOpen(true) }}
-                    aria-label="Enter Souq Shop"
+                    aria-label="Enter Heritage Kiosk"
                   >
-                    Open Shop
+                    Open Collector Kiosk
                   </button>
 
                   {/* Keepsake grid */}
                   <div className="jn-keepsake-cabinet">
-                    <span className="jn-keepsake-cabinet-label">Collected Keepsakes</span>
+                    <span className="jn-keepsake-cabinet-label">Cabinet of Heritage Keepsakes</span>
                     <div className="jn-keepsake-grid">
                       {spotsCatalog.map(spot => {
                         const unlocked = (collectedKeepsakes || []).includes(spot.id)
@@ -2473,25 +2477,30 @@ export default function JournalNotebook({ onBack }) {
                             key={spot.id}
                             disabled={!unlocked}
                             onClick={() => unlocked && setSelectedKsake(spot)}
-                            title={unlocked ? `${spot.keepsakeName}: ${spot.keepsakeDesc}` : 'Souvenir Locked — Capture with Lens to unlock!'}
+                            title={unlocked ? `${spot.keepsakeName}: ${spot.keepsakeDesc}` : 'Keepsake locked — explore the location or acquire to unlock.'}
                             className={`jn-keepsake-coin ${unlocked ? 'jn-keepsake-coin--unlocked' : 'jn-keepsake-coin--locked'}`}
                             aria-label={unlocked ? `Keepsake: ${spot.keepsakeName}` : `Locked keepsake from ${spot.name}`}
+                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                           >
-                            <span>{unlocked ? spot.keepsakeEmoji : '🔒'}</span>
+                            {unlocked ? (
+                              <span>{spot.keepsakeEmoji}</span>
+                            ) : (
+                              <Lock size={12} className="text-stone-400" strokeWidth={1.5} />
+                            )}
                           </button>
                         )
                       })}
                     </div>
                     {(collectedKeepsakes || []).length === 0 && (
                       <p className="jn-keepsake-empty">
-                        Cabinet empty. Capture spots with the Lens or solve riddles to unlock souvenirs!
+                        Your cabinet is empty. Visit heritage spots or solve riddles to unlock keepsakes.
                       </p>
                     )}
                   </div>
 
                   {/* Travel Gear / Inventory Cabinet */}
                   <div className="jn-keepsake-cabinet" style={{ marginTop: '20px' }}>
-                    <span className="jn-keepsake-cabinet-label">Travel Gear & Curated Goods</span>
+                    <span className="jn-keepsake-cabinet-label">Traveler Equipment & Acquisitions</span>
                     <div className="space-y-2 mt-2">
                       {shopItems.filter(item => item.id !== 'keepsake-bag').map(item => {
                         const count = purchasedItems[item.id] || 0
@@ -2803,16 +2812,16 @@ export default function JournalNotebook({ onBack }) {
           className="jn-modal-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Souq Shop"
+          aria-label="Heritage Collector Kiosk"
           onClick={(e) => { if (e.target === e.currentTarget) setShopOpen(false) }}
         >
           <div className="jn-shop-modal">
             <div className="jn-shop-header">
               <div>
                 <span className="jn-shop-eyebrow">Manama Heritage Kiosk</span>
-                <h3 className="jn-shop-title">🏪 Manama Souq Shop</h3>
+                <h3 className="jn-shop-title">Collector's Kiosk</h3>
               </div>
-              <button className="jn-shop-close" onClick={() => setShopOpen(false)} aria-label="Close shop">✕ Exit Shop</button>
+              <button className="jn-shop-close" onClick={() => setShopOpen(false)} aria-label="Close kiosk">✕ Close</button>
             </div>
 
 
@@ -2829,7 +2838,7 @@ export default function JournalNotebook({ onBack }) {
 
 
             <p className="jn-shop-intro">
-              "Marhaban traveler! Spend your golden Fils on spice guild halwa, falcon hoods, or pearl hunt clue scrolls."
+              "Welcome to the Collector's Kiosk. Here you may exchange your earned Fils for traditional keepsakes, archival clue scrolls, or regional equipment."
             </p>
 
             <div className="jn-shop-items">

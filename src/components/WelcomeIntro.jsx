@@ -684,7 +684,7 @@ export default function WelcomeIntro({ onComplete }) {
         onClick={(e) => { e.stopPropagation(); quickStart() }}
         className="jn-intro-quick-btn"
       >
-        ⚡ Quick Start
+        Quick Start
       </button>
 
 

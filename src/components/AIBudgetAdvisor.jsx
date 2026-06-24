@@ -17,7 +17,7 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
     setLoading(true)
     const { system, user } = buildBudgetAdvisorPrompt(goldFils, currentDay, totalDays, tier)
     const text = await callLocalAI(system, user,
-      `You have ${goldFils.toLocaleString()} Gold Fils — enough for a couple of great experiences today!`,
+      `You have ${goldFils.toLocaleString()} Fils — enough for a couple of great experiences today!`,
       { cacheKey: `budget:${currentDay}:${Math.floor(goldFils/100)}`, maxTokens: 80 }
     )
     setTip(text)
@@ -40,10 +40,10 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
     setChatLoading(true)
 
     const hotelPrices = 'Muharraq Heritage Houses: 25 BHD, K Hotel: 35 BHD, Ramee Grand: 55 BHD, Gulf Hotel: 70 BHD, Merchant House: 80 BHD, Al Areen Palace: 110 BHD, Sofitel: 120 BHD, Four Seasons: 140 BHD.'
-    const context = `Traveler has ${goldFils.toLocaleString()} Gold Fils. Budget tier: ${tier}. Day ${currentDay}/${totalDays}. Hotel prices for reference: ${hotelPrices}`
+    const context = `Traveler has ${goldFils.toLocaleString()} Fils. Budget tier: ${tier}. Day ${currentDay}/${totalDays}. Hotel prices for reference: ${hotelPrices}`
 
     const reply = await callLocalAI(
-      `You are a friendly Bahrain travel budget assistant. Be concise, specific, and use Gold Fils as the currency. Context: ${context}`,
+      `You are a friendly Bahrain travel budget assistant. Be concise, specific, and use Fils as the currency. Context: ${context}`,
       msg,
       'That sounds like a great plan! Your budget looks healthy for the rest of the trip.',
       { useCache: false, maxTokens: 100 }
@@ -93,7 +93,7 @@ export default function AIBudgetAdvisor({ goldFils, currentDay, totalDays, tier 
               <span className={`font-mono text-lg font-black ${textColor}`}>
                 {goldFils.toLocaleString()}
               </span>
-              <span className="font-sans text-[11px] text-stone-500 font-semibold uppercase tracking-wider">Gold Fils remaining</span>
+              <span className="font-sans text-[11px] text-stone-500 font-semibold uppercase tracking-wider">Fils remaining</span>
             </div>
           </div>
           <button

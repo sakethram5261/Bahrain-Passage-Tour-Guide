@@ -102,19 +102,19 @@ const DESTINATIONS = {
 }
 
 const MECHANICS = {
-  xp: "XP (Experience Points) are earned by exploring landmarks, capturing Lens photos, solving riddles, and completing a day's itinerary. Earn enough to climb through ranks: Wanderer → Nomad → Merchant → Chronicler → Pearl Diver → Dilmun Pearl.",
+  xp: "Prestige points are earned by exploring landmarks, capturing Lens photos, solving riddles, and completing a day's itinerary. Earn enough to climb through ranks: Wanderer → Nomad → Merchant → Chronicler → Pearl Diver → Dilmun Pearl.",
   rank: "Your rank is shown in the top-right of the header. Tap it to open your Explorer Passport which shows your full progress. The higher your rank, the deeper your cultural insider knowledge grows.",
-  keepsake: "Keepsakes are traditional souvenir relics unlocked by using the Capture Lens at each landmark. Open the Souvenirs tab (right side tabs) to see your collection.",
-  lens: "The Capture Lens is a camera-style tool for each location. Tap '📷 Capture Lens Stamp' on any spot card to open it. You can take a photo or capture the landmark image — this earns XP, Gold Fils, and unlocks a Keepsake.",
-  riddle: "Each landmark has a hidden riddle that tests your local knowledge. Solve it correctly for +35 XP and an insider tip that reveals a local secret. If you're stuck, you can buy a Riddle Scroll Clue from the Souq Shop.",
+  keepsake: "Keepsakes are traditional souvenir relics unlocked by using the Capture Lens at each landmark. Open the Artifacts tab (right side tabs) to see your collection.",
+  lens: "The Capture Lens is a camera-style tool for each location. Tap 'Capture Lens Stamp' on any spot card to open it. You can take a photo or capture the landmark image — this earns Prestige, Fils, and unlocks a Keepsake.",
+  riddle: "Each landmark has a hidden riddle that tests your local knowledge. Solve it correctly for +35 Prestige and an insider tip that reveals a local secret. If you're stuck, you can buy a Riddle Scroll Clue from the Collector's Kiosk.",
   day: "Complete all spots in a day's itinerary, then hit 'Seal Day' on the final page to stamp your passport. This unlocks the next day's chapter and gives you an exclusive insider passkey tip.",
   unlock: "To unlock the next day, you need to seal the current day first. Navigate through all the spots using the Prev/Next buttons at the bottom, then reach the final 'Seal Ledger' step and press Authenticate Stamp.",
   map: "The interactive Wayfarer Map shows all your itinerary spots on a Bahrain map with pulsing location markers. Open it from the Map tab. Tap any marker to jump to that spot's chronicle entry.",
-  shop: "The Souq Shop is in the Souvenirs tab. Spend Gold Fils (earned from Lens captures and day completions) on riddle hints, and instant keepsake unlocks.",
-  fils: "Gold Fils are the in-game currency. You earn them by capturing Lens photos and completing day itineraries. Spend them at the Souq Shop in the Souvenirs tab.",
-  passport: "Your Explorer Passport shows your XP, rank, collected passport stamps for completed days, and all earned keepsakes. Tap the XP badge in the top-right header to open it.",
+  shop: "The Collector's Kiosk is in the Artifacts tab. Spend Fils (earned from Lens captures and day completions) on riddle hints, and instant keepsake unlocks.",
+  fils: "Fils are the local currency. You earn them by capturing Lens photos and completing day itineraries. Spend them at the Collector's Kiosk in the Artifacts tab.",
+  passport: "Your Explorer Passport shows your Prestige, rank, collected passport stamps for completed days, and all earned keepsakes. Tap the Prestige badge in the top-right header to open it.",
   journal: "The open-book journal is your main dashboard. The left page shows spot details, your personal notes, and riddles. The right page shows the spot postcard, your itinerary list, and lens capture.",
-  tab: "The tabs (Info, Itinerary, Map, Hotels, Souvenirs, Phrases) let you switch between different sections. On desktop they appear as leather tabs on the right side. On mobile they appear as a row at the top.",
+  tab: "The tabs (Info, Itinerary, Map, Hotels, Artifacts, Phrases) let you switch between different sections. On desktop they appear as leather tabs on the right side. On mobile they appear as a row at the top.",
   phrasebook: "The Phrases tab teaches you Bahraini Arabic words. Tap any word card to hear the pronunciation via your device's speech system — it also plays a traditional Oud acoustic tone. Great for greeting locals.",
   mood: "Your vibes (Empires, Sea, Spice, Lights) set at the start determine which of Bahrain's 18 landmarks appear in your personal itinerary. You can edit your selections any time from the 'Edit Trip' button in the header.",
 }
@@ -122,7 +122,7 @@ const MECHANICS = {
 const QUICK_QUESTIONS = [
   { label: "Change budget to Luxury", key: 'luxury' },
   { label: "Make my trip 5 days", key: '5 days' },
-  { label: "How do I earn Gold Fils?", key: 'fils' },
+  { label: "How do I earn Fils?", key: 'fils' },
   { label: "Tell me about Bahrain Fort", key: 'bahrain fort' },
   { label: "What is the Capture Lens?", key: 'lens' },
   { label: "How do I unlock the next day?", key: 'unlock' },
@@ -193,10 +193,10 @@ function getLocalResponseAndActions(input, activeSpotName, currentMoods) {
   if (filsMatch) {
     const val = parseInt(filsMatch[1], 10)
     actions.push({ type: 'ADD_FILS', value: val })
-    actionsApplied.push(`Granted +${val} Gold Fils`)
+    actionsApplied.push(`Granted +${val} Fils`)
   } else if (q.includes('give me coins') || q.includes('free money') || q.includes('infinite money')) {
     actions.push({ type: 'ADD_FILS', value: 1000 })
-    actionsApplied.push('Granted +1000 Gold Fils')
+    actionsApplied.push('Granted +1000 Fils')
   }
 
   // Check for XP cheat
@@ -498,7 +498,7 @@ export default function TourChatbot({ activeSpotName, embedded = false, onClose 
             const val = Number(action.value)
             if (!isNaN(val)) {
               setGoldFils(prev => Math.max(0, prev + val))
-              applied.push(`Gold Fils adjusted by: ${val > 0 ? '+' : ''}${val}`)
+              applied.push(`Fils adjusted by: ${val > 0 ? '+' : ''}${val}`)
             }
             break
           }
@@ -540,7 +540,7 @@ Here is the current state of the user's trip:
 - Stay Duration: ${duration} days (Max 10)
 - Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
 - Current Day Viewed: ${currentDayTab}
-- Coins (Gold Fils): ${goldFils}
+- Fils Balance: ${goldFils}
 - XP (Experience Points): ${xp}
 - Active Spot: ${activeSpotName || 'None'}
 - Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
@@ -550,7 +550,7 @@ ${JSON.stringify(DESTINATIONS, null, 2)}
 
 DIRECTIONS:
 1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
-2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 gold fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
+2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
 3. You MUST respond with a valid JSON object matching the following structure:
 {
   "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
@@ -661,7 +661,7 @@ Here is the current state of the user's trip:
 - Stay Duration: ${duration} days (Max 10)
 - Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
 - Current Day Viewed: ${currentDayTab}
-- Coins (Gold Fils): ${goldFils}
+- Fils Balance: ${goldFils}
 - XP (Experience Points): ${xp}
 - Active Spot: ${activeSpotName || 'None'}
 - Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
@@ -671,7 +671,7 @@ ${JSON.stringify(DESTINATIONS, null, 2)}
 
 DIRECTIONS:
 1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
-2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 gold fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
+2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
 3. You MUST respond with a valid JSON object matching the following structure:
 {
   "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
@@ -781,7 +781,7 @@ Here is the current state of the user's trip:
 - Stay Duration: ${duration} days (Max 10)
 - Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
 - Current Day Viewed: ${currentDayTab}
-- Coins (Gold Fils): ${goldFils}
+- Fils Balance: ${goldFils}
 - XP (Experience Points): ${xp}
 - Active Spot: ${activeSpotName || 'None'}
 - Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
@@ -791,7 +791,7 @@ ${JSON.stringify(DESTINATIONS, null, 2)}
 
 DIRECTIONS:
 1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
-2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 gold fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
+2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
 3. You MUST respond with a valid JSON object matching the following structure:
 {
   "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
@@ -925,7 +925,7 @@ Here is the current state of the user's trip:
 - Stay Duration: ${duration} days (Max 10)
 - Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
 - Current Day Viewed: ${currentDayTab}
-- Coins (Gold Fils): ${goldFils}
+- Fils Balance: ${goldFils}
 - XP (Experience Points): ${xp}
 - Active Spot: ${activeSpotName || 'None'}
 - Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
@@ -935,7 +935,7 @@ ${JSON.stringify(DESTINATIONS, null, 2)}
 
 DIRECTIONS:
 1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
-2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 gold fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
+2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
 3. You MUST respond with a valid JSON object matching the following structure:
 {
   "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
@@ -1036,7 +1036,7 @@ Here is the current state of the user's trip:
 - Stay Duration: ${duration} days (Max 10)
 - Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
 - Current Day Viewed: ${currentDayTab}
-- Coins (Gold Fils): ${goldFils}
+- Fils Balance: ${goldFils}
 - XP (Experience Points): ${xp}
 - Active Spot: ${activeSpotName || 'None'}
 - Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
@@ -1046,7 +1046,7 @@ ${JSON.stringify(DESTINATIONS, null, 2)}
 
 DIRECTIONS:
 1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
-2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 gold fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
+2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
 3. You MUST respond with a valid JSON object matching the following structure:
 {
   "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",

@@ -1,46 +1,45 @@
 import { useRef, useEffect } from 'react'
 import gsap from 'gsap'
 import { useVibe } from '../hooks/useVibe'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Landmark, Waves, Coffee, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const MOODS = [
   {
     id: 'empires',
     label: 'Empires',
     arabic: 'الإمبراطوريات',
-    tagline: 'Ancient forts, ruins & 5,000-year-old secrets',
-    icon: '🏯',
+    tagline: 'Ancient archaeological forts, temples & 5,000-year history',
+    icon: Landmark,
     spots: ["Qal'at al-Bahrain", 'Barbar Temple', 'Arad Fort', 'Riffa Fort'],
   },
   {
     id: 'sea',
     label: 'Sea',
     arabic: 'البحر',
-    tagline: 'Pearls, tides & vanishing sandbanks',
-    icon: '🌊',
+    tagline: 'Refined pearls, coastal tides & disappearing sandbanks',
+    icon: Waves,
     spots: ['Pearling Path UNESCO', 'Jarada Sandbank', 'Al Dar Islands', 'Sea Ferry'],
   },
   {
     id: 'spice',
     label: 'Spice',
     arabic: 'التوابل',
-    tagline: 'Souqs, karak tea & saffron halwa',
-    icon: '☕',
+    tagline: 'Authentic souqs, traditional karak & saffron delicacies',
+    icon: Coffee,
     spots: ['Manama Souq', 'Muharraq Alleyways', "Haji's Cafe", "A'ali Pottery"],
   },
   {
     id: 'lights',
     label: 'Lights',
     arabic: 'الأضواء',
-    tagline: 'Street art, rooftops & modern Manama',
-    icon: '✨',
+    tagline: 'Sophisticated arts, dining & modern cityscape',
+    icon: Sparkles,
     spots: ['Block 338 Adliya', 'Reef Island', 'La Fontaine Arts', 'Night Skyline'],
   },
 ]
 
 export default function MoodSelector({ onConfirm, onBack }) {
   const { selectedMoods, setSelectedMoods, duration, setDuration, quickStart } = useVibe()
-
 
   const containerRef = useRef(null)
   const cardsRef = useRef([])
@@ -54,8 +53,8 @@ export default function MoodSelector({ onConfirm, onBack }) {
     cardsRef.current.forEach((el, i) => {
       if (!el) return
       gsap.fromTo(el,
-        { opacity: 0, y: 24 },
-        { opacity: 1, y: 0, duration: 0.5, delay: 0.1 + i * 0.08, ease: 'power3.out' }
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, delay: 0.1 + i * 0.06, ease: 'power3.out' }
       )
     })
   }, [])
@@ -75,7 +74,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
   const handleConfirm = () => {
     if (selectedMoods.length === 0) return
     gsap.to(containerRef.current, {
-      opacity: 0, y: -12, duration: 0.4, ease: 'power2.in', onComplete: onConfirm,
+      opacity: 0, y: -8, duration: 0.4, ease: 'power2.in', onComplete: onConfirm,
     })
   }
 
@@ -89,13 +88,13 @@ export default function MoodSelector({ onConfirm, onBack }) {
 
     const xc = rect.width / 2
     const yc = rect.height / 2
-    const angleX = (yc - y) / 7
-    const angleY = (x - xc) / 7
+    const angleX = (yc - y) / 12
+    const angleY = (x - xc) / 12
 
     gsap.to(cardEl, {
       rotateX: angleX,
       rotateY: angleY,
-      scale: 1.025,
+      scale: 1.015,
       duration: 0.3,
       ease: 'power1.out',
     })
@@ -106,7 +105,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
     gsap.to(cardEl, {
       rotateX: 0,
       rotateY: 0,
-      scale: active ? 1.02 : 1.0,
+      scale: active ? 1.01 : 1.0,
       duration: 0.3,
       ease: 'power1.out',
     })
@@ -121,26 +120,25 @@ export default function MoodSelector({ onConfirm, onBack }) {
       className="fixed inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto bg-[var(--color-surface)] text-stone-900"
       style={{ opacity: 0 }}
     >
-      {/* Bahrain flag-inspired top banner (modestly adjusted) */}
-      <div className="w-full relative overflow-hidden shrink-0" style={{ background: 'var(--color-primary)', minHeight: '145px' }}>
-        {/* Serrated white edge at bottom — mimics the Bahrain flag's zigzag */}
-        <svg
-          className="absolute bottom-0 left-0 w-full"
-          viewBox="0 0 1200 35"
-          preserveAspectRatio="none"
-          style={{ height: '35px', display: 'block' }}
-        >
-          <path
-            d="M0,0 L80,24 L160,0 L240,24 L320,0 L400,24 L480,0 L560,24 L640,0 L720,24 L800,0 L880,24 L960,0 L1040,24 L1120,0 L1200,24 L1200,35 L0,35 Z"
-            fill="currentColor"
-            className="text-[var(--color-surface)]"
-          />
-        </svg>
+      {/* Editorial Header Banner */}
+      <div 
+        className="w-full relative overflow-hidden shrink-0 border-b border-stone-200" 
+        style={{ 
+          background: 'var(--color-primary)', 
+          minHeight: '125px',
+          boxShadow: 'inset 0 -4px 12px rgba(0,0,0,0.08)'
+        }}
+      >
+        {/* Elegant Gold Divider Line at bottom */}
+        <div 
+          className="absolute bottom-0 left-0 w-full" 
+          style={{ height: '3px', background: 'var(--color-accent)' }} 
+        />
 
         {/* Subtle radial glow */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.12) 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.08) 0%, transparent 70%)' }}
         />
 
         {/* Back button */}
@@ -148,42 +146,41 @@ export default function MoodSelector({ onConfirm, onBack }) {
           <button
             onClick={onBack}
             aria-label="Go back"
-            className="absolute top-4 left-4 z-20 w-9 h-9 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white cursor-pointer transition-all active:scale-90"
+            className="absolute top-4 left-4 z-20 w-9 h-9 rounded-full bg-black/25 hover:bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white cursor-pointer transition-all active:scale-90"
           >
             <ArrowLeft size={16} />
           </button>
         )}
 
         {/* Decorative compass rose */}
-        <svg viewBox="0 0 100 100" className="absolute right-6 top-3 opacity-10 w-24 h-24 md:w-32 md:h-32" fill="none" stroke="white" strokeWidth="0.6">
-          <circle cx="50" cy="50" r="42" strokeDasharray="3,4" />
+        <svg viewBox="0 0 100 100" className="absolute right-6 top-3 opacity-10 w-20 h-20 md:w-24 md:h-24" fill="none" stroke="white" strokeWidth="0.5">
+          <circle cx="50" cy="50" r="42" strokeDasharray="2,3" />
           <circle cx="50" cy="50" r="18" />
           <path d="M 50,2 L 50,98 M 2,50 L 98,50" />
-          <path d="M 50,50 L 46,20 L 50,5 L 54,20 Z" fill="rgba(255,255,255,0.1)" />
-          <path d="M 50,50 L 80,46 L 95,50 L 80,54 Z" fill="rgba(255,255,255,0.05)" />
-          <path d="M 50,50 L 46,80 L 50,95 L 54,80 Z" fill="rgba(255,255,255,0.05)" />
-          <path d="M 50,50 L 20,46 L 5,50 L 20,54 Z" fill="rgba(255,255,255,0.05)" />
+          <path d="M 50,50 L 46,20 L 50,5 L 54,20 Z" fill="rgba(255,255,255,0.08)" />
+          <path d="M 50,50 L 80,46 L 95,50 L 80,54 Z" fill="rgba(255,255,255,0.04)" />
           <circle cx="50" cy="50" r="3" fill="white" />
         </svg>
 
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-7 pb-10">
-          <p className="text-overline tracking-wide text-white/65 mb-1.5">
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-6 pb-6">
+          <p className="text-overline tracking-widest text-white/70 mb-1 font-sans font-semibold text-[9px] uppercase">
             Kingdom of Bahrain · مملكة البحرين
           </p>
-          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-white leading-tight">
-            What pulls you in?
+          <h1 className="font-serif text-2xl md:text-3xl font-medium text-white leading-tight">
+            Curate Your Journey
           </h1>
-          <p className="font-sans text-xs text-white/75 mt-1.5 max-w-sm leading-relaxed">
-            Your personal local builds around your vibe — not a generic tour.
+          <p className="font-sans text-[11.5px] text-white/80 mt-1 max-w-xs leading-normal">
+            Select the cultural focus layers for your personalized travel ledger.
           </p>
         </div>
       </div>
 
-      {/* Cards + CTA (fitted using spacing adjustments) */}
-      <div className="w-full max-w-2xl px-4 pt-4 pb-6 flex flex-col gap-4 mx-auto">
+      {/* Cards + CTA */}
+      <div className="w-full max-w-2xl px-4 pt-5 pb-8 flex flex-col gap-5 mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {MOODS.map((mood, i) => {
             const active = selectedMoods.includes(mood.id)
+            const MoodIcon = mood.icon
             return (
               <button
                 key={mood.id}
@@ -193,38 +190,44 @@ export default function MoodSelector({ onConfirm, onBack }) {
                 onMouseLeave={() => handleMouseLeave(cardsRef.current[i], active)}
                 aria-pressed={active}
                 aria-label={`${mood.label} - ${mood.tagline}${active ? ' (selected)' : ''}`}
-                className={`relative rounded-2xl p-4 text-left cursor-pointer group overflow-hidden jn-vibe-card ${
+                className={`relative rounded-xl p-4 text-left cursor-pointer group overflow-hidden jn-vibe-card ${
                   active ? 'jn-vibe-card--active' : 'jn-vibe-card--inactive'
                 }`}
+                style={{
+                  borderWidth: '1px',
+                  transition: 'all 0.25s var(--ease-out)'
+                }}
               >
-                {/* Hover effect for inactive */}
+                {/* Hover effect border */}
                 {!active && (
                   <div
-                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
-                    style={{ background: 'rgba(193,18,47,0.02)', border: '2px solid rgba(193,18,47,0.12)' }}
+                    className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+                    style={{ background: 'rgba(193,18,47,0.01)', border: '1.5px solid rgba(193,18,47,0.08)' }}
                   />
                 )}
 
-                <div className="relative z-10 flex flex-col gap-2" style={{ transform: 'translateZ(20px)' }}>
+                <div className="relative z-10 flex flex-col gap-3.5">
                   <div className="flex items-start justify-between">
-                    {/* Stylized Badge Container for Emojis */}
+                    {/* Clean Icon Container (No emoji) */}
                     <div
-                      className={`w-11 h-11 rounded-full flex items-center justify-center border transition-all duration-300 ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-300 ${
                         active
-                          ? 'shadow-[0_0_10px_rgba(197,168,128,0.4)]'
-                          : 'bg-stone-200/20 border-stone-300/60'
+                          ? 'border-white/30 bg-white/10'
+                          : 'bg-stone-200/30 border-stone-300/40'
                       }`}
-                      style={active ? { backgroundColor: 'rgba(197, 168, 128, 0.15)', borderColor: 'var(--color-accent)' } : {}}
                     >
-                      <span className="text-xl">{mood.icon}</span>
+                      <MoodIcon 
+                        size={18} 
+                        className={active ? 'text-white' : 'text-[var(--color-primary)]'} 
+                        strokeWidth={1.75}
+                      />
                     </div>
 
-                    {/* Simple Checkmark Circle */}
+                    {/* Checkmark indicator */}
                     <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all duration-200 border ${
-                        active ? 'text-white' : 'border-stone-300 text-transparent'
+                      className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 transition-all duration-200 border ${
+                        active ? 'text-[var(--color-primary)] bg-white border-white' : 'border-stone-300 text-transparent'
                       }`}
-                      style={active ? { backgroundColor: 'var(--color-primary)', borderColor: 'var(--color-primary)' } : {}}
                     >
                       ✓
                     </div>
@@ -232,19 +235,19 @@ export default function MoodSelector({ onConfirm, onBack }) {
 
                   <div>
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className={`font-serif text-xl font-semibold ${
+                      <span className={`font-serif text-lg font-semibold ${
                         active ? 'text-white' : 'text-stone-900'
                       }`}>
                         {mood.label}
                       </span>
-                      <span className={`font-sans text-[12px] ${
-                        active ? 'text-white/75' : 'text-[var(--color-text-muted)]'
+                      <span className={`font-sans text-[11px] font-medium ${
+                        active ? 'text-white/70' : 'text-[var(--color-text-muted)]'
                       }`}>
                         {mood.arabic}
                       </span>
                     </div>
-                    <p className={`text-[13px] mt-0.5 leading-snug font-sans ${
-                      active ? 'text-white/90' : 'text-stone-600'
+                    <p className={`text-[12.5px] mt-0.5 leading-snug font-sans ${
+                      active ? 'text-white/85' : 'text-stone-600'
                     }`}>
                       {mood.tagline}
                     </p>
@@ -254,12 +257,12 @@ export default function MoodSelector({ onConfirm, onBack }) {
                     {mood.spots.slice(0, 2).map(s => (
                       <span
                         key={s}
-                        className={`text-[11.5px] px-1.5 py-0.5 rounded font-sans font-semibold border ${
+                        className={`text-[10.5px] px-1.5 py-0.5 rounded font-sans font-semibold border ${
                           active
-                            ? 'bg-white/10 text-white/90 border-white/20'
+                            ? 'bg-white/10 text-white/90 border-white/15'
                             : 'border-transparent'
                         }`}
-                        style={!active ? { backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)', borderColor: 'rgba(193, 18, 47, 0.1)' } : {}}
+                        style={!active ? { backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)', borderColor: 'rgba(193, 18, 47, 0.08)' } : {}}
                       >
                         {s}
                       </span>
@@ -273,16 +276,13 @@ export default function MoodSelector({ onConfirm, onBack }) {
 
         {/* Stay Duration Selector */}
         <div 
-          className="bg-white border border-stone-200 rounded-2xl p-4 shadow-sm select-none transition-all duration-300 animate-fadeIn"
-          style={{
-            boxShadow: '0 2px 12px rgba(42,35,33,0.04), 0 1px 3px rgba(0,0,0,0.02)'
-          }}
+          className="bg-white border border-stone-200/80 rounded-xl p-4 shadow-xs select-none transition-all duration-300 animate-fadeIn"
         >
-          <label className="font-serif text-[14.5px] font-semibold text-[var(--color-text)] flex items-center justify-center md:justify-start gap-1.5">
-            How long is your stay?
+          <label className="font-serif text-[14px] font-semibold text-[var(--color-text)] flex items-center justify-center md:justify-start gap-1.5">
+            Duration of Itinerary
           </label>
           
-          <div className="relative mt-3 flex items-center gap-1">
+          <div className="relative mt-3 flex items-center gap-1.5">
             <button
               onClick={() => {
                 const el = document.getElementById('duration-scroll')
@@ -291,18 +291,18 @@ export default function MoodSelector({ onConfirm, onBack }) {
               aria-label="Scroll left"
               className="shrink-0 w-7 h-7 rounded-full bg-white border border-stone-200 flex items-center justify-center text-[var(--color-text-muted)] hover:bg-stone-50 cursor-pointer transition-all"
             >
-              ◀
+              <ChevronLeft size={14} />
             </button>
             <div 
               id="duration-scroll"
-              className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory flex-1"
+              className="flex gap-2 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory flex-1"
               style={{
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none',
                 overscrollBehaviorX: 'contain',
                 scrollPadding: '0 12px',
-                paddingLeft: '4px',
-                paddingRight: '4px',
+                paddingLeft: '2px',
+                paddingRight: '2px',
               }}
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((d) => {
@@ -311,18 +311,18 @@ export default function MoodSelector({ onConfirm, onBack }) {
                   <button
                     key={d}
                     onClick={() => setDuration(d)}
-                    className={`snap-center flex-shrink-0 w-16 py-3 rounded-xl border text-center font-sans text-xs font-semibold transition-all duration-300 cursor-pointer ${
+                    className={`snap-center flex-shrink-0 w-15 py-2.5 rounded-lg border text-center font-sans text-xs font-semibold transition-all duration-300 cursor-pointer ${
                       active
-                        ? 'text-white scale-[1.05]'
+                        ? 'text-white scale-[1.03]'
                         : 'bg-[var(--color-surface-2)] border-stone-200 text-[var(--color-text-muted)] hover:border-stone-300 hover:shadow-sm'
                     }`}
                     style={{
                       backgroundColor: active ? 'var(--color-primary)' : '',
                       borderColor: active ? 'var(--color-accent)' : '',
-                      boxShadow: active ? '0 4px 12px rgba(193,18,47,0.35), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none',
+                      boxShadow: active ? '0 3px 8px rgba(193,18,47,0.12), inset 0 1px 0 rgba(255,255,255,0.15)' : 'none',
                     }}
                   >
-                    <div className="text-overline tracking-wide opacity-75 font-medium">{d === 1 ? 'Day' : 'Days'}</div>
+                    <div className="text-[9px] uppercase tracking-wider opacity-75 font-semibold">{d === 1 ? 'Day' : 'Days'}</div>
                     <div className="text-sm font-bold mt-0.5">{d}</div>
                   </button>
                 )
@@ -336,38 +336,38 @@ export default function MoodSelector({ onConfirm, onBack }) {
               aria-label="Scroll right"
               className="shrink-0 w-7 h-7 rounded-full bg-white border border-stone-200 flex items-center justify-center text-[var(--color-text-muted)] hover:bg-stone-50 cursor-pointer transition-all"
             >
-              ▶
+              <ChevronRight size={14} />
             </button>
           </div>
         </div>
 
-        {/* Action buttons (Stacked for Mobile Prominence) */}
+        {/* Action buttons */}
         <div className="flex flex-col gap-3 mt-1">
           <button
             onClick={handleConfirm}
             disabled={noneSelected}
-            className={`w-full py-4 rounded-xl font-sans font-semibold text-sm tracking-wide uppercase transition-all duration-200 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] h-[54px] border ${
+            className={`w-full py-4 rounded-xl font-sans font-semibold text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:scale-[1.005] active:scale-[0.995] h-[52px] border ${
               noneSelected
                 ? 'bg-stone-100 border-dashed border-stone-300 text-stone-400'
-                : 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white border-transparent shadow-md shadow-red-500/10'
+                : 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white border-transparent shadow-sm'
             }`}
           >
             {noneSelected
               ? 'Pick at least one vibe'
-              : 'Build my Bahrain Passage →'}
+              : 'Generate Travel Ledger →'}
           </button>
 
           <button
             onClick={quickStart}
-            className="w-full py-3.5 rounded-xl font-sans font-semibold text-xs tracking-wide uppercase transition-all duration-200 cursor-pointer border hover:bg-[var(--color-primary)] hover:text-white hover:scale-[1.01] active:scale-[0.99] h-[48px] flex items-center justify-center gap-1 shadow-sm"
-            style={{ borderColor: 'rgba(193, 18, 47, 0.2)', backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}
+            className="w-full py-3 rounded-xl font-sans font-semibold text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer border hover:bg-[var(--color-primary)] hover:text-white hover:scale-[1.005] active:scale-[0.995] h-[46px] flex items-center justify-center gap-1 shadow-xs"
+            style={{ borderColor: 'rgba(193, 18, 47, 0.15)', backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}
           >
-            ⚡ Quick Start (Skip Curation)
+            Standard Route (Quick Start)
           </button>
 
           <button
             onClick={() => setSelectedMoods(allSelected ? [] : ['empires', 'sea', 'spice', 'lights'])}
-            className="w-full text-[11px] tracking-wide uppercase font-semibold py-2.5 transition-all duration-300 cursor-pointer text-center hover:underline text-[var(--color-primary)] bg-transparent border-none"
+            className="w-full text-[10px] tracking-widest uppercase font-semibold py-2.5 transition-all duration-300 cursor-pointer text-center hover:underline text-[var(--color-primary)] bg-transparent border-none"
           >
             {allSelected ? 'Clear All' : 'Select All'}
           </button>

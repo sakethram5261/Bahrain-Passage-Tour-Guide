@@ -1046,19 +1046,19 @@
   background: var(--jn-crimson) !important;
   border-color: #D4AF37 !important;
   color: #ffffff !important;
-  box-shadow: 0 0 14px rgba(193, 18, 47, 0.65), 0 0 6px rgba(212, 175, 55, 0.4);
-  transform: scale(1.12);
-  animation: jn-active-stop-pulse 1.6s infinite alternate;
+  box-shadow: 0 4px 12px rgba(193, 18, 47, 0.2), 0 0 4px rgba(212, 175, 55, 0.15) !important;
+  transform: scale(1.05);
+  animation: jn-active-stop-pulse 2s infinite alternate ease-in-out;
 }
 
 @keyframes jn-active-stop-pulse {
   0% {
-    transform: scale(1.05);
-    box-shadow: 0 0 6px rgba(193, 18, 47, 0.4);
+    transform: scale(1.02);
+    box-shadow: 0 2px 6px rgba(193, 18, 47, 0.15);
   }
   100% {
-    transform: scale(1.15);
-    box-shadow: 0 0 16px rgba(193, 18, 47, 0.8), 0 0 8px rgba(212, 175, 55, 0.5);
+    transform: scale(1.08);
+    box-shadow: 0 6px 16px rgba(193, 18, 47, 0.25), 0 0 6px rgba(212, 175, 55, 0.2);
   }
 }
 
@@ -2613,9 +2613,9 @@
 
 .jn-vibe-card--active {
   background: linear-gradient(135deg, #C1122F 0%, #8f0d22 100%) !important;
-  border: 2px solid #C1122F !important;
+  border: 1.5px solid #C1122F !important;
   color: #ffffff !important;
-  box-shadow: 0 12px 36px rgba(193, 18, 47, 0.35), 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 8px 24px rgba(193, 18, 47, 0.16), 0 2px 6px rgba(0, 0, 0, 0.06) !important;
 }
 
 
@@ -2716,7 +2716,7 @@
   background: #C1122F;
   color: #white;
   transform: translateX(-50%) translateY(-2px);
-  box-shadow: 0 10px 30px rgba(193, 18, 47, 0.4), 0 0 15px rgba(193, 18, 47, 0.3);
+  box-shadow: 0 8px 20px rgba(193, 18, 47, 0.18) !important;
 }
 .jn-intro-quick-btn:active {
   transform: translateX(-50%) translateY(0);

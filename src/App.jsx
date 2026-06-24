@@ -1,4 +1,5 @@
 import { useState, useCallback, lazy, Suspense } from 'react'
+import { BookOpen } from 'lucide-react'
 import { JourneyProvider } from './context/JourneyProvider'
 import { useVibe } from './hooks/useVibe'
 import { LangProvider } from './context/LangContext'
@@ -103,7 +104,7 @@ function MainContent() {
               }}
               aria-label="View Explorer Passport"
             >
-              <span role="img" aria-label="Passport">📖</span>
+              <BookOpen size={10} className="shrink-0" strokeWidth={2} />
               <span>Passport ({getRank(xp).label})</span>
             </button>
           )}
