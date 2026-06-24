@@ -1057,13 +1057,13 @@ export default function JournalNotebook({ onBack }) {
     const spotId = spot.id || `spot-${Math.random().toString(36).substr(2, 9)}`
     
     const CATEGORY_FALLBACK_IMAGES = {
-      fort: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG',
-      souq: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bab_al-Bahrain_Souq_2.jpg',
-      coast: 'https://commons.wikimedia.org/wiki/Special:FilePath/Colours_of_the_Persian_Gulf_ESA353290_(cropped_to_Jidda_Island).jpg',
-      modern: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Manama_Skyline_08.jpg',
-      desert: 'https://commons.wikimedia.org/wiki/Special:FilePath/2010-03_Tree_of_Life_Bahrain.jpg',
-      culture: 'https://commons.wikimedia.org/wiki/Special:FilePath/Manama_Bahrain_National_Museum_Exterior_1.jpg',
-      default: 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'
+      fort: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG',
+      souq: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Manama_Bab_al-Bahrain_Souq_1.jpg',
+      coast: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+      modern: 'https://upload.wikimedia.org/wikipedia/commons/4/4c/Manama_Bahrain_World_Trade_Centre_04.jpg',
+      desert: 'https://upload.wikimedia.org/wikipedia/commons/4/42/2010-03_Tree_of_Life_Bahrain.jpg',
+      culture: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Manama_Bahrain_National_Museum_Exterior_1.jpg',
+      default: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'
     }
 
     const newSpot = {

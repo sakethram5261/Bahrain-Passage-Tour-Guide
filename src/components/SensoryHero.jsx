@@ -89,10 +89,12 @@ export default function SensoryHero({ onBack }) {
   const compileItinerary = useCallback(async () => {
     let compiledSpots = []
     let localCatalog = null
+    let localCategoryImages = null
     try {
       const itineraryModule = await import('../hooks/useItinerary')
-      if (itineraryModule && itineraryModule.spotsCatalog) {
+      if (itineraryModule) {
         localCatalog = itineraryModule.spotsCatalog
+        localCategoryImages = itineraryModule.categoryImages
       }
     } catch (importErr) {
       console.error("Dynamic catalog chunk load protected:", importErr)
@@ -149,7 +151,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                 ...item,
                 pathGuide: tier === 'Wandering' ? (item.budgetGuide || item.desc) : (item.premiumGuide || item.desc),
                 pathCost: tier === 'Wandering' ? (item.budgetCost || 'Free Entry') : (item.premiumCost || 'Free Entry'),
-                image: categoryImages[item.category?.toLowerCase()] || categoryImages.default
+                image: (localCategoryImages && localCategoryImages[item.category?.toLowerCase()]) || (localCategoryImages && localCategoryImages.default) || 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'
               }))
               aiFetched = true
               setTerminalLogs(logs => [...logs, `Successfully cataloged ${compiledSpots.length} tailored cultural locations!`])
