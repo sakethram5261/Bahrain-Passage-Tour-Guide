@@ -11,6 +11,8 @@ const MOODS = [
     tagline: 'Ancient archaeological forts, temples & 5,000-year history',
     icon: Landmark,
     spots: ["Qal'at al-Bahrain", 'Barbar Temple', 'Arad Fort', 'Riffa Fort'],
+    bgPatternInactive: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><path d='M0,30 L30,0 L60,30 L30,60 Z' stroke='%238B5A4B' stroke-width='0.8' fill='none' opacity='0.15'/></svg>")`,
+    bgPatternActive: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><path d='M0,30 L30,0 L60,30 L30,60 Z' stroke='%23FFFFFF' stroke-width='0.8' fill='none' opacity='0.1'/></svg>")`
   },
   {
     id: 'sea',
@@ -19,6 +21,8 @@ const MOODS = [
     tagline: 'Refined pearls, coastal tides & disappearing sandbanks',
     icon: Waves,
     spots: ['Pearling Path UNESCO', 'Jarada Sandbank', 'Al Dar Islands', 'Sea Ferry'],
+    bgPatternInactive: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' viewBox='0 0 60 40'><path d='M0,20 Q15,5 30,20 T60,20 M0,30 Q15,15 30,30 T60,30' stroke='%231a5276' stroke-width='0.8' fill='none' opacity='0.15'/></svg>")`,
+    bgPatternActive: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' viewBox='0 0 60 40'><path d='M0,20 Q15,5 30,20 T60,20 M0,30 Q15,15 30,30 T60,30' stroke='%23FFFFFF' stroke-width='0.8' fill='none' opacity='0.1'/></svg>")`
   },
   {
     id: 'spice',
@@ -27,6 +31,8 @@ const MOODS = [
     tagline: 'Authentic souqs, traditional karak & saffron delicacies',
     icon: Coffee,
     spots: ['Manama Souq', 'Muharraq Alleyways', "Haji's Cafe", "A'ali Pottery"],
+    bgPatternInactive: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'><path d='M25,2 C38,2 48,12 48,25 L48,48 L2,48 L2,25 C2,12 12,2 25,2 Z' stroke='%238B6914' stroke-width='0.8' fill='none' opacity='0.15'/></svg>")`,
+    bgPatternActive: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'><path d='M25,2 C38,2 48,12 48,25 L48,48 L2,48 L2,25 C2,12 12,2 25,2 Z' stroke='%23FFFFFF' stroke-width='0.8' fill='none' opacity='0.1'/></svg>")`
   },
   {
     id: 'lights',
@@ -35,6 +41,8 @@ const MOODS = [
     tagline: 'Sophisticated arts, dining & modern cityscape',
     icon: Sparkles,
     spots: ['Block 338 Adliya', 'Reef Island', 'La Fontaine Arts', 'Night Skyline'],
+    bgPatternInactive: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><path d='M20,2 L23,15 L38,18 L23,21 L20,38 L17,21 L2,18 L17,15 Z' stroke='%231a3a5c' stroke-width='0.8' fill='none' opacity='0.15'/></svg>")`,
+    bgPatternActive: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><path d='M20,2 L23,15 L38,18 L23,21 L20,38 L17,21 L2,18 L17,15 Z' stroke='%23FFFFFF' stroke-width='0.8' fill='none' opacity='0.1'/></svg>")`
   },
 ]
 
@@ -199,7 +207,17 @@ export default function MoodSelector({ onConfirm, onBack }) {
                 }}
               >
                 {/* Tactile Paper Grain Overlay */}
-                <div className="paper-grain" style={{ opacity: active ? 0.025 : 0.045, mixBlendMode: 'multiply' }} />
+                <div className="paper-grain opacity-[0.03] pointer-events-none" />
+
+                {/* Thematic Background Pattern Overlay */}
+                <div 
+                  className="absolute inset-0 z-0 transition-opacity duration-300 pointer-events-none"
+                  style={{
+                    backgroundImage: active ? mood.bgPatternActive : mood.bgPatternInactive,
+                    backgroundSize: 'auto',
+                    backgroundPosition: 'center',
+                  }}
+                />
 
                 {/* Hover effect border */}
                 {!active && (

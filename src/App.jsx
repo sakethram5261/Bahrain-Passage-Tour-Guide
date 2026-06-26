@@ -11,6 +11,7 @@ import WelcomeIntro from './components/WelcomeIntro'
 import JournalSkeleton from './components/skeletons/JournalSkeleton'
 import LangToggle from './components/LangToggle'
 import PassportCard from './components/PassportCard'
+import AmbientMixer from './components/AmbientMixer'
 
 const RANKS = [
   { id: 'wanderer', label: 'Wanderer', arabic: 'مسافر', minXP: 0, color: '#5C5451' },
@@ -51,15 +52,13 @@ function MainContent() {
     childView = <SensoryHero key={sensoryKey} onBack={() => setStep(1)} />
   } else {
     childView = (
-      <ErrorBoundary>
-        <Suspense fallback={<JournalSkeleton />}>
-          <JournalNotebook
-            xp={xp}
-            level={getRank(xp).label}
-            onBack={() => setStep(1)}
-          />
-        </Suspense>
-      </ErrorBoundary>
+      <Suspense fallback={<JournalSkeleton />}>
+        <JournalNotebook
+          xp={xp}
+          level={getRank(xp).label}
+          onBack={() => setStep(1)}
+        />
+      </Suspense>
     )
   }
 
@@ -79,13 +78,16 @@ function MainContent() {
               <span>Passport ({getRank(xp).label})</span>
             </button>
           )}
+          <AmbientMixer />
           <LangToggle className="border-white/20 bg-black/40 backdrop-blur hover:bg-black/60" />
         </div>
       )}
       {showPassportCard && step < 5 && (
         <PassportCard onClose={() => setShowPassportCard(false)} />
       )}
-      {childView}
+      <ErrorBoundary>
+        {childView}
+      </ErrorBoundary>
     </div>
   )
 }

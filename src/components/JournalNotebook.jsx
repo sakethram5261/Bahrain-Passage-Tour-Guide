@@ -34,6 +34,7 @@ import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
 import VirtualTour from './VirtualTour'
 import WayfarerLens from './WayfarerLens'
 import PassportCard from './PassportCard'
+import WaxSealCeremony from './WaxSealCeremony'
 import MapSkeleton from './skeletons/MapSkeleton'
 import JournalSkeleton from './skeletons/JournalSkeleton'
 import { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
@@ -502,6 +503,7 @@ export default function JournalNotebook({ onBack }) {
   const [riddleHints,     setRiddleHints]     = useState({})
   const [hintLoading,     setHintLoading]     = useState(false)
   const [saveState,       setSaveState]       = useState('saved')
+  const [showSealCeremony, setShowSealCeremony] = useState(false)
   const playTypewriterClick = (pitchMultiplier = 1.0) => {
     playTypewriterClickCentral(pitchMultiplier, soundVolume, soundMuted)
   }
@@ -702,23 +704,8 @@ export default function JournalNotebook({ onBack }) {
   /* ── Day Sealing ─────────────────────────────────────────────────────────── */
   const isDayCompleted = completedDays.includes(currentDayTab)
   
-  const handleSealDay = (e) => {
-    setStamping(true)
-    
-    const rect = e?.currentTarget?.getBoundingClientRect()
-    const startX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2
-    const startY = rect ? rect.top + rect.height / 2 : window.innerHeight / 2
-    
-    playDaySealStamp(soundVolume, soundMuted)
-
-    setTimeout(() => {
-      triggerCoinFlyout(startX, startY)
-    }, 350)
-
-    setTimeout(() => {
-      completeDay(currentDayTab)
-      setStamping(false)
-    }, 1100)
+  const handleSealDay = () => {
+    setShowSealCeremony(true)
   }
 
   /* ── Riddle solver state ─────────────────────────────────────────────────── */
@@ -2081,7 +2068,7 @@ export default function JournalNotebook({ onBack }) {
                   <div className="jn-mobile-context-content">
                     <img 
                       src={activeSpot.image || 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'} 
-                      alt="" 
+                      alt={activeSpot.name || "Landmark thumbnail"} 
                       className="jn-mobile-context-thumb" 
                     />
                     <div className="jn-mobile-context-text">
@@ -3614,6 +3601,15 @@ export default function JournalNotebook({ onBack }) {
           })}
         </div>
       </div>
+      {showSealCeremony && (
+        <WaxSealCeremony
+          dayNum={currentDayTab}
+          onComplete={() => {
+            completeDay(currentDayTab)
+            setShowSealCeremony(false)
+          }}
+        />
+      )}
     </div>
   )
 }

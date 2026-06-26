@@ -422,7 +422,7 @@ export default function WelcomeIntro({ onComplete }) {
       <video
         autoPlay muted loop playsInline
         className="jn-welcome-video"
-        poster="/assets/images/bahrain_skyline.png"
+        poster="/assets/images/bahrain_skyline.webp"
       >
         <source src="/assets/videos/bahrain_timelapse.mp4" type="video/mp4" />
       </video>

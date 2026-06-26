@@ -2,33 +2,31 @@ import { useState, useEffect, useCallback } from 'react'
 import { JourneyContext } from './JourneyContext'
 import { playPageSwish } from '../services/audioUtils'
 import { spotsCatalog } from '../hooks/useItinerary'
+import { savePhoto, clearAllPhotos, getAllPhotos } from '../services/db'
 
-
-const safeGetJSON = (key, defaultValue) => {
+const savedState = (() => {
   try {
-    const item = localStorage.getItem(key)
-    if (!item) return defaultValue
-    return JSON.parse(item)
+    const item = localStorage.getItem('bp_journey_state')
+    return item ? JSON.parse(item) : {}
   } catch {
-    return defaultValue
+    return {}
   }
-}
+})()
 
-const safeGetNum = (key, defaultValue) => {
+const getSavedValue = (key, legacyKey, defaultValue, type) => {
+  if (savedState && savedState[key] !== undefined) return savedState[key]
+  // Fallback to legacy keys
   try {
-    const item = localStorage.getItem(key)
-    if (!item) return defaultValue
-    const val = Number(item)
-    return isNaN(val) ? defaultValue : val
-  } catch {
-    return defaultValue
-  }
-}
-
-const safeGetStr = (key, defaultValue) => {
-  try {
-    const item = localStorage.getItem(key)
-    return item !== null ? item : defaultValue
+    const legacy = localStorage.getItem(legacyKey)
+    if (legacy === null) return defaultValue
+    if (type === 'num') {
+      const val = Number(legacy)
+      return isNaN(val) ? defaultValue : val
+    }
+    if (type === 'json') {
+      return JSON.parse(legacy)
+    }
+    return legacy
   } catch {
     return defaultValue
   }
@@ -36,54 +34,88 @@ const safeGetStr = (key, defaultValue) => {
 
 export function JourneyProvider({ children }) {
   // ── Onboarding state ──────────────────────────────────────────────────
-  const [step, setStep] = useState(() => safeGetNum('bp_step', 1))
-  const [selectedMoods, setSelectedMoods] = useState(() => safeGetJSON('bp_selectedMoods', []))
-  const [tier, setTier] = useState(() => safeGetStr('bp_tier', 'Wandering'))
-  const [duration, setDuration] = useState(() => safeGetNum('bp_duration', 3))
+  const [step, setStep] = useState(() => getSavedValue('step', 'bp_step', 1, 'num'))
+  const [selectedMoods, setSelectedMoods] = useState(() => getSavedValue('selectedMoods', 'bp_selectedMoods', [], 'json'))
+  const [tier, setTier] = useState(() => getSavedValue('tier', 'bp_tier', 'Wandering', 'str'))
+  const [duration, setDuration] = useState(() => getSavedValue('duration', 'bp_duration', 3, 'num'))
 
   // ── Progress ──────────────────────────────────────────────────────────
-  const [unlockedDays, setUnlockedDays] = useState(() => safeGetJSON('bp_unlockedDays', [1]))
-  const [completedDays, setCompletedDays] = useState(() => safeGetJSON('bp_completedDays', []))
-  const [currentDayTab, setCurrentDayTab] = useState(() => safeGetNum('bp_currentDayTab', 1))
+  const [unlockedDays, setUnlockedDays] = useState(() => getSavedValue('unlockedDays', 'bp_unlockedDays', [1], 'json'))
+  const [completedDays, setCompletedDays] = useState(() => getSavedValue('completedDays', 'bp_completedDays', [], 'json'))
+  const [currentDayTab, setCurrentDayTab] = useState(() => getSavedValue('currentDayTab', 'bp_currentDayTab', 1, 'num'))
   const [currentSpotIndex, setCurrentSpotIndex] = useState(0)
 
   // ── Itinerary ─────────────────────────────────────────────────────────
-  const [itinerarySpots, setItinerarySpots] = useState(() => safeGetJSON('bp_itinerarySpots', []))
+  const [itinerarySpots, setItinerarySpots] = useState(() => getSavedValue('itinerarySpots', 'bp_itinerarySpots', [], 'json'))
   const [itineraryLoading, setItineraryLoading] = useState(false)
 
   // ── Journal entries ───────────────────────────────────────────────────
-  const [capturedPhotos, setCapturedPhotos] = useState(() => safeGetJSON('bp_capturedPhotos', {}))
-  const [lensStories, setLensStories] = useState(() => safeGetJSON('bp_lensStories', {}))
-  const [journalReflections, setJournalReflections] = useState(() => safeGetJSON('bp_journalReflections', {}))
+  const [capturedPhotos, setCapturedPhotos] = useState({})
+  const [lensStories, setLensStories] = useState(() => getSavedValue('lensStories', 'bp_lensStories', {}, 'json'))
+  const [journalReflections, setJournalReflections] = useState(() => getSavedValue('journalReflections', 'bp_journalReflections', {}, 'json'))
 
   // ── Gamification ──────────────────────────────────────────────────────
-  const [xp, setXp] = useState(() => safeGetNum('bp_xp', 0))
-  const [xpLog, setXpLog] = useState(() => safeGetJSON('bp_xpLog', []))
-  const [goldFils, setGoldFils] = useState(() => safeGetNum('bp_goldFils', 1200))
-  const [collectedKeepsakes, setCollectedKeepsakes] = useState(() => safeGetJSON('bp_collectedKeepsakes', []))
-  const [solvedRiddles, setSolvedRiddles] = useState(() => safeGetJSON('bp_solvedRiddles', {}))
-  const [passportStamps, setPassportStamps] = useState(() => safeGetJSON('bp_passportStamps', []))
-  const [pearlsCollected, setPearlsCollected] = useState(() => safeGetJSON('bp_pearlsCollected', []))
-  const [falconsCalled, setFalconsCalled] = useState(() => safeGetJSON('bp_falconsCalled', []))
-  const [selectedHotel, setSelectedHotel] = useState(() => safeGetJSON('bp_selectedHotel', null))
-
+  const [xp, setXp] = useState(() => getSavedValue('xp', 'bp_xp', 0, 'num'))
+  const [xpLog, setXpLog] = useState(() => getSavedValue('xpLog', 'bp_xpLog', [], 'json'))
+  const [goldFils, setGoldFils] = useState(() => getSavedValue('goldFils', 'bp_goldFils', 1200, 'num'))
+  const [collectedKeepsakes, setCollectedKeepsakes] = useState(() => getSavedValue('collectedKeepsakes', 'bp_collectedKeepsakes', [], 'json'))
+  const [solvedRiddles, setSolvedRiddles] = useState(() => getSavedValue('solvedRiddles', 'bp_solvedRiddles', {}, 'json'))
+  const [passportStamps, setPassportStamps] = useState(() => getSavedValue('passportStamps', 'bp_passportStamps', [], 'json'))
+  const [pearlsCollected, setPearlsCollected] = useState(() => getSavedValue('pearlsCollected', 'bp_pearlsCollected', [], 'json'))
+  const [falconsCalled, setFalconsCalled] = useState(() => getSavedValue('falconsCalled', 'bp_falconsCalled', [], 'json'))
+  const [selectedHotel, setSelectedHotel] = useState(() => getSavedValue('selectedHotel', 'bp_selectedHotel', null, 'json'))
 
   // ── Audio ─────────────────────────────────────────────────────────────
-  const [soundVolume, setSoundVolume] = useState(() => safeGetNum('bp_soundVolume', 0.5))
-  const [soundMuted, setSoundMuted] = useState(() => safeGetStr('bp_soundMuted', '0') === '1')
+  const [soundVolume, setSoundVolume] = useState(() => getSavedValue('soundVolume', 'bp_soundVolume', 0.5, 'num'))
+  const [soundMuted, setSoundMuted] = useState(() => getSavedValue('soundMuted', 'bp_soundMuted', '0', 'str') === '1')
 
   // ── Travel Bag / Saffron Theme ─────────────────────────────────────────
-  const [purchasedItems, setPurchasedItems] = useState(() => safeGetJSON('bp_purchasedItems', {}))
-
+  const [purchasedItems, setPurchasedItems] = useState(() => getSavedValue('purchasedItems', 'bp_purchasedItems', {}, 'json'))
 
   // ── UI state ──────────────────────────────────────────────────────────
-  const [activeLeaf, setActiveLeaf] = useState(() => safeGetStr('bp_activeLeaf', 'chronicles'))
+  const [activeLeaf, setActiveLeaf] = useState(() => getSavedValue('activeLeaf', 'bp_activeLeaf', 'chronicles', 'str'))
   const [showPassportCard, setShowPassportCard] = useState(false)
 
   // ── Chat history (persisted, shared across features) ──────────────────
-  const [chatHistory, setChatHistory] = useState(() => safeGetJSON('bp_chatHistory', []))
+  const [chatHistory, setChatHistory] = useState(() => getSavedValue('chatHistory', 'bp_chatHistory', [], 'json'))
+  const [signature, setSignature] = useState(() => getSavedValue('signature', 'bp_signature', '', 'str'))
 
   const aligned = step === 5
+
+  // ── Asynchronous load of photos from IndexedDB with legacy migration ────
+  useEffect(() => {
+    let active = true
+    getAllPhotos().then(photos => {
+      if (!active) return
+      if (Object.keys(photos).length > 0) {
+        setCapturedPhotos(photos)
+      } else {
+        const legacyPhotos = getSavedValue('capturedPhotos', 'bp_capturedPhotos', null, 'json')
+        if (legacyPhotos && Object.keys(legacyPhotos).length > 0) {
+          setCapturedPhotos(legacyPhotos)
+          // Migrate to IndexedDB
+          Object.entries(legacyPhotos).forEach(([id, data]) => {
+            savePhoto(id, data)
+          })
+        }
+      }
+      
+      // Cleanup legacy keys once migration has been performed
+      setTimeout(() => {
+        const legacyKeys = [
+          'bp_step', 'bp_selectedMoods', 'bp_tier', 'bp_duration',
+          'bp_unlockedDays', 'bp_completedDays', 'bp_currentDayTab',
+          'bp_itinerarySpots', 'bp_capturedPhotos', 'bp_lensStories',
+          'bp_collectedKeepsakes', 'bp_journalReflections', 'bp_soundVolume', 'bp_soundMuted',
+          'bp_purchasedItems', 'bp_activeLeaf', 'bp_xp', 'bp_xpLog', 'bp_solvedRiddles',
+          'bp_goldFils', 'bp_passportStamps', 'bp_pearlsCollected', 'bp_falconsCalled',
+          'bp_selectedHotel', 'bp_chatHistory'
+        ]
+        legacyKeys.forEach(k => localStorage.removeItem(k))
+      }, 2000)
+    })
+    return () => { active = false }
+  }, [])
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -105,41 +137,44 @@ export function JourneyProvider({ children }) {
     })
   }, [duration, currentDayTab])
 
-  // Batched localStorage sync
+  // Debounced single key localStorage sync (excluding photos)
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        localStorage.setItem('bp_step', step)
-        localStorage.setItem('bp_selectedMoods', JSON.stringify(selectedMoods))
-        localStorage.setItem('bp_tier', tier)
-        localStorage.setItem('bp_duration', duration)
-        localStorage.setItem('bp_unlockedDays', JSON.stringify(unlockedDays))
-        localStorage.setItem('bp_completedDays', JSON.stringify(completedDays))
-        localStorage.setItem('bp_currentDayTab', currentDayTab)
-        localStorage.setItem('bp_itinerarySpots', JSON.stringify(itinerarySpots))
-        localStorage.setItem('bp_capturedPhotos', JSON.stringify(capturedPhotos))
-        localStorage.setItem('bp_lensStories', JSON.stringify(lensStories))
-        localStorage.setItem('bp_journalReflections', JSON.stringify(journalReflections))
-        localStorage.setItem('bp_soundVolume', soundVolume)
-        localStorage.setItem('bp_soundMuted', soundMuted ? '1' : '0')
-        localStorage.setItem('bp_purchasedItems', JSON.stringify(purchasedItems))
-        localStorage.setItem('bp_activeLeaf', activeLeaf)
-        localStorage.setItem('bp_xp', xp)
-        localStorage.setItem('bp_xpLog', JSON.stringify(xpLog))
-        localStorage.setItem('bp_solvedRiddles', JSON.stringify(solvedRiddles))
-        localStorage.setItem('bp_goldFils', goldFils)
-        localStorage.setItem('bp_passportStamps', JSON.stringify(passportStamps))
-        localStorage.setItem('bp_pearlsCollected', JSON.stringify(pearlsCollected))
-        localStorage.setItem('bp_falconsCalled', JSON.stringify(falconsCalled))
-        localStorage.setItem('bp_selectedHotel', selectedHotel ? JSON.stringify(selectedHotel) : '')
-        localStorage.setItem('bp_collectedKeepsakes', JSON.stringify(collectedKeepsakes))
-        localStorage.setItem('bp_chatHistory', JSON.stringify(chatHistory))
-      } catch (e) { console.error(e) }
+        const stateToSave = {
+          step,
+          selectedMoods,
+          tier,
+          duration,
+          unlockedDays,
+          completedDays,
+          currentDayTab,
+          itinerarySpots,
+          lensStories,
+          journalReflections,
+          soundVolume,
+          soundMuted,
+          purchasedItems,
+          activeLeaf,
+          xp,
+          xpLog,
+          solvedRiddles,
+          goldFils,
+          passportStamps,
+          pearlsCollected,
+          falconsCalled,
+          selectedHotel,
+          collectedKeepsakes,
+          chatHistory,
+          signature
+        }
+        localStorage.setItem('bp_journey_state', JSON.stringify(stateToSave))
+      } catch (e) {
+        console.error('Failed to sync journey state', e)
+      }
     }, 200)
     return () => clearTimeout(timer)
-  }, [step, selectedMoods, tier, duration, unlockedDays, completedDays, currentDayTab, itinerarySpots, capturedPhotos, lensStories, journalReflections, soundVolume, soundMuted, purchasedItems, activeLeaf, xp, xpLog, solvedRiddles, goldFils, passportStamps, pearlsCollected, falconsCalled, selectedHotel, collectedKeepsakes, chatHistory])
-
-
+  }, [step, selectedMoods, tier, duration, unlockedDays, completedDays, currentDayTab, itinerarySpots, lensStories, journalReflections, soundVolume, soundMuted, purchasedItems, activeLeaf, xp, xpLog, solvedRiddles, goldFils, passportStamps, pearlsCollected, falconsCalled, selectedHotel, collectedKeepsakes, chatHistory, signature])
 
   const awardXP = useCallback((amount, reason) => {
     setXp(prev => prev + amount)
@@ -167,6 +202,7 @@ export function JourneyProvider({ children }) {
 
   const saveCapturedPhoto = (spotId, dataUrl) => {
     setCapturedPhotos(prev => ({ ...prev, [spotId]: dataUrl }))
+    savePhoto(spotId, dataUrl) // Save immediately to IndexedDB
     awardXP(30, 'Lens snapshot captured')
     setGoldFils(prev => prev + 250)
     if (!passportStamps.includes(spotId)) {
@@ -215,6 +251,7 @@ export function JourneyProvider({ children }) {
     setCurrentDayTab(1)
     setItinerarySpots([])
     setCapturedPhotos({})
+    clearAllPhotos() // Clear IndexedDB
     setLensStories({})
     setCollectedKeepsakes([])
     setJournalReflections({})
@@ -231,7 +268,9 @@ export function JourneyProvider({ children }) {
     setChatHistory([])
     setStep(1)
     setPurchasedItems({})
+    setSignature('')
     try {
+      localStorage.removeItem('bp_journey_state')
       const keys = [
         'bp_step', 'bp_selectedMoods', 'bp_tier', 'bp_duration',
         'bp_unlockedDays', 'bp_completedDays', 'bp_currentDayTab',
@@ -239,9 +278,8 @@ export function JourneyProvider({ children }) {
         'bp_collectedKeepsakes', 'bp_journalReflections', 'bp_soundVolume', 'bp_soundMuted',
         'bp_purchasedItems',
         'bp_activeLeaf', 'bp_xp', 'bp_xpLog', 'bp_solvedRiddles', 'bp_goldFils',
-        'bp_passportStamps', 'bp_pearlsCollected', 'bp_falconsCalled', 'bp_chatHistory'
+        'bp_passportStamps', 'bp_pearlsCollected', 'bp_falconsCalled', 'bp_chatHistory', 'bp_signature'
       ]
-
       keys.forEach(k => localStorage.removeItem(k))
     } catch (e) {
       console.error(e)
@@ -393,6 +431,10 @@ export function JourneyProvider({ children }) {
       // Chat (shared across features)
       chatHistory,
       setChatHistory,
+
+      // Signature
+      signature,
+      setSignature,
     }}>
       {children}
     </JourneyContext.Provider>

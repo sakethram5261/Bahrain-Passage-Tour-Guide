@@ -525,12 +525,8 @@ export default function TourChatbot({ activeSpotName, embedded = false, onClose 
     return applied
   }
 
-  // Generative API fetch logic for DeepSeek
-  const callDeepSeekAPI = async (userText, chatHistory) => {
-    const messagesPayload = [
-      {
-        role: 'system',
-        content: `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
+  const getSystemPrompt = () => {
+    return `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
 You are embedded in a premium interactive travel journal app.
 The user can talk to you to get recommendations, ask about landmarks, or instruct you to update their trip parameters directly.
 
@@ -578,534 +574,149 @@ ACTIONS SPECIFICATION:
 
 If no actions are requested, return an empty actions array: "actions": [].
 Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
-      }
-    ]
+  }
 
+  const parseJSONResponse = (textResult) => {
+    try {
+      const parsed = JSON.parse(textResult.trim())
+      return {
+        text: parsed.text || "Processed request.",
+        actions: parsed.actions || []
+      }
+    } catch {
+      const jsonMatch = textResult.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0].trim())
+          return {
+            text: parsed.text || "Processed request.",
+            actions: parsed.actions || []
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return {
+        text: textResult,
+        actions: []
+      }
+    }
+  }
+
+  const callLLMAPI = async (targetProvider, userText, chatHistory) => {
+    const systemPrompt = getSystemPrompt()
+
+    // 1. Local Proxy
+    if (targetProvider === 'proxy') {
+      const historyText = chatHistory.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`).join('\n')
+      const userPrompt = `Chat History:\n${historyText}\n\nLatest User Message: ${userText}`
+      
+      const rawResult = await callLocalAI(systemPrompt, userPrompt, '', { maxTokens: 1000, useJson: true, useCache: false })
+      if (!rawResult) throw new Error("EMPTY_RESPONSE_FROM_PROXY")
+      return parseJSONResponse(rawResult)
+    }
+
+    // 2. Gemini
+    if (targetProvider === 'gemini') {
+      const contents = []
+      let foundUser = false
+      for (const msg of chatHistory) {
+        if (msg.role === 'user') foundUser = true
+        if (foundUser) {
+          contents.push({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.text }]
+          })
+        }
+      }
+      contents.push({
+        role: 'user',
+        parts: [{ text: userText }]
+      })
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: {
+            responseMimeType: "application/json",
+            thinkingConfig: { thinkingBudget: 0 }
+          }
+        })
+      })
+
+      if (!response.ok) {
+        const errText = await response.text()
+        throw new Error(`API_ERROR: ${response.status} - ${errText}`)
+      }
+
+      const data = await response.json()
+      const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!textResult) throw new Error("EMPTY_RESPONSE")
+      return parseJSONResponse(textResult)
+    }
+
+    // 3. OpenAI-compatible (DeepSeek, Ollama, OpenRouter)
+    let url, headers = { 'Content-Type': 'application/json' }, body = {}
+    const messagesPayload = [
+      { role: 'system', content: systemPrompt }
+    ]
     chatHistory.forEach(msg => {
       messagesPayload.push({
         role: msg.role === 'user' ? 'user' : 'assistant',
         content: msg.text
       })
     })
+    messagesPayload.push({ role: 'user', content: userText })
 
-    messagesPayload.push({
-      role: 'user',
-      content: userText
-    })
-
-    const url = 'https://api.deepseek.com/chat/completions'
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${deepSeekKey}`
-      },
-      body: JSON.stringify({
+    if (targetProvider === 'deepseek') {
+      url = 'https://api.deepseek.com/chat/completions'
+      headers['Authorization'] = `Bearer ${deepSeekKey}`
+      body = {
         model: 'deepseek-chat',
         messages: messagesPayload,
-        response_format: {
-          type: 'json_object'
-        }
-      })
-    })
-
-    if (!response.ok) {
-      const errText = await response.text()
-      throw new Error(`DeepSeek API_ERROR: ${response.status} - ${errText}`)
-    }
-
-    const data = await response.json()
-    const textResult = data.choices?.[0]?.message?.content
-    if (!textResult) {
-      throw new Error("EMPTY_RESPONSE_FROM_DEEPSEEK")
-    }
-
-    try {
-      const parsed = JSON.parse(textResult.trim())
-      return {
-        text: parsed.text || "Processed request.",
-        actions: parsed.actions || []
+        response_format: { type: 'json_object' }
       }
-    } catch {
-      const jsonMatch = textResult.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        try {
-          const parsed = JSON.parse(jsonMatch[0].trim())
-          return {
-            text: parsed.text || "Processed request.",
-            actions: parsed.actions || []
-          }
-        } catch {
-          // ignore
-        }
-      }
-      return {
-        text: textResult,
-        actions: []
-      }
-    }
-  }
-
-  // Generative API fetch logic for Ollama
-  const callOllamaAPI = async (userText, chatHistory) => {
-    const messagesPayload = [
-      {
-        role: 'system',
-        content: `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
-You are embedded in a premium interactive travel journal app.
-The user can talk to you to get recommendations, ask about landmarks, or instruct you to update their trip parameters directly.
-
-Here is the current state of the user's trip:
-- Step in App: ${step} (1=Mood Selection, 4=Itinerary Generation/Sensory Hero, 5=Journal Left Page/Seal Day, 6=Full Journal)
-- Selected Vibes: ${JSON.stringify(selectedMoods)} (Possible: empires, sea, spice, lights)
-- Stay Duration: ${duration} days (Max 10)
-- Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
-- Current Day Viewed: ${currentDayTab}
-- Fils Balance: ${goldFils}
-- XP (Experience Points): ${xp}
-- Active Spot: ${activeSpotName || 'None'}
-- Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
-
-LANDMARK KNOWLEDGE BASE:
-${JSON.stringify(DESTINATIONS, null, 2)}
-
-DIRECTIONS:
-1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
-2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
-3. You MUST respond with a valid JSON object matching the following structure:
-{
-  "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
-  "actions": [
-    { "type": "SET_TIER", "value": "Luxury" },
-    { "type": "SET_DURATION", "value": 5 },
-    { "type": "SET_STEP", "value": 5 },
-    { "type": "SET_DAY", "value": 2 },
-    { "type": "SET_MOODS", "value": ["empires", "sea"] },
-    { "type": "ADD_FILS", "value": 500 },
-    { "type": "ADD_XP", "value": 100 },
-    { "type": "RESET" }
-  ]
-}
-
-ACTIONS SPECIFICATION:
-- SET_TIER: value must be one of: "Wandering", "Curated", "Luxury".
-- SET_DURATION: value must be an integer between 1 and 10.
-- SET_STEP: value must be an integer between 1 and 6.
-- SET_DAY: value must be an integer between 1 and duration.
-- SET_MOODS: value must be an array containing subset of: "empires", "sea", "spice", "lights".
-- ADD_FILS: value must be an integer (positive or negative) to add to user's coins.
-- ADD_XP: value must be an integer to add to user's XP.
-- RESET: no value, resets progress.
-
-If no actions are requested, return an empty actions array: "actions": [].
-Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
-      }
-    ]
-
-    chatHistory.forEach(msg => {
-      messagesPayload.push({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.text
-      })
-    })
-
-    messagesPayload.push({
-      role: 'user',
-      content: userText
-    })
-
-    const url = 'http://localhost:11434/v1/chat/completions'
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
+    } else if (targetProvider === 'ollama') {
+      url = 'http://localhost:11434/v1/chat/completions'
+      body = {
         model: 'qwen2.5-coder:7b',
         messages: messagesPayload,
-        response_format: {
-          type: 'json_object'
-        }
-      })
-    })
-
-    if (!response.ok) {
-      const errText = await response.text()
-      throw new Error(`Ollama API_ERROR: ${response.status} - ${errText}`)
-    }
-
-    const data = await response.json()
-    const textResult = data.choices?.[0]?.message?.content
-    if (!textResult) {
-      throw new Error("EMPTY_RESPONSE_FROM_OLLAMA")
-    }
-
-    try {
-      const parsed = JSON.parse(textResult.trim())
-      return {
-        text: parsed.text || "Processed request.",
-        actions: parsed.actions || []
+        response_format: { type: 'json_object' }
       }
-    } catch {
-      const jsonMatch = textResult.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        try {
-          const parsed = JSON.parse(jsonMatch[0].trim())
-          return {
-            text: parsed.text || "Processed request.",
-            actions: parsed.actions || []
-          }
-        } catch {
-          // ignore
-        }
-      }
-      return {
-        text: textResult,
-        actions: []
-      }
-    }
-  }
-
-  // Generative API fetch logic for OpenRouter
-  const callOpenRouterAPI = async (userText, chatHistory) => {
-    const messagesPayload = [
-      {
-        role: 'system',
-        content: `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
-You are embedded in a premium interactive travel journal app.
-The user can talk to you to get recommendations, ask about landmarks, or instruct you to update their trip parameters directly.
-
-Here is the current state of the user's trip:
-- Step in App: ${step} (1=Mood Selection, 4=Itinerary Generation/Sensory Hero, 5=Journal Left Page/Seal Day, 6=Full Journal)
-- Selected Vibes: ${JSON.stringify(selectedMoods)} (Possible: empires, sea, spice, lights)
-- Stay Duration: ${duration} days (Max 10)
-- Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
-- Current Day Viewed: ${currentDayTab}
-- Fils Balance: ${goldFils}
-- XP (Experience Points): ${xp}
-- Active Spot: ${activeSpotName || 'None'}
-- Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
-
-LANDMARK KNOWLEDGE BASE:
-${JSON.stringify(DESTINATIONS, null, 2)}
-
-DIRECTIONS:
-1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
-2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
-3. You MUST respond with a valid JSON object matching the following structure:
-{
-  "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
-  "actions": [
-    { "type": "SET_TIER", "value": "Luxury" },
-    { "type": "SET_DURATION", "value": 5 },
-    { "type": "SET_STEP", "value": 5 },
-    { "type": "SET_DAY", "value": 2 },
-    { "type": "SET_MOODS", "value": ["empires", "sea"] },
-    { "type": "ADD_FILS", "value": 500 },
-    { "type": "ADD_XP", "value": 100 },
-    { "type": "RESET" }
-  ]
-}
-
-ACTIONS SPECIFICATION:
-- SET_TIER: value must be one of: "Wandering", "Curated", "Luxury".
-- SET_DURATION: value must be an integer between 1 and 10.
-- SET_STEP: value must be an integer between 1 and 6.
-- SET_DAY: value must be an integer between 1 and duration.
-- SET_MOODS: value must be an array containing subset of: "empires", "sea", "spice", "lights".
-- ADD_FILS: value must be an integer (positive or negative) to add to user's coins.
-- ADD_XP: value must be an integer to add to user's XP.
-- RESET: no value, resets progress.
-
-If no actions are requested, return an empty actions array: "actions": [].
-Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
-      }
-    ]
-
-    chatHistory.forEach(msg => {
-      messagesPayload.push({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.text
-      })
-    })
-
-    messagesPayload.push({
-      role: 'user',
-      content: userText
-    })
-
-    const url = 'https://openrouter.ai/api/v1/chat/completions'
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openRouterKey}`,
-        'HTTP-Referer': 'https://github.com/sakethram5261/Bahrain-Passage-Tour-Guide',
-        'X-Title': 'Bahrain Passage'
-      },
-      body: JSON.stringify({
+    } else if (targetProvider === 'openrouter') {
+      url = 'https://openrouter.ai/api/v1/chat/completions'
+      headers['Authorization'] = `Bearer ${openRouterKey}`
+      headers['HTTP-Referer'] = 'https://github.com/sakethram5261/Bahrain-Passage-Tour-Guide'
+      headers['X-Title'] = 'Bahrain Passage'
+      body = {
         model: 'google/gemini-2.5-flash:free',
         messages: messagesPayload,
-        response_format: {
-          type: 'json_object'
-        },
-        reasoning: {
-          effort: 'none'
-        }
-      })
+        response_format: { type: 'json_object' },
+        reasoning: { effort: 'none' }
+      }
+    } else {
+      throw new Error(`Unknown provider: ${targetProvider}`)
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
     })
 
     if (!response.ok) {
       const errText = await response.text()
-      throw new Error(`OpenRouter API_ERROR: ${response.status} - ${errText}`)
+      throw new Error(`${targetProvider} API_ERROR: ${response.status} - ${errText}`)
     }
 
     const data = await response.json()
     const textResult = data.choices?.[0]?.message?.content
-    if (!textResult) {
-      throw new Error("EMPTY_RESPONSE_FROM_OPENROUTER")
-    }
-
-    try {
-      const parsed = JSON.parse(textResult.trim())
-      return {
-        text: parsed.text || "Processed request.",
-        actions: parsed.actions || []
-      }
-    } catch {
-      const jsonMatch = textResult.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        try {
-          const parsed = JSON.parse(jsonMatch[0].trim())
-          return {
-            text: parsed.text || "Processed request.",
-            actions: parsed.actions || []
-          }
-        } catch {
-          // ignore
-        }
-      }
-      return {
-        text: textResult,
-        actions: []
-      }
-    }
-  }
-
-  // Generative API fetch logic
-  const callGeminiAPI = async (userText, chatHistory) => {
-    // Gemini requires the first message in the contents to be from user.
-    // We filter chatHistory to start at the first message sent by the user.
-    const contents = []
-    let foundUser = false
-    for (const msg of chatHistory) {
-      if (msg.role === 'user') {
-        foundUser = true
-      }
-      if (foundUser) {
-        contents.push({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.text }]
-        })
-      }
-    }
-    
-    contents.push({
-      role: 'user',
-      parts: [{ text: userText }]
-    })
-
-    const systemInstructionText = `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
-You are embedded in a premium interactive travel journal app.
-The user can talk to you to get recommendations, ask about landmarks, or instruct you to update their trip parameters directly.
-
-Here is the current state of the user's trip:
-- Step in App: ${step} (1=Mood Selection, 4=Itinerary Generation/Sensory Hero, 5=Journal Left Page/Seal Day, 6=Full Journal)
-- Selected Vibes: ${JSON.stringify(selectedMoods)} (Possible: empires, sea, spice, lights)
-- Stay Duration: ${duration} days (Max 10)
-- Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
-- Current Day Viewed: ${currentDayTab}
-- Fils Balance: ${goldFils}
-- XP (Experience Points): ${xp}
-- Active Spot: ${activeSpotName || 'None'}
-- Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
-
-LANDMARK KNOWLEDGE BASE:
-${JSON.stringify(DESTINATIONS, null, 2)}
-
-DIRECTIONS:
-1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
-2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
-3. You MUST respond with a valid JSON object matching the following structure:
-{
-  "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
-  "actions": [
-    { "type": "SET_TIER", "value": "Luxury" },
-    { "type": "SET_DURATION", "value": 5 },
-    { "type": "SET_STEP", "value": 5 },
-    { "type": "SET_DAY", "value": 2 },
-    { "type": "SET_MOODS", "value": ["empires", "sea"] },
-    { "type": "ADD_FILS", "value": 500 },
-    { "type": "ADD_XP", "value": 100 },
-    { "type": "RESET" }
-  ]
-}
-
-ACTIONS SPECIFICATION:
-- SET_TIER: value must be one of: "Wandering", "Curated", "Luxury".
-- SET_DURATION: value must be an integer between 1 and 10.
-- SET_STEP: value must be an integer between 1 and 6.
-- SET_DAY: value must be an integer between 1 and duration.
-- SET_MOODS: value must be an array containing subset of: "empires", "sea", "spice", "lights".
-- ADD_FILS: value must be an integer (positive or negative) to add to user's coins.
-- ADD_XP: value must be an integer to add to user's XP.
-- RESET: no value, resets progress.
-
-If no actions are requested, return an empty actions array: "actions": [].
-Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: contents,
-        systemInstruction: {
-          parts: [{ text: systemInstructionText }]
-        },
-        generationConfig: {
-          responseMimeType: "application/json",
-          thinkingConfig: {
-            thinkingBudget: 0
-          }
-        }
-      })
-    })
-
-    if (!response.ok) {
-      const errText = await response.text()
-      throw new Error(`API_ERROR: ${response.status} - ${errText}`)
-    }
-
-    const data = await response.json()
-    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!textResult) {
-      throw new Error("EMPTY_RESPONSE")
-    }
-
-    try {
-      const parsed = JSON.parse(textResult.trim())
-      return {
-        text: parsed.text || "Processed request.",
-        actions: parsed.actions || []
-      }
-    } catch {
-      // JSON block fallback search
-      const jsonMatch = textResult.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        try {
-          const parsed = JSON.parse(jsonMatch[0].trim())
-          return {
-            text: parsed.text || "Processed request.",
-            actions: parsed.actions || []
-          }
-        } catch {
-          // ignore
-        }
-      }
-      return {
-        text: textResult,
-        actions: []
-      }
-    }
-  }
-
-  const callProxyChatbotAPI = async (userText, chatHistory) => {
-    const historyText = chatHistory.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`).join('\n')
-    
-    const systemPrompt = `You are the Bahrain Passage Digital Travel Companion, a wise, warm, and highly knowledgeable local guide. 
-You are embedded in a premium interactive travel journal app.
-The user can talk to you to get recommendations, ask about landmarks, or instruct you to update their trip parameters directly.
-
-Here is the current state of the user's trip:
-- Step in App: ${step} (1=Mood Selection, 4=Itinerary Generation/Sensory Hero, 5=Journal Left Page/Seal Day, 6=Full Journal)
-- Selected Vibes: ${JSON.stringify(selectedMoods)} (Possible: empires, sea, spice, lights)
-- Stay Duration: ${duration} days (Max 10)
-- Budget Level: ${tier} (Possible: Wandering, Curated, Luxury)
-- Current Day Viewed: ${currentDayTab}
-- Fils Balance: ${goldFils}
-- XP (Experience Points): ${xp}
-- Active Spot: ${activeSpotName || 'None'}
-- Current Itinerary Locations: ${JSON.stringify(itinerarySpots.map(s => ({ id: s.id, name: s.name, day: s.day })))}
-
-LANDMARK KNOWLEDGE BASE:
-${JSON.stringify(DESTINATIONS, null, 2)}
-
-DIRECTIONS:
-1. Speak in a warm, welcoming, local Bahraini tone. Use brief markdown for styling (bolding, lists). Keep responses concise (under 3-4 sentences if possible) but rich in atmosphere.
-2. If the user asks to change or update their trip parameters (e.g., "change budget to luxury", "make my trip 5 days", "add empires vibe", "go to day 2", "give me 500 fils", "reset trip"), you MUST include the corresponding state change actions in your JSON response.
-3. You MUST respond with a valid JSON object matching the following structure:
-{
-  "text": "Your markdown-formatted message to the user here. Acknowledge the actions you are taking.",
-  "actions": [
-    { "type": "SET_TIER", "value": "Luxury" },
-    { "type": "SET_DURATION", "value": 5 },
-    { "type": "SET_STEP", "value": 5 },
-    { "type": "SET_DAY", "value": 2 },
-    { "type": "SET_MOODS", "value": ["empires", "sea"] },
-    { "type": "ADD_FILS", "value": 500 },
-    { "type": "ADD_XP", "value": 100 },
-    { "type": "RESET" }
-  ]
-}
-
-ACTIONS SPECIFICATION:
-- SET_TIER: value must be one of: "Wandering", "Curated", "Luxury".
-- SET_DURATION: value must be an integer between 1 and 10.
-- SET_STEP: value must be an integer between 1 and 6.
-- SET_DAY: value must be an integer between 1 and duration.
-- SET_MOODS: value must be an array containing subset of: "empires", "sea", "spice", "lights".
-- ADD_FILS: value must be an integer (positive or negative) to add to user's coins.
-- ADD_XP: value must be an integer to add to user's XP.
-- RESET: no value, resets progress.
-
-If no actions are requested, return an empty actions array: "actions": [].
-Always make sure the response is a valid JSON object. Do not include markdown code block formatting in your JSON output. Just output raw JSON.`
-
-    const userPrompt = `Chat History:\n${historyText}\n\nLatest User Message: ${userText}`
-    
-    const rawResult = await callLocalAI(systemPrompt, userPrompt, '', { maxTokens: 1000, useJson: true, useCache: false })
-    if (!rawResult) {
-      throw new Error("EMPTY_RESPONSE_FROM_PROXY")
-    }
-
-    try {
-      const parsed = JSON.parse(rawResult.trim())
-      return {
-        text: parsed.text || "Processed request.",
-        actions: parsed.actions || []
-      }
-    } catch {
-      const jsonMatch = rawResult.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        try {
-          const parsed = JSON.parse(jsonMatch[0].trim())
-          return {
-            text: parsed.text || "Processed request.",
-            actions: parsed.actions || []
-          }
-        } catch {
-          // ignore
-        }
-      }
-      return {
-        text: rawResult,
-        actions: []
-      }
-    }
+    if (!textResult) throw new Error(`EMPTY_RESPONSE_FROM_${targetProvider.toUpperCase()}`)
+    return parseJSONResponse(textResult)
   }
 
   const sendMessage = async (text) => {
@@ -1120,15 +731,15 @@ Always make sure the response is a valid JSON object. Do not include markdown co
     try {
       let apiResponse
       if (provider === 'proxy') {
-        apiResponse = await callProxyChatbotAPI(text, messages)
+        apiResponse = await callLLMAPI('proxy', text, messages)
       } else if (provider === 'deepseek') {
-        apiResponse = await callDeepSeekAPI(text, messages)
+        apiResponse = await callLLMAPI('deepseek', text, messages)
       } else if (provider === 'openrouter') {
-        apiResponse = await callOpenRouterAPI(text, messages)
+        apiResponse = await callLLMAPI('openrouter', text, messages)
       } else if (provider === 'gemini') {
-        apiResponse = await callGeminiAPI(text, messages)
+        apiResponse = await callLLMAPI('gemini', text, messages)
       } else if (provider === 'ollama') {
-        apiResponse = await callOllamaAPI(text, messages)
+        apiResponse = await callLLMAPI('ollama', text, messages)
       } else {
         throw new Error("LOCAL_FALLBACK_TRIGGERED")
       }
