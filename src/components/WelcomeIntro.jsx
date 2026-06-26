@@ -410,70 +410,22 @@ export default function WelcomeIntro({ onComplete }) {
         pointerEvents: 'none'
       }} />
 
-      {/* ── Premium Double Gold Frame around the screen ── */}
-      <div style={{
-        position: 'absolute',
-        top: '16px', bottom: '16px', left: '16px', right: '16px',
-        border: '1px solid rgba(197, 168, 128, 0.25)',
-        pointerEvents: 'none',
-        zIndex: 4,
-        borderRadius: '8px',
-      }} />
-      <div style={{
-        position: 'absolute',
-        top: '20px', bottom: '20px', left: '20px', right: '20px',
-        border: '0.5px dashed rgba(197, 168, 128, 0.12)',
-        pointerEvents: 'none',
-        zIndex: 4,
-        borderRadius: '6px',
-      }} />
-
       {/* ── Paper grain texture overlay ── */}
       <div className="paper-grain" style={{ opacity: 0.05, mixBlendMode: 'overlay', zIndex: 3 }} />
 
-      {/* ── Centerpiece Gold Crests on the Borders ── */}
-      {/* Top Gold Crest centerpiece */}
+      {/* ── Top cinematic gradient shadow (borderless) ── */}
       <div style={{
-        position: 'absolute',
-        top: '11px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 5,
-        pointerEvents: 'none',
-      }}>
-        <svg width="70" height="11" viewBox="0 0 100 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M0 15 L10 2 L20 15 L30 2 L40 15 L50 2 L60 15 L70 2 L80 15 L90 2 L100 15 Z"
-            fill="url(#goldFoilGradientCrest)"
-          />
-          <defs>
-            <linearGradient id="goldFoilGradientCrest" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#C5A880" />
-              <stop offset="30%" stopColor="#E5C79E" />
-              <stop offset="50%" stopColor="#F5D7AE" />
-              <stop offset="70%" stopColor="#E5C79E" />
-              <stop offset="100%" stopColor="#C5A880" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
+        position: 'absolute', top: 0, left: 0, right: 0, height: '180px', zIndex: 2,
+        background: 'linear-gradient(to bottom, rgba(15,12,11,0.95) 0%, rgba(15,12,11,0.6) 35%, transparent 100%)',
+        pointerEvents: 'none'
+      }} />
 
-      {/* Bottom Gold Crest centerpiece */}
+      {/* ── Bottom cinematic gradient shadow (borderless) ── */}
       <div style={{
-        position: 'absolute',
-        bottom: '11px',
-        left: '50%',
-        transform: 'translateX(-50%) scaleY(-1)',
-        zIndex: 5,
-        pointerEvents: 'none',
-      }}>
-        <svg width="70" height="11" viewBox="0 0 100 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M0 15 L10 2 L20 15 L30 2 L40 15 L50 2 L60 15 L70 2 L80 15 L90 2 L100 15 Z"
-            fill="url(#goldFoilGradientCrest)"
-          />
-        </svg>
-      </div>
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: '220px', zIndex: 2,
+        background: 'linear-gradient(to top, rgba(15,12,11,0.98) 0%, rgba(15,12,11,0.6) 35%, transparent 100%)',
+        pointerEvents: 'none'
+      }} />
 
       {/* ════════════════════════════════════════════════════════════════
           ZONE 1 — Top brand bar
@@ -691,7 +643,7 @@ export default function WelcomeIntro({ onComplete }) {
         .jn-intro-brand-bar {
           width: 100%;
           padding: 24px 32px;
-          border-bottom: 1px solid rgba(197, 168, 128, 0.08);
+          border-bottom: none;
           flex-shrink: 0;
         }
         .jn-intro-brand-inner {
