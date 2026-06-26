@@ -44,11 +44,73 @@ export default function PassportCard({ onClose }) {
     xp, selectedMoods, duration,
     completedDays, collectedKeepsakes, capturedPhotos,
     journalReflections, goldFils, passportStamps,
-    signature, setSignature
+    signature, setSignature,
+    setGoldFils, awardXP
   } = useVibe()
 
-  const [subTab, setSubTab] = useState('details') // 'details' or 'seal'
+  const [subTab, setSubTab] = useState('details') // 'details', 'challenges', or 'seal'
   const cardRef = useRef(null)
+
+  // Track claimed status via browser persistent local storage
+  const [claimed1, setClaimed1] = useState(() => localStorage.getItem('challenge_claimed_1') === 'true')
+  const [claimed2, setClaimed2] = useState(() => localStorage.getItem('challenge_claimed_2') === 'true')
+  const [claimed3, setClaimed3] = useState(() => localStorage.getItem('challenge_claimed_3') === 'true')
+
+  const challengesList = [
+    {
+      id: 1,
+      title: 'Dilmun Explorer',
+      desc: 'Unlock and document 3 landmarks inside your travel scrapbook ledger.',
+      progress: Object.keys(capturedPhotos).length,
+      target: 3,
+      rewardFils: 100,
+      rewardXP: 50,
+      claimed: claimed1,
+      setClaimed: (val) => { setClaimed1(val); localStorage.setItem('challenge_claimed_1', 'true') }
+    },
+    {
+      id: 2,
+      title: 'Archipelago Scribe',
+      desc: 'Commit 2 detailed travel chronicle notes/reflections in your logbook.',
+      progress: Object.values(journalReflections).filter(r => r && r.trim().length > 5).length,
+      target: 2,
+      rewardFils: 120,
+      rewardXP: 60,
+      claimed: claimed2,
+      setClaimed: (val) => { setClaimed2(val); localStorage.setItem('challenge_claimed_2', 'true') }
+    },
+    {
+      id: 3,
+      title: 'Relic Collector',
+      desc: 'Discover and collect 2 authentic Bahraini keepsakes in your inventory.',
+      progress: collectedKeepsakes.length,
+      target: 2,
+      rewardFils: 100,
+      rewardXP: 50,
+      claimed: claimed3,
+      setClaimed: (val) => { setClaimed3(val); localStorage.setItem('challenge_claimed_3', 'true') }
+    }
+  ]
+
+  const handleClaimReward = (challenge) => {
+    if (challenge.progress < challenge.target || challenge.claimed) return
+    
+    // Award XP and Fils to the traveler state
+    if (awardXP) awardXP(challenge.rewardXP, `Challenge: ${challenge.title}`)
+    if (setGoldFils) setGoldFils(prev => prev + challenge.rewardFils)
+    
+    // Set claimed state
+    challenge.setClaimed(true)
+    
+    // Play sweet organic chime tone
+    try {
+      const chimeSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav')
+      chimeSfx.volume = 0.2
+      chimeSfx.play().catch(() => {})
+    } catch { /* ignore */ }
+
+    alert(`🎉 Challenge Accomplished!\n\n+${challenge.rewardXP} XP and +${challenge.rewardFils} Fils have been recorded in your Explorer Ledger!`)
+  }
   const rank = getRank(xp)
   const nextRank = getNextRank(xp)
   const progress = nextRank ? Math.round(((xp - rank.minXP) / (nextRank.minXP - rank.minXP)) * 100) : 100
@@ -106,23 +168,33 @@ export default function PassportCard({ onClose }) {
         </div>
 
         {/* Subtab Toggle */}
-        <div className="flex bg-stone-950/20 border border-stone-800/40 rounded-xl p-1 relative z-10">
+        <div className="flex bg-stone-100 border border-stone-200/60 rounded-xl p-1 relative z-10">
           <button
             onClick={() => setSubTab('details')}
-            className={`flex-1 py-1.5 text-[10px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+            className={`flex-1 py-1.5 text-[9px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
               subTab === 'details'
-                ? 'bg-stone-800 text-amber-500 shadow-sm'
-                : 'text-stone-400 hover:text-stone-300'
+                ? 'bg-white border border-stone-250/30 text-[var(--color-primary)] shadow-sm'
+                : 'text-stone-500 hover:text-stone-750'
             }`}
           >
-            Passport Card
+            Passport
+          </button>
+          <button
+            onClick={() => setSubTab('challenges')}
+            className={`flex-1 py-1.5 text-[9px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+              subTab === 'challenges'
+                ? 'bg-white border border-stone-250/30 text-[var(--color-primary)] shadow-sm'
+                : 'text-stone-500 hover:text-stone-750'
+            }`}
+          >
+            Challenges
           </button>
           <button
             onClick={() => setSubTab('seal')}
-            className={`flex-1 py-1.5 text-[10px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+            className={`flex-1 py-1.5 text-[9px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
               subTab === 'seal'
-                ? 'bg-stone-800 text-amber-500 shadow-sm'
-                : 'text-stone-400 hover:text-stone-300'
+                ? 'bg-white border border-stone-250/30 text-[var(--color-primary)] shadow-sm'
+                : 'text-stone-500 hover:text-stone-750'
             }`}
           >
             Carve Seal
@@ -248,6 +320,61 @@ export default function PassportCard({ onClose }) {
                   🖋️ Tap to carve your seal signature
                 </button>
               )}
+            </div>
+          </div>
+        ) : subTab === 'challenges' ? (
+          <div className="space-y-3.5 animate-fade-in-up relative z-10">
+            <div className="text-center w-full pb-0.5 select-none">
+              <span className="text-[7.5px] uppercase tracking-widest text-stone-400 font-bold">Explorer Milestones</span>
+              <h3 className="font-serif text-sm font-bold text-stone-800 mt-0.5">Personalized AI Challenges</h3>
+            </div>
+            
+            <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
+              {challengesList.map(ch => {
+                const isComplete = ch.progress >= ch.target
+                return (
+                  <div key={ch.id} className="bg-white/80 p-3 rounded-xl border border-stone-200/50 shadow-2xs space-y-2 relative text-left select-none">
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-serif text-[11.5px] font-bold text-stone-850 truncate">{ch.title}</h4>
+                        <p className="text-[8.5px] text-stone-500 mt-0.5 leading-relaxed">{ch.desc}</p>
+                      </div>
+                      {ch.claimed ? (
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-stone-400 bg-stone-100 px-2 py-0.5 rounded shrink-0">Claimed</span>
+                      ) : isComplete ? (
+                        <button
+                          onClick={() => handleClaimReward(ch)}
+                          className="text-[8px] font-bold uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 px-2.5 py-1 rounded-lg transition-all active:scale-95 cursor-pointer shadow-xs border-none shrink-0"
+                        >
+                          Claim
+                        </button>
+                      ) : (
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded shrink-0">Active</span>
+                      )}
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[8px] font-bold text-stone-500 font-mono">
+                        <span>Progress</span>
+                        <span>{ch.progress} / {ch.target}</span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${isComplete ? 'bg-emerald-500 animate-pulse' : 'bg-[#C1122F]'}`}
+                          style={{ width: `${Math.min(100, (ch.progress / ch.target) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Reward badge */}
+                    <div className="text-[7.5px] font-mono font-bold text-stone-400 uppercase tracking-wide flex justify-between pt-1 border-t border-stone-100/60">
+                      <span>Reward:</span>
+                      <span className="text-emerald-700 font-extrabold">+{ch.rewardXP} XP · +{ch.rewardFils} Fils</span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         ) : (

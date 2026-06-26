@@ -221,7 +221,11 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
   // Terminal compilation cycle
   useEffect(() => {
     let active = true
-    setTerminalLogs([guidePhrases[0]])
+    queueMicrotask(() => {
+      if (active) {
+        setTerminalLogs([guidePhrases[0]])
+      }
+    })
 
     let phraseIdx = 1
     intervalRef.current = setInterval(() => {

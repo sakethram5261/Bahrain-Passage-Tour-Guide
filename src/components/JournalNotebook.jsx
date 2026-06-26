@@ -45,9 +45,7 @@ import {
   playTypewriterClick as playTypewriterClickCentral,
   playRiddleCorrect,
   playRiddleIncorrect,
-  playDaySealStamp,
   playRankUpChime,
-  playPhraseFeedbackTone,
   playCampStampSound
 } from '../services/audioUtils'
 
@@ -400,28 +398,74 @@ function useSpring(target, stiffness = 180, damping = 22) {
 }
 
 /* ─── Phrase pronunciation (Web Audio API) ───────────────────────────────── */
-function playPhrase(phraseText, soundVolume = 0.5, soundMuted = false) {
-  // 1. Play standard organic click feedback tone
-  playPhraseFeedbackTone(soundVolume, soundMuted)
-
-  // 2. Perform high-fidelity browser speech synthesis in Arabic
+function playOudPluck(soundVolume = 0.5, soundMuted = false) {
+  if (soundMuted || soundVolume === 0) return
+  
   try {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel() // Stop any current utterance
-      const utterance = new SpeechSynthesisUtterance(phraseText)
-      utterance.lang = 'ar-BH' // Bahraini Arabic locale
-      
-      const voices = window.speechSynthesis.getVoices()
-      const arabicVoice = voices.find(v => v.lang.startsWith('ar'))
-      if (arabicVoice) {
-        utterance.voice = arabicVoice
-      }
-      utterance.rate = 0.82 // Slightly slower rate for clear tourist learning
-      window.speechSynthesis.speak(utterance)
-    }
+    const AudioContext = window.AudioContext || window.webkitAudioContext
+    if (!AudioContext) return
+    const ctx = new AudioContext()
+    
+    // Programmatically synthesize a warm, double-strung traditional Oud pluck
+    const osc1 = ctx.createOscillator()
+    const osc2 = ctx.createOscillator()
+    const gainNode = ctx.createGain()
+    const filter = ctx.createBiquadFilter()
+    
+    osc1.type = 'sawtooth'
+    osc2.type = 'triangle'
+    
+    const baseFreq = 146.83 // D3 note, warm Oud string course
+    osc1.frequency.value = baseFreq
+    osc2.frequency.value = baseFreq + 1.5 // detune for organic double-string chorus
+    
+    filter.type = 'lowpass'
+    filter.frequency.value = 800
+    filter.Q.value = 2.5
+    
+    const now = ctx.currentTime
+    gainNode.gain.setValueAtTime(0, now)
+    gainNode.gain.linearRampToValueAtTime(soundVolume * 0.38, now + 0.008) // quick attack strike
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.1) // natural decay
+    
+    osc1.connect(filter)
+    osc2.connect(filter)
+    filter.connect(gainNode)
+    gainNode.connect(ctx.destination)
+    
+    osc1.start(now)
+    osc2.start(now)
+    osc1.stop(now + 1.2)
+    osc2.stop(now + 1.2)
   } catch (e) {
-    console.error('SpeechSynthesis error:', e)
+    console.error('Failed to play synthesized Oud pluck:', e)
   }
+}
+
+function playPhrase(phraseText, soundVolume = 0.5, soundMuted = false) {
+  // 1. Play programmatically synthesized traditional Oud course string pluck
+  playOudPluck(soundVolume, soundMuted)
+
+  // 2. Perform high-fidelity browser speech synthesis in Arabic after a short delay for the pluck
+  setTimeout(() => {
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel() // Stop any current utterance
+        const utterance = new SpeechSynthesisUtterance(phraseText)
+        utterance.lang = 'ar-BH' // Bahraini Arabic locale
+        
+        const voices = window.speechSynthesis.getVoices()
+        const arabicVoice = voices.find(v => v.lang.startsWith('ar'))
+        if (arabicVoice) {
+          utterance.voice = arabicVoice
+        }
+        utterance.rate = 0.82 // Slightly slower rate for clear tourist learning
+        window.speechSynthesis.speak(utterance)
+      }
+    } catch (e) {
+      console.error('SpeechSynthesis error:', e)
+    }
+  }, 240)
 }
 
 export default function JournalNotebook({ onBack }) {
@@ -430,7 +474,6 @@ export default function JournalNotebook({ onBack }) {
     selectedMoods = [],
     tier = 'Wandering',
     duration = 3,
-    curatedItinerary = null,
     currentDayTab = 1,
     setCurrentDayTab = () => {},
     unlockedDays = [1],
@@ -491,6 +534,7 @@ export default function JournalNotebook({ onBack }) {
   const [tabKey,       setTabKey]       = useState(0)       // bumped on every switch → remount → fresh anim
   const [menuOpen,     setMenuOpen]     = useState(false)
   const [chatOpen,     setChatOpen]     = useState(false)   // AI chatbot panel
+  const [phraseSearch, setPhraseSearch] = useState('')      // phrasebook search query
   
 
   // Modals & overlay states
@@ -527,7 +571,7 @@ export default function JournalNotebook({ onBack }) {
   }, [selectedHotel])
 
   // Stamping and rank-up states
-  const [stamping, setStamping] = useState(false)
+  const [stamping] = useState(false)
   const [unlockedRankInfo, setUnlockedRankInfo] = useState(null)
   const [showRankUpModal, setShowRankUpModal] = useState(false)
   const [copiedKey, setCopiedKey] = useState(false)
@@ -886,8 +930,7 @@ export default function JournalNotebook({ onBack }) {
             safetyAlert: matchedSpot.id === 'jarada-island' ? 'Monitor tide timings closely' : '',
             insider: matchedSpot.insider,
             category: matchedSpot.category,
-            period: matchedSpot.period,
-            success: true
+            period: matchedSpot.period
           }
         } else {
           // 2. Dynamic Local Spot Generator Fallback (for when AI keys are dead/out of balance)
@@ -1021,8 +1064,7 @@ export default function JournalNotebook({ onBack }) {
             safetyAlert: safetyAlert,
             insider: insider,
             category: category,
-            period: category === 'fort' || category === 'desert' ? 'Historical Era' : 'Established Local Landmark',
-            success: true
+            period: category === 'fort' || category === 'desert' ? 'Historical Era' : 'Established Local Landmark'
           }
         }
       }
@@ -1127,7 +1169,7 @@ export default function JournalNotebook({ onBack }) {
     }
 
     // 4. Determine starting point
-    let startPos = null
+    let startPos
     if (selectedHotel) {
       startPos = parseLatLon(selectedHotel.coords)
     } else if (arrivalSpot) {
@@ -2754,25 +2796,65 @@ export default function JournalNotebook({ onBack }) {
 
                   <hr className="jn-divider" aria-hidden="true" />
 
-                  {/* Phrase cards */}
-                  <div className="jn-phrase-list">
-                    {PHRASES.map((p, idx) => (
+                  {/* Dynamic Translation & Phrase Search Bar */}
+                  <div className="relative w-full max-w-md mx-auto mb-6 pointer-events-auto">
+                    <input
+                      type="text"
+                      value={phraseSearch}
+                      onChange={(e) => setPhraseSearch(e.target.value)}
+                      placeholder="Search or translate phrases (e.g. hello, coffee, karak)..."
+                      className="w-full px-4 py-2.5 text-xs font-sans bg-white border border-stone-200 focus:border-red-500 rounded-xl text-stone-900 outline-none placeholder-stone-400 shadow-2xs transition-colors duration-150"
+                      style={{ paddingLeft: '32px' }}
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none" aria-hidden="true">🔍</span>
+                    {phraseSearch && (
                       <button
-                        key={idx}
-                        className={`jn-phrase-card animate-fade-in-up stagger-${(idx % 5) + 1}`}
-                        onClick={() => playPhrase(p.arabic, soundVolume, soundMuted)}
-                        aria-label={`Hear pronunciation of ${p.label}`}
+                        onClick={() => setPhraseSearch('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none text-stone-400 hover:text-stone-600 cursor-pointer text-xs p-1"
+                        aria-label="Clear search"
                       >
-                        <div className="jn-phrase-card-content">
-                          <div>
-                            <h4 className="jn-phrase-label">{p.label} <span className="jn-phrase-arabic" lang="ar">({p.arabic})</span></h4>
-                            <p className="jn-phrase-desc">{p.desc}</p>
-                          </div>
-                          <span className="jn-phrase-pluck" aria-hidden="true">🔊</span>
-                        </div>
+                        ✕
                       </button>
-                    ))}
+                    )}
                   </div>
+
+                  {/* Filtered phrase cards */}
+                  {(() => {
+                    const query = phraseSearch.toLowerCase().trim()
+                    const filteredPhrases = PHRASES.filter(p => 
+                      !query || 
+                      p.label.toLowerCase().includes(query) ||
+                      p.arabic.toLowerCase().includes(query) ||
+                      p.desc.toLowerCase().includes(query)
+                    )
+
+                    return (
+                      <div className="jn-phrase-list">
+                        {filteredPhrases.length === 0 ? (
+                          <div className="col-span-full text-center py-8 text-stone-400 font-sans text-xs italic">
+                            No matching travel phrases found. Try searching for "hello", "karak", or "thank you".
+                          </div>
+                        ) : (
+                          filteredPhrases.map((p, idx) => (
+                            <button
+                              key={idx}
+                              className={`jn-phrase-card animate-fade-in-up stagger-${(idx % 5) + 1}`}
+                              onClick={() => playPhrase(p.arabic, soundVolume, soundMuted)}
+                              aria-label={`Hear pronunciation of ${p.label}`}
+                            >
+                              <div className="jn-phrase-card-content">
+                                <div>
+                                  <h4 className="jn-phrase-label">{p.label} <span className="jn-phrase-arabic" lang="ar">({p.arabic})</span></h4>
+                                  <p className="jn-phrase-desc">{p.desc}</p>
+                                </div>
+                                <span className="jn-phrase-pluck" aria-hidden="true">🔊</span>
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )
+                  })()}
 
                   {/* Pronunciation guide */}
                   <div className="jn-pronunciation-guide">

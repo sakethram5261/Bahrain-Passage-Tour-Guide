@@ -21,6 +21,7 @@ export default function WayfarerLens({ spot, onClose }) {
   const lensRef = useRef(null)
   const ringRef = useRef(null)
   const flashRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   const [permission, setPermission] = useState('pending')
   const [capturing, setCapturing] = useState(false)
@@ -206,6 +207,79 @@ export default function WayfarerLens({ spot, onClose }) {
     }, 240)
   }
 
+  const autoAlignOptics = () => {
+    if (capturing || scanning) return
+    playScanBeep(900, 0.12)
+    setFocus(targetFocus)
+    setExposure(targetExposure)
+    setScanLog('OPTICS AUTO-ALIGNED SECURELY!')
+  }
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setCapturing(true)
+    playScanBeep(850, 0.08)
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const dataUrl = event.target.result
+
+      // Start high-fidelity AI scanning animation
+      setScanning(true)
+      setScanProgress(0)
+      setScanLog('UPLOADING TO LOCAL NEURAL NET...')
+      
+      const ranks = [
+        'HIGH-FIDELITY NEURAL MATCH (GOLD)',
+        'LOCAL SCANNER ALIGNED (LEGACY)',
+        'CULTURAL ARCHIVIST MATCH (PREMIUM)',
+        'AESTHETIC LOCK - 98.4% CONFIDENCE'
+      ]
+      const chosenRank = ranks[Math.floor(Math.random() * ranks.length)]
+      setPhotoRank(chosenRank)
+
+      let progress = 0
+      const scanInterval = setInterval(() => {
+        progress += 10
+        setScanProgress(progress)
+        playScanBeep(700 + progress * 3.5, 0.04)
+
+        if (progress === 10) {
+          setScanLog('EXTRACTING IMAGE FEATURE MAPS...')
+        } else if (progress === 35) {
+          setScanLog('COMPARING CHROMATIC VIBRANCY...')
+        } else if (progress === 60) {
+          setScanLog('CLASSIFICATION: DETECTING ARTIFACT LAYERS...')
+        } else if (progress === 80) {
+          setScanLog('CLASSIFICATION LOCK: MATCH SUCCESSFUL!')
+        } else if (progress >= 100) {
+          clearInterval(scanInterval)
+          
+          saveCapturedPhoto(spot.id, dataUrl)
+          setScanning(false)
+          setStoryLoading(true)
+          
+          fetchSpotStory(spot).then(storyText => {
+            if (storyText) {
+              saveLensStory(spot.id, storyText)
+            }
+            unlockKeepsake(spot.id)
+            setStoryLoading(false)
+            setCapturing(false)
+            setCaptured(true)
+          }).catch(() => {
+            setStoryLoading(false)
+            setCapturing(false)
+            setCaptured(true)
+          })
+        }
+      }, 120)
+    }
+    reader.readAsDataURL(file)
+  }
+
 
   return (
     <div 
@@ -296,14 +370,22 @@ export default function WayfarerLens({ spot, onClose }) {
               </div>
 
               {/* Scrolling status log text */}
-              <div className="mt-4 bg-white border border-neutral-200 p-3 rounded-xl min-h-[60px] flex items-center justify-center">
-                <p className="font-mono text-[9px] text-neutral-700 uppercase tracking-widest leading-relaxed font-bold">
-                  {scanLog}
-                </p>
+              <div className="mt-4 bg-stone-950 text-emerald-400 border border-stone-900 p-3 rounded-xl min-h-[85px] flex flex-col text-left font-mono text-[8px] space-y-1 select-none">
+                <div className="flex justify-between border-b border-stone-900 pb-1 text-stone-600 font-bold uppercase tracking-wider">
+                  <span>AI Classifier HUD v1.0.4</span>
+                  <span className="text-emerald-500 animate-pulse font-bold">● Active</span>
+                </div>
+                <div className="pt-1"><span className="text-stone-600">SYSTEM:</span> Local Neural Net connected</div>
+                <div><span className="text-stone-600">STAGE:</span> {scanLog}</div>
+                <div className="flex justify-between pt-1.5 font-sans font-semibold text-stone-500 text-[7px] uppercase tracking-wider">
+                  <span>[x] Edges</span>
+                  <span>{scanProgress > 40 ? '[x]' : '[ ]'} Color</span>
+                  <span>{scanProgress > 80 ? '[x]' : '[ ]'} Dilmun Lock</span>
+                </div>
               </div>
 
-              <span className="font-sans text-[7px] tracking-[0.25em] text-[#C1122F]/60 uppercase block mt-3.5 font-bold">
-                Do Not Move Device · Aligning Strata
+              <span className="font-sans text-[7px] tracking-[0.25em] text-[#C1122F]/60 uppercase block mt-3.5 font-bold animate-pulse">
+                Analysing Image Strata · Zero-Cost AI Scan
               </span>
             </div>
           ) : !captured ? (
@@ -512,24 +594,66 @@ export default function WayfarerLens({ spot, onClose }) {
         {/* Viewfinder Shutter Footer */}
         <div className="w-full flex flex-col items-center gap-4 border-t border-red-500/10 pt-4">
           {!captured ? (
-            <div className="flex flex-col items-center">
-              {/* Massive Retro Shutter Button */}
-              <button
-                onClick={handleCapture}
-                disabled={capturing || scanning || !isAligned}
-                className={`w-16 h-16 rounded-full border-4 border-white transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center relative outline-none ${
-                  isAligned ? 'bg-bahrain-red hover:bg-red-700' : 'bg-neutral-300 border-neutral-100 cursor-not-allowed opacity-60'
-                }`}
-              >
-                <div className="absolute inset-1 rounded-full border border-white/20" />
-                <span className="text-[10px] uppercase font-bold tracking-widest text-white/50 font-sans">
-                  {scanning ? '...' : 'Snap'}
-                </span>
-              </button>
-              <span className="font-sans text-[8px] tracking-widest text-bronze-muted/50 uppercase mt-2">
-                {scanning ? 'Analysing Photo Strata...' : isAligned ? 'Press Shutter to Capture' : 'Lenses Defocused'}
-              </span>
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-6">
+                {/* File Upload Trigger */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={capturing || scanning}
+                  className="w-10 h-10 rounded-full border border-stone-300 bg-white hover:bg-stone-50 text-stone-600 flex items-center justify-center transition-all shadow-xs hover:scale-105 active:scale-95 cursor-pointer outline-none"
+                  style={{ outline: 'none' }}
+                  title="Upload image to AI Scanner"
+                >
+                  📁
+                </button>
+                
+                {/* Massive Retro Shutter Button */}
+                <button
+                  onClick={handleCapture}
+                  disabled={capturing || scanning || !isAligned}
+                  className={`w-16 h-16 rounded-full border-4 border-white transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center relative outline-none ${
+                    isAligned ? 'bg-bahrain-red hover:bg-red-700' : 'bg-neutral-300 border-neutral-100 cursor-not-allowed opacity-60'
+                  }`}
+                  style={{ outline: 'none' }}
+                >
+                  <div className="absolute inset-1 rounded-full border border-white/20" />
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-white/50 font-sans">
+                    {scanning ? '...' : 'Snap'}
+                  </span>
+                </button>
 
+                {/* Simulated Focus Auto-Alignment Helper */}
+                <button
+                  onClick={autoAlignOptics}
+                  disabled={capturing || scanning || isAligned}
+                  className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all shadow-xs hover:scale-105 active:scale-95 cursor-pointer outline-none ${
+                    isAligned 
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-600 cursor-default'
+                      : 'bg-white border-stone-300 text-amber-600 hover:bg-stone-50'
+                  }`}
+                  style={{ outline: 'none' }}
+                  title="Auto-align focal dials"
+                >
+                  🎯
+                </button>
+              </div>
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+
+              <span className="font-sans text-[8px] tracking-widest text-bronze-muted/50 uppercase mt-2">
+                {scanning 
+                  ? 'Analysing Photo Strata...' 
+                  : isAligned 
+                    ? 'Press Shutter to Capture or Upload a Photo' 
+                    : 'Tap 🎯 to Auto-Align or 📁 to Upload Photo'}
+              </span>
             </div>
           ) : (
             <button

@@ -311,7 +311,25 @@ function Bubble({ msg }) {
             : '0 1px 4px rgba(42,35,33,0.04)',
         }}
       >
-        <div>{renderText(msg.text)}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+          <div style={{ flex: 1 }}>{renderText(msg.text)}</div>
+          {!isUser && (
+            <button
+              onClick={() => {
+                window.speechSynthesis.cancel()
+                const cleanText = msg.text.replace(/\*\*/g, '').replace(/###/g, '')
+                const utterance = new SpeechSynthesisUtterance(cleanText)
+                utterance.lang = 'en-US'
+                window.speechSynthesis.speak(utterance)
+              }}
+              className="text-stone-400 hover:text-stone-600 bg-transparent border-none cursor-pointer p-0.5 self-start text-xs flex items-center justify-center transition-colors duration-150 shrink-0"
+              style={{ outline: 'none' }}
+              title="Speak message"
+            >
+              🔊
+            </button>
+          )}
+        </div>
         
         {/* Applied actions badge */}
         {msg.actionsApplied && msg.actionsApplied.length > 0 && (
@@ -432,6 +450,38 @@ export default function TourChatbot({ activeSpotName, embedded = false, onClose 
   const [typing, setTyping] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef(null)
+
+  const toggleListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in this browser. Please try Chrome or Safari.")
+      return
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop()
+      setIsListening(false)
+    } else {
+      const rec = new SpeechRecognition()
+      rec.lang = 'en-US'
+      rec.interimResults = false
+      rec.maxAlternatives = 1
+
+      rec.onstart = () => setIsListening(true)
+      rec.onend = () => setIsListening(false)
+      rec.onerror = () => setIsListening(false)
+      rec.onresult = (event) => {
+        const transcript = event.results[0][0].transcript
+        setInput(transcript)
+        sendMessage(transcript)
+      }
+      recognitionRef.current = rec
+      rec.start()
+    }
+  }
 
   useEffect(() => {
     if (open && messagesEndRef.current) {
@@ -660,7 +710,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
     }
 
     // 3. OpenAI-compatible (DeepSeek, Ollama, OpenRouter)
-    let url, headers = { 'Content-Type': 'application/json' }, body = {}
+    let url, headers = { 'Content-Type': 'application/json' }, body
     const messagesPayload = [
       { role: 'system', content: systemPrompt }
     ]
@@ -900,7 +950,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
           </div>
 
           {/* Input */}
-          <div className="p-3 flex gap-2 shrink-0 border-t border-stone-200 bg-white">
+          <div className="p-3 flex gap-2 shrink-0 border-t border-stone-200 bg-white items-center">
             <input
               ref={inputRef}
               value={input}
@@ -909,6 +959,26 @@ Always make sure the response is a valid JSON object. Do not include markdown co
               placeholder="Ask me to set budget, change duration, etc..."
               className="flex-1 bg-stone-50 border border-stone-200 focus:border-[var(--color-primary)] rounded-xl px-3.5 py-2 text-stone-900 text-sm placeholder-stone-400 outline-none transition-colors duration-150"
             />
+            {/* Voice Input Microphone Button */}
+            <button
+              onClick={toggleListening}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-200 cursor-pointer ${
+                isListening
+                  ? 'bg-red-500 border-red-500 text-white animate-pulse'
+                  : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100 hover:text-stone-700'
+              }`}
+              style={{ outline: 'none' }}
+              title={isListening ? "Listening... Tap to stop" : "Speak to your guide"}
+            >
+              {isListening ? (
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                </span>
+              ) : (
+                <span className="text-sm">🎙️</span>
+              )}
+            </button>
             <button
               onClick={() => sendMessage(input)}
               disabled={!input.trim()}
