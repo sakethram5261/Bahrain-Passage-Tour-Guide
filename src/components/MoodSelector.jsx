@@ -53,8 +53,8 @@ export default function MoodSelector({ onConfirm, onBack }) {
     cardsRef.current.forEach((el, i) => {
       if (!el) return
       gsap.fromTo(el,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5, delay: 0.1 + i * 0.06, ease: 'power3.out' }
+        { opacity: 0, y: 28, filter: 'blur(4px)' },
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.65, delay: 0.15 + i * 0.1, ease: 'power3.out' }
       )
     })
   }, [])
@@ -191,13 +191,16 @@ export default function MoodSelector({ onConfirm, onBack }) {
                 aria-pressed={active}
                 aria-label={`${mood.label} - ${mood.tagline}${active ? ' (selected)' : ''}`}
                 className={`relative rounded-xl p-4 text-left cursor-pointer group overflow-hidden jn-vibe-card ${
-                  active ? 'jn-vibe-card--active' : 'jn-vibe-card--inactive'
+                  active ? 'jn-vibe-card--active gold-foil-border' : 'jn-vibe-card--inactive'
                 }`}
                 style={{
                   borderWidth: '1px',
                   transition: 'all 0.25s var(--ease-out)'
                 }}
               >
+                {/* Tactile Paper Grain Overlay */}
+                <div className="paper-grain" style={{ opacity: active ? 0.025 : 0.045, mixBlendMode: 'multiply' }} />
+
                 {/* Hover effect border */}
                 {!active && (
                   <div
@@ -210,7 +213,7 @@ export default function MoodSelector({ onConfirm, onBack }) {
                   <div className="flex items-start justify-between">
                     {/* Clean Icon Container (No emoji) */}
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-300 ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-300 thin-icon ${
                         active
                           ? 'border-white/30 bg-white/10'
                           : 'bg-stone-200/30 border-stone-300/40'
@@ -219,14 +222,14 @@ export default function MoodSelector({ onConfirm, onBack }) {
                       <MoodIcon 
                         size={18} 
                         className={active ? 'text-white' : 'text-[var(--color-primary)]'} 
-                        strokeWidth={1.75}
+                        strokeWidth={1.35}
                       />
                     </div>
 
                     {/* Checkmark indicator */}
                     <div
                       className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 transition-all duration-200 border ${
-                        active ? 'text-[var(--color-primary)] bg-white border-white' : 'border-stone-300 text-transparent'
+                        active ? 'gold-foil-bg border-transparent text-[#1a1210]' : 'border-stone-300 text-transparent'
                       }`}
                     >
                       ✓

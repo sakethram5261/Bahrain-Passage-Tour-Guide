@@ -1783,7 +1783,9 @@ export default function JournalNotebook({ onBack }) {
           </nav>
         </div>
 
-        <main className="jn-book">
+        <main className="jn-book relative">
+          {/* Tactile Paper Grain Overlay */}
+          <div className="paper-grain" style={{ opacity: 0.035 }} />
           
           {/* ════════════════════ LEFT PAGE: INFO & LANDMARK ════════════════════ */}
           <div 
@@ -2293,7 +2295,7 @@ export default function JournalNotebook({ onBack }) {
                         return (
                           <li
                             key={stop.id}
-                            className={`jn-timeline-item ${isSelected ? 'jn-timeline-item--active' : ''}`}
+                            className={`jn-timeline-item ${isSelected ? 'jn-timeline-item--active' : ''} animate-fade-in-up stagger-${(idx % 5) + 1}`}
                             onClick={() => {
                               setCurrentSpotIndex(idx)
                               playTypewriterClick(0.95 + idx * 0.05)
@@ -2470,7 +2472,7 @@ export default function JournalNotebook({ onBack }) {
                   <div className="jn-keepsake-cabinet">
                     <span className="jn-keepsake-cabinet-label">Cabinet of Heritage Keepsakes</span>
                     <div className="jn-keepsake-grid">
-                      {spotsCatalog.map(spot => {
+                      {spotsCatalog.map((spot, sIdx) => {
                         const unlocked = (collectedKeepsakes || []).includes(spot.id)
                         return (
                           <button
@@ -2478,7 +2480,7 @@ export default function JournalNotebook({ onBack }) {
                             disabled={!unlocked}
                             onClick={() => unlocked && setSelectedKsake(spot)}
                             title={unlocked ? `${spot.keepsakeName}: ${spot.keepsakeDesc}` : 'Keepsake locked — explore the location or acquire to unlock.'}
-                            className={`jn-keepsake-coin ${unlocked ? 'jn-keepsake-coin--unlocked' : 'jn-keepsake-coin--locked'}`}
+                            className={`jn-keepsake-coin ${unlocked ? 'jn-keepsake-coin--unlocked gold-foil-bg' : 'jn-keepsake-coin--locked'} animate-fade-in-up stagger-${(sIdx % 5) + 1}`}
                             aria-label={unlocked ? `Keepsake: ${spot.keepsakeName}` : `Locked keepsake from ${spot.name}`}
                             style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                           >
@@ -2765,7 +2767,7 @@ export default function JournalNotebook({ onBack }) {
                     {PHRASES.map((p, idx) => (
                       <button
                         key={idx}
-                        className="jn-phrase-card"
+                        className={`jn-phrase-card animate-fade-in-up stagger-${(idx % 5) + 1}`}
                         onClick={() => playPhrase(p.arabic, soundVolume, soundMuted)}
                         aria-label={`Hear pronunciation of ${p.label}`}
                       >
@@ -2809,13 +2811,15 @@ export default function JournalNotebook({ onBack }) {
       {/* SOUQ SHOP MODAL */}
       {shopOpen && (
         <div
-          className="jn-modal-overlay"
+          className="jn-modal-overlay glass-overlay"
           role="dialog"
           aria-modal="true"
           aria-label="Heritage Collector Kiosk"
           onClick={(e) => { if (e.target === e.currentTarget) setShopOpen(false) }}
         >
-          <div className="jn-shop-modal">
+          <div className="jn-shop-modal glass-card relative overflow-hidden">
+            {/* Tactile Paper Grain Overlay */}
+            <div className="paper-grain" style={{ opacity: 0.038 }} />
             <div className="jn-shop-header">
               <div>
                 <span className="jn-shop-eyebrow">Manama Heritage Kiosk</span>
@@ -2842,8 +2846,8 @@ export default function JournalNotebook({ onBack }) {
             </p>
 
             <div className="jn-shop-items">
-              {(shopItems || []).map(item => (
-                <div key={item.id} className="jn-shop-item">
+              {(shopItems || []).map((item, iIdx) => (
+                <div key={item.id} className={`jn-shop-item animate-fade-in-up stagger-${(iIdx % 5) + 1}`}>
                   <span className="jn-shop-item-emoji">{item.emoji}</span>
                   <div className="jn-shop-item-info">
                     <h5 className="jn-shop-item-name">{item.name}</h5>
@@ -2865,21 +2869,17 @@ export default function JournalNotebook({ onBack }) {
       {/* KEEPSAKE DETAIL MODAL */}
       {selectedKsake && (
         <div
-          className="jn-modal-overlay"
+          className="jn-modal-overlay glass-overlay"
           role="dialog"
           aria-modal="true"
           onClick={(e) => { if (e.target === e.currentTarget) setSelectedKsake(null) }}
         >
-          <div className="jn-ksake-modal" style={{
+          <div className="jn-ksake-modal glass-card relative" style={{
             maxWidth: '520px',
-            background: '#FDFBF7',
-            border: '2px solid #D4C3A3',
-            boxShadow: '0 25px 60px rgba(0,0,0,0.15)',
-            backgroundImage: 'radial-gradient(rgba(186, 12, 47, 0.03) 1px, transparent 0)',
-            backgroundSize: '12px 12px',
             padding: '24px',
-            position: 'relative',
           }}>
+            {/* Tactile Paper Grain Overlay */}
+            <div className="paper-grain" style={{ opacity: 0.035 }} />
             {/* Vintage borders inside */}
             <div style={{
               position: 'absolute',

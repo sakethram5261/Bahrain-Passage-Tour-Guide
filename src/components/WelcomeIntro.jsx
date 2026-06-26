@@ -402,6 +402,9 @@ export default function WelcomeIntro({ onComplete }) {
         }}
       />
 
+      {/* ── Paper grain texture overlay ── */}
+      <div className="paper-grain" style={{ opacity: 0.05, mixBlendMode: 'overlay', zIndex: 3 }} />
+
       {/* ── Rotating language ring (replaces compass) ─────────────────── */}
       <svg
         ref={compassRef}
@@ -483,7 +486,7 @@ export default function WelcomeIntro({ onComplete }) {
       >
         <div className="jn-intro-brand-inner">
           <div className="jn-intro-brand-text">
-            <span className="jn-intro-brand-name">Bahrain Passage</span>
+            <span className="jn-intro-brand-name gold-foil-text">Bahrain Passage</span>
             <span className="jn-intro-brand-arabic">ممر البحرين</span>
           </div>
           <div className="jn-intro-brand-divider" />
@@ -674,6 +677,11 @@ export default function WelcomeIntro({ onComplete }) {
 
       {/* ── Injected keyframes ───────────────────────────────────────── */}
       <style>{`
+        @keyframes kenBurns {
+          0% { transform: scale(1.03) translate(0, 0); }
+          50% { transform: scale(1.08) translate(-1%, -0.5%); }
+          100% { transform: scale(1.03) translate(0, 0); }
+        }
         .jn-welcome-video {
           position: absolute;
           top: -4%; left: -4%;
@@ -682,6 +690,7 @@ export default function WelcomeIntro({ onComplete }) {
           object-fit: cover;
           z-index: 0;
           object-position: center;
+          animation: kenBurns 45s ease-in-out infinite;
         }
 
         /* Zone 1: brand bar */

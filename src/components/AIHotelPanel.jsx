@@ -122,30 +122,35 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
 
       {/* ── Selected Hotel – Prominent Base Camp Banner ── */}
       {selectedHotel && (
-        <div className="bg-gradient-to-br from-[#C1122F] to-[#8B0D22] rounded-2xl p-4 text-white flex items-center gap-3.5 shadow-lg shadow-[#C1122F]/25 relative overflow-hidden animate-fadeIn">
-          {selectedHotel.image ? (
-            <div className="w-13 h-13 rounded-full border-2 border-double border-[#C5A880]/70 p-0.5 bg-white/10 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
-              <img 
-                src={selectedHotel.image} 
-                alt={selectedHotel.name}
-                className="w-full h-full rounded-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
+        <div className="bg-gradient-to-br from-[#C1122F] to-[#8B0D22] rounded-2xl p-4 text-white flex items-center gap-3.5 shadow-lg shadow-[#C1122F]/25 relative overflow-hidden animate-fadeIn gold-foil-border">
+          {/* Tactile Paper Grain Overlay */}
+          <div className="paper-grain" style={{ opacity: 0.025 }} />
+          
+          <div className="flex-1 min-w-0 text-left relative z-10 flex items-center gap-3.5">
+            {selectedHotel.image ? (
+              <div className="w-13 h-13 rounded-full border-2 border-double border-[#C5A880]/70 p-0.5 bg-white/10 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
+                <img 
+                  src={selectedHotel.image} 
+                  alt={selectedHotel.name}
+                  className="w-full h-full rounded-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            ) : (
+              <div className="text-3xl shrink-0">{selectedHotel.emoji}</div>
+            )}
+            <div className="flex-1 min-w-0">
+              <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#FFF1F3] opacity-75 font-sans">Your Base Camp ✓</span>
+              <h4 className="font-serif text-base font-bold mt-0.5 mb-1 text-white">
+                {selectedHotel.name}
+              </h4>
+              <p className="font-sans text-xs text-[#FFF1F3]/80">
+                {selectedHotel.neighborhood} &middot; {selectedHotel.cost}
+              </p>
             </div>
-          ) : (
-            <div className="text-3xl shrink-0">{selectedHotel.emoji}</div>
-          )}
-          <div className="flex-1 min-w-0 text-left">
-            <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#FFF1F3] opacity-75 font-sans">Your Base Camp ✓</span>
-            <h4 className="font-serif text-base font-bold mt-0.5 mb-1 text-white">
-              {selectedHotel.name}
-            </h4>
-            <p className="font-sans text-xs text-[#FFF1F3]/80">
-              {selectedHotel.neighborhood} &middot; {selectedHotel.cost}
-            </p>
           </div>
-          <div className="flex flex-col gap-2 shrink-0">
+          <div className="flex flex-col gap-2 shrink-0 relative z-10">
             <a
               href={selectedHotel.bookingUrl}
               target="_blank"
@@ -165,35 +170,40 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
       )}
 
       {/* ── Concierge Desk Search ── */}
-      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-250 shadow-sm text-left">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full bg-stone-200/60 flex items-center justify-center shrink-0 border border-stone-300/30 text-[#C1122F]">
-            <ConciergeBell className="w-4 h-4" />
+      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-250 shadow-sm text-left relative overflow-hidden">
+        {/* Tactile Paper Grain Overlay */}
+        <div className="paper-grain" style={{ opacity: 0.045 }} />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-full bg-stone-200/60 flex items-center justify-center shrink-0 border border-stone-300/30 text-[#C1122F]">
+              <ConciergeBell className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="font-serif text-sm font-bold text-stone-800 leading-tight">Concierge Desk</h4>
+              <p className="font-sans text-[10px] text-stone-500 uppercase tracking-wider">Bahrain Travel Advisor</p>
+            </div>
           </div>
-          <div>
-            <h4 className="font-serif text-sm font-bold text-stone-800 leading-tight">Concierge Desk</h4>
-            <p className="font-sans text-[10px] text-stone-500 uppercase tracking-wider">Bahrain Travel Advisor</p>
+          <p className="font-serif text-xs italic text-stone-600 mb-3 leading-relaxed">
+            "Describe your perfect stay—beachfront calm, heritage walls, or Souq proximity—and I shall find your base camp."
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={filterQuery}
+              onChange={e => setFilterQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleFilter()}
+              placeholder='e.g. "beachfront sunset" or "near Manama Souq"...'
+              className="flex-1 px-3.5 py-2 rounded-xl font-sans text-sm border border-stone-200 bg-white focus:outline-none focus:border-[#C1122F]/40 text-stone-800 placeholder-stone-400"
+            />
+            <button
+              onClick={handleFilter}
+              disabled={filterLoading || !filterQuery.trim()}
+              className="px-4 py-2 rounded-xl shrink-0 bg-[#C1122F] text-white font-bold text-xs tracking-wider transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center border-none font-sans"
+            >
+              {filterLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Match'}
+            </button>
           </div>
-        </div>
-        <p className="font-serif text-xs italic text-stone-600 mb-3 leading-relaxed">
-          "Describe your perfect stay—beachfront calm, heritage walls, or Souq proximity—and I shall find your base camp."
-        </p>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={filterQuery}
-            onChange={e => setFilterQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleFilter()}
-            placeholder='e.g. "beachfront sunset" or "near Manama Souq"...'
-            className="flex-1 px-3.5 py-2 rounded-xl font-sans text-sm border border-stone-200 bg-white focus:outline-none focus:border-[#C1122F]/40 text-stone-800 placeholder-stone-400"
-          />
-          <button
-            onClick={handleFilter}
-            disabled={filterLoading || !filterQuery.trim()}
-            className="px-4 py-2 rounded-xl shrink-0 bg-[#C1122F] text-white font-bold text-xs tracking-wider transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center border-none font-sans"
-          >
-            {filterLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Match'}
-          </button>
         </div>
       </div>
 
@@ -233,7 +243,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
               <div
                 key={hotel.id}
                 id={`hotel-card-${hotel.id}`}
-                className={`p-4 rounded-2xl border transition-all text-left ${
+                className={`p-4 rounded-2xl border transition-all text-left relative overflow-hidden animate-fade-in-up stagger-${(idx % 5) + 1} ${
                   isBaseCamp 
                     ? 'border-[#C1122F] bg-[#C1122F]/5' 
                     : 'border-stone-200 bg-white hover:border-stone-300'
@@ -243,6 +253,10 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                     : 'shadow-sm'
                 }`}
               >
+                {/* Tactile Paper Grain Overlay */}
+                <div className="paper-grain" style={{ opacity: isBaseCamp ? 0.022 : 0.042 }} />
+
+                <div className="relative z-10">
                 <button
                   onClick={() => setExpandedId(isExpanded ? null : hotel.id)}
                   className="w-full bg-transparent border-none p-0 cursor-pointer text-left focus:outline-none"
@@ -332,6 +346,7 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                     </div>
                   </div>
                 )}
+                </div>
               </div>
             )
           })}

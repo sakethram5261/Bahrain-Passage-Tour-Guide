@@ -140,27 +140,25 @@ export default function LocationCard({ spot, onScan }) {
   }
 
   return (
-    <div className="glass-panel rounded-3xl overflow-hidden p-6 md:p-8 flex flex-col transition-all duration-500 hover:shadow-md hover:border-red-500/10 w-full max-w-4xl mx-auto">
-      <div className="flex flex-col md:flex-row gap-8 md:gap-10 items-stretch">
+    <div className="glass-panel rounded-3xl overflow-hidden p-6 md:p-8 flex flex-col transition-all duration-500 hover:shadow-lg hover:border-red-500/15 w-full max-w-4xl mx-auto relative">
+      {/* Tactile Paper Grain Overlay */}
+      <div className="paper-grain" style={{ opacity: 0.038 }} />
+
+      <div className="flex flex-col md:flex-row gap-8 md:gap-10 items-stretch relative z-10">
         
-        {/* Left Column: Gallery Photo Card */}
-        <div className="w-full md:w-[320px] shrink-0 flex flex-col items-center justify-start">
-          <div className="relative bg-white p-4 shadow-md border border-stone-200 transition-all duration-300 w-full max-w-[290px] select-none rounded-xl">
-            {/* Gold Star Keepsake sticker */}
+        {/* Left Column: Gallery Photo Card (Asymmetric overlapping layout) */}
+        <div className="w-full md:w-[320px] shrink-0 flex flex-col items-center justify-start md:translate-x-[-8px] md:translate-y-[-6px] md:rotate-[-1.5deg] transition-all duration-500 hover:rotate-0 hover:translate-x-0 hover:translate-y-0 group">
+          <div className="relative bg-white p-4 shadow-md border border-stone-200 transition-all duration-300 w-full max-w-[290px] select-none rounded-xl group-hover:shadow-lg">
+            {/* Gold Wax Seal Keepsake sticker */}
             {hasKeepsake && (
               <div
-                aria-label="Keepsake collected"
-                style={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: 'var(--color-accent)',
-                  zIndex: 30,
-                }}
-              />
+                aria-label={`Keepsake collected: ${spot.keepsakeName}`}
+                className="absolute -top-3.5 -right-3.5 w-11 h-11 rounded-full flex items-center justify-center gold-foil-bg shadow-md z-30 animate-fadeIn"
+                style={{ transform: 'rotate(8deg)' }}
+                title={`Keepsake collected: ${spot.keepsakeName}`}
+              >
+                <span className="text-base select-none">{spot.keepsakeEmoji}</span>
+              </div>
             )}
 
             <div className="w-full h-64 md:h-[240px] overflow-hidden relative border border-stone-100 bg-bahrain-dark flex items-center justify-center rounded-lg mb-3">
@@ -179,7 +177,7 @@ export default function LocationCard({ spot, onScan }) {
               <img
                 src={capturedPhotos[spot.id] || spot.image}
                 alt={`${spot.name} — Bahrain`}
-                className="w-full h-full object-cover block relative z-10"
+                className="w-full h-full object-cover block relative z-10 transition-transform duration-700 ease-out group-hover:scale-105"
                 loading="lazy"
                 decoding="async"
                 onError={(e) => {

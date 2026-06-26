@@ -73,18 +73,20 @@ export default function PassportCard({ onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center px-4"
-      style={{ background: 'rgba(28, 25, 23, 0.7)', backdropFilter: 'blur(12px)' }}
+      className="fixed inset-0 z-[200] flex items-center justify-center px-4 glass-overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       {/* Premium Leather/Gold Foiled Archivist Card Container */}
       <div
         ref={cardRef}
-        className="relative w-full max-w-sm rounded-2xl overflow-hidden border-2 border-[var(--color-accent)] shadow-2xl transition-all duration-300 p-6 space-y-5 bg-[#FCFBF8]"
+        className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 p-6 space-y-5 glass-card gold-foil-border"
         style={{ color: 'var(--color-text)' }}
       >
+        {/* Tactile Paper Grain Overlay */}
+        <div className="paper-grain" style={{ opacity: 0.035 }} />
+
         {/* Header Title */}
-        <div className="flex items-start justify-between border-b border-stone-200 pb-3.5">
+        <div className="flex items-start justify-between border-b border-stone-200/50 pb-3.5 relative z-10">
           <div>
             <p className="text-[10px] tracking-widest font-sans font-bold text-[var(--color-primary)] uppercase">
               Kingdom of Bahrain · مملكة البحرين
@@ -101,26 +103,21 @@ export default function PassportCard({ onClose }) {
         </div>
 
         {/* User Rank Block */}
-        <div className="bg-white p-4 rounded-xl border border-stone-200/60 shadow-xs space-y-3">
+        <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-stone-200/60 shadow-xs space-y-3 relative z-10">
           <div className="flex items-center gap-3.5">
             {/* Minimalist Rank Badge */}
             <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center border shadow-xs shrink-0"
-              style={{ 
-                backgroundColor: 'var(--color-primary-soft)',
-                borderColor: rank.color,
-                color: rank.color
-              }}
+              className="w-12 h-12 rounded-full flex items-center justify-center shadow-md shrink-0 gold-foil-bg thin-icon-heavy rank-badge-pulse"
               role="img"
               aria-label={`${rank.label} rank badge`}
             >
-              <RankIcon size={22} strokeWidth={1.5} />
+              <RankIcon size={22} strokeWidth={1.35} />
             </div>
             
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-1.5 justify-between">
                 <div className="flex items-baseline gap-1">
-                  <span className="font-serif text-base font-bold text-stone-900">{rank.label}</span>
+                  <span className="font-serif text-base font-bold gold-foil-text">{rank.label}</span>
                   <span className="text-[10.5px] text-[var(--color-primary)] font-semibold">({rank.arabic})</span>
                 </div>
                 <span className="font-mono text-xs font-bold text-stone-700">
@@ -150,14 +147,14 @@ export default function PassportCard({ onClose }) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-2 relative z-10">
           {[
             { label: 'Chapters', value: `${completedDays.length}/${duration}` },
             { label: 'Keepsakes', value: `${keepsakesCollected}/${totalKeepsakes}` },
             { label: 'Snaps', value: spotsVisited },
             { label: 'Reflections', value: reflectionsWritten },
           ].map(stat => (
-            <div key={stat.label} className="text-center bg-white p-2 rounded-lg border border-stone-200/50 shadow-2xs">
+            <div key={stat.label} className="text-center bg-white/70 backdrop-blur-md p-2 rounded-lg border border-stone-200/50 shadow-2xs">
               <div className="font-mono font-bold text-xs text-stone-950">{stat.value}</div>
               <div className="text-[8px] uppercase tracking-widest text-stone-400 mt-1 font-sans font-bold">{stat.label}</div>
             </div>
@@ -166,7 +163,7 @@ export default function PassportCard({ onClose }) {
 
         {/* Visa Stamps list (simplified modern outline badges) */}
         {passportStamps && passportStamps.length > 0 && (
-          <div className="bg-white p-3.5 rounded-xl border border-stone-200/60 space-y-2.5">
+          <div className="bg-white/80 backdrop-blur-md p-3.5 rounded-xl border border-stone-200/60 space-y-2.5 relative z-10">
             <p className="text-[9px] uppercase tracking-widest text-stone-400 font-bold">Visa Endorsements</p>
             <div className="flex flex-wrap gap-2 max-h-[90px] overflow-y-auto pr-1">
               {passportStamps.map(spotId => {
@@ -175,7 +172,7 @@ export default function PassportCard({ onClose }) {
                 return (
                   <span 
                     key={spotId} 
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-stone-200 bg-stone-50 text-[10px] font-mono font-bold text-stone-700 shadow-3xs"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-stone-200 bg-stone-50/80 backdrop-blur-xs text-[10px] font-mono font-bold text-stone-700 shadow-3xs"
                   >
                     <span role="img" aria-label={spot.keepsakeName} className="text-xs shrink-0">{spot.keepsakeEmoji}</span>
                     <span className="truncate">{spot.name.split(' ')[0].toUpperCase()}</span>
@@ -188,7 +185,7 @@ export default function PassportCard({ onClose }) {
 
         {/* Active vibes */}
         {selectedMoods.length > 0 && (
-          <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex flex-wrap gap-2 items-center relative z-10">
             <span className="text-[9px] uppercase tracking-widest text-stone-400 font-bold">Active Layers:</span>
             {selectedMoods.map(m => (
               <span
@@ -203,7 +200,7 @@ export default function PassportCard({ onClose }) {
         )}
 
         {/* Footer Actions */}
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-2 pt-2 relative z-10">
           <button
             onClick={handleShare}
             className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-sans font-bold text-xs tracking-widest uppercase transition-all cursor-pointer shadow-sm active:scale-98"
