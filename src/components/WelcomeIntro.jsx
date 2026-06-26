@@ -410,37 +410,69 @@ export default function WelcomeIntro({ onComplete }) {
         pointerEvents: 'none'
       }} />
 
+      {/* ── Premium Double Gold Frame around the screen ── */}
+      <div style={{
+        position: 'absolute',
+        top: '16px', bottom: '16px', left: '16px', right: '16px',
+        border: '1px solid rgba(197, 168, 128, 0.25)',
+        pointerEvents: 'none',
+        zIndex: 4,
+        borderRadius: '8px',
+      }} />
+      <div style={{
+        position: 'absolute',
+        top: '20px', bottom: '20px', left: '20px', right: '20px',
+        border: '0.5px dashed rgba(197, 168, 128, 0.12)',
+        pointerEvents: 'none',
+        zIndex: 4,
+        borderRadius: '6px',
+      }} />
+
       {/* ── Paper grain texture overlay ── */}
       <div className="paper-grain" style={{ opacity: 0.05, mixBlendMode: 'overlay', zIndex: 3 }} />
 
-      {/* ── Flag serration — top (taller than before) ─────────────────── */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 4, pointerEvents: 'none' }}>
-        <div style={{
-          height: 10,
-          background: 'linear-gradient(90deg, rgba(140,8,32,0.9), rgba(186,12,47,1) 28%, rgba(212,23,55,1) 52%, rgba(186,12,47,1) 76%, rgba(140,8,32,0.9))',
-          boxShadow: '0 2px 20px rgba(186,12,47,0.35)',
-        }} />
-        <svg viewBox="0 0 1200 18" preserveAspectRatio="none" style={{ width: '100%', height: 18, display: 'block' }}>
+      {/* ── Centerpiece Gold Crests on the Borders ── */}
+      {/* Top Gold Crest centerpiece */}
+      <div style={{
+        position: 'absolute',
+        top: '11px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 5,
+        pointerEvents: 'none',
+      }}>
+        <svg width="70" height="11" viewBox="0 0 100 15" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
-            d="M0,0 L50,14 L100,0 L150,14 L200,0 L250,14 L300,0 L350,14 L400,0 L450,14 L500,0 L550,14 L600,0 L650,14 L700,0 L750,14 L800,0 L850,14 L900,0 L950,14 L1000,0 L1050,14 L1100,0 L1150,14 L1200,0 L1200,18 L0,18 Z"
-            fill="rgba(15,12,11,1)"
+            d="M0 15 L10 2 L20 15 L30 2 L40 15 L50 2 L60 15 L70 2 L80 15 L90 2 L100 15 Z"
+            fill="url(#goldFoilGradientCrest)"
           />
+          <defs>
+            <linearGradient id="goldFoilGradientCrest" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#C5A880" />
+              <stop offset="30%" stopColor="#E5C79E" />
+              <stop offset="50%" stopColor="#F5D7AE" />
+              <stop offset="70%" stopColor="#E5C79E" />
+              <stop offset="100%" stopColor="#C5A880" />
+            </linearGradient>
+          </defs>
         </svg>
       </div>
 
-      {/* ── Flag serration — bottom ───────────────────────────────────── */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 4, pointerEvents: 'none' }}>
-        <svg viewBox="0 0 1200 18" preserveAspectRatio="none" style={{ width: '100%', height: 18, display: 'block', transform: 'scaleY(-1)' }}>
+      {/* Bottom Gold Crest centerpiece */}
+      <div style={{
+        position: 'absolute',
+        bottom: '11px',
+        left: '50%',
+        transform: 'translateX(-50%) scaleY(-1)',
+        zIndex: 5,
+        pointerEvents: 'none',
+      }}>
+        <svg width="70" height="11" viewBox="0 0 100 15" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
-            d="M0,0 L50,14 L100,0 L150,14 L200,0 L250,14 L300,0 L350,14 L400,0 L450,14 L500,0 L550,14 L600,0 L650,14 L700,0 L750,14 L800,0 L850,14 L900,0 L950,14 L1000,0 L1050,14 L1100,0 L1150,14 L1200,0 L1200,18 L0,18 Z"
-            fill="rgba(15,12,11,1)"
+            d="M0 15 L10 2 L20 15 L30 2 L40 15 L50 2 L60 15 L70 2 L80 15 L90 2 L100 15 Z"
+            fill="url(#goldFoilGradientCrest)"
           />
         </svg>
-        <div style={{
-          height: 10,
-          background: 'linear-gradient(90deg, rgba(140,8,32,0.9), rgba(186,12,47,1) 28%, rgba(212,23,55,1) 52%, rgba(186,12,47,1) 76%, rgba(140,8,32,0.9))',
-          boxShadow: '0 -2px 20px rgba(186,12,47,0.35)',
-        }} />
       </div>
 
       {/* ════════════════════════════════════════════════════════════════
