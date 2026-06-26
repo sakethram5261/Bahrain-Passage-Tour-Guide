@@ -267,7 +267,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
   return (
     <div 
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden transition-colors duration-700 ${
-        showPreviewOverview ? 'bg-[#0f0c0b]' /* cinematic dark — intentional, no token */ : 'wood-desk-backdrop'
+        showPreviewOverview ? 'bg-[var(--color-surface)]' : 'wood-desk-backdrop'
       }`}
     >
       <style>{`
@@ -277,32 +277,32 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
           width: 6px;
         }
         .scrollbar-thin::-webkit-scrollbar-track {
-          background: rgba(255,255,255,0.02);
+          background: rgba(0,0,0,0.02);
         }
         .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,0.12);
+          background: rgba(0,0,0,0.12);
           border-radius: 99px;
         }
         .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: rgba(255,255,255,0.22);
+          background: rgba(0,0,0,0.22);
         }
       `}</style>
 
       {showPreviewOverview ? (
-        <div ref={contentRef} className="w-full h-full flex flex-col relative animate-screenEntry bg-[#0f0c0b] text-white"> {/* cinematic dark — intentional, no token */}
+        <div ref={contentRef} className="w-full h-full flex flex-col relative animate-screenEntry bg-[var(--color-surface)] text-[var(--color-text)]">
           
           {/* Header Block */}
-          <div className="w-full max-w-3xl mx-auto px-6 pt-10 pb-5 shrink-0 border-b border-white/5">
+          <div className="w-full max-w-3xl mx-auto px-6 pt-10 pb-5 shrink-0 border-b border-[var(--color-border-light)]">
             <div className="flex flex-col text-center md:text-left md:flex-row md:justify-between md:items-end gap-3">
               <div>
                 <span className="text-overline block" style={{ color: 'var(--color-accent)' }}>PREVIEW ITINERARY</span>
-                <h1 className="font-serif text-3xl md:text-4xl font-bold mt-1 text-white">Your Custom Passage</h1>
-                <span className="font-serif text-body italic text-white/50 block mt-1">
+                <h1 className="font-serif text-3xl md:text-4xl font-bold mt-1 text-[var(--color-text)]">Your Custom Passage</h1>
+                <span className="font-serif text-body italic text-[var(--color-text-muted)] block mt-1">
                   Tailored to your selected vibes and budget tier
                 </span>
               </div>
               <div 
-                className="shrink-0 font-mono text-caption text-white/55 bg-white/5 border border-white/10 px-3 py-2 rounded-full inline-flex items-center gap-2 self-center select-none"
+                className="shrink-0 font-mono text-caption text-[var(--color-text-muted)] bg-[var(--color-surface-2)] border border-[var(--color-border)] px-3 py-2 rounded-full inline-flex items-center gap-2 self-center select-none"
                 aria-label={`${itinerarySpots.length} stops across ${duration} days`}
               >
                 <span><span aria-hidden="true">📍</span> {itinerarySpots.length} Stops</span>
@@ -315,12 +315,12 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
           {/* Scrollable Content Feed */}
           {itinerarySpots.length === 0 ? (
             <div 
-              className="flex-1 flex flex-col justify-center items-center text-center p-8 text-white"
-              style={{ background: 'var(--color-text)' }}
+              className="flex-1 flex flex-col justify-center items-center text-center p-8 text-[var(--color-text)]"
+              style={{ background: 'var(--color-surface)' }}
             >
-              <BookOpen size={40} className="text-white/30 mb-4" aria-hidden="true" />
-              <h3 className="text-xl font-bold text-white mb-2">No Stops Selected</h3>
-              <p className="text-sm text-white/60 max-w-[280px] mb-6 leading-relaxed">
+              <BookOpen size={40} className="text-[var(--color-text-faint)] mb-4" aria-hidden="true" />
+              <h3 className="text-xl font-bold text-[var(--color-text)] mb-2">No Stops Selected</h3>
+              <p className="text-sm text-[var(--color-text-muted)] max-w-[280px] mb-6 leading-relaxed">
                 You have removed all stops. Please go back to align your vibes and rebuild your itinerary!
               </p>
               <button
@@ -352,7 +352,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                       >
                         Day {dayNum}
                       </span>
-                      <div className="flex-1 h-[1px] bg-gradient-to-r from-white/10 to-transparent" />
+                      <div className="flex-1 h-[1px] bg-gradient-to-r from-stone-200 to-transparent" />
                     </div>
 
                     {/* Spot Cards List */}
@@ -365,13 +365,9 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                             key={spot.id + idx}
                             className="w-full rounded-2xl border transition-all duration-300 overflow-hidden"
                             style={{
-                              background: isExpanded 
-                                ? 'linear-gradient(135deg, rgba(30, 22, 20, 0.9) 0%, rgba(15, 10, 8, 0.7) 100%)' 
-                                : 'linear-gradient(135deg, rgba(25, 18, 16, 0.55) 0%, rgba(12, 8, 6, 0.4) 100%)',
-                              borderColor: isExpanded ? 'rgba(212, 175, 55, 0.3)' : 'rgba(255, 255, 255, 0.08)',
-                              boxShadow: isExpanded 
-                                ? '0 12px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08)' 
-                                : '0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                              background: isExpanded ? '#ffffff' : 'rgba(255, 255, 255, 0.75)',
+                              borderColor: isExpanded ? 'var(--color-primary)' : 'var(--color-border-light)',
+                              boxShadow: isExpanded ? 'var(--shadow-md)' : 'var(--shadow-sm)',
                             }}
                           >
                             {/* Main Row */}
@@ -380,7 +376,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                               className="flex items-center gap-4 p-4 cursor-pointer select-none"
                             >
                               {/* Thumbnail */}
-                              <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative border border-white/10" style={{ background: 'var(--color-text)' }}>
+                              <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative border border-[var(--color-border-light)]" style={{ background: 'var(--color-surface-2)' }}>
                                 <img
                                   src={spot.image || 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'}
                                   alt={spot.name}
@@ -388,7 +384,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                                   loading="lazy"
                                   onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling?.classList.remove('hidden') }}
                                 />
-                                <div className="absolute inset-0 hidden flex items-center justify-center bg-[#2A2321]">
+                                <div className="absolute inset-0 hidden flex items-center justify-center bg-stone-100">
                                   <span className="text-xl">{spot.keepsakeEmoji || '📍'}</span>
                                 </div>
                               </div>
@@ -396,22 +392,22 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                               {/* Center Info */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-overline text-white/50 uppercase tracking-wider">
+                                  <span className="text-overline text-[var(--color-text-muted)] uppercase tracking-wider">
                                     {spot.period || 'Ancient Era'}
                                   </span>
-                                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                                  <span className="w-1 h-1 rounded-full bg-stone-300" />
                                   <span className="text-overline uppercase tracking-wider" style={{ color: 'var(--color-accent)' }}>
                                     {spot.category || 'culture'}
                                   </span>
                                 </div>
-                                <h3 className="font-serif text-body-lg font-bold text-white mt-1 truncate flex items-center gap-1.5">
+                                <h3 className="font-serif text-body-lg font-bold text-[var(--color-text)] mt-1 truncate flex items-center gap-1.5">
                                   {(() => {
                                     const IconComponent = CATEGORY_ICONS[spot.category?.toLowerCase()] || CATEGORY_ICONS.default
                                     return <IconComponent size={13} className="shrink-0" strokeWidth={1.75} style={{ color: 'var(--color-accent)' }} />
                                   })()}
                                   <span className="truncate">{spot.name}</span>
                                 </h3>
-                                <p className="font-serif text-body italic text-white/60 mt-1 truncate">
+                                <p className="font-serif text-body italic mt-1 truncate" style={{ color: 'var(--color-primary)' }}>
                                   {spot.arabic}
                                 </p>
                               </div>
@@ -427,7 +423,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                                       const remaining = itinerarySpots.filter(s => s.id !== spot.id)
                                       setItinerarySpots(remaining)
                                     }}
-                                    className="p-2 rounded-full bg-red-950/20 hover:bg-red-700/45 border border-red-500/15 hover:border-red-500/45 text-red-400 hover:text-red-200 transition-all cursor-pointer active:scale-95"
+                                    className="p-2 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] transition-all cursor-pointer active:scale-95"
                                     title="Remove Stop"
                                     aria-label="Remove stop"
                                   >
@@ -440,7 +436,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                                   onClick={() => toggleSpotExpand(spot.id)}
                                   aria-label={isExpanded ? 'Collapse stop details' : 'Expand stop details'}
                                   aria-expanded={isExpanded}
-                                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white transition-all cursor-pointer active:scale-95"
+                                  className="p-2 rounded-full bg-stone-50 hover:bg-stone-100 border border-stone-200 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all cursor-pointer active:scale-95"
                                 >
                                   {isExpanded ? <ChevronUp size={13} aria-hidden="true" /> : <ChevronDown size={13} aria-hidden="true" />}
                                 </button>
@@ -450,36 +446,36 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
 
                             {/* Expandable Accordion Panel */}
                             {isExpanded && (
-                              <div className="border-t border-white/5 p-4 space-y-4 bg-black/20 animate-fadeIn">
+                              <div className="border-t border-[var(--color-border-light)] p-4 space-y-4 bg-[var(--color-surface-2)]/40 animate-fadeIn">
                                 
                                 {/* Guide Plan Details */}
                                 <div className="space-y-1">
                                   <span className="text-overline block" style={{ color: 'var(--color-accent)' }}>
                                     Guide Plan
                                   </span>
-                                  <p className="font-serif text-body text-white/90 leading-relaxed">
+                                  <p className="font-serif text-body text-[var(--color-text)] leading-relaxed">
                                     {spot.pathGuide || spot.desc}
                                   </p>
                                 </div>
 
                                 {/* What to See */}
                                 {spot.simpleTerms && (
-                                  <div className="space-y-1 pt-2 border-t border-white/5">
-                                    <span className="text-overline text-white/50 block">
+                                  <div className="space-y-1 pt-2 border-t border-[var(--color-border-light)]">
+                                    <span className="text-overline text-[var(--color-text-muted)] block">
                                       What to See
                                     </span>
-                                    <p className="font-serif text-body text-white/75">
+                                    <p className="font-serif text-body text-[var(--color-text-muted)] leading-relaxed">
                                       {spot.simpleTerms}
                                     </p>
                                   </div>
                                 )}
 
                                 {/* Extra details (cost, coords) */}
-                                <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px] font-mono">
+                                <div className="flex justify-between items-center pt-2 border-t border-[var(--color-border-light)] text-[10px] font-mono">
                                   <span className="text-caption font-mono font-semibold" style={{ color: 'var(--color-accent)' }}>
                                     Est. Cost: {spot.pathCost || 'Free Entry'}
                                   </span>
-                                  <span className="font-mono text-overline text-white/40">
+                                  <span className="font-mono text-overline text-[var(--color-text-faint)]">
                                     {spot.coords}
                                   </span>
                                 </div>
@@ -499,14 +495,14 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
           )}
 
           {/* Bottom Footer Actions (Sticky) */}
-          <div className="w-full shrink-0 border-t border-white/5 bg-[#0f0c0b]/80 backdrop-blur-md py-5 px-6"> {/* cinematic dark — intentional, no token */}
+          <div className="w-full shrink-0 border-t border-[var(--color-border)] bg-[var(--color-surface)]/90 backdrop-blur-md py-5 px-6">
             <div className="max-w-3xl mx-auto flex justify-center gap-4">
               <button
                 onClick={() => {
                   playClick(0.85)
                   if (onBack) onBack()
                 }}
-                className="px-6 py-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white text-caption font-semibold tracking-wide transition-all active:scale-95 cursor-pointer"
+                className="px-6 py-3 rounded-full bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] text-[var(--color-text)] text-caption font-semibold tracking-wide transition-all active:scale-95 cursor-pointer"
               >
                 ❮ Adjust Vibes
               </button>
