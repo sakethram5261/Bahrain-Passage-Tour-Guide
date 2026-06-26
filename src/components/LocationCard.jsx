@@ -225,9 +225,9 @@ export default function LocationCard({ spot, onScan }) {
             {/* Distress Ink Postmark Stamp overlay */}
             {capturedPhotos[spot.id] && (
               <div className="postmark-stamp" aria-hidden="true">
-                <span className="font-serif text-[6px] tracking-widest text-bahrain-red block uppercase font-extrabold">Sealed</span>
-                <span className="font-serif text-[5px] text-bahrain-red/60 uppercase block font-bold mt-0.5">MANAMA</span>
-                <span className="font-mono text-[4px] text-bahrain-red/80 block uppercase font-bold mt-0.5">25.05.2026</span>
+                <span className="font-serif text-overline text-[var(--color-primary)] block">Sealed</span>
+                <span className="font-serif text-overline text-[var(--color-primary)]/60 block">MANAMA</span>
+                <span className="font-mono text-overline text-[var(--color-primary)]/80 block">25.05.2026</span>
               </div>
             )}
 

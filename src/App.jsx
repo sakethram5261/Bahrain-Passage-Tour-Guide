@@ -68,43 +68,14 @@ function MainContent() {
   return (
     <div className="relative min-h-screen">
       {showFloatingHeader && (
-        <div 
-          className="floating-header"
-          style={{
-            position: 'absolute',
-            top: '16px',
-            right: '16px',
-            zIndex: 100,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            pointerEvents: 'auto'
-          }}
-        >
+        <div className="floating-header absolute top-4 right-4 z-[100] flex items-center gap-2 pointer-events-auto">
           {xp > 0 && (
             <button
               onClick={() => setShowPassportCard(true)}
-              className="passport-trigger-btn"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '9999px',
-                border: '1px solid rgba(255,255,255,0.2)',
-                background: 'rgba(0,0,0,0.4)',
-                backdropFilter: 'blur(8px)',
-                color: '#fff',
-                fontSize: '10px',
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
+              className="passport-trigger-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 bg-black/40 backdrop-blur-md text-white text-overline cursor-pointer transition-all hover:bg-black/60 active:scale-95"
               aria-label="View Explorer Passport"
             >
-              <BookOpen size={10} className="shrink-0" strokeWidth={2} />
+              <BookOpen size={12} className="shrink-0" strokeWidth={2} />
               <span>Passport ({getRank(xp).label})</span>
             </button>
           )}

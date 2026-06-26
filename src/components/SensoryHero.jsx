@@ -267,7 +267,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
   return (
     <div 
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden transition-colors duration-700 ${
-        showPreviewOverview ? 'bg-[#1a1210]' : 'wood-desk-backdrop'
+        showPreviewOverview ? 'bg-[#0f0c0b]' /* cinematic dark — intentional, no token */ : 'wood-desk-backdrop'
       }`}
     >
       <style>{`
@@ -289,30 +289,36 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
       `}</style>
 
       {showPreviewOverview ? (
-        <div ref={contentRef} className="w-full h-full flex flex-col relative animate-screenEntry bg-[#1a1210] text-white">
+        <div ref={contentRef} className="w-full h-full flex flex-col relative animate-screenEntry bg-[#0f0c0b] text-white"> {/* cinematic dark — intentional, no token */}
           
           {/* Header Block */}
           <div className="w-full max-w-3xl mx-auto px-6 pt-10 pb-5 shrink-0 border-b border-white/5">
             <div className="flex flex-col text-center md:text-left md:flex-row md:justify-between md:items-end gap-3">
               <div>
-                <span className="font-mono text-[10px] text-[var(--color-accent-soft)] tracking-widest uppercase block">PREVIEW ITINERARY</span>
+                <span className="text-overline block" style={{ color: 'var(--color-accent)' }}>PREVIEW ITINERARY</span>
                 <h1 className="font-serif text-3xl md:text-4xl font-bold mt-1 text-white">Your Custom Passage</h1>
-                <span className="font-serif text-sm italic text-white/50 block mt-1">
+                <span className="font-serif text-body italic text-white/50 block mt-1">
                   Tailored to your selected vibes and budget tier
                 </span>
               </div>
-              <div className="shrink-0 font-mono text-[11px] text-white/55 bg-white/5 border border-white/10 px-3.5 py-2 rounded-full inline-flex items-center gap-2 self-center select-none">
-                <span>📍 {itinerarySpots.length} Stops</span>
+              <div 
+                className="shrink-0 font-mono text-caption text-white/55 bg-white/5 border border-white/10 px-3 py-2 rounded-full inline-flex items-center gap-2 self-center select-none"
+                aria-label={`${itinerarySpots.length} stops across ${duration} days`}
+              >
+                <span><span aria-hidden="true">📍</span> {itinerarySpots.length} Stops</span>
                 <span className="opacity-35">•</span>
-                <span>📅 {duration} Day{duration > 1 ? 's' : ''}</span>
+                <span><span aria-hidden="true">📅</span> {duration} Day{duration > 1 ? 's' : ''}</span>
               </div>
             </div>
           </div>
 
           {/* Scrollable Content Feed */}
           {itinerarySpots.length === 0 ? (
-            <div className="flex-1 flex flex-col justify-center items-center text-center p-8 bg-[#1a1210] text-white">
-              <BookOpen size={40} className="text-white/30 mb-4" />
+            <div 
+              className="flex-1 flex flex-col justify-center items-center text-center p-8 text-white"
+              style={{ background: 'var(--color-text)' }}
+            >
+              <BookOpen size={40} className="text-white/30 mb-4" aria-hidden="true" />
               <h3 className="text-xl font-bold text-white mb-2">No Stops Selected</h3>
               <p className="text-sm text-white/60 max-w-[280px] mb-6 leading-relaxed">
                 You have removed all stops. Please go back to align your vibes and rebuild your itinerary!
@@ -322,7 +328,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                   playClick(0.85)
                   if (onBack) onBack()
                 }}
-                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-xs font-bold tracking-wider cursor-pointer active:scale-95 transition-all"
+                className="btn-primary cursor-pointer"
               >
                 Adjust Vibes
               </button>
@@ -336,7 +342,14 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                     
                     {/* Day Divider Header */}
                     <div className="flex items-center gap-3 select-none">
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-[#D4AF37] font-extrabold bg-[#D4AF37]/10 border border-[#D4AF37]/25 px-3 py-1 rounded-full">
+                      <span
+                        className="text-overline px-3 py-1 rounded-full border"
+                        style={{
+                          color: 'var(--color-accent)',
+                          background: 'rgba(184,134,11,0.1)',
+                          borderColor: 'rgba(184,134,11,0.25)',
+                        }}
+                      >
                         Day {dayNum}
                       </span>
                       <div className="flex-1 h-[1px] bg-gradient-to-r from-white/10 to-transparent" />
@@ -367,7 +380,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                               className="flex items-center gap-4 p-4 cursor-pointer select-none"
                             >
                               {/* Thumbnail */}
-                              <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative bg-[#1c1917] border border-white/10">
+                              <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative border border-white/10" style={{ background: 'var(--color-text)' }}>
                                 <img
                                   src={spot.image || 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'}
                                   alt={spot.name}
@@ -383,22 +396,22 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                               {/* Center Info */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-mono text-[9px] text-white/50 uppercase tracking-wider">
+                                  <span className="text-overline text-white/50 uppercase tracking-wider">
                                     {spot.period || 'Ancient Era'}
                                   </span>
                                   <span className="w-1 h-1 rounded-full bg-white/20" />
-                                  <span className="font-mono text-[9px] text-[#D4AF37] uppercase tracking-wider">
+                                  <span className="text-overline uppercase tracking-wider" style={{ color: 'var(--color-accent)' }}>
                                     {spot.category || 'culture'}
                                   </span>
                                 </div>
-                                <h3 className="font-serif text-[15px] font-bold text-white mt-0.5 truncate flex items-center gap-1.5">
+                                <h3 className="font-serif text-body-lg font-bold text-white mt-1 truncate flex items-center gap-1.5">
                                   {(() => {
                                     const IconComponent = CATEGORY_ICONS[spot.category?.toLowerCase()] || CATEGORY_ICONS.default
-                                    return <IconComponent size={13} className="text-[#D4AF37] shrink-0" strokeWidth={1.75} />
+                                    return <IconComponent size={13} className="shrink-0" strokeWidth={1.75} style={{ color: 'var(--color-accent)' }} />
                                   })()}
                                   <span className="truncate">{spot.name}</span>
                                 </h3>
-                                <p className="font-serif text-[12px] italic text-white/60 mt-0.5 truncate">
+                                <p className="font-serif text-body italic text-white/60 mt-1 truncate">
                                   {spot.arabic}
                                 </p>
                               </div>
@@ -416,6 +429,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                                     }}
                                     className="p-2 rounded-full bg-red-950/20 hover:bg-red-700/45 border border-red-500/15 hover:border-red-500/45 text-red-400 hover:text-red-200 transition-all cursor-pointer active:scale-95"
                                     title="Remove Stop"
+                                    aria-label="Remove stop"
                                   >
                                     <Trash2 size={13} />
                                   </button>
@@ -424,9 +438,11 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                                 {/* Toggle Accordion Button */}
                                 <button
                                   onClick={() => toggleSpotExpand(spot.id)}
+                                  aria-label={isExpanded ? 'Collapse stop details' : 'Expand stop details'}
+                                  aria-expanded={isExpanded}
                                   className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white transition-all cursor-pointer active:scale-95"
                                 >
-                                  {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                                  {isExpanded ? <ChevronUp size={13} aria-hidden="true" /> : <ChevronDown size={13} aria-hidden="true" />}
                                 </button>
 
                               </div>
@@ -438,10 +454,10 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                                 
                                 {/* Guide Plan Details */}
                                 <div className="space-y-1">
-                                  <span className="font-mono text-[9px] text-[#D4AF37] uppercase tracking-widest block">
+                                  <span className="text-overline block" style={{ color: 'var(--color-accent)' }}>
                                     Guide Plan
                                   </span>
-                                  <p className="font-serif text-[13px] text-white/90 leading-relaxed">
+                                  <p className="font-serif text-body text-white/90 leading-relaxed">
                                     {spot.pathGuide || spot.desc}
                                   </p>
                                 </div>
@@ -449,10 +465,10 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                                 {/* What to See */}
                                 {spot.simpleTerms && (
                                   <div className="space-y-1 pt-2 border-t border-white/5">
-                                    <span className="font-mono text-[9px] text-white/40 uppercase tracking-widest block">
+                                    <span className="text-overline text-white/50 block">
                                       What to See
                                     </span>
-                                    <p className="font-serif text-[12px] text-white/75 leading-relaxed">
+                                    <p className="font-serif text-body text-white/75">
                                       {spot.simpleTerms}
                                     </p>
                                   </div>
@@ -460,10 +476,10 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
 
                                 {/* Extra details (cost, coords) */}
                                 <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px] font-mono">
-                                  <span className="text-[#D4AF37] font-bold">
+                                  <span className="text-caption font-mono font-semibold" style={{ color: 'var(--color-accent)' }}>
                                     Est. Cost: {spot.pathCost || 'Free Entry'}
                                   </span>
-                                  <span className="text-white/35">
+                                  <span className="font-mono text-overline text-white/40">
                                     {spot.coords}
                                   </span>
                                 </div>
@@ -483,14 +499,14 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
           )}
 
           {/* Bottom Footer Actions (Sticky) */}
-          <div className="w-full shrink-0 border-t border-white/5 bg-[#140e0d]/80 backdrop-blur-md py-5 px-6">
+          <div className="w-full shrink-0 border-t border-white/5 bg-[#0f0c0b]/80 backdrop-blur-md py-5 px-6"> {/* cinematic dark — intentional, no token */}
             <div className="max-w-3xl mx-auto flex justify-center gap-4">
               <button
                 onClick={() => {
                   playClick(0.85)
                   if (onBack) onBack()
                 }}
-                className="px-6 py-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs tracking-wider transition-all active:scale-95 cursor-pointer"
+                className="px-6 py-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white text-caption font-semibold tracking-wide transition-all active:scale-95 cursor-pointer"
               >
                 ❮ Adjust Vibes
               </button>
@@ -501,7 +517,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                   if (sealing || itinerarySpots.length === 0) return
                   setConfirmOpen(true)
                 }}
-                className={`px-8 py-3 rounded-full bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-xs font-bold tracking-wider flex items-center gap-2 shadow-[0_10px_30px_rgba(193,18,47,0.25)] transition-all hover:scale-103 active:scale-97 cursor-pointer ${itinerarySpots.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`btn-primary flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 ${itinerarySpots.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <BookOpen size={13} className="text-white" />
                 <span>{sealing ? 'Confirming...' : 'Confirm & Start Journey'}</span>
@@ -512,9 +528,9 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
         </div>
       ) : (
         /* LOADING STAGE */
-        <div className="relative w-full max-w-md md:max-w-xl rounded-2xl overflow-hidden bg-[#FAF9F6] border border-neutral-200/50 shadow-xl min-h-[360px] flex flex-col justify-center items-center p-8 select-none space-y-6">
-          <div className="w-20 h-20 rounded-full border border-dashed border-[#C1122F]/30 flex items-center justify-center relative bg-white/50">
-            <svg viewBox="0 0 100 100" className="w-14 h-14 opacity-75" fill="none" stroke="#C1122F" strokeWidth="1.5" style={{ animation: 'spin 10s linear infinite' }}>
+        <div className="relative w-full max-w-md md:max-w-xl rounded-2xl overflow-hidden border border-neutral-200/50 shadow-xl min-h-[360px] flex flex-col justify-center items-center p-8 select-none space-y-6" style={{ background: 'var(--color-surface)' }}>
+          <div className="w-20 h-20 rounded-full border border-dashed flex items-center justify-center relative bg-white/50" style={{ borderColor: 'rgba(193,18,47,0.3)' }}>
+            <svg viewBox="0 0 100 100" className="w-14 h-14 opacity-75" fill="none" stroke="var(--color-primary)" strokeWidth="1.5" style={{ animation: 'spin 10s linear infinite' }}>
               <circle cx="50" cy="50" r="42" strokeDasharray="3,3" />
               <circle cx="50" cy="50" r="16" />
               <path d="M 50,2 L 50,98 M 2,50 L 98,50" />
@@ -531,12 +547,13 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
           </div>
           
           <div className="w-full max-w-[200px] bg-neutral-200 h-1 rounded-full overflow-hidden relative">
-            <div className="h-full bg-[#C1122F] rounded-full transition-all duration-300 ease-out" style={{ width: `${Math.min(100, (terminalLogs.length / guidePhrases.length) * 100)}%` }} />
+            <div className="h-full rounded-full transition-all duration-300 ease-out" style={{ width: `${Math.min(100, (terminalLogs.length / guidePhrases.length) * 100)}%`, background: 'var(--color-primary)' }} />
           </div>
           
           <button
             onClick={handleSkipCuration}
-            className="text-[#C1122F] hover:underline font-sans text-xs tracking-wide font-bold cursor-pointer active:scale-95 transition-all"
+            className="font-sans text-caption font-semibold cursor-pointer active:scale-95 transition-all hover:underline"
+            style={{ color: 'var(--color-primary)' }}
           >
             Skip →
           </button>
@@ -557,7 +574,8 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                   playClick(0.85);
                   setConfirmOpen(false);
                 }}
-                className="px-4 py-2 rounded-xl text-neutral-600 border border-neutral-200 text-caption font-medium hover:bg-neutral-50 active:scale-95 transition-all"
+                className="px-4 py-2 rounded-xl border text-caption font-medium hover:bg-[var(--color-surface-2)] active:scale-95 transition-all"
+                style={{ color: 'var(--color-text-muted)', borderColor: 'var(--color-border)' }}
               >
                 Go Back
               </button>
@@ -580,7 +598,7 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
                     setSealing(false);
                   }, 550);
                 }}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#C1122F] to-[#8B0D22] text-white text-caption font-semibold hover:scale-105 active:scale-95 transition-all shadow-md"
+                className="btn-primary px-5 py-2 hover:scale-105 active:scale-95 transition-all"
               >
                 Confirm & Start
               </button>

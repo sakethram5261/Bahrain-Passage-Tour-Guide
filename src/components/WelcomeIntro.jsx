@@ -131,6 +131,7 @@ export default function WelcomeIntro({ onComplete }) {
   const timersRef      = useRef([])
   const skippedRef     = useRef(false)
   const onCompleteRef  = useRef(onComplete)
+  const overlineRef    = useRef(null)
 
   const [showMorphLetters, setShowMorphLetters] = useState(false)
   const { quickStart } = useVibe()
@@ -179,6 +180,7 @@ export default function WelcomeIntro({ onComplete }) {
       wrapRef.current, glowRef.current,
       slotViewRef.current, morphViewRef.current, slotTextRef.current,
       taglineRef.current, morphLineRef.current, arabicLineRef.current,
+      overlineRef.current,
     ])
 
     const el = wrapRef.current
@@ -213,6 +215,7 @@ export default function WelcomeIntro({ onComplete }) {
     if (taglineRef.current)   gsap.set(taglineRef.current,  { opacity: 0, y: 18, filter: 'blur(4px)' })
     if (morphLineRef.current) gsap.set(morphLineRef.current, { width: 0 })
     if (arabicLineRef.current) gsap.set(arabicLineRef.current, { width: 0, opacity: 1 })
+    if (overlineRef.current)  gsap.set(overlineRef.current, { opacity: 0 })
 
     // ── Screen fade-in ───────────────────────────────────────────────────────
     gsap.to(wrap, { opacity: 1, duration: 0.75, ease: 'power2.out' })
@@ -225,6 +228,11 @@ export default function WelcomeIntro({ onComplete }) {
 
       if (loadingDots) {
         gsap.to(loadingDots, { opacity: 0, y: 10, duration: 0.4, ease: 'power2.in' })
+      }
+
+      // Fade in the overline label when language cycling begins
+      if (overlineRef.current) {
+        gsap.to(overlineRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out' })
       }
 
       slotTlRef.current = gsap.to(flyObj, {
@@ -278,6 +286,11 @@ export default function WelcomeIntro({ onComplete }) {
       // Expand decorative line under Arabic
       if (arabicLineRef.current) {
         gsap.to(arabicLineRef.current, { width: 80, duration: 0.5, ease: 'power3.out' })
+      }
+
+      // Fade out overline when Arabic lands — it has done its job
+      if (overlineRef.current) {
+        gsap.to(overlineRef.current, { opacity: 0, duration: 0.4, ease: 'power2.in' })
       }
 
       // Hold Arabic, then morph transition
@@ -345,6 +358,7 @@ export default function WelcomeIntro({ onComplete }) {
       gsap.killTweensOf([
         wrap, slotView, morphView, slotText, loadingDots,
         taglineRef.current, morphLineRef.current, arabicLineRef.current,
+        overlineRef.current,
       ])
     }
   }, [exitIntro])
@@ -360,148 +374,137 @@ export default function WelcomeIntro({ onComplete }) {
         position: 'fixed', inset: 0, zIndex: 9999,
         background: '#0F0C0B',
         display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
         opacity: 0, cursor: 'pointer',
       }}
     >
-      {/* ── Background Video / Image Fallback ─────────────────────────────── */}
+      {/* ── Background video ──────────────────────────────────────────── */}
       <video
-        autoPlay
-        muted
-        loop
-        playsInline
+        autoPlay muted loop playsInline
         className="jn-welcome-video"
         poster="/assets/images/bahrain_skyline.png"
       >
         <source src="/assets/videos/bahrain_timelapse.mp4" type="video/mp4" />
       </video>
 
-      {/* ── Cinematic Dark Vignette Overlay ─────────────────────────────────── */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(circle at center, rgba(15, 12, 11, 0.45) 0%, rgba(15, 12, 11, 0.88) 100%)',
-          zIndex: 1,
-        }}
-      />
+      {/* ── Dark vignette — heavier than before ──────────────────────── */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 1,
+        background: 'radial-gradient(ellipse 100% 100% at 50% 50%, rgba(15,12,11,0.48) 0%, rgba(15,12,11,0.94) 100%)',
+      }} />
 
-      {/* ── Ambient glow (mouse-reactive, gold) ────────────────────────────── */}
+      {/* ── Mouse-reactive ambient glow ──────────────────────────────── */}
       <div
         ref={glowRef}
         style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
           background: 'radial-gradient(ellipse 85% 65% at 50% 42%, rgba(212,175,55,0.06) 0%, transparent 72%)',
-          zIndex: 2,
         }}
       />
 
-
-
-      {/* ── Centered Vintage Compass Rose Watermark (Subtle Gold/White) ─────── */}
+      {/* ── Rotating language ring (replaces compass) ─────────────────── */}
       <svg
         ref={compassRef}
-        viewBox="0 0 100 100"
+        viewBox="0 0 500 500"
         style={{
           position: 'absolute',
-          top: '45%',
-          left: '50%',
+          top: '50%', left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: 'clamp(280px, 55vw, 400px)',
-          height: 'clamp(280px, 55vw, 400px)',
-          opacity: 0.06,
+          width: 'clamp(360px, 70vw, 520px)',
+          height: 'clamp(360px, 70vw, 520px)',
+          opacity: 0.07,
           pointerEvents: 'none',
-          color: '#D4AF37',
           zIndex: 2,
+          overflow: 'visible',
         }}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="0.5"
+        aria-hidden="true"
       >
-        <circle cx="50" cy="50" r="45" strokeDasharray="2,2" />
-        <circle cx="50" cy="50" r="38" />
-        <circle cx="50" cy="50" r="12" strokeDasharray="1,1" />
-        <circle cx="50" cy="50" r="4" />
-        <path d="M 50,5 L 50,95 M 5,50 L 95,50" strokeWidth="0.8" />
-        <path d="M 18.2,18.2 L 81.8,81.8 M 18.2,81.8 L 81.8,18.2" strokeWidth="0.4" />
-        <path d="M 50,50 L 47,15 L 50,5 L 53,15 Z" fill="rgba(212,175,55,0.2)" />
-        <path d="M 50,50 L 85,47 L 95,50 L 85,53 Z" fill="rgba(212,175,55,0.2)" />
-        <path d="M 50,50 L 47,85 L 50,95 L 53,85 Z" fill="rgba(212,175,55,0.2)" />
-        <path d="M 50,50 L 15,47 L 5,50 L 15,53 Z" fill="rgba(212,175,55,0.2)" />
-        <path d="M 50,50 L 58,28 L 75,25 L 72,32 Z" fill="rgba(212,175,55,0.1)" strokeWidth="0.3" />
-        <path d="M 50,50 L 72,68 L 75,75 L 58,72 Z" fill="rgba(212,175,55,0.1)" strokeWidth="0.3" />
-        <path d="M 50,50 L 42,72 L 25,75 L 28,68 Z" fill="rgba(212,175,55,0.1)" strokeWidth="0.3" />
-        <path d="M 50,50 L 28,32 L 25,25 L 42,28 Z" fill="rgba(212,175,55,0.1)" strokeWidth="0.3" />
-        {Array.from({ length: 36 }).map((_, i) => {
-          const angle = i * 10
-          const rad = (angle * Math.PI) / 180
-          const x1 = 50 + 38 * Math.cos(rad)
-          const y1 = 50 + 38 * Math.sin(rad)
-          const x2 = 50 + (i % 3 === 0 ? 34 : 36) * Math.cos(rad)
-          const y2 = 50 + (i % 3 === 0 ? 34 : 36) * Math.sin(rad)
-          return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} strokeWidth={i % 3 === 0 ? 0.6 : 0.3} />
-        })}
+        <defs>
+          <path
+            id="langRingPath"
+            d="M 250,250 m -210,0 a 210,210 0 1,1 420,0 a 210,210 0 1,1 -420,0"
+          />
+        </defs>
+        {/* Inner decorative ring */}
+        <circle cx="250" cy="250" r="170" fill="none" stroke="rgba(212,175,55,0.4)" strokeWidth="0.5" strokeDasharray="3,6" />
+        <circle cx="250" cy="250" r="210" fill="none" stroke="rgba(212,175,55,0.25)" strokeWidth="0.5" />
+        {/* Language names on circular path */}
+        <text
+          style={{
+            fontFamily: '"Outfit", system-ui, sans-serif',
+            fontSize: '10px',
+            fill: '#FAF9F6',
+            letterSpacing: '0.15em',
+          }}
+        >
+          <textPath href="#langRingPath" startOffset="0%">
+            {SLOT_PHRASES.join('  ·  ')}  ·  
+          </textPath>
+        </text>
       </svg>
 
-      {/* ── Bahrain flag: top serrated band ────────────────────────────────── */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3 }}>
+      {/* ── Flag serration — top (taller than before) ─────────────────── */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 4, pointerEvents: 'none' }}>
         <div style={{
-          height: 7,
-          background: 'linear-gradient(90deg, #8c0820, #BA0C2F 28%, #d41737 52%, #BA0C2F 76%, #8c0820)',
-          boxShadow: '0 2px 14px rgba(186,12,47,0.20)',
+          height: 10,
+          background: 'linear-gradient(90deg, rgba(140,8,32,0.9), rgba(186,12,47,1) 28%, rgba(212,23,55,1) 52%, rgba(186,12,47,1) 76%, rgba(140,8,32,0.9))',
+          boxShadow: '0 2px 20px rgba(186,12,47,0.35)',
         }} />
-        <svg viewBox="0 0 1200 14" preserveAspectRatio="none" style={{ width: '100%', height: 14, display: 'block' }}>
+        <svg viewBox="0 0 1200 18" preserveAspectRatio="none" style={{ width: '100%', height: 18, display: 'block' }}>
           <path
-            d="M0,0 L50,11 L100,0 L150,11 L200,0 L250,11 L300,0 L350,11 L400,0 L450,11 L500,0 L550,11 L600,0 L650,11 L700,0 L750,11 L800,0 L850,11 L900,0 L950,11 L1000,0 L1050,11 L1100,0 L1150,11 L1200,0 L1200,14 L0,14 Z"
-            fill="url(#goldGrad)"
+            d="M0,0 L50,14 L100,0 L150,14 L200,0 L250,14 L300,0 L350,14 L400,0 L450,14 L500,0 L550,14 L600,0 L650,14 L700,0 L750,14 L800,0 L850,14 L900,0 L950,14 L1000,0 L1050,14 L1100,0 L1150,14 L1200,0 L1200,18 L0,18 Z"
+            fill="rgba(15,12,11,1)"
           />
-          <defs>
-            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#C1122F" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#8B0D22" stopOpacity="0.3" />
-            </linearGradient>
-          </defs>
         </svg>
       </div>
 
-      {/* ── Bahrain flag: bottom serrated band ─────────────────────────────── */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 3 }}>
-        <svg viewBox="0 0 1200 14" preserveAspectRatio="none" style={{ width: '100%', height: 14, display: 'block', transform: 'scaleY(-1)' }}>
+      {/* ── Flag serration — bottom ───────────────────────────────────── */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 4, pointerEvents: 'none' }}>
+        <svg viewBox="0 0 1200 18" preserveAspectRatio="none" style={{ width: '100%', height: 18, display: 'block', transform: 'scaleY(-1)' }}>
           <path
-            d="M0,0 L50,11 L100,0 L150,11 L200,0 L250,11 L300,0 L350,11 L400,0 L450,11 L500,0 L550,11 L600,0 L650,11 L700,0 L750,11 L800,0 L850,11 L900,0 L950,11 L1000,0 L1050,11 L1100,0 L1150,11 L1200,0 L1200,14 L0,14 Z"
-            fill="url(#goldGradBottom)"
+            d="M0,0 L50,14 L100,0 L150,14 L200,0 L250,14 L300,0 L350,14 L400,0 L450,14 L500,0 L550,14 L600,0 L650,14 L700,0 L750,14 L800,0 L850,14 L900,0 L950,14 L1000,0 L1050,14 L1100,0 L1150,14 L1200,0 L1200,18 L0,18 Z"
+            fill="rgba(15,12,11,1)"
           />
-          <defs>
-            <linearGradient id="goldGradBottom" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#C1122F" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#8B0D22" stopOpacity="0.3" />
-            </linearGradient>
-          </defs>
         </svg>
         <div style={{
-          height: 7,
-          background: 'linear-gradient(90deg, #8c0820, #BA0C2F 28%, #d41737 52%, #BA0C2F 76%, #8c0820)',
-          boxShadow: '0 -2px 14px rgba(186,12,47,0.20)',
+          height: 10,
+          background: 'linear-gradient(90deg, rgba(140,8,32,0.9), rgba(186,12,47,1) 28%, rgba(212,23,55,1) 52%, rgba(186,12,47,1) 76%, rgba(140,8,32,0.9))',
+          boxShadow: '0 -2px 20px rgba(186,12,47,0.35)',
         }} />
       </div>
 
-      {/* ── Text stages container ───────────────────────────────────────────── */}
-      <div 
-        className="jn-intro-text-container"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100%',
-          overflow: 'visible',
-          position: 'relative',
-          zIndex: 3,
-        }}
+      {/* ════════════════════════════════════════════════════════════════
+          ZONE 1 — Top brand bar
+      ════════════════════════════════════════════════════════════════ */}
+      <div
+        className="jn-intro-brand-bar"
+        style={{ position: 'relative', zIndex: 5 }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* 1. Main Text Container - perfectly still */}
-        <div 
+        <div className="jn-intro-brand-inner">
+          <div className="jn-intro-brand-text">
+            <span className="jn-intro-brand-name">Bahrain Passage</span>
+            <span className="jn-intro-brand-arabic">ممر البحرين</span>
+          </div>
+          <div className="jn-intro-brand-divider" />
+          <span className="jn-intro-brand-tagline">Your Digital Travel Chronicle</span>
+        </div>
+      </div>
+
+      {/* ════════════════════════════════════════════════════════════════
+          ZONE 2 — Center animation stage
+      ════════════════════════════════════════════════════════════════ */}
+      <div
+        className="jn-intro-text-container"
+        style={{ position: 'relative', zIndex: 5 }}
+      >
+        {/* Cycling phase overline — fades in when languages start, out when Arabic lands */}
+        <p ref={overlineRef} className="jn-intro-overline">
+          Welcoming you in {SLOT_PHRASES.length} languages
+        </p>
+
+        {/* Main text box — keep all existing refs */}
+        <div
           className="jn-intro-main-text-box"
           style={{
             position: 'relative',
@@ -513,56 +516,48 @@ export default function WelcomeIntro({ onComplete }) {
             overflow: 'visible',
           }}
         >
-          {/* Stage 1 & 2: Slot Text / Arabic */}
+          {/* Stage 1 & 2: Slot text / Arabic */}
           <div
             ref={slotViewRef}
             style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
             <div
               ref={slotTextRef}
               style={{
-                fontSize: 'clamp(2rem,7.2vw,3.4rem)',
+                fontSize: 'clamp(2rem, 7.2vw, 3.4rem)',
                 fontWeight: 700,
                 color: '#FAF9F6',
                 textAlign: 'center',
                 userSelect: 'none',
                 fontFamily: '"Playfair Display","Georgia",serif',
-                textShadow: '0 4px 28px rgba(255, 255, 255, 0.15)',
+                textShadow: '0 4px 32px rgba(255,255,255,0.12)',
               }}
             >
               {SLOT_PHRASES[0]}
             </div>
           </div>
 
-          {/* Stage 3: English Scramble Text */}
+          {/* Stage 3: English scramble */}
           <div
             ref={morphViewRef}
             style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: 0,
-              pointerEvents: 'none',
-              overflow: 'visible',
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: 0, pointerEvents: 'none', overflow: 'visible',
             }}
           >
             {showMorphLetters && (
               <div style={{
                 fontFamily: '"Playfair Display","Georgia",serif',
-                fontSize: 'clamp(2rem,7.2vw,3.4rem)',
+                fontSize: 'clamp(2rem, 7.2vw, 3.4rem)',
                 fontWeight: 700,
                 color: '#FAF9F6',
                 letterSpacing: '0.025em',
                 whiteSpace: 'nowrap',
-                textShadow: '0 4px 28px rgba(255, 255, 255, 0.15)',
+                textShadow: '0 4px 32px rgba(255,255,255,0.12)',
                 userSelect: 'none',
                 display: 'flex',
                 alignItems: 'center',
@@ -576,91 +571,71 @@ export default function WelcomeIntro({ onComplete }) {
           </div>
         </div>
 
-        {/* 2. Middle Stable Area: Lines */}
+        {/* Underlines — keep existing refs */}
         <div style={{
-          position: 'relative',
-          height: 20,
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          position: 'relative', height: 20, width: '100%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           marginTop: '0.5rem',
         }}>
-          {/* Arabic Underline */}
           <div
             ref={arabicLineRef}
             style={{
-              position: 'absolute',
-              height: 1.5,
-              width: 0,
-              background: 'linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.5), transparent)',
+              position: 'absolute', height: 1.5, width: 0,
+              background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.5), transparent)',
               borderRadius: 1,
             }}
           />
-          
-          {/* Morph Underline */}
           <div
             ref={morphLineRef}
             style={{
-              position: 'absolute',
-              height: 1,
-              width: 0,
-              background: 'linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent)',
+              position: 'absolute', height: 1, width: 0,
+              background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent)',
               borderRadius: 1,
             }}
           />
         </div>
 
-        {/* 3. Bottom Stable Area: Loading Dots / Tagline */}
-        <div 
+        {/* Loading dots / tagline — keep existing refs */}
+        <div
           className="jn-intro-bottom-stable"
           style={{
-            position: 'relative',
-            height: 60,
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            position: 'relative', height: 60, width: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             marginTop: '0.5rem',
           }}
         >
-          {/* Loading dots */}
           <div
             ref={loadingDotsRef}
             style={{
               position: 'absolute',
-              display: 'flex',
-              gap: '0.6rem',
-              alignItems: 'center',
+              display: 'flex', gap: '0.6rem', alignItems: 'center',
             }}
           >
             {[0, 1, 2].map(i => (
               <span
                 key={i}
                 style={{
-                  width: 6, height: 6, borderRadius: '50%',
-                  background: 'var(--color-accent)', display: 'inline-block',
+                  width: 5, height: 5, borderRadius: '50%',
+                  background: 'var(--color-accent)',
+                  display: 'inline-block',
                   animation: `introDot 1.3s ease-in-out ${i * 0.26}s infinite`,
                 }}
               />
             ))}
           </div>
-
-          {/* Tagline */}
           <p
             ref={taglineRef}
             style={{
               position: 'absolute',
               fontFamily: '"Playfair Display","Georgia",serif',
               fontStyle: 'italic',
-              fontSize: 'clamp(0.68rem,1.85vw,0.82rem)',
+              fontSize: 'clamp(0.68rem, 1.85vw, 0.82rem)',
               color: '#FAF9F6',
               opacity: 0,
               letterSpacing: '0.35em',
               textTransform: 'uppercase',
               userSelect: 'none',
-              margin: 0,
-              padding: 0,
+              margin: 0, padding: 0,
               transform: 'translateY(18px)',
               filter: 'blur(4px)',
               textAlign: 'center',
@@ -672,78 +647,241 @@ export default function WelcomeIntro({ onComplete }) {
         </div>
       </div>
 
-      {/* ── Skip Intro & Quick Start buttons ───────────────────────────────── */}
-      <button
-        onClick={(e) => { e.stopPropagation(); exitIntro() }}
-        className="jn-intro-skip-btn"
+      {/* ════════════════════════════════════════════════════════════════
+          ZONE 3 — Bottom action panel (frosted glass, anchored to bottom)
+      ════════════════════════════════════════════════════════════════ */}
+      <div
+        className="jn-intro-action-panel"
+        onClick={(e) => e.stopPropagation()}
+        style={{ position: 'relative', zIndex: 5 }}
       >
-        Skip Intro →
-      </button>
+        <button
+          onClick={exitIntro}
+          className="jn-intro-skip-btn"
+          aria-label="Skip intro"
+        >
+          Skip intro
+        </button>
+        <div className="jn-intro-action-divider" aria-hidden="true" />
+        <button
+          onClick={(e) => { e.stopPropagation(); quickStart() }}
+          className="jn-intro-quick-btn"
+          aria-label="Quick start — skip setup"
+        >
+          ⚡ Quick start
+        </button>
+      </div>
 
-      <button
-        onClick={(e) => { e.stopPropagation(); quickStart() }}
-        className="jn-intro-quick-btn"
-      >
-        Quick Start
-      </button>
-
-
-
-
-      {/* ── Keyframes ──────────────────────────────────────────────────────── */}
+      {/* ── Injected keyframes ───────────────────────────────────────── */}
       <style>{`
         .jn-welcome-video {
           position: absolute;
-          top: -4%;
-          left: -4%;
-          width: 108% !important;
-          height: 108% !important;
-          max-width: none !important;
-          max-height: none !important;
+          top: -4%; left: -4%;
+          width: 108% !important; height: 108% !important;
+          max-width: none !important; max-height: none !important;
           object-fit: cover;
           z-index: 0;
           object-position: center;
         }
-        .jn-intro-text-container {
-          transform: translateY(-10px);
+
+        /* Zone 1: brand bar */
+        .jn-intro-brand-bar {
+          width: 100%;
+          padding: 20px 28px 16px;
+          border-bottom: 1px solid rgba(255,255,255,0.07);
+          flex-shrink: 0;
+        }
+        .jn-intro-brand-inner {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        .jn-intro-brand-text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          flex-shrink: 0;
+        }
+        .jn-intro-brand-name {
+          font-family: "Playfair Display", Georgia, serif;
+          font-size: clamp(14px, 2.5vw, 18px);
+          font-weight: 700;
+          color: #FAF9F6;
+          letter-spacing: -0.01em;
+          line-height: 1;
+        }
+        .jn-intro-brand-arabic {
+          font-family: "Playfair Display", Georgia, serif;
+          font-size: 11px;
+          color: rgba(212,175,55,0.7);
+          line-height: 1;
+          direction: rtl;
+          letter-spacing: 0.05em;
+        }
+        .jn-intro-brand-divider {
+          width: 1px;
+          height: 28px;
+          background: rgba(255,255,255,0.15);
+          flex-shrink: 0;
+        }
+        .jn-intro-brand-tagline {
+          font-family: "Outfit", system-ui, sans-serif;
+          font-size: 11px;
+          font-weight: 400;
+          color: rgba(250,249,246,0.45);
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
         }
 
-        @keyframes rotateArabesque {
-          from { transform: translate(-50%, -50%) rotate(0deg); }
-          to { transform: translate(-50%, -50%) rotate(-360deg); }
+        /* Zone 2: center animation container */
+        .jn-intro-text-container {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          overflow: visible;
         }
-        .jn-arabesque-watermark {
-          animation: rotateArabesque 180s linear infinite;
+
+        /* Overline label above cycling text */
+        .jn-intro-overline {
+          font-family: "Outfit", system-ui, sans-serif;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: rgba(212,175,55,0.6);
+          margin: 0 0 20px 0;
+          padding: 0;
+          text-align: center;
+          user-select: none;
         }
+
+        /* Zone 3: bottom action panel */
+        .jn-intro-action-panel {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0;
+          padding: 20px 24px 28px;
+          background: rgba(15,12,11,0.65);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-top: 1px solid rgba(255,255,255,0.06);
+          flex-shrink: 0;
+        }
+        .jn-intro-action-divider {
+          width: 1px;
+          height: 28px;
+          background: rgba(255,255,255,0.12);
+          margin: 0 20px;
+          flex-shrink: 0;
+        }
+
+        /* Skip button — understated */
+        .jn-intro-skip-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          height: 44px;
+          padding: 0 24px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 100px;
+          color: rgba(250,249,246,0.6);
+          font-family: "Outfit", sans-serif;
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+          user-select: none;
+        }
+        .jn-intro-skip-btn:hover {
+          background: rgba(255,255,255,0.09);
+          border-color: rgba(255,255,255,0.22);
+          color: rgba(250,249,246,0.9);
+          transform: translateY(-1px);
+        }
+        .jn-intro-skip-btn:active {
+          transform: translateY(0) scale(0.98);
+        }
+
+        /* Quick start button — primary action */
+        .jn-intro-quick-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          height: 44px;
+          padding: 0 28px;
+          background: linear-gradient(135deg, #C1122F 0%, #8B0D22 100%);
+          border: 1px solid rgba(193,18,47,0.6);
+          border-radius: 100px;
+          color: #ffffff;
+          font-family: "Outfit", sans-serif;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          cursor: pointer;
+          box-shadow: 0 4px 20px rgba(193,18,47,0.3);
+          transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+          user-select: none;
+        }
+        .jn-intro-quick-btn:hover {
+          background: linear-gradient(135deg, #D4142F 0%, #A00F26 100%);
+          box-shadow: 0 6px 28px rgba(193,18,47,0.45);
+          transform: translateY(-1px);
+        }
+        .jn-intro-quick-btn:active {
+          transform: translateY(0) scale(0.98);
+          box-shadow: 0 2px 10px rgba(193,18,47,0.2);
+        }
+
+        /* Intro bottom stable area */
+        .jn-intro-bottom-stable {
+          margin-top: 0.5rem !important;
+          height: 60px !important;
+        }
+
+        /* Mobile */
         @media (max-width: 768px) {
           .jn-welcome-video {
             object-position: 30% center !important;
           }
-          .jn-intro-text-container {
-            transform: none !important;
+          .jn-intro-brand-bar {
+            padding: 16px 20px 12px;
+          }
+          .jn-intro-brand-tagline {
+            display: none;
+          }
+          .jn-intro-brand-divider {
+            display: none;
           }
           .jn-intro-main-text-box {
             height: 80px !important;
           }
           .jn-intro-bottom-stable {
-            margin-top: 0.1rem !important;
             height: 50px !important;
           }
+          .jn-intro-action-panel {
+            padding: 16px 20px 24px;
+          }
+          .jn-intro-overline {
+            font-size: 9px;
+            margin-bottom: 14px;
+          }
         }
+
         @keyframes introDot {
-          0%, 100% { opacity: 0.18; transform: scale(0.75) translateY(0);    }
+          0%, 100% { opacity: 0.18; transform: scale(0.75) translateY(0); }
           50%       { opacity: 0.80; transform: scale(1.25) translateY(-3px); }
-        }
-        @keyframes kenBurnsIntro {
-          0% {
-            transform: scale(1) translate(0, 0);
-          }
-          50% {
-            transform: scale(1.08) translate(-1%, -0.5%);
-          }
-          100% {
-            transform: scale(1) translate(0, 0);
-          }
         }
       `}</style>
     </div>
