@@ -402,49 +402,16 @@ export default function WelcomeIntro({ onComplete }) {
         }}
       />
 
+      {/* ── Cinematic Color Grading Overlay ── */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 2,
+        background: 'linear-gradient(135deg, rgba(193, 18, 47, 0.05) 0%, rgba(184, 134, 11, 0.08) 100%)',
+        mixBlendMode: 'overlay',
+        pointerEvents: 'none'
+      }} />
+
       {/* ── Paper grain texture overlay ── */}
       <div className="paper-grain" style={{ opacity: 0.05, mixBlendMode: 'overlay', zIndex: 3 }} />
-
-      {/* ── Rotating language ring (replaces compass) ─────────────────── */}
-      <svg
-        ref={compassRef}
-        viewBox="0 0 500 500"
-        style={{
-          position: 'absolute',
-          top: '50%', left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 'clamp(360px, 70vw, 520px)',
-          height: 'clamp(360px, 70vw, 520px)',
-          opacity: 0.07,
-          pointerEvents: 'none',
-          zIndex: 2,
-          overflow: 'visible',
-        }}
-        aria-hidden="true"
-      >
-        <defs>
-          <path
-            id="langRingPath"
-            d="M 250,250 m -210,0 a 210,210 0 1,1 420,0 a 210,210 0 1,1 -420,0"
-          />
-        </defs>
-        {/* Inner decorative ring */}
-        <circle cx="250" cy="250" r="170" fill="none" stroke="rgba(212,175,55,0.4)" strokeWidth="0.5" strokeDasharray="3,6" />
-        <circle cx="250" cy="250" r="210" fill="none" stroke="rgba(212,175,55,0.25)" strokeWidth="0.5" />
-        {/* Language names on circular path */}
-        <text
-          style={{
-            fontFamily: '"Outfit", system-ui, sans-serif',
-            fontSize: '10px',
-            fill: '#FAF9F6',
-            letterSpacing: '0.15em',
-          }}
-        >
-          <textPath href="#langRingPath" startOffset="0%">
-            {SLOT_PHRASES.join('  ·  ')}  ·  
-          </textPath>
-        </text>
-      </svg>
 
       {/* ── Flag serration — top (taller than before) ─────────────────── */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 4, pointerEvents: 'none' }}>
@@ -494,17 +461,11 @@ export default function WelcomeIntro({ onComplete }) {
         </div>
       </div>
 
-      {/* ════════════════════════════════════════════════════════════════
-          ZONE 2 — Center animation stage
-      ════════════════════════════════════════════════════════════════ */}
+      {/* ════════════════════ ZONE 2 — Center animation stage ════════════════════ */}
       <div
         className="jn-intro-text-container"
         style={{ position: 'relative', zIndex: 5 }}
       >
-        {/* Cycling phase overline — fades in when languages start, out when Arabic lands */}
-        <p ref={overlineRef} className="jn-intro-overline">
-          Welcoming you in {SLOT_PHRASES.length} languages
-        </p>
 
         {/* Main text box — keep all existing refs */}
         <div
@@ -530,13 +491,14 @@ export default function WelcomeIntro({ onComplete }) {
             <div
               ref={slotTextRef}
               style={{
-                fontSize: 'clamp(2rem, 7.2vw, 3.4rem)',
+                fontSize: 'clamp(2.3rem, 7.8vw, 4rem)',
                 fontWeight: 700,
                 color: '#FAF9F6',
                 textAlign: 'center',
                 userSelect: 'none',
                 fontFamily: '"Playfair Display","Georgia",serif',
-                textShadow: '0 4px 32px rgba(255,255,255,0.12)',
+                textShadow: '0 4px 28px rgba(15, 12, 11, 0.9), 0 1px 3px rgba(15, 12, 11, 0.95)',
+                letterSpacing: '0.025em',
               }}
             >
               {SLOT_PHRASES[0]}
@@ -555,12 +517,12 @@ export default function WelcomeIntro({ onComplete }) {
             {showMorphLetters && (
               <div style={{
                 fontFamily: '"Playfair Display","Georgia",serif',
-                fontSize: 'clamp(2rem, 7.2vw, 3.4rem)',
+                fontSize: 'clamp(2.3rem, 7.8vw, 4rem)',
                 fontWeight: 700,
                 color: '#FAF9F6',
-                letterSpacing: '0.025em',
+                letterSpacing: '0.04em',
                 whiteSpace: 'nowrap',
-                textShadow: '0 4px 32px rgba(255,255,255,0.12)',
+                textShadow: '0 4px 28px rgba(15, 12, 11, 0.9), 0 1px 3px rgba(15, 12, 11, 0.95)',
                 userSelect: 'none',
                 display: 'flex',
                 alignItems: 'center',
@@ -696,8 +658,8 @@ export default function WelcomeIntro({ onComplete }) {
         /* Zone 1: brand bar */
         .jn-intro-brand-bar {
           width: 100%;
-          padding: 20px 28px 16px;
-          border-bottom: 1px solid rgba(255,255,255,0.07);
+          padding: 24px 32px;
+          border-bottom: 1px solid rgba(197, 168, 128, 0.08);
           flex-shrink: 0;
         }
         .jn-intro-brand-inner {
@@ -755,20 +717,6 @@ export default function WelcomeIntro({ onComplete }) {
           overflow: visible;
         }
 
-        /* Overline label above cycling text */
-        .jn-intro-overline {
-          font-family: "Outfit", system-ui, sans-serif;
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          color: rgba(212,175,55,0.6);
-          margin: 0 0 20px 0;
-          padding: 0;
-          text-align: center;
-          user-select: none;
-        }
-
         /* Zone 3: bottom action panel */
         .jn-intro-action-panel {
           width: 100%;
@@ -776,11 +724,9 @@ export default function WelcomeIntro({ onComplete }) {
           align-items: center;
           justify-content: center;
           gap: 0;
-          padding: 20px 24px 28px;
-          background: rgba(15,12,11,0.65);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border-top: 1px solid rgba(255,255,255,0.06);
+          padding: 24px 24px 44px;
+          background: transparent;
+          border-top: none;
           flex-shrink: 0;
         }
         .jn-intro-action-divider {
@@ -798,10 +744,12 @@ export default function WelcomeIntro({ onComplete }) {
           justify-content: center;
           height: 44px;
           padding: 0 24px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.15);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
           border-radius: 100px;
-          color: rgba(250,249,246,0.6);
+          color: rgba(250,249,246,0.7);
           font-family: "Outfit", sans-serif;
           font-size: 11px;
           font-weight: 500;
@@ -813,8 +761,8 @@ export default function WelcomeIntro({ onComplete }) {
         }
         .jn-intro-skip-btn:hover {
           background: rgba(255,255,255,0.09);
-          border-color: rgba(255,255,255,0.22);
-          color: rgba(250,249,246,0.9);
+          border-color: rgba(255,255,255,0.25);
+          color: rgba(250,249,246,0.95);
           transform: translateY(-1px);
         }
         .jn-intro-skip-btn:active {
@@ -830,7 +778,7 @@ export default function WelcomeIntro({ onComplete }) {
           height: 44px;
           padding: 0 28px;
           background: linear-gradient(135deg, #C1122F 0%, #8B0D22 100%);
-          border: 1px solid rgba(193,18,47,0.6);
+          border: 1.5px solid #C5A880;
           border-radius: 100px;
           color: #ffffff;
           font-family: "Outfit", sans-serif;
@@ -839,7 +787,7 @@ export default function WelcomeIntro({ onComplete }) {
           letter-spacing: 0.08em;
           text-transform: uppercase;
           cursor: pointer;
-          box-shadow: 0 4px 20px rgba(193,18,47,0.3);
+          box-shadow: 0 4px 24px rgba(193, 18, 47, 0.4), 0 2px 8px rgba(197, 168, 128, 0.2);
           transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
           user-select: none;
         }
