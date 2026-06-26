@@ -11,7 +11,6 @@ import WelcomeIntro from './components/WelcomeIntro'
 import JournalSkeleton from './components/skeletons/JournalSkeleton'
 import LangToggle from './components/LangToggle'
 import PassportCard from './components/PassportCard'
-import AmbientMixer from './components/AmbientMixer'
 
 const RANKS = [
   { id: 'wanderer', label: 'Wanderer', arabic: 'مسافر', minXP: 0, color: '#5C5451' },
@@ -68,7 +67,7 @@ function MainContent() {
     <div className="relative min-h-screen">
       {showFloatingHeader && (
         <div className="floating-header absolute top-4 right-4 z-[100] flex items-center gap-2 pointer-events-auto">
-          {xp > 0 && (
+          {xp > 0 && step >= 4 && (
             <button
               onClick={() => setShowPassportCard(true)}
               className="passport-trigger-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 bg-black/40 backdrop-blur-md text-white text-overline cursor-pointer transition-all hover:bg-black/60 active:scale-95"
@@ -78,7 +77,6 @@ function MainContent() {
               <span>Passport ({getRank(xp).label})</span>
             </button>
           )}
-          <AmbientMixer />
           <LangToggle className="border-white/20 bg-black/40 backdrop-blur hover:bg-black/60" />
         </div>
       )}
