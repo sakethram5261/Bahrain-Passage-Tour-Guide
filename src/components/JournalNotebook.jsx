@@ -1661,7 +1661,12 @@ export default function JournalNotebook({ onBack }) {
 
             {/* Passport card trigger */}
             <button
-              onClick={() => setShowPassportCard(true)}
+              onClick={() => {
+                setQuickInfoOpen(false)
+                setShopOpen(false)
+                setSelectedKsake(null)
+                setShowPassportCard(true)
+              }}
               className="jn-utility-btn-rank"
               title="View Explorer Passport"
             >
@@ -3174,7 +3179,7 @@ export default function JournalNotebook({ onBack }) {
           aria-modal="true"
           aria-label="Explorer Rank Advanced"
           onClick={() => setShowRankUpModal(false)}
-          style={{ zIndex: 300, background: 'rgba(26,10,12,0.85)', backdropFilter: 'blur(8px)' }}
+          style={{ zIndex: 3000, background: 'rgba(26,10,12,0.85)', backdropFilter: 'blur(8px)' }}
         >
           <div
             className="jn-ksake-modal"
@@ -3418,7 +3423,7 @@ export default function JournalNotebook({ onBack }) {
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 9000,
+            zIndex: 900,
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'center',

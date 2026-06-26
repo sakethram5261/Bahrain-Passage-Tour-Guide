@@ -291,18 +291,31 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
       {showPreviewOverview ? (
         <div ref={contentRef} className="w-full h-full flex flex-col relative animate-screenEntry bg-[var(--color-surface)] text-[var(--color-text)]">
           
-          {/* Header Block */}
-          <div className="w-full max-w-3xl mx-auto px-6 pt-10 pb-5 shrink-0 border-b border-[var(--color-border-light)]">
-            <div className="flex flex-col text-center md:text-left md:flex-row md:justify-between md:items-end gap-3">
+          {/* Editorial Header Banner */}
+          <div 
+            className="w-full shrink-0 relative overflow-hidden pb-6 pt-10 px-6 border-b-[3px]" 
+            style={{ 
+              background: 'var(--color-primary)', 
+              borderColor: 'var(--color-accent)',
+              boxShadow: 'inset 0 -4px 12px rgba(0,0,0,0.08)'
+            }}
+          >
+            {/* Subtle radial glow */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.08) 0%, transparent 70%)' }}
+            />
+
+            <div className="max-w-3xl mx-auto flex flex-col text-center md:text-left md:flex-row md:justify-between md:items-end gap-4 relative z-10">
               <div>
-                <span className="text-overline block" style={{ color: 'var(--color-accent)' }}>PREVIEW ITINERARY</span>
-                <h1 className="font-serif text-3xl md:text-4xl font-bold mt-1 text-[var(--color-text)]">Your Custom Passage</h1>
-                <span className="font-serif text-body italic text-[var(--color-text-muted)] block mt-1">
+                <span className="text-overline block" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>PREVIEW ITINERARY</span>
+                <h1 className="font-serif text-3xl md:text-4xl font-bold mt-1 text-white leading-tight">Your Custom Passage</h1>
+                <span className="font-serif text-body italic text-white/85 block mt-1">
                   Tailored to your selected vibes and budget tier
                 </span>
               </div>
               <div 
-                className="shrink-0 font-mono text-caption text-[var(--color-text-muted)] bg-[var(--color-surface-2)] border border-[var(--color-border)] px-3 py-2 rounded-full inline-flex items-center gap-2 self-center select-none"
+                className="shrink-0 font-mono text-caption text-white/90 bg-white/10 border border-white/25 px-3 py-2 rounded-full inline-flex items-center gap-2 self-center select-none backdrop-blur-xs"
                 aria-label={`${itinerarySpots.length} stops across ${duration} days`}
               >
                 <span><span aria-hidden="true">📍</span> {itinerarySpots.length} Stops</span>

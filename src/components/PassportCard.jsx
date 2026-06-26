@@ -76,7 +76,7 @@ export default function PassportCard({ onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center px-4 glass-overlay animate-fade-in"
+      className="fixed inset-0 z-[2000] flex items-center justify-center px-4 glass-overlay animate-fade-in"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       {/* Premium Leather/Gold Foiled Archivist Card Container */}
