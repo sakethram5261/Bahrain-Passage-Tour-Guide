@@ -26,6 +26,46 @@ const SLOT_PHRASES = [
   'Witamy w Bahrajnie',        // Polish
   'Chào mừng đến với Bahrain',  // Vietnamese
   'Selamat datang ke Bahrain', // Malay/Indonesian
+  'Maligayang pagdating sa Bahrain', // Tagalog
+  'Karibu Bahrain',            // Swahili
+  'Velkommen til Bahrain',     // Danish
+  'Tervetuloa Bahrainiin',     // Finnish
+  'Velkommen til Bahrain',     // Norwegian
+  'Üdvözöljük Bahreinben',     // Hungarian
+  'Vítejte v Bahrajnu',        // Czech
+  'Vitajte v Bahrajne',        // Slovak
+  'Bun venit în Bahrain',      // Romanian
+  'Ласкаво просимо до Бахрейну', // Ukrainian
+  'ברוכים הבאים לבחריין',       // Hebrew
+  'ยินดีต้อนรับสู่บาห์เรน',      // Thai
+  'বাহরাইনে আপনাকে স্বাগতম',    // Bengali
+  'ਬਹਿਰੀਨ ਵਿੱਚ ਤੁਹਾਡა ਸੁਆਗਤ ਹੈ', // Punjabi
+  'બહેરીનમાં તમારું સ્વાગત છે',   // Gujarati
+  'பஹ்ரைனுக்கு உங்களை வரவேற்கிறோம்', // Tamil
+  'బహ్రెయిన్‌కు మీకు స్వాగతం',    // Telugu
+  'ಬಹ్రేన్‌ಗೆ ನಿಮಗೆ ಸ್ವಾಗత',      // Kannada
+  'ബഹ്‌റൈനിലേക്ക് നിങ്ങൾക്ക് സ്വാഗതം', // Malayalam
+  'Velkomin til Barein',       // Icelandic
+  'Dobrodošli u Bahrein',      // Croatian
+  'Добродошли у Бахреин',      // Serbian
+  'Добре дошли в Бахрейн',     // Bulgarian
+  'Sveiki atvykę į Bahreiną',   // Lithuanian
+  'Laipni lūdzam Bahreinā',     // Latvian
+  'Tere tulemast Bahraini',    // Estonian
+  'კეთილი იყოს თქვენი მობრძანება ბაჰრეინში', // Georgian
+  'Բարի գալուստ Բահրեյն',      // Armenian
+  'Bəhreynə xoş gəlmisiniz',   // Azerbaijani
+  'بحرین میں خوش آمدید',       // Urdu
+  'बहराइनमा तपाईंलाई स्वागत छ',  // Nepali
+  'බහරේනයට සාදරයෙන් පිළිගනිමු', // Sinhalese
+  'Бахрейнд тавтай морил',      // Mongolian
+  'សូមស្វាគមន៍មកកាន់ប្រទេសបារ៉ែន', // Khmer
+  'ຍິນດີຕ້อนຮັບສູ່ບາເຣນ',      // Lao
+  'ဘာရိန်းနိုင်ငံမှ ကြိုဆိုပါသည်', // Burmese
+  'Fáilte go dtí an Bairéin',   // Irish
+  'Croeso i Bahrain',          // Welsh
+  'Benvingut a Bahrain',       // Catalan
+  'Bonvenon al Barejno',       // Esperanto
 ]
 
 const ARABIC_FINAL  = 'مرحباً بكم في البحرين'
