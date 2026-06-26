@@ -34,18 +34,9 @@ export default function WayfarerLens({ spot, onClose }) {
   const [scanLog, setScanLog] = useState('Standby for snapshot alignment...')
   const [photoRank, setPhotoRank] = useState('')
 
-  // Optical Alignment Simulator states
-  const [focus, setFocus] = useState(() => Math.floor(Math.random() * 30) + 15) // start defocused
-  const [exposure, setExposure] = useState(() => Math.floor(Math.random() * 30) + 70) // start overexposed
-  const [targetFocus] = useState(() => Math.floor(Math.random() * 40) + 50) // target focus (50-90)
-  const [targetExposure] = useState(() => Math.floor(Math.random() * 30) + 35) // target exposure (35-65)
-
-  const focusDiff = Math.abs(focus - targetFocus)
-  const exposureDiff = Math.abs(exposure - targetExposure)
-  const blurAmount = Math.max(0, Math.min(10, (focusDiff - 4) / 4))
-  const exposureDir = exposure > targetExposure ? 1 : -1
-  const brightnessAmount = 1 + (exposureDir * Math.max(0, (exposureDiff - 4) / 100) * 1.2)
-  const isAligned = focusDiff <= 8 && exposureDiff <= 8
+  // Optical Alignment parameters (simplified to prevent manual alignment headache)
+  const blurAmount = 0
+  const brightnessAmount = 1
 
 
   useEffect(() => {
@@ -207,13 +198,7 @@ export default function WayfarerLens({ spot, onClose }) {
     }, 240)
   }
 
-  const autoAlignOptics = () => {
-    if (capturing || scanning) return
-    playScanBeep(900, 0.12)
-    setFocus(targetFocus)
-    setExposure(targetExposure)
-    setScanLog('OPTICS AUTO-ALIGNED SECURELY!')
-  }
+
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0]
@@ -284,7 +269,7 @@ export default function WayfarerLens({ spot, onClose }) {
   return (
     <div 
       ref={lensRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 select-none backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 p-4 select-none backdrop-blur-md"
     >
       {/* Visual Shutter Flash overlay */}
       <div 
@@ -455,49 +440,14 @@ export default function WayfarerLens({ spot, onClose }) {
                   {permission === 'granted' ? 'Lens Connected' : 'Simulating Horizon'}
                 </span>
                 
-                {/* Vintage focus and exposure controls */}
-                <div className="w-full mt-2 space-y-3 bg-[#FCFBF8] border border-red-500/10 p-3 rounded-2xl shadow-sm text-left">
-                  <div className="flex justify-between items-center text-[8px] font-sans font-bold uppercase tracking-wider">
-                    <span className={focusDiff <= 8 ? 'text-emerald-700 font-extrabold' : 'text-bahrain-red'}>
-                      {focusDiff <= 8 ? '✓ Focal Alignment Lock' : '⚡ Focal Depth Calibration'}
-                    </span>
-                    <span className="font-mono text-bronze-muted">{focus}%</span>
+                {/* Vintage camera status */}
+                <div className="w-full mt-2 bg-[#FCFBF8] border border-red-500/10 p-3.5 rounded-2xl shadow-sm text-center">
+                  <div className="text-[9px] font-sans font-black text-emerald-800 uppercase tracking-widest animate-pulse">
+                    📸 Optic Lens Aligned & Secured
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={focus}
-                    disabled={capturing || scanning}
-                    onChange={(e) => setFocus(parseInt(e.target.value))}
-                    className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-bahrain-red"
-                  />
-
-                  <div className="flex justify-between items-center text-[8px] font-sans font-bold uppercase tracking-wider pt-1">
-                    <span className={exposureDiff <= 8 ? 'text-emerald-700 font-extrabold' : 'text-bahrain-red'}>
-                      {exposureDiff <= 8 ? '✓ Exposure Balance Lock' : '⚡ Light Exposure Control'}
-                    </span>
-                    <span className="font-mono text-bronze-muted">{exposure}%</span>
+                  <div className="text-[7.5px] font-sans font-semibold text-stone-500 uppercase tracking-wider mt-1">
+                    Neural net ready for artifact & landmark scanning
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={exposure}
-                    disabled={capturing || scanning}
-                    onChange={(e) => setExposure(parseInt(e.target.value))}
-                    className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-bahrain-red"
-                  />
-
-                  {isAligned ? (
-                    <div className="text-[8.5px] font-sans font-black text-emerald-800 uppercase tracking-widest text-center animate-pulse pt-1">
-                      🎯 LENS SECURED — CAPTURE STAGE READY
-                    </div>
-                  ) : (
-                    <div className="text-[8px] font-sans font-bold text-bahrain-red/60 uppercase tracking-widest text-center pt-1">
-                      ⚠ Adjust Dials to Align Optic Reticle
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -521,7 +471,7 @@ export default function WayfarerLens({ spot, onClose }) {
               </h4>
 
               {/* Polaroid chemical noise and gradual color bleed visual */}
-              <div className="w-full h-36 rounded-xl overflow-hidden relative border-4 border-white shadow-md bg-zinc-900 mb-4 flex items-center justify-center">
+              <div className="w-full h-36 rounded-xl overflow-hidden relative border-4 border-white shadow-md bg-stone-100 mb-4 flex items-center justify-center">
                 <img 
                   src={capturedPhotos[spot.id] || spot.image} 
                   alt={spot.name} 
@@ -610,31 +560,14 @@ export default function WayfarerLens({ spot, onClose }) {
                 {/* Massive Retro Shutter Button */}
                 <button
                   onClick={handleCapture}
-                  disabled={capturing || scanning || !isAligned}
-                  className={`w-16 h-16 rounded-full border-4 border-white transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center relative outline-none ${
-                    isAligned ? 'bg-bahrain-red hover:bg-red-700' : 'bg-neutral-300 border-neutral-100 cursor-not-allowed opacity-60'
-                  }`}
+                  disabled={capturing || scanning}
+                  className="w-16 h-16 rounded-full border-4 border-white transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center relative outline-none bg-bahrain-red hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ outline: 'none' }}
                 >
                   <div className="absolute inset-1 rounded-full border border-white/20" />
                   <span className="text-[10px] uppercase font-bold tracking-widest text-white/50 font-sans">
                     {scanning ? '...' : 'Snap'}
                   </span>
-                </button>
-
-                {/* Simulated Focus Auto-Alignment Helper */}
-                <button
-                  onClick={autoAlignOptics}
-                  disabled={capturing || scanning || isAligned}
-                  className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all shadow-xs hover:scale-105 active:scale-95 cursor-pointer outline-none ${
-                    isAligned 
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-600 cursor-default'
-                      : 'bg-white border-stone-300 text-amber-600 hover:bg-stone-50'
-                  }`}
-                  style={{ outline: 'none' }}
-                  title="Auto-align focal dials"
-                >
-                  🎯
                 </button>
               </div>
 
@@ -650,9 +583,7 @@ export default function WayfarerLens({ spot, onClose }) {
               <span className="font-sans text-[8px] tracking-widest text-bronze-muted/50 uppercase mt-2">
                 {scanning 
                   ? 'Analysing Photo Strata...' 
-                  : isAligned 
-                    ? 'Press Shutter to Capture or Upload a Photo' 
-                    : 'Tap 🎯 to Auto-Align or 📁 to Upload Photo'}
+                  : 'Press Shutter to Capture or 📁 to Upload Photo'}
               </span>
             </div>
           ) : (
