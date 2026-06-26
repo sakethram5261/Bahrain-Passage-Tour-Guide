@@ -2002,9 +2002,11 @@
 }
 
 .jn-shop-modal, .jn-ksake-modal {
-  background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  background: rgba(252, 251, 248, 0.78);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(197, 168, 128, 0.35);
+  box-shadow: 0 20px 48px rgba(15, 12, 11, 0.12), 0 4px 14px rgba(15, 12, 11, 0.05);
   border-radius: var(--jn-r-lg);
   padding: var(--jn-sp-lg);
   max-width: 420px;
@@ -2090,12 +2092,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--jn-parchment);
-  border: 1.5px solid var(--jn-gold-muted);
-  padding: 8px 12px;
-  border-radius: var(--jn-r-sm);
+  background: rgba(184, 134, 11, 0.04);
+  border: 1px solid rgba(184, 134, 11, 0.3);
+  padding: 10px 14px;
+  border-radius: var(--jn-r-md);
   font-size: 13px;
   margin-bottom: var(--jn-sp-md);
+  box-shadow: inset 0 1px 2px rgba(184, 134, 11, 0.05);
 }
 
 .jn-shop-intro, .jn-ksake-desc {
@@ -2116,14 +2119,38 @@
   padding-right: 4px;
 }
 
+.jn-shop-items::-webkit-scrollbar {
+  width: 4px;
+}
+.jn-shop-items::-webkit-scrollbar-track {
+  background: transparent;
+}
+.jn-shop-items::-webkit-scrollbar-thumb {
+  background: rgba(197, 168, 128, 0.35);
+  border-radius: 4px;
+}
+.jn-shop-items::-webkit-scrollbar-thumb:hover {
+  background: rgba(193, 18, 47, 0.4);
+}
+
 .jn-shop-item {
   display: flex;
   align-items: center;
   gap: var(--jn-sp-sm);
-  background: var(--jn-parchment);
-  padding: 8px 10px;
-  border-radius: var(--jn-r-sm);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 10px 12px;
+  border-radius: var(--jn-r-md);
+  border: 1px solid rgba(197, 168, 128, 0.25);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
+}
+.jn-shop-item:hover {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(193, 18, 47, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(193, 18, 47, 0.06);
 }
 
 .jn-shop-item-emoji, .jn-ksake-emoji {
@@ -2150,20 +2177,26 @@
 }
 
 .jn-shop-buy-btn {
-  background: var(--jn-crimson);
+  background: linear-gradient(135deg, var(--jn-crimson) 0%, var(--jn-crimson-deep) 100%);
   color: #ffffff;
   border: none;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
-  padding: 6px 10px;
-  border-radius: var(--jn-r-sm);
+  padding: 7px 12px;
+  border-radius: 100px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(193, 18, 47, 0.15);
 }
 
 .jn-shop-buy-btn:hover {
-  background: var(--jn-crimson-deep);
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(193, 18, 47, 0.25);
+  filter: brightness(1.08);
+}
+.jn-shop-buy-btn:active {
+  transform: scale(0.98);
 }
 
 /* Amber button colors */
