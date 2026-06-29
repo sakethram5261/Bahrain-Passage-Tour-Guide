@@ -1,4 +1,64 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+
+// Hex to RGB helper
+const hexToRgb = (hex) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `${r}, ${g}, ${b}`
+}
+
+// Map A-Z letters to specific calligraphic shapes to create unique Arabic-style monogram seals
+const LETTER_CONFIGS = {
+  'A': { type: 'pillar', height: 42, hook: -5 },
+  'B': { type: 'loop_flat', dots: { pos: 'below', count: 1 } },
+  'C': { type: 'crescent_left', dots: { pos: 'above', count: 1 } },
+  'D': { type: 'loop_flat', hook: 3 },
+  'E': { type: 'loop_flat', dots: { pos: 'above', count: 2 } },
+  'F': { type: 'loop_up', dots: { pos: 'above', count: 1 } },
+  'G': { type: 'crescent_left', dots: { pos: 'above', count: 2 } },
+  'H': { type: 'pillar_fork', height: 38 },
+  'I': { type: 'pillar', height: 34, dots: { pos: 'above', count: 1 } },
+  'J': { type: 'crescent_left', dots: { pos: 'below', count: 1 } },
+  'K': { type: 'pillar', height: 40, flourish: true },
+  'L': { type: 'pillar', height: 42, hook: -4 },
+  'M': { type: 'loop_down' },
+  'N': { type: 'crescent_up', dots: { pos: 'above', count: 1 } },
+  'O': { type: 'loop_down', dots: { pos: 'above', count: 1 } },
+  'P': { type: 'loop_flat', dots: { pos: 'below', count: 3 } },
+  'Q': { type: 'crescent_left', dots: { pos: 'above', count: 2 } },
+  'R': { type: 'tail_down' },
+  'S': { type: 'crescent_up', dots: { pos: 'above', count: 3 } },
+  'T': { type: 'loop_flat', dots: { pos: 'above', count: 2 } },
+  'U': { type: 'crescent_up' },
+  'V': { type: 'tail_down', dots: { pos: 'above', count: 1 } },
+  'W': { type: 'tail_down' },
+  'X': { type: 'pillar_fork', height: 32 },
+  'Y': { type: 'crescent_up', dots: { pos: 'below', count: 2 } },
+  'Z': { type: 'tail_down', dots: { pos: 'above', count: 1 } }
+}
+
+// Ink styles definition - rich premium tones matching the light/parchment theme
+const INKS = {
+  saffron: {
+    name: 'Saffron Crimson',
+    color: '#C1122F',
+    gradient: ['#D11A38', '#E7A852', '#8B0D22'],
+    border: 'border-red-600/30'
+  },
+  cardamom: {
+    name: 'Cardamom Green',
+    color: '#1C2E24',
+    gradient: ['#1B2E24', '#2C4C3B', '#0E1712'],
+    border: 'border-emerald-850/30'
+  },
+  oud: {
+    name: 'Oud Charcoal',
+    color: '#362E2B',
+    gradient: ['#443834', '#5E4E49', '#241E1C'],
+    border: 'border-stone-700/30'
+  }
+}
 
 export default function CalligraphyStamp({ onSaveSignature }) {
   const [name, setName] = useState('')
@@ -6,30 +66,8 @@ export default function CalligraphyStamp({ onSaveSignature }) {
   const canvasRef = useRef(null)
   const animRef = useRef(null)
 
-  // Ink styles definition - rich premium tones matching the light/parchment theme
-  const INKS = {
-    saffron: {
-      name: 'Saffron Crimson',
-      color: '#C1122F',
-      gradient: ['#D11A38', '#E7A852', '#8B0D22'],
-      border: 'border-red-600/30'
-    },
-    cardamom: {
-      name: 'Cardamom Green',
-      color: '#1C2E24',
-      gradient: ['#1B2E24', '#2C4C3B', '#0E1712'],
-      border: 'border-emerald-850/30'
-    },
-    oud: {
-      name: 'Oud Charcoal',
-      color: '#362E2B',
-      gradient: ['#443834', '#5E4E49', '#241E1C'],
-      border: 'border-stone-700/30'
-    }
-  }
-
   // Draw the structured, premium calligraphy on the canvas
-  const drawCalligraphy = (text, inkKey, progress = 1) => {
+  const drawCalligraphy = useCallback((text, inkKey, progress = 1) => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -61,153 +99,223 @@ export default function CalligraphyStamp({ onSaveSignature }) {
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
 
-    // Generate pseudo-random seed based on the name to keep the calligraphy consistent per traveler
-    let hash = 0
-    for (let i = 0; i < text.length; i++) {
-      hash = text.charCodeAt(i) + ((hash << 5) - hash)
-    }
-
-    const getRand = (min, max, offset) => {
-      const value = Math.sin(hash + offset) * 10000
-      const rand = value - Math.floor(value)
-      return min + rand * (max - min)
-    }
-
     const centerX = w / 2
     const centerY = h / 2
 
-    // Define structural calligraphic strokes - simulating authentic, balanced Arabic composition
-    const strokes = []
+    const cleanText = text.trim().toUpperCase()
+    const chars = cleanText.split('').filter(c => LETTER_CONFIGS[c] || c === ' ')
+    const len = chars.length
 
-    // Stroke 1: Bottom Sweeping Crescent (Noon/Ya style baseline)
-    const crescentDepth = getRand(35, 45, 1)
-    const crescentLeftY = centerY + getRand(10, 18, 2)
-    const crescentRightY = centerY + getRand(5, 15, 3)
-    const crescentWidth = getRand(40, 48, 4)
-
-    strokes.push({
-      type: 'bezier',
-      lineWidth: 5.5,
-      startX: centerX - crescentWidth,
-      startY: crescentLeftY,
-      cp1x: centerX - crescentWidth * 0.75,
-      cp1y: centerY + crescentDepth,
-      cp2x: centerX + crescentWidth * 0.75,
-      cp2y: centerY + crescentDepth,
-      endX: centerX + crescentWidth,
-      endY: crescentRightY
-    })
-
-    // Stroke 2: Central Tall Pillar (Alif)
-    const pillar1Height = getRand(46, 54, 5)
-    const pillar1Curve = getRand(-5, -1, 6)
-    strokes.push({
-      type: 'pillar',
-      lineWidth: 4.0,
-      startX: centerX,
-      startY: centerY + 22,
-      endX: centerX + pillar1Curve,
-      endY: centerY - pillar1Height,
-      hookX: centerX + pillar1Curve - 6,
-      hookY: centerY - pillar1Height + 3
-    })
-
-    // Stroke 3: Left Pillar
-    const pillar2Height = getRand(36, 42, 7)
-    const pillar2Curve = getRand(-3, 1, 8)
-    strokes.push({
-      type: 'pillar',
-      lineWidth: 3.2,
-      startX: centerX - 14,
-      startY: centerY + 18,
-      endX: centerX - 14 + pillar2Curve,
-      endY: centerY - pillar2Height,
-      hookX: centerX - 14 + pillar2Curve - 5,
-      hookY: centerY - pillar2Height + 2
-    })
-
-    // Stroke 4: Right Pillar
-    const pillar3Height = getRand(38, 44, 9)
-    const pillar3Curve = getRand(1, 5, 10)
-    strokes.push({
-      type: 'pillar',
-      lineWidth: 3.2,
-      startX: centerX + 14,
-      startY: centerY + 18,
-      endX: centerX + 14 + pillar3Curve,
-      endY: centerY - pillar3Height,
-      hookX: centerX + 14 + pillar3Curve - 5,
-      hookY: centerY - pillar3Height + 2
-    })
-
-    // Stroke 5: Sweeping Diagonal Flourish (Kaf/Ya upper stroke)
-    const flourishStartY = centerY - getRand(12, 22, 11)
-    const flourishEndX = centerX + getRand(34, 44, 12)
-    const flourishEndY = centerY - getRand(28, 38, 13)
-    strokes.push({
-      type: 'bezier',
-      lineWidth: 2.8,
-      startX: centerX - 28,
-      startY: flourishStartY,
-      cp1x: centerX - 12,
-      cp1y: centerY - 40,
-      cp2x: centerX + 12,
-      cp2y: centerY - 40,
-      endX: flourishEndX,
-      endY: flourishEndY
-    })
-
-    // Stroke 6: Left accent swoop
-    strokes.push({
-      type: 'bezier',
-      lineWidth: 2.0,
-      startX: centerX - 40,
-      startY: centerY - 4,
-      cp1x: centerX - 36,
-      cp1y: centerY + 10,
-      cp2x: centerX - 24,
-      cp2y: centerY + 8,
-      endX: centerX - 20,
-      endY: centerY - 2
-    })
-
-    // Stroke 7: Right accent swoop
-    strokes.push({
-      type: 'bezier',
-      lineWidth: 2.0,
-      startX: centerX + 20,
-      startY: centerY - 2,
-      cp1x: centerX + 24,
-      cp1y: centerY + 8,
-      cp2x: centerX + 36,
-      cp2y: centerY + 10,
-      endX: centerX + 40,
-      endY: centerY - 4
-    })
-
-    // Calligraphic Diamonds / Dots (nuqta) - placed in structurally balanced locations
-    const dots = []
-    // Bottom dot (below crescent)
-    dots.push({ x: centerX + getRand(-4, 4, 14), y: centerY + crescentDepth + getRand(12, 15, 15), size: getRand(5, 6, 16) })
-    
-    // Upper-left dot
-    if (getRand(0, 1, 17) > 0.35) {
-      dots.push({ x: centerX - 24 + getRand(-3, 3, 18), y: centerY - 20 + getRand(-3, 3, 19), size: getRand(4, 5, 20) })
+    if (len === 0) {
+      ctx.font = 'italic 12px Georgia, serif'
+      ctx.fillStyle = 'rgba(120, 113, 108, 0.45)'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('Enter valid letters to carve your seal', w / 2, h / 2)
+      return
     }
-    // Upper-right dot (potentially double dot)
-    if (getRand(0, 1, 21) > 0.4) {
-      dots.push({ x: centerX + 24 + getRand(-3, 3, 22), y: centerY - 16 + getRand(-3, 3, 23), size: getRand(4, 5, 24) })
-      if (getRand(0, 1, 25) > 0.65) {
-        dots.push({ x: centerX + 30 + getRand(-3, 3, 26), y: centerY - 22 + getRand(-3, 3, 27), size: getRand(3.5, 4.5, 28) })
+
+    // Define the bounding box for the name strokes
+    const totalWidth = Math.min(140, Math.max(30, len * 16))
+    const startX = centerX - totalWidth / 2
+    const spacing = len > 1 ? totalWidth / (len - 1) : 0
+
+    const strokes = []
+    const dots = []
+    const accents = []
+
+    // 1. Draw a baseline sweeping crescent at the bottom (connecting element)
+    const crescentWidth = Math.max(30, totalWidth * 0.6)
+    strokes.push({
+      type: 'bezier',
+      lineWidth: 4.8,
+      startX: centerX - crescentWidth,
+      startY: centerY + 14,
+      cp1x: centerX - crescentWidth * 0.65,
+      cp1y: centerY + 34,
+      cp2x: centerX + crescentWidth * 0.65,
+      cp2y: centerY + 34,
+      endX: centerX + crescentWidth,
+      endY: centerY + 12
+    })
+
+    // 2. Process each letter
+    for (let i = 0; i < len; i++) {
+      const char = chars[i]
+      if (char === ' ') continue
+
+      const charX = len > 1 ? startX + i * spacing : centerX
+      const config = LETTER_CONFIGS[char] || { type: 'pillar', height: 32 }
+      const charY = centerY + 12 // Connection to the baseline
+
+      // Generate slight variations based on character code and position to make it look organic
+      const charHash = char.charCodeAt(0) + i
+      const varHeight = (charHash % 6) - 3 // -3 to +3 px variation
+      const varX = (charHash % 4) - 2 // -2 to +2 px variation
+      const cx = charX + varX
+
+      if (config.type === 'pillar') {
+        const height = (config.height || 32) + varHeight
+        strokes.push({
+          type: 'pillar',
+          lineWidth: 3.2,
+          startX: cx,
+          startY: charY,
+          endX: cx - 1,
+          endY: charY - height,
+          hookX: cx - 6,
+          hookY: charY - height + 1
+        })
+      } 
+      else if (config.type === 'pillar_fork') {
+        const height = (config.height || 30) + varHeight
+        strokes.push({
+          type: 'pillar',
+          lineWidth: 3.0,
+          startX: cx,
+          startY: charY,
+          endX: cx - 1,
+          endY: charY - height,
+          hookX: cx - 7,
+          hookY: charY - height + 1
+        })
+        // Fork branch
+        strokes.push({
+          type: 'bezier',
+          lineWidth: 2.0,
+          startX: cx - 1,
+          startY: charY - height * 0.5,
+          cp1x: cx + 6,
+          cp1y: charY - height * 0.75,
+          cp2x: cx + 8,
+          cp2y: charY - height + 2,
+          endX: cx + 6,
+          endY: charY - height
+        })
+      }
+      else if (config.type === 'loop_flat') {
+        strokes.push({
+          type: 'bezier',
+          lineWidth: 2.8,
+          startX: cx - 7,
+          startY: charY - 2,
+          cp1x: cx - 5,
+          cp1y: charY + 5,
+          cp2x: cx + 5,
+          cp2y: charY + 5,
+          endX: cx + 7,
+          endY: charY - 3
+        })
+      }
+      else if (config.type === 'loop_up') {
+        strokes.push({
+          type: 'bezier',
+          lineWidth: 2.6,
+          startX: cx - 4,
+          startY: charY,
+          cp1x: cx - 6,
+          cp1y: charY - 14,
+          cp2x: cx + 6,
+          cp2y: charY - 14,
+          endX: cx + 4,
+          endY: charY
+        })
+      }
+      else if (config.type === 'loop_down') {
+        strokes.push({
+          type: 'bezier',
+          lineWidth: 2.6,
+          startX: cx - 5,
+          startY: charY - 4,
+          cp1x: cx - 8,
+          cp1y: charY - 1,
+          cp2x: cx - 1,
+          cp2y: charY + 10,
+          endX: cx + 3,
+          endY: charY
+        })
+      }
+      else if (config.type === 'crescent_left') {
+        strokes.push({
+          type: 'bezier',
+          lineWidth: 3.0,
+          startX: cx - 3,
+          startY: charY - 12,
+          cp1x: cx + 10,
+          cp1y: charY - 10,
+          cp2x: cx + 10,
+          cp2y: charY + 8,
+          endX: cx - 6,
+          endY: charY + 6
+        })
+      }
+      else if (config.type === 'crescent_up') {
+        strokes.push({
+          type: 'bezier',
+          lineWidth: 2.8,
+          startX: cx - 6,
+          startY: charY - 10,
+          cp1x: cx - 4,
+          cp1y: charY + 3,
+          cp2x: cx + 4,
+          cp2y: charY + 3,
+          endX: cx + 6,
+          endY: charY - 8
+        })
+      }
+      else if (config.type === 'tail_down') {
+        strokes.push({
+          type: 'bezier',
+          lineWidth: 3.0,
+          startX: cx,
+          startY: charY - 2,
+          cp1x: cx + 3,
+          cp1y: charY + 3,
+          cp2x: cx - 2,
+          cp2y: charY + 11,
+          endX: cx - 5,
+          endY: charY + 9
+        })
+      }
+
+      if (config.flourish) {
+        strokes.push({
+          type: 'bezier',
+          lineWidth: 2.0,
+          startX: cx - 6,
+          startY: charY - 22,
+          cp1x: cx - 1,
+          cp1y: charY - 28,
+          cp2x: cx + 3,
+          cp2y: charY - 18,
+          endX: cx + 5,
+          endY: charY - 13
+        })
+      }
+
+      // Add character dots (nuqtas)
+      if (config.dots) {
+        const dotY = config.dots.pos === 'above' ? charY - 24 : charY + 12
+        const dotSize = 3.6
+        if (config.dots.count === 1) {
+          dots.push({ x: cx, y: dotY, size: dotSize })
+        } else if (config.dots.count === 2) {
+          dots.push({ x: cx - 2.5, y: dotY, size: dotSize })
+          dots.push({ x: cx + 2.5, y: dotY, size: dotSize })
+        } else if (config.dots.count === 3) {
+          dots.push({ x: cx - 3.5, y: dotY + 1.5, size: dotSize })
+          dots.push({ x: cx + 3.5, y: dotY + 1.5, size: dotSize })
+          dots.push({ x: cx, y: dotY - 1.5, size: dotSize })
+        }
+      }
+
+      // Add occasional vowel accent (harakat) above
+      if (charHash % 4 === 0) {
+        accents.push({ type: 'dash', x: cx + 3, y: charY - 28, length: 4 })
       }
     }
 
-    // Small calligraphic vowel dashes (harakat)
-    const accents = []
-    accents.push({ type: 'dash', x: centerX + 18, y: centerY - 44, length: 7 })
-    accents.push({ type: 'dash', x: centerX - 18, y: centerY - 48, length: 6 })
-
-    // Draw elements based on progress
+    // Draw elements based on progress (for organic drawing feel)
     const totalElements = strokes.length + dots.length + accents.length
     const visibleCount = Math.floor(totalElements * progress)
 
@@ -232,7 +340,7 @@ export default function CalligraphyStamp({ onSaveSignature }) {
         ctx.beginPath()
         ctx.lineWidth = stroke.lineWidth * 0.75
         ctx.moveTo(stroke.endX, stroke.endY)
-        ctx.quadraticCurveTo(stroke.hookX, stroke.hookY, stroke.endX - 3, stroke.endY + 6)
+        ctx.quadraticCurveTo(stroke.hookX, stroke.hookY, stroke.endX - 2, stroke.endY + 5)
         ctx.stroke()
       }
       drawnCount++
@@ -278,15 +386,7 @@ export default function CalligraphyStamp({ onSaveSignature }) {
     ctx.arc(centerX, centerY, 70, 0, Math.PI * 2)
     ctx.stroke()
     ctx.setLineDash([]) // reset
-  }
-
-  // Hex to RGB helper
-  const hexToRgb = (hex) => {
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    return `${r}, ${g}, ${b}`
-  }
+  }, [])
 
   // Trigger animation on name or color change
   useEffect(() => {
@@ -311,7 +411,7 @@ export default function CalligraphyStamp({ onSaveSignature }) {
     return () => {
       if (animRef.current) cancelAnimationFrame(animRef.current)
     }
-  }, [name, inkColor])
+  }, [name, inkColor, drawCalligraphy])
 
   const handleSave = () => {
     const canvas = canvasRef.current
