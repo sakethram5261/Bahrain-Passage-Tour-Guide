@@ -199,40 +199,70 @@ export async function callGeminiVision(base64Image, mimeType = 'image/jpeg', pro
     } catch { /* ignore */ }
   }
 
-  if (!key) return fallbackText
-
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`
-    const body = {
-      contents: [{
-        parts: [
-          { inline_data: { mime_type: mimeType, data: base64Image } },
-          { text: prompt }
-        ]
-      }],
-      generationConfig: {
-        temperature: 0.65,
-        maxOutputTokens: 160,
+  // 1. If client key is available, run direct API call (saves server load)
+  if (key) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`
+      const body = {
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: mimeType, data: base64Image } },
+            { text: prompt }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.65,
+          maxOutputTokens: 160,
+        }
       }
-    }
 
-    const response = await fetch(url, {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(12000),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+        if (text) return text
+      } else {
+        const errText = await response.text().catch(() => '')
+        console.warn(`[aiService] Gemini Vision returned HTTP ${response.status}:`, errText.slice(0, 200))
+      }
+    } catch (err) {
+      console.warn('[aiService] Gemini Vision call failed:', err.message)
+    }
+  }
+
+  // 2. If no client key, forward to the serverless proxy /api/ai
+  try {
+    const response = await fetch('/api/ai', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(12000),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-passage-client': 'bahrain-journey-ledger-v5'
+      },
+      body: JSON.stringify({
+        userPrompt: prompt,
+        image: base64Image,
+        mimeType,
+        maxTokens: 160
+      }),
+      signal: AbortSignal.timeout(14000),
     })
 
     if (response.ok) {
       const data = await response.json()
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
-      if (text) return text
+      if (data.text) return data.text
+      if (data.fallback) return fallbackText
     } else {
       const errText = await response.text().catch(() => '')
-      console.warn(`[aiService] Gemini Vision returned HTTP ${response.status}:`, errText.slice(0, 200))
+      console.warn(`[aiService] Vision proxy returned HTTP ${response.status}:`, errText.slice(0, 200))
     }
   } catch (err) {
-    console.warn('[aiService] Gemini Vision call failed:', err.message)
+    console.warn('[aiService] Vision proxy call failed, using static fallback:', err.message)
   }
 
   return fallbackText

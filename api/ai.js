@@ -52,15 +52,54 @@ export default async function handler(req, res) {
     maxTokens    = 150,
     temperature  = 0.75,
     useJson      = false,
+    image        = null,
+    mimeType     = 'image/jpeg',
   } = req.body || {}
 
-  if (!userPrompt) {
-    return res.status(400).json({ error: 'userPrompt is required' })
+  if (!userPrompt && !image) {
+    return res.status(400).json({ error: 'userPrompt or image is required' })
   }
 
   const GEMINI_KEY      = process.env.GEMINI_API_KEY || ''
   const GROQ_API_KEY    = process.env.GROQ_API_KEY || ''
   const OPENROUTER_KEY  = process.env.OPENROUTER_API_KEY || ''
+
+  // ── 0. Try Gemini Vision if image is present ──────────────────────────────
+  if (image && GEMINI_KEY) {
+    try {
+      const bodyPayload = {
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: mimeType, data: image } },
+            { text: userPrompt || 'Examine this image and describe what you observe.' }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.65,
+          maxOutputTokens: maxTokens || 160,
+        }
+      }
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_KEY}`
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload),
+        signal: AbortSignal.timeout(12000),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+        if (text) return res.status(200).json({ text })
+      } else {
+        const errText = await response.text().catch(() => '')
+        console.warn(`[api/ai] Server Gemini Vision HTTP ${response.status}:`, errText.slice(0, 200))
+      }
+    } catch (err) {
+      console.warn('[api/ai] Server Gemini Vision error:', err.message)
+    }
+  }
 
   // ── 1. Try Gemini direct ────────────────────────────────────────────────────
   if (GEMINI_KEY) {
