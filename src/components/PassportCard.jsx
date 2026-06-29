@@ -160,6 +160,22 @@ export default function PassportCard({ onClose }) {
       canvas.height = H
       const ctx = canvas.getContext('2d')
 
+      // Helper to load image for canvas drawing
+      const loadImage = (src) => {
+        return new Promise((resolve) => {
+          const img = new Image()
+          img.crossOrigin = 'anonymous'
+          img.onload = () => resolve(img)
+          img.onerror = () => resolve(null)
+          img.src = src
+        })
+      }
+
+      let loadedSig = null
+      if (signature) {
+        loadedSig = await loadImage(signature)
+      }
+
       // ── Background: warm aged parchment ──
       const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
       bgGrad.addColorStop(0, '#FAF6EE')
@@ -215,7 +231,7 @@ export default function PassportCard({ onClose }) {
       ctx.fillStyle = 'rgba(255,255,255,0.85)'
       ctx.fillText(`${rank.label.toUpperCase()}  ·  ${xp.toLocaleString()} XP  ·  ${goldFils} Fils`, W / 2, 150)
 
-      // ── Calligraphy seal placeholder circle ──
+      // ── Calligraphy seal circle ──
       const cxSeal = W / 2, cySeal = 260, rSeal = 70
       ctx.beginPath()
       ctx.arc(cxSeal, cySeal, rSeal, 0, Math.PI * 2)
@@ -227,6 +243,28 @@ export default function PassportCard({ onClose }) {
       ctx.strokeStyle = 'rgba(193,18,47,0.3)'
       ctx.lineWidth = 2
       ctx.stroke()
+
+      if (loadedSig) {
+        const sw = rSeal * 1.3
+        const sh = rSeal * 1.3
+        ctx.drawImage(loadedSig, cxSeal - sw / 2, cySeal - sh / 2, sw, sh)
+      } else {
+        ctx.strokeStyle = 'rgba(193,18,47,0.18)'
+        ctx.lineWidth = 1
+        ctx.setLineDash([4, 4])
+        ctx.beginPath()
+        ctx.arc(cxSeal, cySeal, rSeal - 10, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.setLineDash([])
+
+        ctx.font = '20px serif'
+        ctx.fillStyle = 'rgba(193,18,47,0.35)'
+        ctx.fillText('🖋️', cxSeal, cySeal - 4)
+
+        ctx.font = 'bold 8px "Outfit", sans-serif'
+        ctx.fillStyle = 'rgba(193,18,47,0.45)'
+        ctx.fillText('TAP TO CARVE', cxSeal, cySeal + 18)
+      }
 
       // Seal label
       ctx.font = 'italic bold 11px Georgia, serif'
@@ -294,7 +332,7 @@ export default function PassportCard({ onClose }) {
         })
       }
 
-      // ── Keepsake stamps grid ──
+      // ── Keepsake stamps grid (centered mathematically) ──
       const stampsToShow = spotsCatalog.filter(s => collectedKeepsakes.includes(s.id)).slice(0, 8)
       if (stampsToShow.length > 0) {
         const gridY = 600
@@ -305,20 +343,50 @@ export default function PassportCard({ onClose }) {
 
         const cols = 4
         const cellW = 130, cellH = 70
+        const gap = 14
+        const startX = (W - (cols * cellW + (cols - 1) * gap)) / 2 // Centers the cells exactly at 79px margin
         stampsToShow.forEach((spot, i) => {
           const col = i % cols, row = Math.floor(i / cols)
-          const sx = 60 + col * (cellW + 10)
-          const sy = gridY + 14 + row * (cellH + 10)
+          const sx = startX + col * (cellW + gap)
+          const sy = gridY + 22 + row * (cellH + 10)
 
           ctx.fillStyle = '#fff'
           ctx.beginPath(); ctx.roundRect(sx, sy, cellW, cellH, 8); ctx.fill()
-          ctx.strokeStyle = 'rgba(184,134,11,0.2)'; ctx.lineWidth = 1; ctx.stroke()
+          ctx.strokeStyle = 'rgba(184,134,11,0.25)'; ctx.lineWidth = 1; ctx.stroke()
 
           ctx.font = '24px serif'
+          ctx.textAlign = 'center'
           ctx.fillText(spot.keepsakeEmoji || '🏺', sx + cellW / 2, sy + 32)
+          
           ctx.font = 'bold 8px "Outfit", sans-serif'
           ctx.fillStyle = '#1C1917'
-          ctx.fillText((spot.name || '').split(' ').slice(0, 3).join(' '), sx + cellW / 2, sy + 56)
+          
+          let nameText = spot.keepsakeName || spot.name || ''
+          if (nameText.length > 20) {
+            // Split into two lines for cleaner wrapping inside 130px cell
+            const words = nameText.split(' ')
+            let line1 = '', line2 = ''
+            for (const word of words) {
+              if ((line1 + ' ' + word).trim().length <= 15) {
+                line1 += (line1 ? ' ' : '') + word
+              } else if ((line2 + ' ' + word).trim().length <= 15) {
+                line2 += (line2 ? ' ' : '') + word
+              } else {
+                if (line2.length < 13) {
+                  line2 += (line2 ? ' ' : '') + word
+                }
+              }
+            }
+            if (line2.length > 15) {
+              line2 = line2.slice(0, 12) + '...'
+            }
+            ctx.fillText(line1, sx + cellW / 2, sy + 50)
+            if (line2) {
+              ctx.fillText(line2, sx + cellW / 2, sy + 60)
+            }
+          } else {
+            ctx.fillText(nameText, sx + cellW / 2, sy + 55)
+          }
         })
       }
 
