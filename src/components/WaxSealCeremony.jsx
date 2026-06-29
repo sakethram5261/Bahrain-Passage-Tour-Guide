@@ -197,7 +197,7 @@ export default function WaxSealCeremony({ dayNum, onComplete }) {
   }, [])
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-stone-950/94 backdrop-blur-md select-none p-6 text-center animate-fade-in">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-stone-950/94 backdrop-blur-md select-none p-6 text-center animate-fade-in" data-lenis-prevent>
       
       {/* SVG Liquid Displacement Filter */}
       <svg style={{ display: 'none' }}>

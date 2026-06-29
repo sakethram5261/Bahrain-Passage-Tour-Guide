@@ -220,6 +220,7 @@ export default function WayfarerLens({ spot, onClose }) {
     <div
       ref={lensRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 p-4 select-none backdrop-blur-md"
+      data-lenis-prevent
     >
       {/* Flash overlay */}
       <div

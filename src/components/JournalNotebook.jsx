@@ -1829,6 +1829,7 @@ export default function JournalNotebook({ onBack }) {
             id="panel-info" 
             role="tabpanel" 
             aria-labelledby="tab-info"
+            data-lenis-prevent
           >
             <div key={tabKey} className="jn-page-anim-wrap">
               {loading ? (
@@ -2106,6 +2107,7 @@ export default function JournalNotebook({ onBack }) {
             }`}
             id="panel-tabs" 
             role="tabpanel"
+            data-lenis-prevent
           >
             <div key={tabKey} className="jn-page-anim-wrap">
               

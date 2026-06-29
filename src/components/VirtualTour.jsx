@@ -237,6 +237,7 @@ export default function VirtualTour({ initialIndex = 0, onClose }) {
         animation: 'tourFadeIn 0.35s ease both',
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      data-lenis-prevent
     >
       <div
         style={{

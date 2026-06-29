@@ -438,6 +438,7 @@ export default function PassportCard({ onClose }) {
     <div
       className="fixed inset-0 z-[2000] flex items-center justify-center px-4 glass-overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      data-lenis-prevent
     >
       {/* Premium Leather/Gold Foiled Archivist Card Container with Motion entry */}
       <motion.div
