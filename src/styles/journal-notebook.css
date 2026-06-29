@@ -23,11 +23,18 @@
   --jn-crimson-light: #fdf0f2;
   --jn-crimson-mid:   rgba(193, 18, 47, 0.12);
 
+  /* Layout borders & colors */
+  --jn-border:        rgba(139, 90, 75, 0.22);
+  --jn-border-light:  rgba(139, 90, 75, 0.12);
+  --jn-border-heavy:  rgba(139, 90, 75, 0.35);
+  --jn-border-color:  rgba(139, 90, 75, 0.22);
+
   /* Parchment / paper */
   --jn-parchment:     #faf9f6;
   --jn-parchment-2:   #f4f1e8;
   --jn-cream:         #fffdf9;
   --jn-cream-edge:    #ece9df;
+  --jn-paper:         #ffffff;
 
   /* Charcoal ink */
   --jn-ink:           #1a1210;
@@ -64,9 +71,9 @@
   --jn-r-xl:   32px;
 
   /* Shadows */
-  --jn-shadow-sm:   0 1px 2px rgba(28, 25, 23, 0.02), 0 1px 3px rgba(28, 25, 23, 0.01);
-  --jn-shadow-md:   0 4px 12px rgba(28, 25, 23, 0.04), 0 2px 4px rgba(28, 25, 23, 0.02), 0 0 1px rgba(28, 25, 23, 0.04);
-  --jn-shadow-lg:   0 12px 28px rgba(28, 25, 23, 0.06), 0 4px 10px rgba(28, 25, 23, 0.03), 0 0 2px rgba(28, 25, 23, 0.04);
+  --jn-shadow-sm:   0 2px 5px rgba(28, 25, 23, 0.05), 0 1px 2px rgba(28, 25, 23, 0.02);
+  --jn-shadow-md:   0 10px 30px -10px rgba(28, 25, 23, 0.12), 0 1px 3px rgba(28, 25, 23, 0.05);
+  --jn-shadow-lg:   0 20px 40px -15px rgba(28, 25, 23, 0.16), 0 2px 6px rgba(28, 25, 23, 0.06);
   --jn-shadow-book: 0 32px 80px -12px rgba(28, 25, 23, 0.45),
                     0 12px 32px -8px rgba(28, 25, 23, 0.25),
                     inset 0 0 40px rgba(139, 90, 43, 0.03);
@@ -94,7 +101,7 @@
 .jn-root {
   font-family: var(--jn-font-sans);
   color: var(--jn-ink);
-  background-color: var(--jn-parchment);
+  background-color: #EAE6DF; /* Refined warm sand grey desktop background */
   min-height: 100dvh;
   position: relative;
   overflow-x: hidden;
@@ -1878,7 +1885,7 @@
 
 .jn-phrase-card {
   width: 100%;
-  border: 1px solid rgba(193, 18, 47, 0.08);
+  border: 1px solid rgba(139, 90, 75, 0.22);
   border-radius: var(--jn-r-md);
   background: #ffffff;
   padding: var(--jn-sp-md);
@@ -1946,7 +1953,7 @@
 
 .jn-pronunciation-guide {
   background: #ffffff;
-  border: 1px solid rgba(193, 18, 47, 0.08);
+  border: 1px solid rgba(139, 90, 75, 0.22);
   border-radius: var(--jn-r-lg);
   padding: var(--jn-sp-md);
   margin-top: var(--jn-sp-lg);
