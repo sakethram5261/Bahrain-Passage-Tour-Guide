@@ -1,4 +1,5 @@
-import { useState, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
+import Lenis from 'lenis'
 import { BookOpen } from 'lucide-react'
 import { JourneyProvider } from './context/JourneyProvider'
 import { useVibe } from './hooks/useVibe'
@@ -91,6 +92,24 @@ function MainContent() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // standard expo easing
+      smoothWheel: true
+    })
+    
+    function raf(time) {
+      lenis.raf(time)
+      requestAnimationFrame(raf)
+    }
+    requestAnimationFrame(raf)
+    
+    return () => {
+      lenis.destroy()
+    }
+  }, [])
+
   return (
     <LangProvider>
       <ToastProvider>

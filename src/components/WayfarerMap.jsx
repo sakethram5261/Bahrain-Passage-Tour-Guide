@@ -1,16 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import L from 'leaflet'
+import confetti from 'canvas-confetti'
 import { useVibe } from '../hooks/useVibe'
 import { spotsCatalog } from '../hooks/useItinerary'
 import { callLocalAI, buildSpotNarratorPrompt, buildLocationNavPrompt } from '../services/aiService'
 import { playDiscoverySuccess } from '../services/audioUtils'
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-const MIN_LAT = 25.95
-const MAX_LAT = 26.28
-const MIN_LON = 50.42
-const MAX_LON = 50.80
-const MAP_W = 560
-const MAP_H = 370
 
 // Category icons
 const CAT_ICON = {
@@ -20,7 +14,7 @@ const CAT_ICON = {
   culture: '🏺',
   desert: '🌿',
   modern: '✨',
-  hotel: '🏡',
+  hotel: '🔑',
 }
 
 // Dilmun Pearl Hunt clues
@@ -45,58 +39,22 @@ const SPOT_CLUES = {
   'al-areen': 'A protected desert wildlife sanctuary sheltering rare Arabian Oryx, desert gazelle, and native flora in the Sakhir dunes.',
 }
 
-// Bahrain island outlines
-const BAHRAIN_MAIN_COORDS = [
-  [26.255, 50.565],[26.250, 50.555],[26.245, 50.540],[26.232, 50.510],
-  [26.230, 50.485],[26.225, 50.465],[26.215, 50.450],[26.180, 50.453],
-  [26.155, 50.460],[26.120, 50.463],[26.090, 50.470],[26.060, 50.475],
-  [26.035, 50.480],[25.990, 50.485],[25.950, 50.490],[25.950, 50.635],
-  [25.980, 50.630],[26.020, 50.625],[26.060, 50.622],[26.100, 50.612],
-  [26.140, 50.608],[26.170, 50.612],[26.205, 50.600],[26.235, 50.595],
-  [26.248, 50.585],[26.255, 50.565],
-]
-const MUHARRAQ_COORDS = [
-  [26.240, 50.605],[26.255, 50.600],[26.275, 50.615],[26.280, 50.635],
-  [26.270, 50.660],[26.245, 50.655],[26.220, 50.650],[26.230, 50.625],
-  [26.235, 50.615],[26.240, 50.605],
-]
-const SITRA_COORDS = [
-  [26.170, 50.620],[26.165, 50.635],[26.150, 50.640],[26.135, 50.635],
-  [26.125, 50.625],[26.130, 50.615],[26.150, 50.612],[26.165, 50.615],[26.170, 50.620],
-]
-
-// Convert lat/lon to SVG x/y
-function toSvg(lat, lon) {
-  return {
-    x: Math.round(((lon - MIN_LON) / (MAX_LON - MIN_LON)) * MAP_W),
-    y: Math.round(MAP_H - ((lat - MIN_LAT) / (MAX_LAT - MIN_LAT)) * MAP_H),
-  }
-}
-
 function parseCoordsStr(str) {
-  if (!str) return { x: 280, y: 185 }
+  if (!str) return { lat: 26.2185, lon: 50.5912 }
   try {
     const cleaned = str.replace(/[^\d.,-]/g, '')
     const parts = cleaned.split(',')
     const lat = parseFloat(parts[0])
     const lon = parseFloat(parts[1])
     if (isNaN(lat) || isNaN(lon)) {
-      return { x: 280, y: 185 }
+      return { lat: 26.2185, lon: 50.5912 }
     }
-    return toSvg(lat, lon)
+    return { lat, lon }
   } catch {
-    return { x: 280, y: 185 }
+    return { lat: 26.2185, lon: 50.5912 }
   }
 }
 
-function islandPath(coords) {
-  return coords.map(([lat, lon], i) => {
-    const { x, y } = toSvg(lat, lon)
-    return `${i === 0 ? 'M' : 'L'}${x},${y}`
-  }).join(' ') + 'Z'
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
 export default function WayfarerMap({ locations, onClose }) {
   const {
     currentDayTab,
@@ -119,42 +77,14 @@ export default function WayfarerMap({ locations, onClose }) {
   // ── Local state ───────────────────────────────────────────────────────────
   const [selectedSpot, setSelectedSpot] = useState(null)
   const [hoveredSpot, setHoveredSpot] = useState(null)
-  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
 
   // Zoom / Pan
-  const [zoom, setZoom] = useState(1)
-  const [pan, setPan] = useState({ x: 0, y: 0 })
-  const isDragging = useRef(false)
-  const dragStart = useRef({ x: 0, y: 0 })
-  const dragMoved = useRef(0)
-  const svgContainerRef = useRef(null)
-  const [containerWidth, setContainerWidth] = useState(400)
-
-  // Momentum references
-  const velocity = useRef({ x: 0, y: 0 })
-  const lastTime = useRef(0)
-  const lastPos = useRef({ x: 0, y: 0 })
-  const momentumFrame = useRef(null)
-
-  useEffect(() => {
-    return () => {
-      if (momentumFrame.current) cancelAnimationFrame(momentumFrame.current)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!svgContainerRef.current) return
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        setContainerWidth(entry.contentRect.width)
-      }
-    })
-    resizeObserver.observe(svgContainerRef.current)
-    return () => resizeObserver.disconnect()
-  }, [])
+  const mapContainerRef = useRef(null)
+  const mapRef = useRef(null)
+  const markersLayerRef = useRef(null)
+  const routeLineRef = useRef(null)
 
   // Pearl Hunt
-  const [pearlChestAnim, setPearlChestAnim] = useState(null)
   const [pearlAlert, setPearlAlert] = useState(null)
   const [showClueScroll, setShowClueScroll] = useState(false)
 
@@ -169,11 +99,8 @@ export default function WayfarerMap({ locations, onClose }) {
   // Day accordion — show active day open
   const [openDays, setOpenDays] = useState({ [currentDayTab]: true })
 
-  const MIN_ZOOM = 1
-  const MAX_ZOOM = 5
-
   // ── Derived ───────────────────────────────────────────────────────────────
-  const activeSpots = locations.filter(s => s.day === currentDayTab)
+  const activeSpots = useMemo(() => locations.filter(s => s.day === currentDayTab), [locations, currentDayTab])
 
   // Group all spots by day
   const days = Array.from({ length: duration || 3 }, (_, i) => i + 1)
@@ -195,133 +122,249 @@ export default function WayfarerMap({ locations, onClose }) {
     })
   }, [currentSpotIndex, currentDayTab, locations])
 
-  // ── Zoom helpers ──────────────────────────────────────────────────────────
-  const clampPan = useCallback((x, y, z) => {
-    const margin = 80
-    if (z <= 1) return { x: 0, y: 0 }
-    const maxX = (z - 1) * MAP_W
-    const maxY = (z - 1) * MAP_H
-    return {
-      x: Math.max(-maxX - margin, Math.min(margin, x)),
-      y: Math.max(-maxY - margin, Math.min(margin, y)),
+  // Initialize Leaflet map
+  useEffect(() => {
+    if (!mapContainerRef.current) return
+
+    const map = L.map(mapContainerRef.current, {
+      zoomControl: false,
+      attributionControl: false,
+      zoomSnap: 0.5,
+      zoomDelta: 0.5
+    })
+    mapRef.current = map
+
+    // CartoDB Voyager tiles (clean baseline for sepia parchment maps)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+      maxZoom: 18,
+      minZoom: 9
+    }).addTo(map)
+
+    markersLayerRef.current = L.layerGroup().addTo(map)
+
+    return () => {
+      map.remove()
     }
   }, [])
 
-  const handleWheel = useCallback((e) => {
-    e.preventDefault()
-    const rect = e.currentTarget.getBoundingClientRect()
-    const mx = ((e.clientX - rect.left) / rect.width) * MAP_W
-    const my = ((e.clientY - rect.top) / rect.height) * MAP_H
-    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15
-    setZoom(prev => {
-      const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, prev * factor))
-      const sc = next / prev
-      const nx = mx - (mx - pan.x) * sc
-      const ny = my - (my - pan.y) * sc
-      const clamped = clampPan(nx, ny, next)
-      setPan(clamped)
-      return next
+  // ── Zoom handlers ──────────────────────────────────────────────────────────
+  const resetZoom = useCallback((e) => {
+    if (e) e.stopPropagation()
+    const map = mapRef.current
+    if (!map) return
+    
+    const bounds = []
+    if (selectedHotel) {
+      const h = parseCoordsStr(selectedHotel.coords)
+      bounds.push([h.lat, h.lon])
+    }
+    activeSpots.forEach(s => {
+      const c = parseCoordsStr(s.coords)
+      bounds.push([c.lat, c.lon])
     })
-  }, [pan, clampPan])
 
-  // Track zoom ref to prevent stale closure inside startMomentum animation frames
-  const zoomRef = useRef(zoom)
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [40, 40] })
+    } else {
+      map.setView([26.15, 50.55], 11)
+    }
+  }, [activeSpots, selectedHotel])
+
+  const handleZoomAction = useCallback((action, e) => {
+    if (e) e.stopPropagation()
+    const map = mapRef.current
+    if (!map) return
+    if (action === 'in') {
+      map.zoomIn()
+    } else if (action === 'out') {
+      map.zoomOut()
+    } else if (action === 'reset') {
+      resetZoom()
+    }
+  }, [resetZoom])
+
+  // Spot click helper
+  const handleSpotClick = useCallback((spot) => {
+    const idx = activeSpots.findIndex(s => s.id === spot.id)
+    if (idx !== -1) setCurrentSpotIndex(idx)
+    setSelectedSpot(spot)
+    setShowBottomSheet(true)
+
+    // Center map on spot
+    const coords = parseCoordsStr(spot.coords)
+    mapRef.current?.setView([coords.lat, coords.lon], Math.max(mapRef.current.getZoom(), 13), { animate: true })
+  }, [activeSpots, setCurrentSpotIndex])
+
+  const handleMapNodeClick = useCallback((spot) => {
+    if (!riddleSpot) { handleSpotClick(spot); return }
+
+    const isActiveDaySpot = activeSpots.some(s => s.id === spot.id)
+    if (!isActiveDaySpot) { handleSpotClick(spot); return }
+
+    if (spot.id === riddleSpot.id) {
+      if (pearlsCollected.includes(spot.id)) {
+        setPearlAlert({ success: true, text: 'You already found this pearl!' })
+        handleSpotClick(spot)
+        return
+      }
+      setPearlsCollected(prev => [...prev, spot.id])
+      setGoldFils(prev => prev + 350)
+      awardXP(100, 'Dilmun Pearl riddle solved')
+      if (!passportStamps.includes(spot.id)) setPassportStamps(prev => [...prev, spot.id])
+      setPearlAlert({ success: true, text: `TREASURE FOUND! ${spot.name} — +350 Fils, +100 XP!` })
+      
+      // Custom victory confetti
+      try {
+        confetti({
+          particleCount: 120,
+          spread: 75,
+          origin: { y: 0.6 },
+          colors: ['#3b82f6', '#f59e0b', '#FFFDF9', '#60a5fa']
+        })
+      } catch (e) {
+        console.warn('Confetti failed to launch:', e)
+      }
+
+      playDiscoverySuccess(1.0, !soundVolume || soundMuted)
+      handleSpotClick(spot)
+    } else {
+      handleSpotClick(spot)
+      setPearlAlert({ success: false, text: `Not quite — keep searching for the ancient landmark!` })
+    }
+  }, [activeSpots, riddleSpot, pearlsCollected, handleSpotClick, awardXP, passportStamps, setGoldFils, setPassportStamps, setPearlsCollected, soundVolume, soundMuted])
+
+  // Sync / Draw Layer Markers & Route polylines
   useEffect(() => {
-    zoomRef.current = zoom
-  }, [zoom])
+    const map = mapRef.current
+    const markersLayer = markersLayerRef.current
+    if (!map || !markersLayer) return
 
-  const startMomentum = () => {
-    const decay = 0.94 // Deceleration coefficient
-    let vx = velocity.current.x
-    let vy = velocity.current.y
-
-    const step = () => {
-      if (Math.abs(vx) < 0.08 && Math.abs(vy) < 0.08) return
-      vx *= decay
-      vy *= decay
-      setPan(prev => clampPan(prev.x + vx, prev.y + vy, zoomRef.current))
-      momentumFrame.current = requestAnimationFrame(step)
+    // Clear layers
+    markersLayer.clearLayers()
+    if (routeLineRef.current) {
+      routeLineRef.current.remove()
+      routeLineRef.current = null
     }
 
-    if (Math.abs(vx) > 0.4 || Math.abs(vy) > 0.4) {
-      momentumFrame.current = requestAnimationFrame(step)
+    // 1. Draw active route polyline
+    if (activeSpots.length > 1) {
+      const latLons = activeSpots.map(s => {
+        const { lat, lon } = parseCoordsStr(s.coords)
+        return [lat, lon]
+      })
+      routeLineRef.current = L.polyline(latLons, {
+        color: '#C1122F',
+        weight: 3.5,
+        dashArray: '8, 8',
+        opacity: 0.85
+      }).addTo(map)
     }
-  }
 
-  // Drag handlers
-  const onMouseDown = (e) => {
-    if (e.button !== 0) return
-    isDragging.current = true
-    dragStart.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }
-    dragMoved.current = 0
-    velocity.current = { x: 0, y: 0 }
-    lastTime.current = performance.now()
-    lastPos.current = { x: e.clientX, y: e.clientY }
-    if (momentumFrame.current) cancelAnimationFrame(momentumFrame.current)
-  }
+    // 2. Draw Hotel Base Camp Marker
+    if (selectedHotel) {
+      const hotelCoords = parseCoordsStr(selectedHotel.coords)
+      const hotelIcon = L.divIcon({
+        className: 'custom-leaflet-icon',
+        html: `
+          <div class="flex flex-col items-center justify-center relative" style="width: 40px; height: 40px;">
+            <div class="absolute inset-2 rounded-full bg-yellow-500/10 border border-yellow-500/30 animate-ping"></div>
+            <div class="w-7 h-7 rounded-full bg-white border-2 border-[#B8860B] shadow-md flex items-center justify-center text-xs">🔑</div>
+            <div class="text-[6.5px] font-black uppercase text-[var(--color-primary)] tracking-wider mt-0.5" style="background: rgba(255,255,255,0.7); padding: 0 3px; border-radius: 4px; white-space: nowrap;">BASE CAMP</div>
+          </div>
+        `,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+      })
+      
+      const hotelMarker = L.marker([hotelCoords.lat, hotelCoords.lon], { icon: hotelIcon })
+      hotelMarker.on('mouseover', () => {
+        setHoveredSpot({
+          ...selectedHotel,
+          category: 'hotel',
+          arabic: 'المقر الرئيسي (الفندق)',
+          period: selectedHotel.neighborhood
+        })
+      })
+      hotelMarker.on('mouseout', () => setHoveredSpot(null))
+      hotelMarker.addTo(markersLayer)
 
-  const onMouseMove = (e) => {
-    if (!isDragging.current) return
-    const nx = e.clientX - dragStart.current.x
-    const ny = e.clientY - dragStart.current.y
-    dragMoved.current = Math.hypot(nx - pan.x, ny - pan.y)
+      if (activeSpots.length > 0) {
+        const firstSpot = parseCoordsStr(activeSpots[0].coords)
+        const lastSpot = parseCoordsStr(activeSpots[activeSpots.length - 1].coords)
+        
+        L.polyline([[hotelCoords.lat, hotelCoords.lon], [firstSpot.lat, firstSpot.lon]], {
+          color: '#b38600',
+          weight: 2.2,
+          dashArray: '5, 5',
+          opacity: 0.75
+        }).addTo(markersLayer)
 
-    const now = performance.now()
-    const dt = now - lastTime.current
-    if (dt > 0) {
-      const dx = e.clientX - lastPos.current.x
-      const dy = e.clientY - lastPos.current.y
-      velocity.current = { x: (dx / dt) * 16, y: (dy / dt) * 16 }
+        L.polyline([[lastSpot.lat, lastSpot.lon], [hotelCoords.lat, hotelCoords.lon]], {
+          color: '#b38600',
+          weight: 1.8,
+          dashArray: '5, 5',
+          opacity: 0.5
+        }).addTo(markersLayer)
+      }
     }
-    lastTime.current = now
-    lastPos.current = { x: e.clientX, y: e.clientY }
 
-    setPan(clampPan(nx, ny, zoom))
-  }
+    // 3. Draw pins for spots
+    spotsCatalog.forEach(spot => {
+      const { lat, lon } = parseCoordsStr(spot.coords)
+      const isActive = activeSpots.some(s => s.id === spot.id)
+      const activeIdx = activeSpots.findIndex(s => s.id === spot.id)
+      const isSelected = selectedSpot?.id === spot.id
+      const scanned = collectedKeepsakes.includes(spot.id)
+      const hasPearl = pearlsCollected.includes(spot.id)
 
-  const onMouseUp = () => {
-    isDragging.current = false
-    startMomentum()
-  }
+      const iconHtml = `
+        <div class="custom-map-pin flex items-center justify-center relative" style="width: 32px; height: 32px;">
+          <!-- Pulse ring for selected active spot -->
+          ${isSelected && isActive ? '<div class="absolute inset-1 rounded-full bg-red-500/20 border border-red-500/40 animate-ping"></div>' : ''}
+          
+          <!-- Main Pin Circle -->
+          <div class="rounded-full flex items-center justify-center shadow-md font-bold text-[9px] border-2 border-white select-none transition-all"
+            style="
+              width: ${isSelected ? '24px' : '20px'};
+              height: ${isSelected ? '24px' : '20px'};
+              background-color: ${hasPearl ? '#f59e0b' : scanned ? '#10b981' : isSelected ? 'var(--color-primary)' : isActive ? '#E53E3E' : 'rgba(90,70,65,0.45)'};
+              color: white;
+            "
+          >
+            ${hasPearl ? '💎' : scanned ? '★' : isActive ? (activeIdx + 1) : ''}
+          </div>
 
-  const onTouchStart = (e) => {
-    if (e.touches.length !== 1) return
-    isDragging.current = true
-    dragStart.current = { x: e.touches[0].clientX - pan.x, y: e.touches[0].clientY - pan.y }
-    dragMoved.current = 0
-    velocity.current = { x: 0, y: 0 }
-    lastTime.current = performance.now()
-    lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
-    if (momentumFrame.current) cancelAnimationFrame(momentumFrame.current)
-  }
+          <!-- Floating Category Icon -->
+          ${isActive ? `<div class="absolute -top-3.5 text-[9px] drop-shadow-sm">${CAT_ICON[spot.category] || '📍'}</div>` : ''}
+        </div>
+      `
 
-  const onTouchMove = (e) => {
-    if (!isDragging.current || e.touches.length !== 1) return
-    const nx = e.touches[0].clientX - dragStart.current.x
-    const ny = e.touches[0].clientY - dragStart.current.y
-    dragMoved.current = Math.hypot(nx - pan.x, ny - pan.y)
+      const marker = L.marker([lat, lon], {
+        icon: L.divIcon({
+          className: 'custom-leaflet-icon',
+          html: iconHtml,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        })
+      })
 
-    const now = performance.now()
-    const dt = now - lastTime.current
-    if (dt > 0) {
-      const dx = e.touches[0].clientX - lastPos.current.x
-      const dy = e.touches[0].clientY - lastPos.current.y
-      velocity.current = { x: (dx / dt) * 16, y: (dy / dt) * 16 }
-    }
-    lastTime.current = now
-    lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+      marker.on('click', () => {
+        handleMapNodeClick(spot)
+      })
 
-    setPan(clampPan(nx, ny, zoom))
-  }
+      marker.on('mouseover', () => {
+        setHoveredSpot(spot)
+      })
 
-  const onTouchEnd = () => {
-    isDragging.current = false
-    startMomentum()
-  }
+      marker.on('mouseout', () => {
+        setHoveredSpot(null)
+      })
 
-  const zoomIn = (e) => { e.stopPropagation(); setZoom(z => { const n = Math.min(z * 1.3, MAX_ZOOM); setPan(clampPan(pan.x, pan.y, n)); return n }) }
-  const zoomOut = (e) => { e.stopPropagation(); setZoom(z => { const n = Math.max(z / 1.3, MIN_ZOOM); const c = clampPan(pan.x, pan.y, n); setPan(c); return n }) }
-  const resetZoom = (e) => { e.stopPropagation(); setZoom(1); setPan({ x: 0, y: 0 }) }
+      marker.addTo(markersLayer)
+    })
+
+    resetZoom()
+  }, [activeSpots, selectedSpot, collectedKeepsakes, pearlsCollected, selectedHotel, resetZoom, handleMapNodeClick])
 
   // ── AI Narrator ───────────────────────────────────────────────────────────
   const loadAiNarration = useCallback(async (spot) => {
@@ -356,43 +399,6 @@ export default function WayfarerMap({ locations, onClose }) {
     }
   }, [selectedSpot, loadAiNarration, loadAiNavTip])
 
-  // ── Spot click handlers ───────────────────────────────────────────────────
-  const handleSpotClick = useCallback((spot) => {
-    if (dragMoved.current > 6) return
-    const idx = activeSpots.findIndex(s => s.id === spot.id)
-    if (idx !== -1) setCurrentSpotIndex(idx)
-    setSelectedSpot(spot)
-    setShowBottomSheet(true)
-  }, [activeSpots, setCurrentSpotIndex])
-
-  const handleMapNodeClick = useCallback((spot) => {
-    if (dragMoved.current > 6) return
-    if (!riddleSpot) { handleSpotClick(spot); return }
-
-    const isActiveDaySpot = activeSpots.some(s => s.id === spot.id)
-    if (!isActiveDaySpot) { handleSpotClick(spot); return }
-
-    if (spot.id === riddleSpot.id) {
-      if (pearlsCollected.includes(spot.id)) {
-        setPearlAlert({ success: true, text: 'You already found this pearl!' })
-        handleSpotClick(spot)
-        return
-      }
-      setPearlChestAnim(spot.id)
-      setPearlsCollected(prev => [...prev, spot.id])
-      setGoldFils(prev => prev + 350)
-      awardXP(100, 'Dilmun Pearl riddle solved')
-      if (!passportStamps.includes(spot.id)) setPassportStamps(prev => [...prev, spot.id])
-      setPearlAlert({ success: true, text: `TREASURE FOUND! ${spot.name} — +350 Fils, +100 XP!` })
-      playDiscoverySuccess(1.0, !soundVolume || soundMuted)
-      setTimeout(() => setPearlChestAnim(null), 3500)
-      handleSpotClick(spot)
-    } else {
-      handleSpotClick(spot)
-      setPearlAlert({ success: false, text: `Not quite — keep searching for the ancient landmark!` })
-    }
-  }, [activeSpots, riddleSpot, pearlsCollected, handleSpotClick, awardXP, passportStamps, setGoldFils, setPassportStamps, setPearlsCollected, soundVolume, soundMuted])
-
   // ── Close ─────────────────────────────────────────────────────────────────
   const handleClose = () => {
     if (onClose) onClose()
@@ -401,18 +407,13 @@ export default function WayfarerMap({ locations, onClose }) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   const mapStyles = `
-    @keyframes routeFlow { to { stroke-dashoffset: -20; } }
-    .map-route { animation: routeFlow 1.5s linear infinite; }
-    @keyframes pulseRing {
-      0% { r: 14; opacity: 0.8; }
-      100% { r: 26; opacity: 0; }
+    .custom-leaflet-icon {
+      border: none !important;
+      background: transparent !important;
     }
-    .map-pulse { animation: pulseRing 2s cubic-bezier(0.4,0,0.6,1) infinite; }
-    @keyframes chestShake {
-      0%,100%{transform:rotate(0deg) scale(1)} 20%{transform:rotate(-8deg) scale(1.1)}
-      40%{transform:rotate(8deg) scale(1.1)} 60%{transform:rotate(-6deg) scale(1.05)}
+    .leaflet-container {
+      font-family: var(--font-body) !important;
     }
-    .chest-shake { animation: chestShake 0.7s ease-in-out infinite; display:inline-block; }
     @keyframes slideUp {
       from { transform: translateY(100%); opacity: 0; }
       to   { transform: translateY(0);    opacity: 1; }
@@ -425,7 +426,7 @@ export default function WayfarerMap({ locations, onClose }) {
   `
 
   return (
-    <div className="cartography-scroll-sheet z-[300]">
+    <div className="cartography-scroll-sheet z-[300] flex flex-col h-full overflow-hidden">
       <style>{mapStyles}</style>
 
       {/* ── Header ── */}
@@ -453,7 +454,7 @@ export default function WayfarerMap({ locations, onClose }) {
       </div>
 
       {/* ── Body: sidebar + map ── */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
 
         {/* Sidebar */}
         <div 
@@ -527,7 +528,7 @@ export default function WayfarerMap({ locations, onClose }) {
                 onClick={() => setShowClueScroll(prev => !prev)}
                 className="w-full px-3 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-sans text-[12px] uppercase tracking-wide font-semibold transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
               >
-                <span className="chest-shake">📜</span>
+                <span>📜</span>
                 {showClueScroll ? 'Close Scroll' : 'Pearl Hunt Clue'}
               </button>
               {showClueScroll && (
@@ -545,7 +546,7 @@ export default function WayfarerMap({ locations, onClose }) {
         </div>
 
         {/* Map + detail column */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative">
 
           {/* Mobile: horizontal stops strip */}
           <div 
@@ -574,322 +575,34 @@ export default function WayfarerMap({ locations, onClose }) {
             })}
           </div>
 
-          {/* SVG Map Canvas */}
-          <div
-            ref={svgContainerRef}
-            className="flex-1 bg-[#d4e8f7] relative overflow-hidden cursor-grab active:cursor-grabbing select-none"
-            onMouseDown={onMouseDown}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            onMouseLeave={onMouseUp}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-            onWheel={handleWheel}
-            onMouseMoveCapture={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect()
-              setHoverPos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
-            }}
-          >
-            <svg
-              viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-              className="w-full h-full"
-              style={{ display: 'block' }}
-            >
-              <defs>
-                <filter id="land-shadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="1" dy="2" stdDeviation="2" floodColor="#1a0d06" floodOpacity="0.18" />
-                </filter>
-                <linearGradient id="land-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#FBF9F0" />
-                  <stop offset="60%" stopColor="#F0ECD9" />
-                  <stop offset="100%" stopColor="#DDD5B2" />
-                </linearGradient>
-                <linearGradient id="route-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#C1122F" />
-                  <stop offset="100%" stopColor="#F05050" />
-                </linearGradient>
-                <pattern id="ocean-dots" width="18" height="18" patternUnits="userSpaceOnUse">
-                  <circle cx="9" cy="9" r="0.7" fill="rgba(30,90,180,0.08)" />
-                </pattern>
-              </defs>
+          {/* Leaflet Parchment Styled Map Box */}
+          <div className="flex-1 parchment-map-container relative overflow-hidden select-none">
+            <div ref={mapContainerRef} className="w-full h-full" style={{ zIndex: 10 }} />
+            
+            {/* Paper Grain overlay on top of Leaflet layers */}
+            <div className="paper-grain opacity-[0.05] pointer-events-none z-20" />
 
-              {/* Ocean background fill */}
-              <rect width={MAP_W} height={MAP_H} fill="url(#ocean-dots)" />
-
-              {/* ─ SINGLE transform group for all map content ─ */}
-              <g transform={`translate(${pan.x},${pan.y}) scale(${zoom})`}>
-
-                {/* Ocean grid lines */}
-                <g stroke="rgba(30,90,180,0.07)" strokeWidth={0.5/zoom} strokeDasharray="5,10">
-                  <line x1="0" y1="92" x2={MAP_W} y2="92" />
-                  <line x1="0" y1="185" x2={MAP_W} y2="185" />
-                  <line x1="0" y1="277" x2={MAP_W} y2="277" />
-                  <line x1="140" y1="0" x2="140" y2={MAP_H} />
-                  <line x1="280" y1="0" x2="280" y2={MAP_H} />
-                  <line x1="420" y1="0" x2="420" y2={MAP_H} />
-                </g>
-
-                {/* Islands */}
-                {[
-                  { coords: BAHRAIN_MAIN_COORDS },
-                  { coords: MUHARRAQ_COORDS },
-                  { coords: SITRA_COORDS },
-                ].map(({ coords }, i) => (
-                  <path
-                    key={i}
-                    d={islandPath(coords)}
-                    fill="url(#land-grad)"
-                    stroke="#4b3e39"
-                    strokeWidth={1.4/zoom}
-                    strokeLinejoin="round"
-                    filter="url(#land-shadow)"
-                    opacity="0.96"
-                  />
-                ))}
-
-                {/* Al Dar Islands */}
-                <circle
-                  cx={toSvg(26.1558, 50.6833).x} cy={toSvg(26.1558, 50.6833).y}
-                  r="5" fill="url(#land-grad)" stroke="#4b3e39" strokeWidth={0.9/zoom}
-                  filter="url(#land-shadow)" opacity="0.96"
-                />
-
-                {/* Jarada sandbar */}
-                <ellipse
-                  cx={toSvg(26.2201, 50.7725).x} cy={toSvg(26.2201, 50.7725).y}
-                  rx="7" ry="3.5" fill="url(#land-grad)" stroke="#4b3e39" strokeWidth={0.9/zoom}
-                  filter="url(#land-shadow)" opacity="0.96"
-                  transform={`rotate(15, ${toSvg(26.2201, 50.7725).x}, ${toSvg(26.2201, 50.7725).y})`}
-                />
-
-                {/* Ocean wave decorations */}
-                {[[50,40],[450,290],[90,310]].map(([x,y],i) => (
-                  <path key={i} d={`M${x},${y} Q${x+10},${y-2} ${x+20},${y}`}
-                    fill="none" stroke="rgba(30,90,180,0.2)" strokeWidth={0.6/zoom} />
-                ))}
-
-                {/* Geo labels */}
-                <text x="148" y="72" fontSize={11/zoom} fill="#1c1613" fontWeight="900" fontFamily="serif" letterSpacing="0.4">BAHRAIN ISLAND</text>
-                <text x="300" y="22" fontSize={8.5/zoom} fill="#3a2f2b" fontFamily="serif">MUHARRAQ</text>
-                <text x="308" y="148" fontSize={8.5/zoom} fill="#3a2f2b" fontFamily="serif">SITRA</text>
-                <text x="140" y="238" fontSize={8/zoom} fill="#6b5b4b" fontStyle="italic" fontFamily="serif" opacity="0.75">Sakhir Desert Dunes</text>
-                <text x="420" y="280" fontSize={10/zoom} fill="#C1122F" fontWeight="800" letterSpacing={2.5/zoom} opacity="0.28" fontFamily="serif">ARABIAN GULF</text>
-
-                {/* Manama capital star */}
-                <g transform={`translate(${toSvg(26.23, 50.577).x}, ${toSvg(26.23, 50.577).y}) scale(${1/zoom})`}>
-                  <path d="M0,-6 L2,-2 L6,-2 L3,1 L4,5 L0,3 L-4,5 L-3,1 L-6,-2 L-2,-2 Z" fill="#aa7c11" stroke="#000" strokeWidth="0.4" />
-                  <text x="10" y="3" fontSize="9" fill="#1c1613" fontWeight="900" fontFamily="serif">MANAMA ★</text>
-                </g>
-
-                {/* Compass rose */}
-                <g transform={`translate(38,28) scale(${0.65/zoom})`} stroke="rgba(193,18,47,0.32)" fill="none" strokeWidth="0.9">
-                  <circle cx="40" cy="40" r="32" strokeDasharray="2,4" />
-                  <circle cx="40" cy="40" r="12" />
-                  <path d="M40,0 L40,80 M0,40 L80,40" />
-                  <path d="M40,40 L36,16 L40,2 L44,16 Z" fill="rgba(193,18,47,0.08)" />
-                  <text x="34" y="-4" fill="#C1122F" fontSize="11" fontWeight="bold" fontFamily="serif" stroke="none">N</text>
-                </g>
-
-                {/* Hotel Base Camp routes */}
-                {selectedHotel && activeSpots.length > 0 && (() => {
-                  const hotelCoords = parseCoordsStr(selectedHotel.coords)
-                  const firstSpotCoords = parseCoordsStr(activeSpots[0].coords)
-                  const lastSpotCoords = parseCoordsStr(activeSpots[activeSpots.length - 1].coords)
-                  return (
-                    <>
-                      {/* Departure route: Hotel -> First Spot */}
-                      <line
-                        x1={hotelCoords.x}
-                        y1={hotelCoords.y}
-                        x2={firstSpotCoords.x}
-                        y2={firstSpotCoords.y}
-                        fill="none"
-                        stroke="#b38600"
-                        strokeWidth={2.5/zoom}
-                        strokeDasharray={`4,4`}
-                        opacity="0.8"
-                      />
-                      {/* Return route: Last Spot -> Hotel */}
-                      <line
-                        x1={lastSpotCoords.x}
-                        y1={lastSpotCoords.y}
-                        x2={hotelCoords.x}
-                        y2={hotelCoords.y}
-                        fill="none"
-                        stroke="#b38600"
-                        strokeWidth={2/zoom}
-                        strokeDasharray={`4,4`}
-                        opacity="0.5"
-                      />
-                    </>
-                  )
-                })()}
-
-                {/* Active route polyline */}
-                {activeSpots.length > 1 && (
-                  <polyline
-                    points={activeSpots.map(s => {
-                      const { x, y } = parseCoordsStr(s.coords)
-                      return `${x},${y}`
-                    }).join(' ')}
-                    fill="none"
-                    stroke="url(#route-grad)"
-                    strokeWidth={3/zoom}
-                    strokeDasharray={`7,7`}
-                    className="map-route"
-                    opacity="0.9"
-                  />
-                )}
-
-                {/* Map spots */}
-                {spotsCatalog.map(spot => {
-                  const { x, y } = parseCoordsStr(spot.coords)
-                  const isActive = activeSpots.some(s => s.id === spot.id)
-                  const activeIdx = activeSpots.findIndex(s => s.id === spot.id)
-                  const isSelected = selectedSpot?.id === spot.id
-                  const scanned = collectedKeepsakes.includes(spot.id)
-                  const hasPearl = pearlsCollected.includes(spot.id)
-                  const isGhost = !isActive
-
-                  return (
-                    <g
-                      key={spot.id}
-                      transform={`translate(${x},${y}) scale(${1/zoom})`}
-                      onClick={() => handleMapNodeClick(spot)}
-                      onMouseEnter={() => setHoveredSpot(spot)}
-                      onMouseLeave={() => setHoveredSpot(null)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {/* Tap hitbox */}
-                      <circle cx="0" cy="0" r="22" fill="transparent" />
-
-                      {/* Pulse ring for selected active spot */}
-                      {isSelected && isActive && (
-                        <circle cx="0" cy="0" r="14" className="map-pulse"
-                          fill="rgba(193,18,47,0.06)" stroke="rgba(193,18,47,0.35)" strokeWidth="1.5" />
-                      )}
-
-                      {/* Pearl chest spin ring */}
-                      {pearlChestAnim === spot.id && (
-                        <circle cx="0" cy="0" r="26" fill="none" stroke="#f59e0b"
-                          strokeWidth="2" strokeDasharray="4,6" className="animate-spin" />
-                      )}
-
-                      {/* Main dot */}
-                      <circle
-                        cx="0" cy="0"
-                        r={isSelected ? 11 : isActive ? 9 : 5}
-                        fill={
-                          hasPearl ? '#f59e0b'
-                          : scanned ? '#10b981'
-                          : isSelected ? 'var(--color-primary)'
-                          : isActive ? '#E53E3E'
-                          : 'rgba(90,70,65,0.28)'
-                        }
-                        stroke={isGhost ? 'rgba(90,70,65,0.18)' : 'white'}
-                        strokeWidth={isSelected ? 2.5 : 1.8}
-                      />
-
-                      {/* Labels */}
-                      {isActive && !scanned && !hasPearl && (
-                        <text x="0" y="3" textAnchor="middle" fill="white"
-                          fontSize="7" fontWeight="900" fontFamily="sans-serif"
-                          style={{ pointerEvents: 'none' }}>
-                          {activeIdx + 1}
-                        </text>
-                      )}
-                      {hasPearl && <text x="0" y="3" textAnchor="middle" fontSize="7" style={{ pointerEvents: 'none' }}>💎</text>}
-                      {!hasPearl && scanned && <text x="0" y="3" textAnchor="middle" fontSize="7" style={{ pointerEvents: 'none' }}>★</text>}
-
-                      {/* Category icon label under active spots */}
-                      {isActive && !isGhost && (
-                        <text x="0" y={isSelected ? -16 : -13}
-                          textAnchor="middle" fontSize={isSelected ? 8 : 7}
-                          fontWeight="700" fontFamily="serif" fill="#2a1f1c"
-                          style={{ pointerEvents: 'none' }}>
-                          {CAT_ICON[spot.category] || '📍'}
-                        </text>
-                      )}
-                    </g>
-                  )
-                })}
-
-                {/* Selected Hotel Base Camp Marker */}
-                {selectedHotel && (() => {
-                  const hotelCoords = parseCoordsStr(selectedHotel.coords)
-                  return (
-                    <g
-                      transform={`translate(${hotelCoords.x},${hotelCoords.y}) scale(${1.25/zoom})`}
-                      onMouseEnter={() => setHoveredSpot({
-                        ...selectedHotel,
-                        category: 'hotel',
-                        arabic: 'المقر الرئيسي (الفندق)',
-                        period: selectedHotel.neighborhood
-                      })}
-                      onMouseLeave={() => setHoveredSpot(null)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {/* Pulse ring */}
-                      <circle cx="0" cy="0" r="14" className="map-pulse"
-                        fill="rgba(212,175,55,0.06)" stroke="rgba(212,175,55,0.45)" strokeWidth="1.5" />
-
-                      {/* Main gold key circle */}
-                      <circle cx="0" cy="0" r="9" fill="#FFFDF9" stroke="var(--color-accent)" strokeWidth="1.8" />
-                      <text x="0" y="3" textAnchor="middle" fontSize="9" style={{ pointerEvents: 'none' }}>🔑</text>
-
-                      {/* Label text */}
-                      <text x="0" y="-13"
-                        textAnchor="middle" fontSize="6.5"
-                        fontWeight="900" fontFamily="serif" fill="var(--color-primary)"
-                        style={{ pointerEvents: 'none' }}
-                      >
-                        BASE CAMP
-                      </text>
-                    </g>
-                  )
-                })()}
-
-                {/* Border frame (inside transform) */}
-                <rect x="1" y="1" width={MAP_W-2} height={MAP_H-2}
-                  fill="none" stroke="var(--color-text)" strokeWidth={1.2/zoom} />
-                <rect x="5" y="5" width={MAP_W-10} height={MAP_H-10}
-                  fill="none" stroke="var(--color-text)" strokeWidth={0.5/zoom} strokeDasharray={`3,4`} />
-
-                {/* Lat/Lon ticks */}
-                <g fill="var(--color-text-muted)" fontSize={7/zoom} fontFamily="monospace" fontWeight="bold" opacity="0.7">
-                  <text x="75" y="13" textAnchor="middle">50°27'E</text>
-                  <text x="210" y="13" textAnchor="middle">50°35'E</text>
-                  <text x="345" y="13" textAnchor="middle">50°43'E</text>
-                  <text x="480" y="13" textAnchor="middle">50°51'E</text>
-                </g>
-
-              </g>{/* end single transform group */}
-            </svg>
-
-            {/* Hover tooltip (follows cursor, not at top) */}
+            {/* Hover tooltip (for desktop mouseover) */}
             {hoveredSpot && !showBottomSheet && (
               <div
-                className="absolute pointer-events-none z-30 fade-in"
-                style={{ left: Math.min(hoverPos.x + 14, containerWidth - 200), top: Math.max(hoverPos.y - 60, 4) }}
+                className="absolute z-[1000] pointer-events-none pointer-events-none fade-in bg-white/97 border rounded-xl px-3 py-2 shadow-lg text-left min-w-[150px] max-w-[200px] border-red-500/25"
+                style={{
+                  top: '10px',
+                  left: '10px'
+                }}
               >
-                <div 
-                  className="bg-white/97 border rounded-xl px-3 py-2 shadow-lg text-left min-w-[150px] max-w-[200px]"
-                  style={{ borderColor: 'rgba(193, 18, 47, 0.25)' }}
-                >
-                  <div className="font-serif text-[13px] font-bold text-bronze-charcoal truncate">{hoveredSpot.name.split('(')[0]}</div>
-                  <div className="font-sans text-[12px] text-[var(--color-primary)] italic font-semibold mt-0.5">{hoveredSpot.arabic}</div>
-                  <div className="flex items-center gap-1 mt-1 text-[11px] text-bronze-muted font-sans uppercase">
-                    <span>{CAT_ICON[hoveredSpot.category] || '📍'}</span>
-                    <span>{hoveredSpot.period?.split(',')[0]}</span>
-                  </div>
+                <div className="font-serif text-[13px] font-bold text-bronze-charcoal truncate">{hoveredSpot.name?.split('(')[0]}</div>
+                <div className="font-sans text-[12px] text-[var(--color-primary)] italic font-semibold mt-0.5">{hoveredSpot.arabic}</div>
+                <div className="flex items-center gap-1 mt-1 text-[11px] text-bronze-muted font-sans uppercase">
+                  <span>{CAT_ICON[hoveredSpot.category] || '📍'}</span>
+                  <span>{hoveredSpot.period?.split(',')[0]}</span>
                 </div>
               </div>
             )}
 
             {/* Pearl Alert banner */}
             {pearlAlert && (
-              <div className={`absolute bottom-24 left-3 right-3 md:bottom-4 z-40 p-3 rounded-2xl border text-[13px] font-bold shadow-lg fade-in flex justify-between items-center ${
+              <div className={`absolute bottom-24 left-3 right-3 md:bottom-4 z-[1000] p-3 rounded-2xl border text-[13px] font-bold shadow-lg fade-in flex justify-between items-center ${
                 pearlAlert.success
                   ? 'bg-emerald-500/95 border-emerald-400 text-white'
                   : 'border-rose-400/40 text-rose-800'
@@ -899,25 +612,43 @@ export default function WayfarerMap({ locations, onClose }) {
               </div>
             )}
 
-            {/* Zoom controls */}
+            {/* Styled Zoom controls */}
             <div className="absolute right-3 top-3 flex flex-col gap-1.5 z-20">
-              {[['＋', zoomIn, 'Zoom in'], ['－', zoomOut, 'Zoom out'], ['⟲', resetZoom, 'Reset view']].map(([label, fn, title]) => (
-                <button key={label} onClick={fn} title={title} aria-label={title}
-                  className="w-8 h-8 rounded-lg bg-white/90 backdrop-blur border border-amber-500/20 shadow-sm flex items-center justify-center text-sm font-bold text-bronze-charcoal hover:bg-white transition-all hover:scale-105 active:scale-95 cursor-pointer">
-                  {label}
-                </button>
-              ))}
+              <button 
+                onClick={(e) => handleZoomAction('in', e)} 
+                title="Zoom in"
+                aria-label="Zoom in"
+                className="w-8 h-8 rounded-lg bg-white/90 backdrop-blur border border-amber-500/20 shadow-sm flex items-center justify-center text-sm font-bold text-bronze-charcoal hover:bg-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                ＋
+              </button>
+              <button 
+                onClick={(e) => handleZoomAction('out', e)} 
+                title="Zoom out"
+                aria-label="Zoom out"
+                className="w-8 h-8 rounded-lg bg-white/90 backdrop-blur border border-amber-500/20 shadow-sm flex items-center justify-center text-sm font-bold text-bronze-charcoal hover:bg-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                －
+              </button>
+              <button 
+                onClick={(e) => handleZoomAction('reset', e)} 
+                title="Reset view"
+                aria-label="Reset view"
+                className="w-8 h-8 rounded-lg bg-white/90 backdrop-blur border border-amber-500/20 shadow-sm flex items-center justify-center text-sm font-bold text-bronze-charcoal hover:bg-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                ⟲
+              </button>
             </div>
 
             {/* Map projection label */}
-            <div className="absolute bottom-1 left-2 font-mono text-[10px] tracking-wide text-bronze-muted/40 uppercase select-none">
-              Bahrain WGS84 · Mercator
+            <div className="absolute bottom-1 left-2 font-mono text-[10px] tracking-wide text-bronze-muted/40 uppercase select-none z-20">
+              Interactive Cartography · Leaflet Engine
             </div>
           </div>
 
           {/* ── Desktop Selected Spot Detail Card (sticky bottom strip) ── */}
           {selectedSpot && (
-            <div className="hidden md:flex shrink-0 bg-[var(--color-surface-2)] border-t-2 border-double border-amber-600/30 px-5 py-3.5 gap-4 items-start fade-in">
+            <div className="hidden md:flex shrink-0 bg-[var(--color-surface-2)] border-t-2 border-double border-amber-600/30 px-5 py-3.5 gap-4 items-start fade-in z-20">
               <span className="text-3xl p-2.5 bg-amber-500/8 rounded-2xl border border-amber-500/12 shrink-0">
                 {CAT_ICON[selectedSpot.category] || '📍'}
               </span>

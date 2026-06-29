@@ -32,8 +32,8 @@
   --color-error:        #DC2626;
 
   /* Typography */
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body:    'Outfit', system-ui, sans-serif;
+  --font-display: 'Clash Display', 'Playfair Display', Georgia, serif;
+  --font-body:    'Satoshi', 'Outfit', system-ui, sans-serif;
   --font-mono:    'Courier New', monospace;
 
   /* Spacing (4px base) */
@@ -643,9 +643,39 @@
 }
 
 
-/* ── RTL Support ─────────────────────────────────────────────────────── */
 [dir="rtl"] .jn-page--left {
   border-right: none;
   border-left: 1px solid var(--color-border-light);
 }
+
+
+/* ── Leaflet Custom Parchment Map Styling ──────────────────────────────── */
+.parchment-map-container {
+  filter: sepia(0.68) hue-rotate(-5deg) contrast(1.18) saturate(0.85) brightness(0.96);
+  background: #f5f2eb;
+}
+.leaflet-bar {
+  border: 1px solid rgba(184, 134, 11, 0.25) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+}
+.leaflet-bar a {
+  background-color: #fffdfa !important;
+  color: #1c1917 !important;
+  border-bottom: 1px solid rgba(184, 134, 11, 0.15) !important;
+  font-family: var(--font-body) !important;
+  font-weight: bold !important;
+}
+.leaflet-bar a:hover {
+  background-color: #f7f3e8 !important;
+}
+.leaflet-control-zoom {
+  border: 1px solid rgba(184, 134, 11, 0.25) !important;
+}
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
 

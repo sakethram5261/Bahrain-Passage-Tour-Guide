@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import confetti from 'canvas-confetti'
 import { useVibe } from '../hooks/useVibe'
 
 export default function WaxSealCeremony({ dayNum, onComplete }) {
@@ -173,6 +174,18 @@ export default function WaxSealCeremony({ dayNum, onComplete }) {
     } catch { /* ignore */ }
 
     setPhase('cooled')
+
+    // Confetti celebration (gold and crimson)
+    try {
+      confetti({
+        particleCount: 140,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#BA0C2F', '#D4AF37', '#FFFDF9', '#C1122F']
+      })
+    } catch (e) {
+      console.warn('Confetti failed to launch:', e)
+    }
   }
 
   // Cleanup on unmount

@@ -391,14 +391,18 @@ export default function WelcomeIntro({ onComplete }) {
       timersRef.current.push(holdTimer)
     }
 
+    const taglineEl = taglineRef.current
+    const morphLineEl = morphLineRef.current
+    const arabicLineEl = arabicLineRef.current
+    const overlineEl = overlineRef.current
+
     return () => {
       slotTlRef.current?.kill()
       timersRef.current.forEach(clearTimeout)
       timersRef.current = []
       gsap.killTweensOf([
         wrap, slotView, morphView, slotText, loadingDots,
-        taglineRef.current, morphLineRef.current, arabicLineRef.current,
-        overlineRef.current,
+        taglineEl, morphLineEl, arabicLineEl, overlineEl,
       ])
     }
   }, [exitIntro])
