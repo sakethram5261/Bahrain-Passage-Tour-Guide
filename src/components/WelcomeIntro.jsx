@@ -657,7 +657,11 @@ export default function WelcomeIntro({ onComplete }) {
         </button>
         <div className="jn-intro-action-divider" aria-hidden="true" />
         <button
-          onClick={(e) => { e.stopPropagation(); quickStart() }}
+          onClick={(e) => { 
+            e.stopPropagation()
+            quickStart()
+            exitIntro()
+          }}
           className="jn-intro-quick-btn"
           aria-label="Quick start — skip setup"
         >
