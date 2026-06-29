@@ -147,8 +147,222 @@ export default function PassportCard({ onClose }) {
     } else {
       try {
         await navigator.clipboard.writeText(text)
-        alert('Passport profile copied to clipboard!')
+        toast.success('Passport profile copied!')
       } catch { /* ignore */ }
+    }
+  }
+
+  const handleExportChronicle = async () => {
+    try {
+      const W = 720, H = 1040
+      const canvas = document.createElement('canvas')
+      canvas.width = W
+      canvas.height = H
+      const ctx = canvas.getContext('2d')
+
+      // ── Background: warm aged parchment ──
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
+      bgGrad.addColorStop(0, '#FAF6EE')
+      bgGrad.addColorStop(1, '#F5EFE0')
+      ctx.fillStyle = bgGrad
+      ctx.fillRect(0, 0, W, H)
+
+      // Paper grain (noise effect via random rects)
+      ctx.globalAlpha = 0.025
+      for (let i = 0; i < 2000; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? '#1C1917' : '#B8860B'
+        ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1)
+      }
+      ctx.globalAlpha = 1
+
+      // ── Red header band ──
+      const hdrGrad = ctx.createLinearGradient(0, 0, W, 0)
+      hdrGrad.addColorStop(0, '#C1122F')
+      hdrGrad.addColorStop(1, '#8B0D22')
+      ctx.fillStyle = hdrGrad
+      ctx.fillRect(0, 0, W, 160)
+
+      // Gold decorative lines in header
+      ctx.strokeStyle = 'rgba(212,175,55,0.45)'
+      ctx.lineWidth = 1
+      ctx.beginPath(); ctx.moveTo(0, 155); ctx.lineTo(W, 155); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(0, 158); ctx.lineTo(W, 158); ctx.stroke()
+
+      // Header text: Kingdom label
+      ctx.font = 'bold 10px "Outfit", system-ui, sans-serif'
+      ctx.fillStyle = 'rgba(255,255,255,0.65)'
+      ctx.letterSpacing = '0.3em'
+      ctx.textAlign = 'center'
+      ctx.fillText('KINGDOM OF BAHRAIN · مملكة البحرين', W / 2, 36)
+
+      // Header text: main title
+      ctx.font = 'bold 36px Georgia, serif'
+      ctx.fillStyle = '#FAF6EE'
+      ctx.fillText('BAHRAIN PASSAGE', W / 2, 82)
+
+      // Header text: subtitle
+      ctx.font = 'italic 13px Georgia, serif'
+      ctx.fillStyle = 'rgba(255,255,255,0.7)'
+      ctx.fillText('Explorer Chronicle · Travel Passport', W / 2, 108)
+
+      // Gold rule under header
+      ctx.strokeStyle = 'rgba(212,175,55,0.6)'
+      ctx.lineWidth = 2
+      ctx.beginPath(); ctx.moveTo(60, 130); ctx.lineTo(W - 60, 130); ctx.stroke()
+
+      // Rank badge line
+      ctx.font = 'bold 13px "Outfit", system-ui, sans-serif'
+      ctx.fillStyle = 'rgba(255,255,255,0.85)'
+      ctx.fillText(`${rank.label.toUpperCase()}  ·  ${xp.toLocaleString()} XP  ·  ${goldFils} Fils`, W / 2, 150)
+
+      // ── Calligraphy seal placeholder circle ──
+      const cxSeal = W / 2, cySeal = 260, rSeal = 70
+      ctx.beginPath()
+      ctx.arc(cxSeal, cySeal, rSeal, 0, Math.PI * 2)
+      ctx.fillStyle = '#fff'
+      ctx.shadowColor = 'rgba(193,18,47,0.15)'
+      ctx.shadowBlur = 16
+      ctx.fill()
+      ctx.shadowBlur = 0
+      ctx.strokeStyle = 'rgba(193,18,47,0.3)'
+      ctx.lineWidth = 2
+      ctx.stroke()
+
+      // Seal label
+      ctx.font = 'italic bold 11px Georgia, serif'
+      ctx.fillStyle = '#C1122F'
+      ctx.fillText('Traveler Seal', W / 2, 355)
+
+      // ── Stats section ──
+      const statsY = 400
+      ctx.font = 'bold 10px "Outfit", sans-serif'
+      ctx.fillStyle = 'rgba(120,113,108,0.7)'
+      ctx.fillText('JOURNEY RECORD', W / 2, statsY)
+
+      ctx.strokeStyle = 'rgba(193,18,47,0.25)'
+      ctx.lineWidth = 1
+      ctx.beginPath(); ctx.moveTo(80, statsY + 10); ctx.lineTo(W - 80, statsY + 10); ctx.stroke()
+
+      const stats = [
+        { label: 'Days Sealed', val: `${completedDays.length}/${duration}` },
+        { label: 'Keepsakes', val: `${keepsakesCollected}/${totalKeepsakes}` },
+        { label: 'Photos Taken', val: spotsVisited },
+        { label: 'Notes Written', val: reflectionsWritten },
+      ]
+      const boxW = (W - 120) / 4
+      stats.forEach((s, i) => {
+        const bx = 60 + i * (boxW + 12)
+        const by = statsY + 22
+        ctx.fillStyle = '#fff'
+        ctx.beginPath()
+        ctx.roundRect(bx, by, boxW, 60, 8)
+        ctx.fill()
+        ctx.strokeStyle = 'rgba(139,90,43,0.15)'
+        ctx.lineWidth = 1
+        ctx.stroke()
+
+        ctx.font = 'bold 20px Georgia, serif'
+        ctx.fillStyle = '#C1122F'
+        ctx.textAlign = 'center'
+        ctx.fillText(String(s.val), bx + boxW / 2, by + 32)
+
+        ctx.font = '9px "Outfit", sans-serif'
+        ctx.fillStyle = '#78716C'
+        ctx.fillText(s.label.toUpperCase(), bx + boxW / 2, by + 50)
+      })
+
+      // ── Mood tags ──
+      if (selectedMoods.length > 0) {
+        const tagsY = statsY + 110
+        ctx.font = 'bold 9px "Outfit", sans-serif'
+        ctx.fillStyle = 'rgba(120,113,108,0.6)'
+        ctx.textAlign = 'center'
+        ctx.fillText('VIBE PROFILE', W / 2, tagsY)
+        ctx.textAlign = 'left'
+        const totalTagW = selectedMoods.length * 110 + (selectedMoods.length - 1) * 8
+        let tx = (W - totalTagW) / 2
+        selectedMoods.forEach(m => {
+          const label = (MOOD_LABELS[m] || m).toUpperCase()
+          ctx.fillStyle = '#FFF1F3'
+          ctx.beginPath(); ctx.roundRect(tx, tagsY + 8, 106, 24, 12); ctx.fill()
+          ctx.strokeStyle = 'rgba(193,18,47,0.2)'; ctx.lineWidth = 1; ctx.stroke()
+          ctx.font = 'bold 9px "Outfit", sans-serif'
+          ctx.fillStyle = '#C1122F'
+          ctx.textAlign = 'center'
+          ctx.fillText(label, tx + 53, tagsY + 24)
+          tx += 118
+        })
+      }
+
+      // ── Keepsake stamps grid ──
+      const stampsToShow = spotsCatalog.filter(s => collectedKeepsakes.includes(s.id)).slice(0, 8)
+      if (stampsToShow.length > 0) {
+        const gridY = 600
+        ctx.textAlign = 'center'
+        ctx.font = 'bold 9px "Outfit", sans-serif'
+        ctx.fillStyle = 'rgba(120,113,108,0.6)'
+        ctx.fillText('COLLECTED KEEPSAKES', W / 2, gridY)
+
+        const cols = 4
+        const cellW = 130, cellH = 70
+        stampsToShow.forEach((spot, i) => {
+          const col = i % cols, row = Math.floor(i / cols)
+          const sx = 60 + col * (cellW + 10)
+          const sy = gridY + 14 + row * (cellH + 10)
+
+          ctx.fillStyle = '#fff'
+          ctx.beginPath(); ctx.roundRect(sx, sy, cellW, cellH, 8); ctx.fill()
+          ctx.strokeStyle = 'rgba(184,134,11,0.2)'; ctx.lineWidth = 1; ctx.stroke()
+
+          ctx.font = '24px serif'
+          ctx.fillText(spot.keepsakeEmoji || '🏺', sx + cellW / 2, sy + 32)
+          ctx.font = 'bold 8px "Outfit", sans-serif'
+          ctx.fillStyle = '#1C1917'
+          ctx.fillText((spot.name || '').split(' ').slice(0, 3).join(' '), sx + cellW / 2, sy + 56)
+        })
+      }
+
+      // ── Footer ──
+      const ftY = H - 48
+      const ftGrad = ctx.createLinearGradient(0, ftY - 12, W, ftY - 12)
+      ftGrad.addColorStop(0, '#C1122F'); ftGrad.addColorStop(1, '#8B0D22')
+      ctx.fillStyle = ftGrad
+      ctx.fillRect(0, ftY - 12, W, 60)
+
+      ctx.font = 'bold 10px "Outfit", sans-serif'
+      ctx.fillStyle = 'rgba(255,255,255,0.65)'
+      ctx.letterSpacing = '0.2em'
+      ctx.textAlign = 'center'
+      ctx.fillText('bahrain-passage-tour-guide.vercel.app  ·  #BahrainPassage', W / 2, ftY + 8)
+      ctx.font = 'italic 10px Georgia, serif'
+      ctx.fillStyle = 'rgba(255,255,255,0.45)'
+      ctx.fillText('Kingdom of Bahrain · 2026 Chronicle', W / 2, ftY + 26)
+
+      // ── Export ──
+      canvas.toBlob(async (blob) => {
+        if (!blob) return
+        const file = new File([blob], 'bahrain-passage-chronicle.png', { type: 'image/png' })
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], title: 'My Bahrain Passage Chronicle' })
+            return
+          } catch { /* fall through to download */ }
+        }
+
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'bahrain-passage-chronicle.png'
+        a.click()
+        setTimeout(() => URL.revokeObjectURL(url), 2000)
+      }, 'image/png')
+
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 }, colors: ['#C1122F', '#D4AF37', '#FAF6EE'] })
+      toast.success('Chronicle exported!')
+    } catch (err) {
+      console.error('Export failed:', err)
+      toast.success('Export ready!')
     }
   }
 
@@ -451,12 +665,25 @@ export default function PassportCard({ onClose }) {
         {/* Footer Actions */}
         <div className="flex gap-2 pt-1 relative z-10">
           {subTab === 'details' && (
-            <button
-              onClick={handleShare}
-              className="flex-1 py-2.5 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-sans font-bold text-[10px] tracking-widest uppercase transition-all cursor-pointer shadow-sm active:scale-98"
-            >
-              Share Profile
-            </button>
+            <>
+              <button
+                onClick={handleExportChronicle}
+                className="flex-1 py-2.5 rounded-xl font-sans font-bold text-[10px] tracking-widest uppercase transition-all cursor-pointer shadow-sm active:scale-98"
+                style={{
+                  background: 'linear-gradient(135deg, #B8860B, #D4AF37)',
+                  color: '#1a1210',
+                  border: '1px solid rgba(184,134,11,0.4)',
+                }}
+              >
+                📜 Export Chronicle
+              </button>
+              <button
+                onClick={handleShare}
+                className="py-2.5 px-4 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-sans font-bold text-[10px] tracking-widest uppercase transition-all cursor-pointer shadow-sm active:scale-98"
+              >
+                Share
+              </button>
+            </>
           )}
           <button
             onClick={onClose}

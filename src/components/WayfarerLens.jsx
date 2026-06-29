@@ -4,62 +4,99 @@ import { useGSAP } from '@gsap/react'
 import { useVibe } from '../hooks/useVibe'
 import { fetchSpotStory } from '../services/itinerary-service'
 import { playScanBeep as playScanBeepShared } from '../services/audioUtils'
+import { callGeminiVision } from '../services/aiService'
+
+// ─── Per-spot fallback texts (shown if no API key is configured) ──────────────
+const SPOT_VISION_FALLBACKS = {
+  'qal-at-al-bahrain': 'The warm coral stone here is over 4,000 years old — Dilmun merchants pressed their clay seals against these very walls to mark shipments bound for ancient Mesopotamia.',
+  'muharraq-souq': 'The intricate gypsum lattice screens overhead are hand-carved — each geometric pattern is unique to the craftsman who made it, a tradition passed down through Muharraq families for centuries.',
+  'pearling-path': 'The wind-towers you see here are Bahrain\'s original air conditioning — coral stone channels caught the sea breeze and funneled it down into the pearl merchants\' homes below.',
+  'block-338': 'The murals here change every season — local artists repaint these walls during the spring arts festival, making Block 338 a living canvas that never looks the same twice.',
+  'jarada-island': 'The white sand here is so fine it squeaks underfoot — geologists believe it formed from thousands of years of crushed coral and shell fragments ground smooth by the Gulf tides.',
+  'tree-of-life': 'This solitary mesquite tree\'s roots descend over 50 meters through the dry Sakhir desert to reach a hidden freshwater aquifer — it has survived 400+ years without any visible water source.',
+  'haji-cafe': 'The copper pots here have been seasoned by decades of saffron and cardamom — regulars say you can taste the history in every cup of karak tea served on these worn wooden benches.',
+  'aali-pottery': 'The red clay used here is harvested from local Sakhir marshes — the same rich mineral-heavy soil that ancient Dilmun potters used to fire the ceremonial jars found in nearby burial mounds.',
+  'arad-fort': 'The cylindrical corner towers here were an engineering marvel in the 15th century — their curved walls deflect cannonballs rather than absorbing the impact, a technique ahead of its time.',
+  'national-museum': 'The traditional pearling dhow preserved inside here is one of the last surviving examples — it was built using hand-stitched wooden planks, no nails, stitched together with twisted coconut fiber rope.',
+  'al-dar-islands': 'The shallow seagrass beds visible here are nurseries for the Gulf\'s blue swimming crabs — they shelter here as juveniles before migrating to deeper offshore waters.',
+  'reef-island': 'At exactly 7:15 PM, the city\'s skyscraper neon lights begin to reflect off the calm marina surface here — locals call it the \'Golden Mirror,\' and it lasts only about 40 minutes.',
+}
+
+const DEFAULT_VISION_FALLBACK = 'Every corner of Bahrain holds a layer of history waiting to be uncovered — from 5,000-year-old Dilmun trade routes to the pearl divers who held their breath for two minutes in these warm Gulf waters.'
+
+const VISION_PROMPT = `You are a Bahraini heritage archaeologist and storyteller. 
+Examine this photograph and describe in exactly 2 sentences what you observe that connects visually to Bahrain's cultural, historical, or natural heritage.
+Be specific to what is actually visible in the image — textures, colors, architecture, materials, or natural features.
+Write in a rich, sensory style. Do not use generic tourist language. Do not start with "I see" or "The image shows".`
 
 export default function WayfarerLens({ spot, onClose }) {
-  const { 
-    saveCapturedPhoto, 
-    saveLensStory, 
-    lensStories, 
+  const {
+    saveCapturedPhoto,
+    saveLensStory,
+    lensStories,
     unlockKeepsake,
     capturedPhotos = {},
     soundVolume,
-    soundMuted
+    soundMuted,
+    awardXP,
+    setGoldFils,
   } = useVibe()
-  
-  const videoRef = useRef(null)
-  const streamRef = useRef(null)
-  const lensRef = useRef(null)
-  const ringRef = useRef(null)
-  const flashRef = useRef(null)
-  const fileInputRef = useRef(null)
 
-  const [permission, setPermission] = useState('pending')
-  const [capturing, setCapturing] = useState(false)
-  const [captured, setCaptured] = useState(false)
-  const [storyLoading, setStoryLoading] = useState(false)
-  
-  // High-fidelity Optics Scanner states
-  const [scanning, setScanning] = useState(false)
-  const [scanProgress, setScanProgress] = useState(0)
-  const [scanLog, setScanLog] = useState('Standby for snapshot alignment...')
-  const [photoRank, setPhotoRank] = useState('')
+  const videoRef      = useRef(null)
+  const streamRef     = useRef(null)
+  const lensRef       = useRef(null)
+  const ringRef       = useRef(null)
+  const flashRef      = useRef(null)
+  const fileInputRef  = useRef(null)
+  const storyBoxRef   = useRef(null)
 
-  // Optical Alignment parameters (simplified to prevent manual alignment headache)
-  const blurAmount = 0
-  const brightnessAmount = 1
+  const [permission, setPermission]       = useState('pending')
+  const [capturing, setCapturing]         = useState(false)
+  const [captured, setCaptured]           = useState(false)
+  const [storyLoading, setStoryLoading]   = useState(false)
+  const [visionLoading, setVisionLoading] = useState(false)
+  const [visionText, setVisionText]       = useState('')
+  const [displayedVision, setDisplayedVision] = useState('')
 
+  // Typewriter reveal for AI vision text
+  useEffect(() => {
+    if (!visionText) return
+    let i = 0
+    setDisplayedVision('')
+    const tid = setInterval(() => {
+      i++
+      setDisplayedVision(visionText.slice(0, i))
+      if (i >= visionText.length) clearInterval(tid)
+    }, 18)
+    return () => clearInterval(tid)
+  }, [visionText])
+
+  // Animate vision box in when visionText arrives
+  useEffect(() => {
+    if (visionText && storyBoxRef.current) {
+      gsap.fromTo(storyBoxRef.current,
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
+      )
+    }
+  }, [visionText])
 
   useEffect(() => {
     let active = true
-
     async function startCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: 'environment' } 
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
         })
         if (active) {
           streamRef.current = stream
           setPermission('granted')
         }
       } catch {
-        if (active) {
-          setPermission('denied')
-        }
+        if (active) setPermission('denied')
       }
     }
-
     startCamera()
-
     return () => {
       active = false
       if (streamRef.current) {
@@ -68,8 +105,6 @@ export default function WayfarerLens({ spot, onClose }) {
     }
   }, [])
 
-  // Callback ref: attaches stream to video element as soon as it mounts into DOM.
-  // Avoids the invalid useEffect dependency on videoRef.current.
   const videoCallbackRef = (element) => {
     videoRef.current = element
     if (element && streamRef.current) {
@@ -78,8 +113,7 @@ export default function WayfarerLens({ spot, onClose }) {
   }
 
   useGSAP(() => {
-    if (captured) return
-
+    if (captured || !ringRef.current) return
     gsap.fromTo(ringRef.current,
       { rotate: 0 },
       { rotate: 360, duration: 25, repeat: -1, ease: 'none' }
@@ -90,33 +124,61 @@ export default function WayfarerLens({ spot, onClose }) {
     playScanBeepShared(freq, duration, soundVolume, soundMuted)
   }
 
-  const handleCapture = async () => {
-    if (capturing || scanning) return
+  const processCapture = async (capturedDataUrl) => {
     setCapturing(true)
+    setVisionLoading(true)
+    setVisionText('')
 
-    // Play physical camera shutter sound
-    try {
-      const shutterSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav')
-      shutterSfx.volume = 0.25
-      shutterSfx.play().catch(() => {})
-    } catch { /* ignore */ }
-
-    // Play physical camera flash animation
-    gsap.fromTo(flashRef.current,
-      { opacity: 0 },
-      { 
-        opacity: 1, 
-        duration: 0.1, 
-        yoyo: true, 
-        repeat: 1, 
-        ease: 'power2.out',
-        onComplete: () => {
-          gsap.set(flashRef.current, { opacity: 0 })
+    // Animate flash
+    if (flashRef.current) {
+      gsap.fromTo(flashRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.08, yoyo: true, repeat: 1, ease: 'power2.out',
+          onComplete: () => { if (flashRef.current) gsap.set(flashRef.current, { opacity: 0 }) }
         }
-      }
-    )
+      )
+    }
 
-    // Capture physical video matrix via canvas
+    playScanBeep(800, 0.06)
+
+    // Extract base64 data (strip data:image/...;base64, prefix)
+    const base64Match = capturedDataUrl.match(/^data:([^;]+);base64,(.+)$/)
+    const mimeType = base64Match?.[1] || 'image/jpeg'
+    const base64Data = base64Match?.[2] || ''
+
+    const fallback = SPOT_VISION_FALLBACKS[spot.id] || DEFAULT_VISION_FALLBACK
+
+    // Call real Gemini Vision — or fallback silently
+    let aiText = fallback
+    if (base64Data) {
+      aiText = await callGeminiVision(base64Data, mimeType, VISION_PROMPT, fallback)
+    }
+
+    setVisionLoading(false)
+    setVisionText(aiText)
+
+    // Save photo + story
+    saveCapturedPhoto(spot.id, capturedDataUrl)
+
+    fetchSpotStory(spot).then(storyText => {
+      if (storyText) saveLensStory(spot.id, storyText)
+      unlockKeepsake(spot.id)
+    }).catch(() => {
+      unlockKeepsake(spot.id)
+    })
+
+    // Award XP & fils
+    if (typeof awardXP === 'function') awardXP(30)
+    if (typeof setGoldFils === 'function') setGoldFils(prev => (prev || 0) + 250)
+
+    playScanBeep(1050, 0.1)
+    setCapturing(false)
+    setCaptured(true)
+  }
+
+  const handleCapture = async () => {
+    if (capturing) return
+
     let capturedDataUrl = null
     try {
       if (permission === 'granted' && videoRef.current && videoRef.current.readyState >= 2) {
@@ -126,486 +188,307 @@ export default function WayfarerLens({ spot, onClose }) {
         canvas.width = w
         canvas.height = h
         const ctx = canvas.getContext('2d')
-        
-        // Apply a gorgeous premium retro sepia/contrast polaroid photo filter directly in canvas
-        ctx.filter = 'sepia(0.3) contrast(1.15) brightness(0.95)'
+        ctx.filter = 'sepia(0.25) contrast(1.12) brightness(0.96)'
         ctx.drawImage(videoRef.current, 0, 0, w, h)
-        capturedDataUrl = canvas.toDataURL('image/jpeg')
+        capturedDataUrl = canvas.toDataURL('image/jpeg', 0.88)
       }
     } catch (e) {
-      console.error('Failed to parse camera stream:', e)
+      console.error('Failed to capture camera frame:', e)
     }
 
-    // Fallback: If camera blocked or warming up, take a stylized polaroid postcard of the default spot!
     if (!capturedDataUrl) {
       capturedDataUrl = spot.image
     }
 
-    // Launch High-Fidelity Scanning simulation
-    setScanning(true)
-    setScanProgress(0)
-    setScanLog('INITIALIZING...')
-    
-    // Choose random premium rank
-    const ranks = [
-      'ARCHIVIST RANK (GOLD STAMP)',
-      'EXPERT PICK (SEAL)',
-      'LOCAL STORYTELLER PICK (LEGACY)',
-      'HIGH-FIDELITY ALIGNMENT (AESTHETIC)'
-    ]
-    const chosenRank = ranks[Math.floor(Math.random() * ranks.length)]
-    setPhotoRank(chosenRank)
-
-    // Scanning intervals over 2.4 seconds
-    let progress = 0
-    const scanInterval = setInterval(() => {
-      progress += 10
-      setScanProgress(progress)
-      
-      // Play cool scanner beep ticks
-      playScanBeep(700 + progress * 3.5, 0.05)
-
-      if (progress === 10) {
-        setScanLog('ALIGNING SCAN PARAMETERS...')
-      } else if (progress === 35) {
-        setScanLog('MEASURING CONTRAST & DEPTH...')
-      } else if (progress === 60) {
-        setScanLog('PROCESSING PHOTOGRAMMETRY...')
-      } else if (progress === 85) {
-        setScanLog('FINALIZING ARCHIVE ENTRY...')
-      } else if (progress >= 100) {
-        clearInterval(scanInterval)
-        
-        // Save and compile story
-        saveCapturedPhoto(spot.id, capturedDataUrl)
-        setScanning(false)
-        setStoryLoading(true)
-        
-        fetchSpotStory(spot).then(storyText => {
-          if (storyText) {
-            saveLensStory(spot.id, storyText)
-          }
-          unlockKeepsake(spot.id)
-          setStoryLoading(false)
-          setCapturing(false)
-          setCaptured(true)
-        }).catch(() => {
-          setStoryLoading(false)
-          setCapturing(false)
-          setCaptured(true)
-        })
-      }
-    }, 240)
+    await processCapture(capturedDataUrl)
   }
-
-
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    setCapturing(true)
-    playScanBeep(850, 0.08)
-
     const reader = new FileReader()
-    reader.onload = (event) => {
-      const dataUrl = event.target.result
-
-      // Start high-fidelity AI scanning animation
-      setScanning(true)
-      setScanProgress(0)
-      setScanLog('UPLOADING TO LOCAL NEURAL NET...')
-      
-      const ranks = [
-        'HIGH-FIDELITY NEURAL MATCH (GOLD)',
-        'LOCAL SCANNER ALIGNED (LEGACY)',
-        'CULTURAL ARCHIVIST MATCH (PREMIUM)',
-        'AESTHETIC LOCK - 98.4% CONFIDENCE'
-      ]
-      const chosenRank = ranks[Math.floor(Math.random() * ranks.length)]
-      setPhotoRank(chosenRank)
-
-      let progress = 0
-      const scanInterval = setInterval(() => {
-        progress += 10
-        setScanProgress(progress)
-        playScanBeep(700 + progress * 3.5, 0.04)
-
-        if (progress === 10) {
-          setScanLog('EXTRACTING IMAGE FEATURE MAPS...')
-        } else if (progress === 35) {
-          setScanLog('COMPARING CHROMATIC VIBRANCY...')
-        } else if (progress === 60) {
-          setScanLog('CLASSIFICATION: DETECTING ARTIFACT LAYERS...')
-        } else if (progress === 80) {
-          setScanLog('CLASSIFICATION LOCK: MATCH SUCCESSFUL!')
-        } else if (progress >= 100) {
-          clearInterval(scanInterval)
-          
-          saveCapturedPhoto(spot.id, dataUrl)
-          setScanning(false)
-          setStoryLoading(true)
-          
-          fetchSpotStory(spot).then(storyText => {
-            if (storyText) {
-              saveLensStory(spot.id, storyText)
-            }
-            unlockKeepsake(spot.id)
-            setStoryLoading(false)
-            setCapturing(false)
-            setCaptured(true)
-          }).catch(() => {
-            setStoryLoading(false)
-            setCapturing(false)
-            setCaptured(true)
-          })
-        }
-      }, 120)
+    reader.onload = async (event) => {
+      await processCapture(event.target.result)
     }
     reader.readAsDataURL(file)
   }
 
-
   return (
-    <div 
+    <div
       ref={lensRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 p-4 select-none backdrop-blur-md"
     >
-      {/* Visual Shutter Flash overlay */}
-      <div 
+      {/* Flash overlay */}
+      <div
         ref={flashRef}
-        className="fixed inset-0 bg-white z-50 opacity-0 pointer-events-none" 
+        className="fixed inset-0 bg-white z-50 opacity-0 pointer-events-none"
       />
 
-      <div className="relative w-full max-w-lg rounded-3xl bg-pearl-bg border border-red-500/10 flex flex-col justify-between p-6 shadow-2xl overflow-hidden min-h-[500px]">
-        
-        {/* Viewfinder Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-red-500/10">
+      <div className="relative w-full max-w-lg rounded-3xl bg-[#FAF6EE] border border-[#C1122F]/10 flex flex-col justify-between p-6 shadow-2xl overflow-hidden min-h-[500px]">
+
+        {/* Header */}
+        <div className="flex justify-between items-center pb-4 border-b border-[#C1122F]/08">
           <div className="flex flex-col text-left">
-            <span className="font-sans text-[8px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
-              Camera
+            <span style={{
+              fontFamily: '"Outfit", system-ui, sans-serif',
+              fontSize: 8, letterSpacing: '0.28em',
+              color: '#C1122F', textTransform: 'uppercase', fontWeight: 700,
+            }}>
+              Wayfarer Lens
             </span>
-            <span className="font-serif text-lg text-bronze-charcoal font-semibold mt-0.5">
-              {captured ? 'Photo Saved' : 'Camera Ready'}
+            <span style={{
+              fontFamily: '"Playfair Display", Georgia, serif',
+              fontSize: 18, color: '#1C1917', fontWeight: 600, marginTop: 2,
+            }}>
+              {captured ? 'Image Archived' : 'Camera Ready'}
             </span>
           </div>
 
-          <button 
+          <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center bg-pearl-border border border-red-500/10 text-bronze-charcoal hover:bg-red-500/5 cursor-pointer transition-all text-xs"
+            className="w-8 h-8 rounded-full flex items-center justify-center border border-stone-200 text-stone-500 hover:bg-red-500/5 cursor-pointer transition-all text-xs"
           >
             ✕
           </button>
         </div>
 
-        {/* Viewport Box */}
-        <div className="flex-1 flex flex-col items-center justify-center py-6">
-          {scanning ? (
-            /* Premium active optics scanning HUD view */
-            <div className="w-full max-w-sm p-6 rounded-2xl border border-[#C1122F]/20 bg-[#FAFAF9] text-center select-none shadow-md relative overflow-hidden">
-              {/* Scanning coordinates overlay */}
-              <div className="absolute top-4 left-4 font-mono text-[9px] text-[#C1122F] font-bold">
-                [ {spot.coords.split(',')[0] || '26.2285° N'} ]
-              </div>
-              <div className="absolute top-4 right-4 font-mono text-[9px] text-[#C1122F] font-bold">
-                [ {spot.coords.split(',')[1]?.trim() || '50.5198° E'} ]
-              </div>
+        {/* Main viewport */}
+        <div className="flex-1 flex flex-col items-center justify-center py-6 gap-4">
 
-              {/* Glowing circular reticle with red sweep bar */}
-              <div className="relative w-44 h-44 mx-auto rounded-full border-2 border-dashed border-[#C1122F]/40 flex items-center justify-center bg-white shadow-[inset_0_0_20px_rgba(193,18,47,0.06)] my-5 overflow-hidden">
-                {/* Horizontal scanning sweep bar */}
-                <div 
-                  className="absolute left-0 right-0 h-1 bg-[#C1122F] shadow-[0_0_8px_#C1122F] opacity-80"
-                  style={{
-                    top: `${scanProgress}%`,
-                    transition: 'top 0.1s linear'
-                  }}
-                />
-                
-                {/* Crosshairs */}
-                <div className="absolute w-6 h-px bg-[#C1122F]/40" />
-                <div className="absolute h-6 w-px bg-[#C1122F]/40" />
-
-                {/* Progress Circle Spinner */}
-                <svg className="absolute w-36 h-36 -rotate-90" viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    stroke="rgba(193,18,47,0.05)"
-                    strokeWidth="2.5"
-                    fill="none"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    stroke="#C1122F"
-                    strokeWidth="3"
-                    fill="none"
-                    strokeDasharray={2 * Math.PI * 45}
-                    strokeDashoffset={2 * Math.PI * 45 * (1 - scanProgress / 100)}
-                    style={{ transition: 'stroke-dashoffset 0.15s ease' }}
-                  />
-                </svg>
-
-                <span className="font-mono text-xl font-bold text-[#C1122F] z-10">
-                  {scanProgress}%
-                </span>
-              </div>
-
-              {/* Scrolling status log text */}
-              <div className="mt-4 bg-stone-950 text-emerald-400 border border-stone-900 p-3 rounded-xl min-h-[85px] flex flex-col text-left font-mono text-[8px] space-y-1 select-none">
-                <div className="flex justify-between border-b border-stone-900 pb-1 text-stone-600 font-bold uppercase tracking-wider">
-                  <span>AI Classifier HUD v1.0.4</span>
-                  <span className="text-emerald-500 animate-pulse font-bold">● Active</span>
-                </div>
-                <div className="pt-1"><span className="text-stone-600">SYSTEM:</span> Local Neural Net connected</div>
-                <div><span className="text-stone-600">STAGE:</span> {scanLog}</div>
-                <div className="flex justify-between pt-1.5 font-sans font-semibold text-stone-500 text-[7px] uppercase tracking-wider">
-                  <span>[x] Edges</span>
-                  <span>{scanProgress > 40 ? '[x]' : '[ ]'} Color</span>
-                  <span>{scanProgress > 80 ? '[x]' : '[ ]'} Dilmun Lock</span>
-                </div>
-              </div>
-
-              <span className="font-sans text-[7px] tracking-[0.25em] text-[#C1122F]/60 uppercase block mt-3.5 font-bold animate-pulse">
-                Analysing Image Strata · Zero-Cost AI Scan
-              </span>
+          {/* ── Capturing / AI reading state ── */}
+          {capturing && (
+            <div className="w-full max-w-sm text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-[#C1122F]/15 border-t-[#C1122F] animate-spin" />
+              <p style={{
+                fontFamily: '"Playfair Display", Georgia, serif',
+                fontStyle: 'italic', fontSize: 13,
+                color: '#5C5451', letterSpacing: '0.01em',
+              }}>
+                {visionLoading ? 'Reading your image…' : 'Archiving entry…'}
+              </p>
+              <p style={{
+                fontFamily: '"Outfit", system-ui, sans-serif',
+                fontSize: 9, letterSpacing: '0.18em',
+                color: 'rgba(193,18,47,0.5)', textTransform: 'uppercase',
+                marginTop: 6,
+              }}>
+                {visionLoading ? 'Gemini Vision · Cultural Heritage Mode' : 'Saving to chronicle…'}
+              </p>
             </div>
-          ) : !captured ? (
-            <div className="flex flex-col items-center w-full">
-              
-              {/* Camera Viewfinder Viewport */}
-              <div className="relative w-64 h-64 rounded-2xl border border-white/20 overflow-hidden shadow-lg mb-6 bg-zinc-950 flex items-center justify-center">
-                
-                <div 
-                  className="absolute inset-0 z-0"
-                  style={{
-                    filter: `blur(${blurAmount}px) brightness(${brightnessAmount}) contrast(1.1)`,
-                    transition: 'filter 0.1s ease-out'
-                  }}
-                >
+          )}
 
-                  {permission === 'granted' ? (
-                    <video 
-                      ref={videoCallbackRef}
-                      autoPlay 
-                      playsInline 
-                      muted 
-                      className="w-full h-full object-cover opacity-80"
-                    />
-                  ) : (
-                    /* High-fidelity mock viewfinder if permission denied */
-                    <div className="w-full h-full relative bg-[#1C1917] flex items-center justify-center">
-                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none z-0">
-                        <span className="font-serif text-sm text-white/80 font-medium italic tracking-wider z-10 truncate max-w-full px-2">
-                          {spot.name}
-                        </span>
-                        <span className="font-serif text-xs text-[#C1122F] mt-1 z-10 font-bold">
-                          {spot.arabic}
-                        </span>
-                        <span className="font-sans text-[6px] text-white/40 tracking-[0.2em] uppercase mt-2.5 z-10">
-                          Optical Scanner Port
-                        </span>
-                      </div>
-                      <img 
-                        src={spot.image} 
-                        alt="mock camera view" 
-                        className="w-full h-full object-cover opacity-50 relative z-10"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    </div>
+          {/* ── Captured + AI response state ── */}
+          {!capturing && captured && (
+            <div className="w-full max-w-sm">
+              {/* Polaroid photo */}
+              <div style={{
+                background: '#fff',
+                padding: '8px 8px 32px 8px',
+                boxShadow: '0 6px 28px rgba(28,25,23,0.14), 0 1px 4px rgba(28,25,23,0.08)',
+                borderRadius: 6,
+                transform: 'rotate(-1.5deg)',
+                marginBottom: 20,
+              }}>
+                <div style={{ width: '100%', paddingBottom: '75%', position: 'relative', borderRadius: 3, overflow: 'hidden', background: '#e8e4dc' }}>
+                  <img
+                    src={capturedPhotos[spot.id] || spot.image}
+                    alt={spot.name}
+                    style={{
+                      position: 'absolute', inset: 0, width: '100%', height: '100%',
+                      objectFit: 'cover',
+                      filter: 'sepia(0.15) contrast(1.08) brightness(0.94)',
+                    }}
+                    onError={(e) => { e.target.style.display = 'none' }}
+                  />
+                </div>
+                <div style={{
+                  paddingTop: 8, textAlign: 'center',
+                  fontFamily: '"Playfair Display", Georgia, serif',
+                  fontSize: 10, fontStyle: 'italic',
+                  color: '#78716C', letterSpacing: '0.05em',
+                }}>
+                  {spot.name}
+                </div>
+              </div>
+
+              {/* AI Vision response */}
+              <div
+                ref={storyBoxRef}
+                style={{
+                  background: 'rgba(193,18,47,0.03)',
+                  border: '1px solid rgba(193,18,47,0.12)',
+                  borderRadius: 12,
+                  padding: '14px 16px',
+                  marginBottom: 12,
+                  opacity: visionText ? 1 : 0,
+                }}
+              >
+                <div style={{
+                  fontFamily: '"Outfit", system-ui, sans-serif',
+                  fontSize: 8, letterSpacing: '0.22em',
+                  color: '#C1122F', textTransform: 'uppercase', fontWeight: 700,
+                  marginBottom: 8,
+                  display: 'flex', alignItems: 'center', gap: 5,
+                }}>
+                  <span>✦</span> AI Heritage Reading
+                </div>
+                <p style={{
+                  fontFamily: '"Playfair Display", Georgia, serif',
+                  fontStyle: 'italic', fontSize: 13, lineHeight: 1.65,
+                  color: '#1C1917', margin: 0,
+                  minHeight: 42,
+                }}>
+                  {displayedVision}
+                  {displayedVision.length < visionText.length && (
+                    <span style={{ borderRight: '1.5px solid #C1122F', marginLeft: 1, animation: 'cursorBlink 0.7s step-end infinite' }} />
                   )}
-                </div>
-
-                {/* Thin corner brackets */}
-                <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-[#C1122F]/60 rounded-tl" />
-                <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-[#C1122F]/60 rounded-tr" />
-                <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-[#C1122F]/60 rounded-bl" />
-                <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-[#C1122F]/60 rounded-br" />
-                
-                {/* Viewfinder crosshair */}
-                <div className="absolute z-20 w-3 h-3 border-l border-t border-[#C1122F]/60 top-1/2 left-1/2 -translate-x-3 -translate-y-3" />
-                <div className="absolute z-20 w-3 h-3 border-r border-t border-[#C1122F]/60 top-1/2 left-1/2 translate-x-1 -translate-y-3" />
-                <div className="absolute z-20 w-3 h-3 border-l border-b border-[#C1122F]/60 top-1/2 left-1/2 -translate-x-3 translate-y-1" />
-                <div className="absolute z-20 w-3 h-3 border-r border-b border-[#C1122F]/60 top-1/2 left-1/2 translate-x-1 translate-y-1" />
+                </p>
               </div>
 
-              {/* Viewport instruction text & sliders */}
-              <div className="flex flex-col items-center gap-1.5 w-full max-w-xs text-center select-none">
-                <span className="font-sans text-[9px] tracking-[0.25em] text-bahrain-red uppercase font-bold">
-                  {permission === 'granted' ? 'Lens Connected' : 'Simulating Horizon'}
+              {/* Reward strip */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                background: 'rgba(22,163,74,0.06)',
+                border: '1px solid rgba(22,163,74,0.18)',
+                borderRadius: 10, padding: '8px 12px',
+                fontFamily: '"Outfit", system-ui, sans-serif',
+                fontSize: 10, fontWeight: 700,
+                color: '#15803D',
+              }}>
+                <span>Archived to Chronicle</span>
+                <span style={{ background: 'rgba(22,163,74,0.12)', padding: '2px 8px', borderRadius: 6 }}>
+                  +250 Fils · +30 XP
                 </span>
-                
-                {/* Vintage camera status */}
-                <div className="w-full mt-2 bg-[#FCFBF8] border border-red-500/10 p-3.5 rounded-2xl shadow-sm text-center">
-                  <div className="text-[9px] font-sans font-black text-emerald-800 uppercase tracking-widest animate-pulse">
-                    📸 Optic Lens Aligned & Secured
-                  </div>
-                  <div className="text-[7.5px] font-sans font-semibold text-stone-500 uppercase tracking-wider mt-1">
-                    Neural net ready for artifact & landmark scanning
-                  </div>
-                </div>
               </div>
-
-
             </div>
-          ) : (
-            /* Scrapbook Capture Detail */
-            <div className="w-full max-w-sm p-5 rounded-2xl glass-panel-heavy border-bahrain-red relative text-left animate-scaleIn">
-              
-              {/* Dynamic Scrapbook envelope effect */}
-              <div className="absolute top-4 right-4 w-14 h-14 border border-dashed border-bahrain-red/35 rounded-full flex flex-col items-center justify-center -rotate-12 select-none pointer-events-none">
-                <span className="font-serif text-[6px] tracking-widest text-bahrain-red uppercase font-bold">Sealed</span>
-                <span className="font-serif text-[5px] text-bronze-charcoal mt-0.5">Customs</span>
-              </div>
+          )}
 
-              <span className="font-sans text-[8px] tracking-widest text-bahrain-red uppercase font-bold block mb-1">
-                Scrapbook Entry Added
-              </span>
-              <h4 className="font-serif text-2xl text-bronze-charcoal font-semibold mb-3">
-                {spot.name}
-              </h4>
-
-              {/* Polaroid chemical noise and gradual color bleed visual */}
-              <div className="w-full h-36 rounded-xl overflow-hidden relative border-4 border-white shadow-md bg-stone-100 mb-4 flex items-center justify-center">
-                <img 
-                  src={capturedPhotos[spot.id] || spot.image} 
-                  alt={spot.name} 
-                  className="w-full h-full object-cover jn-photo-developing"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-                <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-                <div className="absolute bottom-1 right-2 border border-white/45 rounded-full w-8 h-8 rotate-12 flex flex-col items-center justify-center text-white/50 text-[3.5px] font-serif leading-none font-bold select-none pointer-events-none">
-                  <span>SEALED</span>
-                </div>
-              </div>
-
-              {/* Photo Clarity Rank badge */}
-              {photoRank && (
-                <div className="mb-3 px-3 py-1.5 rounded-xl border border-amber-600/30 bg-amber-500/5 flex items-center justify-between">
-                  <span className="font-sans text-[8px] uppercase tracking-wider text-amber-600 font-extrabold">
-                    Optics Rank
-                  </span>
-                  <span className="font-sans text-[8px] font-bold text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded truncate max-w-[200px]">
-                    {photoRank}
-                  </span>
-                </div>
-              )}
-
-              {/* Gold Fils and XP stipend reward banner */}
-              <div className="mb-3 p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-between text-emerald-800 font-sans text-[9px] font-bold">
-                <span>Reward:</span>
-                <span className="bg-emerald-500/10 px-2 py-0.5 rounded text-emerald-900">
-                  +250 Fils & +30 XP Added!
-                </span>
-              </div>
-              
-              {/* Polaroid Decipher description */}
-              <div className="p-4 rounded-xl bg-pearl-bg border border-red-500/5 mb-4 relative">
-                {storyLoading ? (
-                  <div className="py-4 flex flex-col items-center justify-center gap-2 select-none">
-                    <div className="w-6 h-6 border-2 border-red-500/10 border-t-bahrain-red rounded-full animate-spin" />
-                    <span className="font-serif text-[10px] italic text-bronze-muted">
-                      Loading...
-                    </span>
-                  </div>
+          {/* ── Camera viewfinder state ── */}
+          {!capturing && !captured && (
+            <div className="flex flex-col items-center w-full gap-4">
+              {/* Viewfinder */}
+              <div style={{
+                width: 240, height: 240, borderRadius: 16,
+                overflow: 'hidden', position: 'relative',
+                background: '#1C1917',
+                boxShadow: '0 8px 32px rgba(28,25,23,0.2)',
+              }}>
+                {permission === 'granted' ? (
+                  <video
+                    ref={videoCallbackRef}
+                    autoPlay playsInline muted
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+                  />
                 ) : (
-                  <p className="font-serif text-xs italic text-bronze-charcoal leading-relaxed">
-                    {lensStories[spot.id] || "We have logged this landmark into your physical scrapbook with a live postcard snap. Review the secret local tips on your main logbook."}
-                  </p>
+                  <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                    <img
+                      src={spot.image}
+                      alt="Location preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55, filter: 'sepia(0.3)' }}
+                      onError={(e) => { e.target.style.display = 'none' }}
+                    />
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center',
+                      padding: 16, textAlign: 'center',
+                    }}>
+                      <p style={{ fontFamily: '"Playfair Display", serif', fontSize: 13, color: 'rgba(255,255,255,0.85)', fontStyle: 'italic', marginBottom: 4 }}>
+                        {spot.name}
+                      </p>
+                      <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(193,18,47,0.8)' }}>
+                        Tap Snap to archive
+                      </p>
+                    </div>
+                  </div>
                 )}
+
+                {/* Corner brackets */}
+                <div style={{ position: 'absolute', top: 10, left: 10, width: 14, height: 14, borderTop: '2px solid rgba(193,18,47,0.6)', borderLeft: '2px solid rgba(193,18,47,0.6)', borderRadius: '3px 0 0 0' }} />
+                <div style={{ position: 'absolute', top: 10, right: 10, width: 14, height: 14, borderTop: '2px solid rgba(193,18,47,0.6)', borderRight: '2px solid rgba(193,18,47,0.6)', borderRadius: '0 3px 0 0' }} />
+                <div style={{ position: 'absolute', bottom: 10, left: 10, width: 14, height: 14, borderBottom: '2px solid rgba(193,18,47,0.6)', borderLeft: '2px solid rgba(193,18,47,0.6)', borderRadius: '0 0 0 3px' }} />
+                <div style={{ position: 'absolute', bottom: 10, right: 10, width: 14, height: 14, borderBottom: '2px solid rgba(193,18,47,0.6)', borderRight: '2px solid rgba(193,18,47,0.6)', borderRadius: '0 0 3px 0' }} />
               </div>
 
-              <div className="flex justify-between items-center border-t border-red-500/10 pt-3">
-                <div className="flex items-center gap-2">
-                  <span className="font-sans text-[8px] tracking-widest uppercase text-bronze-muted/60 font-bold">
-                    Coordinates:
-                  </span>
-                  <span className="font-mono text-[8px] font-bold text-bahrain-red">
-                    {spot.coords}
-                  </span>
-                </div>
-                
-                <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold">
-                  Bahrain Passage
-                </span>
-              </div>
-
+              <p style={{
+                fontFamily: '"Outfit", system-ui, sans-serif',
+                fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase',
+                color: '#A8A29E', textAlign: 'center',
+              }}>
+                {permission === 'granted' ? 'Camera active · AI will read your photo' : 'Tap Snap · AI will read your photo'}
+              </p>
             </div>
           )}
         </div>
 
-        {/* Viewfinder Shutter Footer */}
-        <div className="w-full flex flex-col items-center gap-4 border-t border-red-500/10 pt-4">
-          {!captured ? (
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex items-center gap-6">
-                {/* File Upload Trigger */}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={capturing || scanning}
-                  className="w-10 h-10 rounded-full border border-stone-300 bg-white hover:bg-stone-50 text-stone-600 flex items-center justify-center transition-all shadow-xs hover:scale-105 active:scale-95 cursor-pointer outline-none"
-                  style={{ outline: 'none' }}
-                  title="Upload image to AI Scanner"
-                >
-                  📁
-                </button>
-                
-                {/* Massive Retro Shutter Button */}
-                <button
-                  onClick={handleCapture}
-                  disabled={capturing || scanning}
-                  className="w-16 h-16 rounded-full border-4 border-white transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center relative outline-none bg-bahrain-red hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ outline: 'none' }}
-                >
-                  <div className="absolute inset-1 rounded-full border border-white/20" />
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-white/50 font-sans">
-                    {scanning ? '...' : 'Snap'}
-                  </span>
-                </button>
-              </div>
+        {/* Footer actions */}
+        <div className="w-full border-t border-stone-200/80 pt-4">
+          {!captured && !capturing ? (
+            <div className="flex items-center justify-center gap-6">
+              {/* Upload */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  width: 40, height: 40, borderRadius: '50%',
+                  border: '1px solid #D6D3D1', background: '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', fontSize: 16,
+                  transition: 'all 0.15s', boxShadow: '0 1px 3px rgba(28,25,23,0.08)',
+                }}
+                title="Upload a photo"
+              >
+                📁
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
 
-              {/* Hidden file input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-
-              <span className="font-sans text-[8px] tracking-widest text-bronze-muted/50 uppercase mt-2">
-                {scanning 
-                  ? 'Analysing Photo Strata...' 
-                  : 'Press Shutter to Capture or 📁 to Upload Photo'}
-              </span>
+              {/* Shutter */}
+              <button
+                onClick={handleCapture}
+                disabled={capturing}
+                style={{
+                  width: 64, height: 64, borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #C1122F, #8B0D22)',
+                  border: '3px solid white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(193,18,47,0.35)',
+                  transition: 'all 0.15s',
+                  position: 'relative',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.06)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
+              >
+                <div style={{ position: 'absolute', inset: 4, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)' }} />
+                <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>
+                  Snap
+                </span>
+              </button>
             </div>
-          ) : (
+          ) : captured ? (
             <button
               onClick={onClose}
-              className="px-8 py-2.5 rounded-full bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer w-full"
+              style={{
+                width: '100%', padding: '12px 0', borderRadius: 100,
+                background: 'linear-gradient(135deg, #C1122F, #8B0D22)',
+                color: '#fff',
+                fontFamily: '"Outfit", system-ui, sans-serif',
+                fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+                border: 'none', cursor: 'pointer',
+                boxShadow: '0 4px 16px rgba(193,18,47,0.3)',
+              }}
             >
-              Done
+              Return to Journal
             </button>
-          )}
-
-          <div className="w-full flex justify-between items-center text-center mt-2 border-t border-red-500/5 pt-3">
-            <span className="font-sans text-[8px] tracking-wider text-bronze-muted/60 uppercase">
-              {captured ? 'Postcard Printed' : 'Viewfinder Ready'}
-            </span>
-            <span className="font-sans text-[8px] tracking-widest text-bahrain-red uppercase font-bold">
-              Journal Archives
-            </span>
-          </div>
+          ) : null}
         </div>
-
       </div>
+
+      <style>{`
+        @keyframes cursorBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+      `}</style>
     </div>
   )
 }

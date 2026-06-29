@@ -178,6 +178,66 @@ export function clearAICache() {
   responseCache.clear()
 }
 
+// ─── Vision / Multimodal ───────────────────────────────────────────────────────
+
+/**
+ * Send a base64-encoded image to Gemini's vision model and get a culturally-
+ * aware description back. Requires a Gemini API key in localStorage or .env.
+ *
+ * @param {string} base64Image  — Pure base64 string (no data:image/... prefix)
+ * @param {string} mimeType     — e.g. 'image/jpeg'
+ * @param {string} prompt       — What to ask about the image
+ * @param {string} fallbackText — Static text if AI unavailable
+ */
+export async function callGeminiVision(base64Image, mimeType = 'image/jpeg', prompt, fallbackText = '') {
+  let key = ''
+  if (typeof window !== 'undefined') {
+    try {
+      key = localStorage.getItem('bp_user_gemini_key')
+        || (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY)
+        || ''
+    } catch { /* ignore */ }
+  }
+
+  if (!key) return fallbackText
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`
+    const body = {
+      contents: [{
+        parts: [
+          { inline_data: { mime_type: mimeType, data: base64Image } },
+          { text: prompt }
+        ]
+      }],
+      generationConfig: {
+        temperature: 0.65,
+        maxOutputTokens: 160,
+      }
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(12000),
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+      if (text) return text
+    } else {
+      const errText = await response.text().catch(() => '')
+      console.warn(`[aiService] Gemini Vision returned HTTP ${response.status}:`, errText.slice(0, 200))
+    }
+  } catch (err) {
+    console.warn('[aiService] Gemini Vision call failed:', err.message)
+  }
+
+  return fallbackText
+}
+
 // ─── Pre-built prompt factories ───────────────────────────────────────────────
 
 export function buildSpotNarratorPrompt(spotName, spotDesc) {

@@ -140,9 +140,16 @@ export default function LocationCard({ spot, onScan }) {
   }
 
   return (
-    <div className="glass-panel rounded-3xl overflow-hidden p-6 md:p-8 flex flex-col transition-all duration-500 hover:shadow-lg hover:border-red-500/15 w-full max-w-4xl mx-auto relative">
+    <div
+      className="rounded-3xl overflow-hidden p-6 md:p-8 flex flex-col transition-all duration-500 w-full max-w-4xl mx-auto relative"
+      style={{
+        background: '#FAF6EE',
+        border: '1px solid rgba(139, 90, 43, 0.14)',
+        boxShadow: '0 4px 20px rgba(28,25,23,0.06), inset 0 0 0 1px rgba(255,255,255,0.55)',
+      }}
+    >
       {/* Tactile Paper Grain Overlay */}
-      <div className="paper-grain" style={{ opacity: 0.038 }} />
+      <div className="paper-grain" style={{ opacity: 0.055 }} />
 
       <div className="flex flex-col md:flex-row gap-8 md:gap-10 items-stretch relative z-10">
         
@@ -261,8 +268,21 @@ export default function LocationCard({ spot, onScan }) {
 
             {/* Title & Narrative */}
             <div>
-              <h3 className="text-heading text-bronze-charcoal tracking-tight">
+              <h3 className="text-heading text-bronze-charcoal tracking-tight" style={{ position: 'relative', display: 'inline-block', paddingBottom: 4 }}>
                 {spot.name}
+                {/* Hand-drawn ink underline */}
+                <svg
+                  style={{ position: 'absolute', bottom: -1, left: 0, width: '100%', height: 6, overflow: 'visible', pointerEvents: 'none' }}
+                  viewBox="0 0 200 6"
+                  preserveAspectRatio="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2,4 C30,1 80,5 120,3 C160,1 180,4 198,3"
+                    stroke="rgba(193,18,47,0.45)" strokeWidth="1.8"
+                    fill="none" strokeLinecap="round"
+                  />
+                </svg>
               </h3>
               
               {/* Tourist Convenience Alerts */}
@@ -289,38 +309,78 @@ export default function LocationCard({ spot, onScan }) {
               </p>
             </div>
 
-            {/* Storyteller's Secret (AI Dynamic Decipher or Local Tip) */}
-            <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10">
-              <span className="text-overline text-[var(--color-primary)] block mb-1">
-                {lensStories[spot.id] ? 'Local Insights' : 'Local Story'}
+            {/* Insider Secret — torn paper note */}
+            <div
+              style={{
+                position: 'relative',
+                background: '#FFFDF5',
+                border: '1px solid rgba(184,134,11,0.2)',
+                borderRadius: '4px 12px 12px 4px',
+                padding: '14px 16px 14px 20px',
+                boxShadow: '2px 3px 12px rgba(28,25,23,0.08), inset -1px 0 0 rgba(184,134,11,0.08)',
+                // Fold shadow on left edge
+                borderLeft: '4px solid rgba(193,18,47,0.35)',
+              }}
+            >
+              {/* Pin */}
+              <div style={{
+                position: 'absolute', top: -6, left: 18,
+                width: 10, height: 10, borderRadius: '50%',
+                background: 'rgba(193,18,47,0.7)',
+                boxShadow: '0 1px 4px rgba(193,18,47,0.4)',
+              }} />
+              <span style={{
+                fontFamily: '"Outfit", system-ui, sans-serif',
+                fontSize: 8, letterSpacing: '0.25em', textTransform: 'uppercase',
+                fontWeight: 700, color: '#C1122F', display: 'block', marginBottom: 6,
+              }}>
+                ✦ {lensStories[spot.id] ? 'Local Insights' : 'Insider Secret'}
               </span>
-              <p className="font-serif text-body italic text-bronze-charcoal leading-relaxed">
+              <p style={{
+                fontFamily: '"Playfair Display", Georgia, serif',
+                fontStyle: 'italic', fontSize: 13, lineHeight: 1.65,
+                color: '#2C2420', margin: 0,
+              }}>
                 {lensStories[spot.id] || spot.insider}
               </p>
             </div>
 
-            {/* Diary Reflections */}
-            <div className="p-4 rounded-2xl border border-stone-200 bg-white shadow-sm relative overflow-hidden">
+            {/* Diary Reflections — ruled lines notebook style */}
+            <div style={{
+              padding: '12px 16px',
+              borderRadius: 12,
+              background: 'repeating-linear-gradient(transparent, transparent 23px, rgba(139,90,43,0.08) 23px, rgba(139,90,43,0.08) 24px)',
+              border: '1px solid rgba(139,90,43,0.12)',
+              boxShadow: 'inset 0 1px 4px rgba(28,25,23,0.03)',
+              position: 'relative',
+            }}>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-overline text-[var(--color-text-faint)] flex items-center gap-1">
-                  Notes
+                  📝 Chronicle Notes
                 </span>
               </div>
               <textarea
                 value={localReflection}
                 onChange={handleReflectionChange}
-                placeholder="Jot down your notes and memories..."
+                placeholder="Jot down your memories here..."
                 rows="3"
-                className="w-full text-xs font-sans text-stone-700 placeholder-stone-400 border-none focus:outline-none resize-none focus:ring-0 leading-6 bg-transparent"
+                style={{
+                  width: '100%', fontSize: 12,
+                  fontFamily: '"Playfair Display", Georgia, serif',
+                  fontStyle: localReflection ? 'italic' : 'normal',
+                  color: '#2C2420',
+                  background: 'transparent', border: 'none', resize: 'none',
+                  outline: 'none', lineHeight: '24px',
+                }}
               />
               <div className="flex justify-between items-center mt-2">
-                <span 
+                <span
                   className="text-caption font-medium"
                   style={{ color: saveState === 'saved' ? 'var(--color-success)' : 'var(--color-text-faint)' }}
                 >
-                  {saveState === 'typing' && 'Typing...'}
+                  {saveState === 'typing' && 'Writing...'}
                   {saveState === 'saving' && 'Saving...'}
-                  {saveState === 'saved' && 'Saved'}
+                  {saveState === 'saved' && '✓ Saved'}
                 </span>
                 <span className="text-caption font-medium text-[var(--color-text-faint)]">{localReflection.length} chars</span>
               </div>
