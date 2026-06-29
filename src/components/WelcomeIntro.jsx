@@ -2,30 +2,82 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import gsap from 'gsap'
 import { useVibe } from '../hooks/useVibe'
 
-import fortImg   from '../assets/cinematic/fort.png'
-import pearlImg  from '../assets/cinematic/pearl.png'
-import souqImg   from '../assets/cinematic/souq.png'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WelcomeIntro — "The Chronicle of a Wayfarer"
-//
-// 6-stage cinematic sequence:
-//   Stage 0 → Black. Wax seal pulses at center.
-//   Stage 1 → Seal cracks open with light burst.
-//   Stage 2 → Parchment panel unfolds (CSS 3D scaleY).
-//   Stage 3 → Three flavor images slide in via clip-path reveal.
-//   Stage 4 → Arabic calligraphy ink-bleeds in from top.
-//   Stage 5 → English subtitle typewriters in.
-//   Stage 6 → CTA button materializes with gold shimmer.
+// Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const ARABIC_HEADLINE = 'مرحباً بكم في البحرين'
-const ENGLISH_SUBTITLE = 'A Chronicle for the Wayfarer'
+const SLOT_PHRASES = [
+  'Bienvenue à Bahreïn',       // French
+  '巴林欢迎您',                 // Chinese
+  'Bienvenido a Baréin',       // Spanish
+  'Willkommen in Bahrain',     // German
+  'Benvenuti in Bahrein',      // Italian
+  'Добро пожаловать в Бахрейн', // Russian
+  'バーレーンへようこそ',       // Japanese
+  '바레인에 오신 것을 환영합니다', // Korean
+  'Bem-vindo ao Bahrein',      // Portuguese
+  'Bahreyn\'e hoş geldiniz',   // Turkish
+  'به بحرین خوش آمدید',       // Persian
+  'बहरीन में आपका स्वागत है',    // Hindi
+  'Καλώς ήρθατε στο Μπαχρέιν',  // Greek
+  'Welkom in Bahrein',         // Dutch
+  'Välkommen till Bahrain',    // Swedish
+  'Witamy w Bahrajnie',        // Polish
+  'Chào mừng đến với Bahrain',  // Vietnamese
+  'Selamat datang ke Bahrain', // Malay/Indonesian
+  'Maligayang pagdating sa Bahrain', // Tagalog
+  'Karibu Bahrain',            // Swahili
+  'Velkommen til Bahrain',     // Danish
+  'Tervetuloa Bahrainiin',     // Finnish
+  'Velkommen til Bahrain',     // Norwegian
+  'Üdvözöljük Bahreinben',     // Hungarian
+  'Vítejte v Bahrajnu',        // Czech
+  'Vitajte v Bahrajne',        // Slovak
+  'Bun venit în Bahrain',      // Romanian
+  'Ласкаво просимо до Бахрейну', // Ukrainian
+  'ברוכים הבאים לבחריין',       // Hebrew
+  'ยินดีต้อนรับสู่บาห์เรน',      // Thai
+  'বাহরাইনে আপনাকে স্বাগতম',    // Bengali
+  'ਬਹਿਰੀਨ ਵਿੱਚ ਤੁਹਾਡა ਸੁਆਗਤ ਹੈ', // Punjabi
+  'બહેરીનમાં તમારું સ્વાગત છે',   // Gujarati
+  'பஹ்ரைனுக்கு உங்களை வரவேற்கிறோம்', // Tamil
+  'బహ్రెయిన్‌కు మీకు స్వాగతం',    // Telugu
+  'ಬಹ్రేన్‌ಗೆ ನಿಮಗೆ ಸ್ವಾಗత',      // Kannada
+  'ബഹ്‌റൈനിലേക്ക് നിങ്ങൾക്ക് സ്വാഗതം', // Malayalam
+  'Velkomin til Barein',       // Icelandic
+  'Dobrodošli u Bahrein',      // Croatian
+  'Добродошли у Бахреин',      // Serbian
+  'Добре дошли в Бахрейн',     // Bulgarian
+  'Sveiki atvykę į Bahreiną',   // Lithuanian
+  'Laipni lūdzam Bahreinā',     // Latvian
+  'Tere tulemast Bahraini',    // Estonian
+  'კეთილი იყოს თქვენი მობრძანება ბაჰრეინში', // Georgian
+  'Բարի գալուստ Բահրեյն',      // Armenian
+  'Bəhreynə xoş gəlmisiniz',   // Azerbaijani
+  'بحرین میں خوش آمدید',       // Urdu
+  'बहराइनमा तपाईंलाई स्वागत छ',  // Nepali
+  'බහරේනයට සාදරයෙන් පිළිගනිමු', // Sinhalese
+  'Бахрейнд тавтай морил',      // Mongolian
+  'សូមស្វាគមន៍មកកាន់ប្រទេសបារ៉ែន', // Khmer
+  'ຍິນດີຕ້อนຮັບສູ່ບາເຣນ',      // Lao
+  'ဘာရိန်းနိုင်ငံမှ ကြိုဆိုပါသည်', // Burmese
+  'Fáilte go dtí an Bairéin',   // Irish
+  'Croeso i Bahrain',          // Welsh
+  'Benvingut a Bahrain',       // Catalan
+  'Bonvenon al Barejno',       // Esperanto
+]
 
-// Characters to scramble through for English typewriter effect
-const SCRAMBLE_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+const ARABIC_FINAL  = 'مرحباً بكم في البحرين'
+const ENGLISH_FINAL = 'Welcome to Bahrain'
+const MIXED_CHARS   = 'أبتثجحخدذرزWELCOMTBAHRINwelcomtbahrinطظعغfqklmnhو0123456789@#$%'
 
-function TypewriterChar({ char, delay, duration = 350 }) {
+// ─────────────────────────────────────────────────────────────────────────────
+// ScrambleLetter
+// Direct DOM mutation via useRef — zero useState, zero React re-renders at 60 fps.
+// Blurs in with a damped-spring bounce from below.
+// ─────────────────────────────────────────────────────────────────────────────
+function ScrambleLetter({ char, delay, duration = 700 }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -33,37 +85,34 @@ function TypewriterChar({ char, delay, duration = 350 }) {
     if (!el) return
 
     if (char === ' ') {
-      el.style.cssText = 'display:inline-block;opacity:1;white-space:pre'
+      el.style.cssText = 'display:inline-block;opacity:1;filter:blur(0px);transform:translateY(0px);white-space:pre'
       el.textContent = '\u00A0'
       return
     }
 
-    el.style.cssText = 'display:inline-block;opacity:0'
-    el.textContent = char
+    el.style.cssText = 'display:inline-block;opacity:0;filter:blur(6px);transform:translateY(18px)'
+    el.textContent = MIXED_CHARS[0]
 
     let rafId
     const tid = setTimeout(() => {
       const t0 = performance.now()
-      let scrambleCount = 0
-      const maxScrambles = 6
-
       const tick = (now) => {
         const p = Math.min((now - t0) / duration, 1)
+        const e = 1 - Math.pow(1 - p, 3)                         // ease-out cubic
+        const springY = 18 * (1 - e) * Math.cos(e * Math.PI * 1.4) // damped spring
 
-        if (p < 0.6 && scrambleCount < maxScrambles) {
-          el.textContent = SCRAMBLE_POOL[Math.floor(Math.random() * SCRAMBLE_POOL.length)]
-          el.style.opacity = String(p * 1.2)
-          scrambleCount++
-        } else {
-          el.textContent = char
-          el.style.opacity = '1'
-        }
+        el.style.opacity   = String(Math.min(e * 1.12, 1))
+        el.style.filter    = `blur(${(1 - e) * 6}px)`
+        el.style.transform = `translateY(${springY}px)`
 
         if (p < 1) {
+          el.textContent = MIXED_CHARS[Math.floor(Math.random() * MIXED_CHARS.length)]
           rafId = requestAnimationFrame(tick)
         } else {
-          el.style.opacity = '1'
-          el.textContent = char
+          el.style.opacity   = '1'
+          el.style.filter    = 'blur(0px)'
+          el.style.transform = 'translateY(0px)'
+          el.textContent     = char
         }
       }
       rafId = requestAnimationFrame(tick)
@@ -81,7 +130,10 @@ function TypewriterChar({ char, delay, duration = 350 }) {
       style={{
         display: 'inline-block',
         opacity: 0,
+        filter: 'blur(6px)',
+        transform: 'translateY(18px)',
         whiteSpace: char === ' ' ? 'pre' : 'normal',
+        transition: 'none',
       }}
     >
       {char === ' ' ? '\u00A0' : char}
@@ -89,472 +141,736 @@ function TypewriterChar({ char, delay, duration = 350 }) {
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper — detect script family for font selection
+// ─────────────────────────────────────────────────────────────────────────────
+function fontFor(txt) {
+  if (txt === ARABIC_FINAL || /[\u0600-\u06FF]/.test(txt)) return '"Noto Sans Arabic","Geeza Pro","Arial Unicode MS",sans-serif'
+  if (/[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF]/.test(txt)) return 'system-ui,"Noto Sans CJK",sans-serif'
+  if (/[\u0400-\u04FF]/.test(txt)) return 'system-ui,"Noto Sans",sans-serif'
+  if (/[\u0900-\u097F]/.test(txt)) return '"Noto Sans Devanagari",sans-serif'
+  return '"Playfair Display","Georgia",serif'
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WelcomeIntro
+// ─────────────────────────────────────────────────────────────────────────────
 export default function WelcomeIntro({ onComplete }) {
-  const wrapRef       = useRef(null)
-  const sealRef       = useRef(null)
-  const sealCrackRef  = useRef(null)
-  const burstRef      = useRef(null)
-  const parchRef      = useRef(null)
-  const img1Ref       = useRef(null)
-  const img2Ref       = useRef(null)
-  const img3Ref       = useRef(null)
-  const arabicRef     = useRef(null)
-  const subtitleRef   = useRef(null)
-  const ctaRef        = useRef(null)
-  const overlineRef   = useRef(null)
+  // ── Refs ──────────────────────────────────────────────────────────────────
+  const wrapRef        = useRef(null)
+  const glowRef        = useRef(null)
+  const compassRef     = useRef(null)
+  const slotTextRef    = useRef(null)
+  const loadingDotsRef = useRef(null)
+  const slotViewRef    = useRef(null)
+  const morphViewRef   = useRef(null)
+  const arabicLineRef  = useRef(null)
+  const taglineRef     = useRef(null)
+  const morphLineRef   = useRef(null)
+  const slotTlRef      = useRef(null)
+  const timersRef      = useRef([])
+  const skippedRef     = useRef(false)
+  const onCompleteRef  = useRef(onComplete)
+  const overlineRef    = useRef(null)
 
-  const skippedRef    = useRef(false)
-  const onCompleteRef = useRef(onComplete)
-  const timersRef     = useRef([])
-
-  const [showSubtitle, setShowSubtitle] = useState(false)
-
+  const [showMorphLetters, setShowMorphLetters] = useState(false)
   const { quickStart } = useVibe()
+
 
   useEffect(() => { onCompleteRef.current = onComplete }, [onComplete])
 
+  // ── Ambient rotating compass watermark ───────────────────────────────────
+  useEffect(() => {
+    if (!compassRef.current) return
+    const tween = gsap.to(compassRef.current, {
+      rotation: 360,
+      duration: 120,
+      repeat: -1,
+      ease: 'none',
+    })
+    return () => tween.kill()
+  }, [])
+
+  // ── Ambient mouse-reactive glow (pure GSAP, zero re-renders) ─────────────
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!glowRef.current) return
+      const x = (e.clientX / window.innerWidth)  * 100
+      const y = (e.clientY / window.innerHeight) * 100
+      gsap.to(glowRef.current, {
+        background: `radial-gradient(ellipse 85% 65% at ${x}% ${y}%, rgba(186,12,47,0.07) 0%, transparent 72%)`,
+        duration: 1.8,
+        ease: 'power2.out',
+      })
+    }
+    window.addEventListener('mousemove', onMove, { passive: true })
+    return () => window.removeEventListener('mousemove', onMove)
+  }, [])
+
+  // ── Exit / Skip ───────────────────────────────────────────────────────────
   const exitIntro = useCallback(() => {
     if (skippedRef.current) return
     skippedRef.current = true
+
+    // Kill all running animations
+    slotTlRef.current?.kill()
     timersRef.current.forEach(clearTimeout)
     timersRef.current = []
-    gsap.killTweensOf(wrapRef.current)
+    gsap.killTweensOf([
+      wrapRef.current, glowRef.current,
+      slotViewRef.current, morphViewRef.current, slotTextRef.current,
+      taglineRef.current, morphLineRef.current, arabicLineRef.current,
+      overlineRef.current,
+    ])
+
     const el = wrapRef.current
     if (!el) { onCompleteRef.current?.(); return }
     gsap.to(el, {
       opacity: 0,
-      duration: 0.7,
-      ease: 'power2.inOut',
+      scale: 1.014,
+      duration: 0.9,
+      ease: 'power3.inOut',
       onComplete: () => onCompleteRef.current?.(),
     })
   }, [])
 
+  // ── Main animation sequence ───────────────────────────────────────────────
   useEffect(() => {
-    const wrap     = wrapRef.current
-    const seal     = sealRef.current
-    const burst    = burstRef.current
-    const parch    = parchRef.current
-    const img1     = img1Ref.current
-    const img2     = img2Ref.current
-    const img3     = img3Ref.current
-    const arabic   = arabicRef.current
-    const subtitle = subtitleRef.current
-    const cta      = ctaRef.current
-    const overline = overlineRef.current
+    const wrap        = wrapRef.current
+    const slotView    = slotViewRef.current
+    const morphView   = morphViewRef.current
+    const slotText    = slotTextRef.current
+    const loadingDots = loadingDotsRef.current
 
-    if (!wrap || !seal) return
+    if (!wrap || !slotView || !morphView || !slotText) {
+      return
+    }
 
-    // ── Initial states ────────────────────────────────────────────────────
-    gsap.set(wrap,     { opacity: 0 })
-    gsap.set(seal,     { opacity: 1, scale: 0.85 })
-    gsap.set(burst,    { opacity: 0, scale: 0.5 })
-    gsap.set(parch,    { scaleY: 0, transformOrigin: 'top center', opacity: 0 })
-    gsap.set([img1, img2, img3], { clipPath: 'inset(0 100% 0 0)', opacity: 0 })
-    gsap.set(arabic,   { opacity: 0, y: -12 })
-    gsap.set(subtitle, { opacity: 0 })
-    gsap.set(cta,      { opacity: 0, y: 16, filter: 'blur(4px)' })
-    gsap.set(overline, { opacity: 0, y: -8 })
+    // ── Initial state setup ──────────────────────────────────────────────────
+    gsap.set(wrap,       { opacity: 0, scale: 1 })
+    gsap.set(morphView,  { opacity: 0, pointerEvents: 'none' })
+    gsap.set(slotView,   { opacity: 1 })
+    gsap.set(slotText,   { opacity: 1, scale: 1, filter: 'blur(0px)' })
+    if (loadingDots)          gsap.set(loadingDots,         { opacity: 1 })
+    if (taglineRef.current)   gsap.set(taglineRef.current,  { opacity: 0, y: 18, filter: 'blur(4px)' })
+    if (morphLineRef.current) gsap.set(morphLineRef.current, { width: 0 })
+    if (arabicLineRef.current) gsap.set(arabicLineRef.current, { width: 0, opacity: 1 })
+    if (overlineRef.current)  gsap.set(overlineRef.current, { opacity: 0 })
 
-    // ── Stage 0: Fade-in + Seal pulse ────────────────────────────────────
-    gsap.to(wrap, { opacity: 1, duration: 0.6, ease: 'power2.out' })
-    gsap.to(seal, {
-      scale: 1, duration: 1.2, ease: 'elastic.out(1, 0.6)',
-      onComplete: () => gsap.to(seal, {
-        scale: 1.04, duration: 1.8, yoyo: true, repeat: -1, ease: 'power1.inOut'
-      })
-    })
+    // ── Screen fade-in ───────────────────────────────────────────────────────
+    gsap.to(wrap, { opacity: 1, duration: 0.75, ease: 'power2.out' })
 
-    // ── Stage 1: Seal crack + burst (t=1.8s) ─────────────────────────────
-    const t1 = setTimeout(() => {
+    // ── Phase 1: Fly-through of languages (centered and still) ────────────────
+    const flyObj = { index: 0 }
+    
+    const startTimer = setTimeout(() => {
       if (skippedRef.current) return
-      gsap.killTweensOf(seal)
-      // Shake
-      gsap.to(seal, { x: -4, duration: 0.05, yoyo: true, repeat: 7, ease: 'none',
-        onComplete: () => {
-          // Burst
-          gsap.to(burst, { opacity: 1, scale: 2.5, duration: 0.35, ease: 'power2.out',
-            onComplete: () => {
-              gsap.to(burst, { opacity: 0, duration: 0.4, ease: 'power2.in' })
+
+      if (loadingDots) {
+        gsap.to(loadingDots, { opacity: 0, y: 10, duration: 0.4, ease: 'power2.in' })
+      }
+
+      // Fade in the overline label when language cycling begins
+      if (overlineRef.current) {
+        gsap.to(overlineRef.current, { opacity: 1, duration: 0.5, ease: 'power2.out' })
+      }
+
+      slotTlRef.current = gsap.to(flyObj, {
+        index: SLOT_PHRASES.length,
+        duration: 1.2,
+        ease: 'power2.out',
+        onUpdate: () => {
+          if (skippedRef.current) return
+          const idx = Math.floor(flyObj.index)
+          const phrase = SLOT_PHRASES[Math.min(idx, SLOT_PHRASES.length - 1)]
+          if (slotText.textContent !== phrase) {
+            slotText.textContent = phrase
+            slotText.style.fontFamily = fontFor(phrase)
+            
+            if (/[\u0600-\u06FF]/.test(phrase)) {
+              slotText.style.direction = 'rtl'
+            } else {
+              slotText.style.direction = 'ltr'
             }
-          })
-          // Seal fades out
-          gsap.to(seal, { opacity: 0, scale: 1.6, duration: 0.35, ease: 'power2.in' })
-
-          // Stage 2: Parchment unfolds (t+0.2s)
-          const t2 = setTimeout(() => {
-            if (skippedRef.current) return
-            gsap.to(parch, {
-              scaleY: 1, opacity: 1, duration: 0.7, ease: 'power3.out',
-              onComplete: () => {
-                // Stage 3: Images slide in
-                const t3 = setTimeout(() => {
-                  if (skippedRef.current) return
-
-                  // Overline fades in
-                  gsap.to(overline, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' })
-
-                  // Images reveal via clip-path
-                  gsap.to(img1, {
-                    clipPath: 'inset(0 0% 0 0)', opacity: 1, duration: 0.6,
-                    ease: 'power3.out', delay: 0
-                  })
-                  gsap.to(img2, {
-                    clipPath: 'inset(0 0% 0 0)', opacity: 1, duration: 0.6,
-                    ease: 'power3.out', delay: 0.12
-                  })
-                  gsap.to(img3, {
-                    clipPath: 'inset(0 0% 0 0)', opacity: 1, duration: 0.6,
-                    ease: 'power3.out', delay: 0.24
-                  })
-
-                  // Stage 4: Arabic ink bleed (t+0.5s)
-                  const t4 = setTimeout(() => {
-                    if (skippedRef.current) return
-                    gsap.to(arabic, {
-                      opacity: 1, y: 0, duration: 0.9,
-                      ease: 'power3.out',
-                    })
-
-                    // Stage 5: Subtitle typewriter (t+0.9s)
-                    const t5 = setTimeout(() => {
-                      if (skippedRef.current) return
-                      setShowSubtitle(true)
-                      gsap.to(subtitle, { opacity: 1, duration: 0.3 })
-
-                      // Stage 6: CTA materializes (t+1.1s)
-                      const t6 = setTimeout(() => {
-                        if (skippedRef.current) return
-                        gsap.to(cta, {
-                          opacity: 1, y: 0, filter: 'blur(0px)',
-                          duration: 0.6, ease: 'back.out(1.5)',
-                        })
-
-                        // Auto-exit after dwelling
-                        const tExit = setTimeout(() => {
-                          if (!skippedRef.current) exitIntro()
-                        }, 3500)
-                        timersRef.current.push(tExit)
-                      }, 1100)
-                      timersRef.current.push(t6)
-                    }, 900)
-                    timersRef.current.push(t5)
-                  }, 500)
-                  timersRef.current.push(t4)
-                }, 150)
-                timersRef.current.push(t3)
-              }
-            })
-          }, 200)
-          timersRef.current.push(t2)
+            
+            // Pop effect in-place
+            gsap.fromTo(slotText,
+              { scale: 0.95, filter: 'blur(3px)', opacity: 0.8 },
+              { scale: 1, filter: 'blur(0px)', opacity: 1, duration: 0.08, ease: 'power1.out' }
+            )
+          }
+        },
+        onComplete: () => {
+          if (skippedRef.current) return
+          // Land on Arabic!
+          slotText.textContent = ARABIC_FINAL
+          slotText.style.fontFamily = fontFor(ARABIC_FINAL)
+          slotText.style.direction = 'rtl'
+          
+          gsap.fromTo(slotText,
+            { scale: 0.94, filter: 'blur(5px)', opacity: 0.7 },
+            { 
+              scale: 1, filter: 'blur(0px)', opacity: 1, 
+              duration: 0.45, ease: 'power2.out',
+              onComplete: onArabicLand
+            }
+          )
         }
       })
-    }, 1800)
-    timersRef.current.push(t1)
+    }, 350)
+    timersRef.current.push(startTimer)
+
+    function onArabicLand() {
+      if (skippedRef.current) return
+
+      // Expand decorative line under Arabic
+      if (arabicLineRef.current) {
+        gsap.to(arabicLineRef.current, { width: 80, duration: 0.5, ease: 'power3.out' })
+      }
+
+      // Fade out overline when Arabic lands — it has done its job
+      if (overlineRef.current) {
+        gsap.to(overlineRef.current, { opacity: 0, duration: 0.4, ease: 'power2.in' })
+      }
+
+      // Hold Arabic, then morph transition
+      const holdTimer = setTimeout(() => {
+        if (skippedRef.current) return
+
+        // Fade out Arabic in-place with a smooth blur and scale-down
+        gsap.to(slotText, {
+          opacity: 0,
+          filter: 'blur(10px)',
+          scale: 0.96,
+          duration: 0.35,
+          ease: 'power2.inOut',
+          onComplete: () => {
+            if (skippedRef.current) return
+            gsap.set(slotView, { opacity: 0 })
+          }
+        })
+
+        if (arabicLineRef.current) {
+          gsap.to(arabicLineRef.current, { opacity: 0, duration: 0.35, ease: 'power2.inOut' })
+        }
+
+        // Mount and fade in English scrambling text
+        setShowMorphLetters(true)
+        gsap.set(morphView, { pointerEvents: 'auto' })
+        gsap.to(morphView, {
+          opacity: 1,
+          duration: 0.35,
+          delay: 0.05,
+          ease: 'power2.out',
+          onComplete: () => {
+            if (skippedRef.current) return
+
+            // Tagline + line fade in after scramble settles
+            const taglineTimer = setTimeout(() => {
+              if (skippedRef.current) return
+              if (taglineRef.current) {
+                gsap.to(taglineRef.current, {
+                  opacity: 0.8, y: 0, filter: 'blur(0px)',
+                  duration: 0.6, ease: 'power3.out',
+                })
+              }
+              if (morphLineRef.current) {
+                gsap.to(morphLineRef.current, { width: 110, duration: 0.6, delay: 0.2, ease: 'power3.out' })
+              }
+            }, 800)
+            timersRef.current.push(taglineTimer)
+
+            // Exit intro to start app
+            const exitTimer = setTimeout(() => {
+              if (!skippedRef.current) exitIntro()
+            }, 800 + 1000)
+            timersRef.current.push(exitTimer)
+          }
+        })
+      }, 500)
+      timersRef.current.push(holdTimer)
+    }
+
+    const taglineEl = taglineRef.current
+    const morphLineEl = morphLineRef.current
+    const arabicLineEl = arabicLineRef.current
+    const overlineEl = overlineRef.current
 
     return () => {
+      slotTlRef.current?.kill()
       timersRef.current.forEach(clearTimeout)
       timersRef.current = []
-      gsap.killTweensOf([wrap, seal, burst, parch, img1, img2, img3, arabic, subtitle, cta, overline])
+      gsap.killTweensOf([
+        wrap, slotView, morphView, slotText, loadingDots,
+        taglineEl, morphLineEl, arabicLineEl, overlineEl,
+      ])
     }
   }, [exitIntro])
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div
       ref={wrapRef}
       onClick={exitIntro}
       style={{
         position: 'fixed', inset: 0, zIndex: 9999,
-        background: '#0A0807',
+        background: '#0F0C0B',
         display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
-        opacity: 0,
-        cursor: 'pointer',
+        opacity: 0, cursor: 'pointer',
       }}
     >
-      {/* ── Paper grain ── */}
-      <div className="paper-grain" style={{ opacity: 0.06, zIndex: 1 }} />
+      {/* ── Background video ──────────────────────────────────────────── */}
+      <video
+        autoPlay muted loop playsInline
+        className="jn-welcome-video"
+        poster="/assets/images/bahrain_skyline.webp"
+      >
+        <source src="/assets/videos/bahrain_timelapse.mp4" type="video/mp4" />
+      </video>
 
-      {/* ── Ambient vignette ── */}
+      {/* ── Dark vignette — heavier than before ──────────────────────── */}
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 30%, rgba(10,8,7,0.85) 100%)',
+        position: 'absolute', inset: 0, zIndex: 1,
+        background: 'radial-gradient(ellipse 100% 100% at 50% 50%, rgba(15,12,11,0.48) 0%, rgba(15,12,11,0.94) 100%)',
       }} />
 
-      {/* ─────────────────────────────────────────────────────────────
-          SEAL STAGE — centered on black
-      ───────────────────────────────────────────────────────────── */}
+      {/* ── Mouse-reactive ambient glow ──────────────────────────────── */}
       <div
-        ref={sealRef}
+        ref={glowRef}
         style={{
-          position: 'absolute',
-          zIndex: 10,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
-      >
-        {/* Wax seal SVG */}
-        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="waxGrad" cx="42%" cy="35%" r="65%">
-              <stop offset="0%" stopColor="#E8263D" />
-              <stop offset="55%" stopColor="#C1122F" />
-              <stop offset="100%" stopColor="#7A0B1E" />
-            </radialGradient>
-            <filter id="sealShadow">
-              <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#C1122F" floodOpacity="0.55" />
-            </filter>
-          </defs>
-          {/* Seal body — 14-point starburst */}
-          <path
-            d="M60,4 L65,22 L80,14 L76,32 L93,30 L83,45 L100,50 L83,55 L93,70 L76,68 L80,86 L65,84 L60,102 L55,84 L40,86 L44,68 L27,70 L37,55 L20,50 L37,45 L27,30 L44,32 L40,14 L55,22 Z"
-            fill="url(#waxGrad)"
-            filter="url(#sealShadow)"
-          />
-          {/* Inner ring */}
-          <circle cx="60" cy="50" r="22" fill="none" stroke="rgba(255,200,180,0.25)" strokeWidth="1.2" />
-          {/* Center diamond */}
-          <path d="M60,34 L69,50 L60,66 L51,50 Z" fill="rgba(255,220,210,0.18)" stroke="rgba(255,210,200,0.35)" strokeWidth="0.8" />
-          {/* Arabic ب character hint */}
-          <text x="60" y="54" textAnchor="middle" fontFamily="serif" fontSize="14" fill="rgba(255,230,220,0.85)" fontWeight="bold">ب</text>
-        </svg>
-      </div>
-
-      {/* Light burst on crack */}
-      <div
-        ref={burstRef}
-        style={{
-          position: 'absolute', zIndex: 9, pointerEvents: 'none',
-          width: 200, height: 200,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(193,18,47,0.6) 0%, rgba(212,175,55,0.3) 40%, transparent 70%)',
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
+          background: 'radial-gradient(ellipse 85% 65% at 50% 42%, rgba(212,175,55,0.06) 0%, transparent 72%)',
         }}
       />
 
-      {/* ─────────────────────────────────────────────────────────────
-          PARCHMENT STAGE — unfolds after seal breaks
-      ───────────────────────────────────────────────────────────── */}
+      {/* ── Cinematic Color Grading Overlay ── */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 2,
+        background: 'linear-gradient(135deg, rgba(193, 18, 47, 0.05) 0%, rgba(184, 134, 11, 0.08) 100%)',
+        mixBlendMode: 'overlay',
+        pointerEvents: 'none'
+      }} />
+
+      {/* ── Paper grain texture overlay ── */}
+      <div className="paper-grain" style={{ opacity: 0.05, mixBlendMode: 'overlay', zIndex: 3 }} />
+
+      {/* ── Top cinematic gradient shadow (borderless) ── */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '180px', zIndex: 2,
+        background: 'linear-gradient(to bottom, rgba(15,12,11,0.95) 0%, rgba(15,12,11,0.6) 35%, transparent 100%)',
+        pointerEvents: 'none'
+      }} />
+
+      {/* ── Bottom cinematic gradient shadow (borderless) ── */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: '220px', zIndex: 2,
+        background: 'linear-gradient(to top, rgba(15,12,11,0.98) 0%, rgba(15,12,11,0.6) 35%, transparent 100%)',
+        pointerEvents: 'none'
+      }} />
+
+      {/* ════════════════════════════════════════════════════════════════
+          ZONE 1 — Top brand bar
+      ════════════════════════════════════════════════════════════════ */}
       <div
-        ref={parchRef}
+        className="jn-intro-brand-bar"
+        style={{ position: 'relative', zIndex: 5 }}
         onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'relative', zIndex: 8,
-          width: '100%', maxWidth: 860,
-          padding: '0 20px',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', gap: 0,
-        }}
       >
-        {/* Overline label */}
+        <div className="jn-intro-brand-inner">
+          <div className="jn-intro-brand-text">
+            <span className="jn-intro-brand-name gold-foil-text">Bahrain Passage</span>
+            <span className="jn-intro-brand-arabic">ممر البحرين</span>
+          </div>
+          <div className="jn-intro-brand-divider" />
+          <span className="jn-intro-brand-tagline">Your Digital Travel Chronicle</span>
+        </div>
+      </div>
+
+      {/* ════════════════════ ZONE 2 — Center animation stage ════════════════════ */}
+      <div
+        className="jn-intro-text-container"
+        style={{ position: 'relative', zIndex: 5 }}
+      >
+
+        {/* Main text box — keep all existing refs */}
         <div
-          ref={overlineRef}
+          className="jn-intro-main-text-box"
           style={{
-            fontFamily: '"Outfit", system-ui, sans-serif',
-            fontSize: 10,
-            letterSpacing: '0.32em',
-            textTransform: 'uppercase',
-            color: 'rgba(212,175,55,0.75)',
-            marginBottom: 20,
-            opacity: 0,
+            position: 'relative',
+            height: 110,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'visible',
           }}
         >
-          Kingdom of Bahrain · A Digital Chronicle
+          {/* Stage 1 & 2: Slot text / Arabic */}
+          <div
+            ref={slotViewRef}
+            style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <div
+              ref={slotTextRef}
+              style={{
+                fontSize: 'clamp(2.3rem, 7.8vw, 4rem)',
+                fontWeight: 700,
+                color: '#FAF9F6',
+                textAlign: 'center',
+                userSelect: 'none',
+                fontFamily: '"Playfair Display","Georgia",serif',
+                textShadow: '0 4px 28px rgba(15, 12, 11, 0.9), 0 1px 3px rgba(15, 12, 11, 0.95)',
+                letterSpacing: '0.025em',
+              }}
+            >
+              {SLOT_PHRASES[0]}
+            </div>
+          </div>
+
+          {/* Stage 3: English scramble */}
+          <div
+            ref={morphViewRef}
+            style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: 0, pointerEvents: 'none', overflow: 'visible',
+            }}
+          >
+            {showMorphLetters && (
+              <div style={{
+                fontFamily: '"Playfair Display","Georgia",serif',
+                fontSize: 'clamp(2.3rem, 7.8vw, 4rem)',
+                fontWeight: 700,
+                color: '#FAF9F6',
+                letterSpacing: '0.04em',
+                whiteSpace: 'nowrap',
+                textShadow: '0 4px 28px rgba(15, 12, 11, 0.9), 0 1px 3px rgba(15, 12, 11, 0.95)',
+                userSelect: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                {ENGLISH_FINAL.split('').map((c, i) => (
+                  <ScrambleLetter key={i} char={c} delay={80 + i * 20} duration={400} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* ── Image triptych ── */}
+        {/* Underlines — keep existing refs */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1.4fr 1fr',
-          gap: 8,
-          width: '100%',
-          marginBottom: 32,
-          borderRadius: 12,
-          overflow: 'hidden',
+          position: 'relative', height: 20, width: '100%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          marginTop: '0.5rem',
         }}>
           <div
-            ref={img1Ref}
+            ref={arabicLineRef}
             style={{
-              height: 'clamp(120px, 22vw, 210px)',
-              borderRadius: 10,
-              overflow: 'hidden',
-              clipPath: 'inset(0 100% 0 0)',
+              position: 'absolute', height: 1.5, width: 0,
+              background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.5), transparent)',
+              borderRadius: 1,
             }}
-          >
-            <img
-              src={pearlImg}
-              alt="Bahraini pearl on ancient rope"
-              style={{ width: '100%', height: '100%', objectFit: 'cover',
-                filter: 'sepia(0.15) contrast(1.08) brightness(0.92)' }}
-            />
-          </div>
-
+          />
           <div
-            ref={img2Ref}
+            ref={morphLineRef}
             style={{
-              height: 'clamp(120px, 22vw, 210px)',
-              borderRadius: 10,
-              overflow: 'hidden',
-              clipPath: 'inset(0 100% 0 0)',
+              position: 'absolute', height: 1, width: 0,
+              background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent)',
+              borderRadius: 1,
             }}
-          >
-            <img
-              src={fortImg}
-              alt="Bahrain Fort at sunset"
-              style={{ width: '100%', height: '100%', objectFit: 'cover',
-                filter: 'sepia(0.15) contrast(1.08) brightness(0.92)' }}
-            />
-          </div>
+          />
+        </div>
 
+        {/* Loading dots / tagline — keep existing refs */}
+        <div
+          className="jn-intro-bottom-stable"
+          style={{
+            position: 'relative', height: 60, width: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginTop: '0.5rem',
+          }}
+        >
           <div
-            ref={img3Ref}
+            ref={loadingDotsRef}
             style={{
-              height: 'clamp(120px, 22vw, 210px)',
-              borderRadius: 10,
-              overflow: 'hidden',
-              clipPath: 'inset(0 100% 0 0)',
+              position: 'absolute',
+              display: 'flex', gap: '0.6rem', alignItems: 'center',
             }}
           >
-            <img
-              src={souqImg}
-              alt="Bahraini spice souq"
-              style={{ width: '100%', height: '100%', objectFit: 'cover',
-                filter: 'sepia(0.15) contrast(1.08) brightness(0.92)' }}
-            />
+            {[0, 1, 2].map(i => (
+              <span
+                key={i}
+                style={{
+                  width: 5, height: 5, borderRadius: '50%',
+                  background: 'var(--color-accent)',
+                  display: 'inline-block',
+                  animation: `introDot 1.3s ease-in-out ${i * 0.26}s infinite`,
+                }}
+              />
+            ))}
           </div>
+          <p
+            ref={taglineRef}
+            style={{
+              position: 'absolute',
+              fontFamily: '"Playfair Display","Georgia",serif',
+              fontStyle: 'italic',
+              fontSize: 'clamp(0.68rem, 1.85vw, 0.82rem)',
+              color: '#FAF9F6',
+              opacity: 0,
+              letterSpacing: '0.35em',
+              textTransform: 'uppercase',
+              userSelect: 'none',
+              margin: 0, padding: 0,
+              transform: 'translateY(18px)',
+              filter: 'blur(4px)',
+              textAlign: 'center',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            مرحباً &nbsp;·&nbsp; Your Journey Awaits
+          </p>
         </div>
+      </div>
 
-        {/* ── Arabic headline ── */}
-        <div
-          ref={arabicRef}
-          style={{
-            fontFamily: '"Noto Sans Arabic", "Geeza Pro", "Arial Unicode MS", serif',
-            fontSize: 'clamp(2rem, 6.5vw, 3.4rem)',
-            fontWeight: 700,
-            color: '#FAF6EE',
-            textAlign: 'center',
-            direction: 'rtl',
-            letterSpacing: '0.02em',
-            textShadow: '0 2px 20px rgba(193,18,47,0.35), 0 1px 4px rgba(10,8,7,0.9)',
-            marginBottom: 12,
-            lineHeight: 1.2,
-          }}
+      {/* ════════════════════════════════════════════════════════════════
+          ZONE 3 — Bottom action panel (frosted glass, anchored to bottom)
+      ════════════════════════════════════════════════════════════════ */}
+      <div
+        className="jn-intro-action-panel"
+        onClick={(e) => e.stopPropagation()}
+        style={{ position: 'relative', zIndex: 5 }}
+      >
+        <button
+          onClick={exitIntro}
+          className="jn-intro-skip-btn"
+          aria-label="Skip intro"
         >
-          {ARABIC_HEADLINE}
-        </div>
-
-        {/* Gold rule */}
-        <div style={{
-          width: 80, height: 1.5, marginBottom: 14,
-          background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.6), transparent)',
-        }} />
-
-        {/* ── English subtitle ── */}
-        <div
-          ref={subtitleRef}
-          style={{
-            fontFamily: '"Playfair Display", Georgia, serif',
-            fontStyle: 'italic',
-            fontSize: 'clamp(0.9rem, 2.2vw, 1.15rem)',
-            color: 'rgba(250,246,238,0.75)',
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            textAlign: 'center',
-            marginBottom: 36,
-            opacity: 0,
-          }}
-        >
-          {showSubtitle
-            ? ENGLISH_SUBTITLE.split('').map((c, i) => (
-                <TypewriterChar key={i} char={c} delay={i * 38} duration={280} />
-              ))
-            : ENGLISH_SUBTITLE
-          }
-        </div>
-
-        {/* ── CTA button ── */}
-        <div
-          ref={ctaRef}
-          onClick={(e) => { e.stopPropagation(); exitIntro() }}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 10,
-            padding: '14px 36px',
-            background: 'linear-gradient(135deg, #C1122F 0%, #8B0D22 100%)',
-            border: '1px solid rgba(212,175,55,0.45)',
-            borderRadius: 100,
-            color: '#FAF6EE',
-            fontFamily: '"Outfit", system-ui, sans-serif',
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            cursor: 'pointer',
-            boxShadow: '0 6px 28px rgba(193,18,47,0.4), 0 2px 8px rgba(212,175,55,0.2), inset 0 1px 0 rgba(255,255,255,0.12)',
-            userSelect: 'none',
-            transition: 'all 0.2s cubic-bezier(0.16,1,0.3,1)',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-2px)'
-            e.currentTarget.style.boxShadow = '0 10px 36px rgba(193,18,47,0.5), 0 4px 12px rgba(212,175,55,0.25), inset 0 1px 0 rgba(255,255,255,0.15)'
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'translateY(0)'
-            e.currentTarget.style.boxShadow = '0 6px 28px rgba(193,18,47,0.4), 0 2px 8px rgba(212,175,55,0.2), inset 0 1px 0 rgba(255,255,255,0.12)'
-          }}
-          role="button"
-          aria-label="Begin your Bahrain Chronicle"
-        >
-          <span style={{ fontSize: 14 }}>📜</span>
-          Begin Your Chronicle
-        </div>
-
-        {/* Quick start underlink */}
+          Skip intro
+        </button>
+        <div className="jn-intro-action-divider" aria-hidden="true" />
         <button
           onClick={(e) => { e.stopPropagation(); quickStart() }}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            marginTop: 16,
-            fontFamily: '"Outfit", system-ui, sans-serif',
-            fontSize: 10,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'rgba(250,246,238,0.4)',
-            textDecoration: 'underline',
-            textUnderlineOffset: 3,
-            transition: 'color 0.15s',
-            padding: '4px 8px',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'rgba(250,246,238,0.7)' }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(250,246,238,0.4)' }}
-          aria-label="Quick start, skip setup"
+          className="jn-intro-quick-btn"
+          aria-label="Quick start — skip setup"
         >
           ⚡ Quick start
         </button>
       </div>
 
-      {/* ── Brand mark (top-left) ── */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'absolute', top: 20, left: 24,
-          zIndex: 12,
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <span
-            className="gold-foil-text"
-            style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 16, fontWeight: 700 }}
-          >
-            Bahrain Passage
-          </span>
-          <span style={{
-            fontFamily: '"Noto Sans Arabic", sans-serif',
-            fontSize: 10, color: 'rgba(212,175,55,0.65)',
-            direction: 'rtl', letterSpacing: '0.04em',
-          }}>
-            ممر البحرين
-          </span>
-        </div>
-      </div>
+      {/* ── Injected keyframes ───────────────────────────────────────── */}
+      <style>{`
+        @keyframes kenBurns {
+          0% { transform: scale(1.03) translate(0, 0); }
+          50% { transform: scale(1.08) translate(-1%, -0.5%); }
+          100% { transform: scale(1.03) translate(0, 0); }
+        }
+        .jn-welcome-video {
+          position: absolute;
+          top: -4%; left: -4%;
+          width: 108% !important; height: 108% !important;
+          max-width: none !important; max-height: none !important;
+          object-fit: cover;
+          z-index: 0;
+          object-position: center;
+          animation: kenBurns 45s ease-in-out infinite;
+        }
+
+        /* Zone 1: brand bar */
+        .jn-intro-brand-bar {
+          width: 100%;
+          padding: 24px 32px;
+          border-bottom: none;
+          flex-shrink: 0;
+        }
+        .jn-intro-brand-inner {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        .jn-intro-brand-text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          flex-shrink: 0;
+        }
+        .jn-intro-brand-name {
+          font-family: "Playfair Display", Georgia, serif;
+          font-size: clamp(14px, 2.5vw, 18px);
+          font-weight: 700;
+          color: #FAF9F6;
+          letter-spacing: -0.01em;
+          line-height: 1;
+        }
+        .jn-intro-brand-arabic {
+          font-family: "Playfair Display", Georgia, serif;
+          font-size: 11px;
+          color: rgba(212,175,55,0.7);
+          line-height: 1;
+          direction: rtl;
+          letter-spacing: 0.05em;
+        }
+        .jn-intro-brand-divider {
+          width: 1px;
+          height: 28px;
+          background: rgba(255,255,255,0.15);
+          flex-shrink: 0;
+        }
+        .jn-intro-brand-tagline {
+          font-family: "Outfit", system-ui, sans-serif;
+          font-size: 11px;
+          font-weight: 400;
+          color: rgba(250,249,246,0.45);
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+        }
+
+        /* Zone 2: center animation container */
+        .jn-intro-text-container {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          overflow: visible;
+        }
+
+        /* Zone 3: bottom action panel */
+        .jn-intro-action-panel {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0;
+          padding: 24px 24px 44px;
+          background: transparent;
+          border-top: none;
+          flex-shrink: 0;
+        }
+        .jn-intro-action-divider {
+          width: 1px;
+          height: 28px;
+          background: rgba(255,255,255,0.12);
+          margin: 0 20px;
+          flex-shrink: 0;
+        }
+
+        /* Skip button — understated */
+        .jn-intro-skip-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          height: 44px;
+          padding: 0 24px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.15);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border-radius: 100px;
+          color: rgba(250,249,246,0.7);
+          font-family: "Outfit", sans-serif;
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+          user-select: none;
+        }
+        .jn-intro-skip-btn:hover {
+          background: rgba(255,255,255,0.09);
+          border-color: rgba(255,255,255,0.25);
+          color: rgba(250,249,246,0.95);
+          transform: translateY(-1px);
+        }
+        .jn-intro-skip-btn:active {
+          transform: translateY(0) scale(0.98);
+        }
+
+        /* Quick start button — primary action */
+        .jn-intro-quick-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          height: 44px;
+          padding: 0 28px;
+          background: linear-gradient(135deg, #C1122F 0%, #8B0D22 100%);
+          border: 1.5px solid #C5A880;
+          border-radius: 100px;
+          color: #ffffff;
+          font-family: "Outfit", sans-serif;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          cursor: pointer;
+          box-shadow: 0 4px 24px rgba(193, 18, 47, 0.4), 0 2px 8px rgba(197, 168, 128, 0.2);
+          transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+          user-select: none;
+        }
+        .jn-intro-quick-btn:hover {
+          background: linear-gradient(135deg, #D4142F 0%, #A00F26 100%);
+          box-shadow: 0 6px 28px rgba(193,18,47,0.45);
+          transform: translateY(-1px);
+        }
+        .jn-intro-quick-btn:active {
+          transform: translateY(0) scale(0.98);
+          box-shadow: 0 2px 10px rgba(193,18,47,0.2);
+        }
+
+        /* Intro bottom stable area */
+        .jn-intro-bottom-stable {
+          margin-top: 0.5rem !important;
+          height: 60px !important;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+          .jn-welcome-video {
+            object-position: 30% center !important;
+          }
+          .jn-intro-brand-bar {
+            padding: 16px 20px 12px;
+          }
+          .jn-intro-brand-tagline {
+            display: none;
+          }
+          .jn-intro-brand-divider {
+            display: none;
+          }
+          .jn-intro-main-text-box {
+            height: 80px !important;
+          }
+          .jn-intro-bottom-stable {
+            height: 50px !important;
+          }
+          .jn-intro-action-panel {
+            padding: 16px 20px 24px;
+          }
+          .jn-intro-overline {
+            font-size: 9px;
+            margin-bottom: 14px;
+          }
+        }
+
+        @keyframes introDot {
+          0%, 100% { opacity: 0.18; transform: scale(0.75) translateY(0); }
+          50%       { opacity: 0.80; transform: scale(1.25) translateY(-3px); }
+        }
+      `}</style>
     </div>
   )
 }
+
+

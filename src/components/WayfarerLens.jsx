@@ -33,7 +33,6 @@ export default function WayfarerLens({ spot, onClose }) {
   const {
     saveCapturedPhoto,
     saveLensStory,
-    lensStories,
     unlockKeepsake,
     capturedPhotos = {},
     soundVolume,
@@ -53,7 +52,6 @@ export default function WayfarerLens({ spot, onClose }) {
   const [permission, setPermission]       = useState('pending')
   const [capturing, setCapturing]         = useState(false)
   const [captured, setCaptured]           = useState(false)
-  const [storyLoading, setStoryLoading]   = useState(false)
   const [visionLoading, setVisionLoading] = useState(false)
   const [visionText, setVisionText]       = useState('')
   const [displayedVision, setDisplayedVision] = useState('')
@@ -62,13 +60,18 @@ export default function WayfarerLens({ spot, onClose }) {
   useEffect(() => {
     if (!visionText) return
     let i = 0
-    setDisplayedVision('')
     const tid = setInterval(() => {
+      if (i === 0) {
+        setDisplayedVision('')
+      }
       i++
       setDisplayedVision(visionText.slice(0, i))
       if (i >= visionText.length) clearInterval(tid)
     }, 18)
-    return () => clearInterval(tid)
+    return () => {
+      clearInterval(tid)
+      setDisplayedVision('')
+    }
   }, [visionText])
 
   // Animate vision box in when visionText arrives
