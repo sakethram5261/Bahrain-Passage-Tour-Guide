@@ -467,16 +467,16 @@ export default function Onboarding() {
       {/* ════════════════════ SECTION 2: SETUP SETUP PANEL ════════════════════ */}
       <section 
         ref={setupSectionRef}
-        className="snap-start relative min-h-screen w-full flex items-center justify-center p-4 md:p-12 z-10 bg-[#0F0C0B]/90"
+        className="snap-start relative min-h-screen w-full flex items-center justify-center p-4 md:p-12 z-10 bg-[#F9F7F4]/95"
       >
-        <div className="max-w-2xl w-full p-6 md:p-10 rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl shadow-2xl space-y-8 my-8">
+        <div className="max-w-2xl w-full p-6 md:p-10 rounded-3xl border border-stone-200 bg-white shadow-2xl space-y-8 my-8 text-[#1C1917]">
           
           {/* Header */}
-          <div className="text-center md:text-left border-b border-white/10 pb-6">
-            <h2 className="font-serif text-3xl font-bold text-white tracking-wide">
+          <div className="text-center md:text-left border-b border-stone-200 pb-6">
+            <h2 className="font-serif text-3xl font-bold text-[#1C1917] tracking-wide">
               Customize Your Passage
             </h2>
-            <p className="text-xs text-[#A8A29E] mt-1">
+            <p className="text-xs text-stone-500 mt-1">
               Select your traveling vibes, trip duration, and budget tier to calibrate your ledger
             </p>
           </div>
@@ -486,7 +486,7 @@ export default function Onboarding() {
             
             {/* 1. Vibes Selection */}
             <div className="space-y-3">
-              <label className="text-[10px] md:text-xs uppercase tracking-widest text-[#C4A265] font-bold">
+              <label className="text-[10px] md:text-xs uppercase tracking-widest text-[#C41E3A] font-bold">
                 1. Select Traveling Vibes
               </label>
               
@@ -500,25 +500,25 @@ export default function Onboarding() {
                       onClick={() => toggleMood(m.id)}
                       className={`relative flex flex-col items-start p-4 rounded-2xl border text-left cursor-pointer transition-all duration-300 overflow-hidden select-none hover:scale-[1.01] active:scale-[0.99] ${
                         active 
-                          ? 'border-[var(--bp-primary)] bg-[rgba(186,12,47,0.06)] text-white shadow-[0_0_15px_rgba(186,12,47,0.15)]' 
-                          : 'border-white/10 bg-white/[0.01] text-[#A8A29E] hover:border-white/20'
+                          ? 'border-[#C41E3A] bg-[#C41E3A]/5 text-[#C41E3A] shadow-sm' 
+                          : 'border-stone-200 bg-[#F9F7F4]/40 text-stone-500 hover:border-[#C41E3A]/30'
                       }`}
                     >
                       {/* Pattern backdrop */}
                       <div 
-                        className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay transition-opacity duration-300"
+                        className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay transition-opacity duration-300"
                         style={{ backgroundImage: active ? m.bgPatternActive : m.bgPatternInactive, backgroundSize: '40px' }}
                       />
                       
                       <div className="relative z-10 flex items-center justify-between w-full">
-                        <Icon className={`w-5 h-5 ${active ? 'text-[var(--bp-primary)]' : 'text-[#A8A29E]'}`} />
-                        {active && <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--bp-primary)]">Selected</span>}
+                        <Icon className={`w-5 h-5 ${active ? 'text-[#C41E3A]' : 'text-stone-400'}`} />
+                        {active && <span className="text-[10px] font-bold uppercase tracking-wider text-[#C41E3A]">Selected</span>}
                       </div>
 
                       <div className="relative z-10 mt-3">
                         <span className="text-[10px] uppercase font-bold tracking-widest text-[#C4A265] block">{m.arabic}</span>
-                        <h4 className="font-serif text-sm font-bold mt-0.5 text-white">{m.label}</h4>
-                        <p className="text-[10px] leading-relaxed mt-1 text-[#8C8A87] font-sans">
+                        <h4 className={`font-serif text-sm font-bold mt-0.5 ${active ? 'text-[#C41E3A]' : 'text-stone-800'}`}>{m.label}</h4>
+                        <p className="text-[10px] leading-relaxed mt-1 text-stone-500 font-sans">
                           {m.tagline}
                         </p>
                       </div>
@@ -531,16 +531,16 @@ export default function Onboarding() {
             {/* 2. Duration Choice */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] md:text-xs uppercase tracking-widest text-[#C4A265] font-bold">
+                <label className="text-[10px] md:text-xs uppercase tracking-widest text-[#C41E3A] font-bold">
                   2. Trip Duration
                 </label>
-                <span className="text-xs text-white/90 font-bold">{duration} {duration === 1 ? 'Day' : 'Days'} Itinerary</span>
+                <span className="text-xs text-stone-700 font-bold">{duration} {duration === 1 ? 'Day' : 'Days'} Itinerary</span>
               </div>
 
               <div className="relative flex items-center gap-2">
                 <button
                   onClick={() => setDuration(prev => Math.max(1, prev - 1))}
-                  className="shrink-0 w-8 h-8 rounded-full border border-white/10 hover:border-white/20 hover:bg-white/5 flex items-center justify-center cursor-pointer transition-colors"
+                  className="shrink-0 w-8 h-8 rounded-full border border-stone-200 hover:border-[#C41E3A]/40 hover:bg-[#C41E3A]/5 flex items-center justify-center cursor-pointer transition-colors text-stone-600"
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -557,8 +557,8 @@ export default function Onboarding() {
                         onClick={() => setDuration(d)}
                         className={`snap-center flex-shrink-0 w-12 py-2 rounded-xl border text-center font-sans text-xs font-semibold cursor-pointer transition-all duration-300 ${
                           active
-                            ? 'text-white border-[#C4A265] bg-[#C4A265]/10 font-bold scale-[1.03]'
-                            : 'border-white/10 bg-white/[0.01] text-[#A8A29E] hover:border-white/20'
+                            ? 'text-[#C41E3A] border-[#C41E3A] bg-[#C41E3A]/5 font-bold scale-[1.03]'
+                            : 'border-stone-250/60 bg-[#F9F7F4]/30 text-stone-655 hover:border-stone-300'
                         }`}
                       >
                         {d}
@@ -569,7 +569,7 @@ export default function Onboarding() {
 
                 <button
                   onClick={() => setDuration(prev => Math.min(10, prev + 1))}
-                  className="shrink-0 w-8 h-8 rounded-full border border-white/10 hover:border-white/20 hover:bg-white/5 flex items-center justify-center cursor-pointer transition-colors"
+                  className="shrink-0 w-8 h-8 rounded-full border border-stone-200 hover:border-[#C41E3A]/40 hover:bg-[#C41E3A]/5 flex items-center justify-center cursor-pointer transition-colors text-stone-600"
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -578,27 +578,27 @@ export default function Onboarding() {
 
             {/* 3. Budget Tier Segmented Picker */}
             <div className="space-y-3">
-              <label className="text-[10px] md:text-xs uppercase tracking-widest text-[#C4A265] font-bold block">
+              <label className="text-[10px] md:text-xs uppercase tracking-widest text-[#C41E3A] font-bold block">
                 3. Budget & Experience Level
               </label>
 
-              <div className="grid grid-cols-2 gap-3 p-1 rounded-xl bg-white/[0.02] border border-white/10">
+              <div className="grid grid-cols-2 gap-3 p-1 rounded-xl bg-stone-100 border border-stone-200">
                 <button
                   onClick={() => setTier('Wandering')}
-                  className={`py-3 rounded-lg font-sans text-xs tracking-wider uppercase font-semibold cursor-pointer transition-all duration-300 ${
+                  className={`py-3 rounded-lg font-sans text-xs tracking-wider uppercase font-semibold cursor-pointer transition-all duration-300 border-none ${
                     tier === 'Wandering'
-                      ? 'bg-white/5 text-white font-bold border border-white/10'
-                      : 'text-[#A8A29E] border border-transparent hover:text-white'
+                      ? 'bg-white text-[#C41E3A] shadow-sm font-bold'
+                      : 'text-stone-500 hover:text-stone-850 bg-transparent'
                   }`}
                 >
                   Wandering (Budget-Conscious)
                 </button>
                 <button
                   onClick={() => setTier('Elite')}
-                  className={`py-3 rounded-lg font-sans text-xs tracking-wider uppercase font-semibold cursor-pointer transition-all duration-300 ${
+                  className={`py-3 rounded-lg font-sans text-xs tracking-wider uppercase font-semibold cursor-pointer transition-all duration-300 border-none ${
                     tier === 'Elite'
-                      ? 'bg-white/5 text-white font-bold border border-white/10'
-                      : 'text-[#A8A29E] border border-transparent hover:text-white'
+                      ? 'bg-white text-[#C41E3A] shadow-sm font-bold'
+                      : 'text-stone-500 hover:text-stone-850 bg-transparent'
                   }`}
                 >
                   Elite (Luxury/Premium)
@@ -607,14 +607,14 @@ export default function Onboarding() {
             </div>
 
             {/* Action CTAs */}
-            <div className="space-y-3 pt-4 border-t border-white/10">
+            <div className="space-y-3 pt-4 border-t border-stone-200">
               <button
                 onClick={handleBeginPassage}
                 disabled={noneSelected}
-                className={`w-full py-4 rounded-xl font-sans font-bold text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:scale-[1.005] active:scale-[0.995] h-[52px] border ${
+                className={`w-full py-4 rounded-xl font-sans font-bold text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed hover:scale-[1.005] active:scale-[0.995] h-[52px] border-none ${
                   noneSelected
-                    ? 'bg-white/5 border-dashed border-white/20 text-[#8C8A87]'
-                    : 'bg-gradient-to-r from-[var(--bp-primary)] to-[var(--bp-primary-dark)] text-white border-transparent shadow-[0_4px_20px_rgba(186,12,47,0.25)]'
+                    ? 'bg-stone-200 text-stone-400'
+                    : 'bg-[#C41E3A] hover:bg-[#A3162C] text-white shadow-md'
                 }`}
               >
                 {noneSelected
@@ -624,7 +624,7 @@ export default function Onboarding() {
 
               <button
                 onClick={handleQuickStart}
-                className="w-full py-3.5 rounded-xl font-sans font-bold text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer border border-[#C4A265]/30 bg-[#C4A265]/5 hover:bg-[#C4A265]/10 text-[#C4A265] hover:scale-[1.005] active:scale-[0.995] h-[48px] flex items-center justify-center gap-1 shadow-xs"
+                className="w-full py-3.5 rounded-xl font-sans font-bold text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer border border-[#C41E3A]/30 bg-[#C41E3A]/5 hover:bg-[#C41E3A]/10 text-[#C41E3A] hover:scale-[1.005] active:scale-[0.995] h-[48px] flex items-center justify-center gap-1 shadow-sm"
               >
                 Standard Route (Quick Start)
               </button>

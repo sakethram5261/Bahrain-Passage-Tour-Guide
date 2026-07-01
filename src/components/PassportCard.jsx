@@ -416,7 +416,7 @@ export default function PassportCard({ onClose }) {
         initial={{ scale: 0.93, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-        className="relative w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col bg-white border border-stone-250/20"
+        className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl shadow-2xl flex flex-col bg-white border border-stone-250/20"
         onClick={(e) => e.stopPropagation()}
         style={{ fontFamily: 'var(--bp-font-body)' }}
       >
@@ -454,7 +454,7 @@ export default function PassportCard({ onClose }) {
             </div>
 
             {/* Traveler Seal at the bottom */}
-            <div className="flex flex-col items-center mt-8 relative z-10">
+            <div className="flex flex-col items-center mt-8 relative z-10 hidden md:flex">
               <div className="w-40 h-40 rounded-full border-2 border-white/40 flex items-center justify-center relative bg-white/5 shadow-inner">
                 {signature ? (
                   <img src={signature} alt="Traveler Seal" className="max-h-[85%] max-w-[85%] object-contain" />

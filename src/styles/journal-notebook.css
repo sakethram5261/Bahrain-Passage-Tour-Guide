@@ -2701,6 +2701,62 @@
   padding: 4px;
 }
 
+/* Mobile optimizations for top bar */
+@media (max-width: 640px) {
+  .jn-header {
+    width: calc(100% - 16px) !important;
+    top: 6px !important;
+  }
+  
+  .jn-header-inner {
+    padding: 6px 10px !important;
+    gap: 4px !important;
+    min-height: 44px !important;
+  }
+  
+  .jn-header-right {
+    gap: 4px !important;
+  }
+
+  .jn-header .jn-brand-arabic {
+    display: none !important;
+  }
+
+  .jn-header .jn-brand-title {
+    font-size: 14px !important;
+  }
+
+  .jn-header .jn-utility-btn {
+    min-width: 28px !important;
+    height: 28px !important;
+    padding: 4px !important;
+  }
+
+  .jn-header .jn-xp-pill {
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+  }
+
+  .jn-header .jn-utility-btn-rank {
+    height: 28px !important;
+    padding: 4px 8px !important;
+    gap: 3px !important;
+  }
+
+  .jn-header .jn-rank-label {
+    display: none !important;
+  }
+
+  .jn-header .jn-print-btn {
+    display: none !important;
+  }
+
+  .jn-header .jn-utility-btn--edit {
+    font-size: 9px !important;
+    padding: 3px 8px !important;
+  }
+}
+
 
 
 
