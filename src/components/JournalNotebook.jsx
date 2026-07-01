@@ -2412,18 +2412,20 @@ export default function JournalNotebook({ onBack }) {
       )}
 
       {/* Local Riddle Bottom Sheet Modal */}
-      <RiddleModal
-        activeSpot={activeSpot}
-        solvedRiddles={solvedRiddles}
-        riddleAnswer={riddleAnswer}
-        riddleError={riddleError}
-        riddleHints={riddleHints}
-        hintLoading={hintLoading}
-        purchasedItems={purchasedItems}
-        onAnswer={handleAnswerRiddle}
-        onRequestHint={handleRequestHint}
-        onClose={() => setRiddleModalOpen(false)}
-      />
+      {riddleModalOpen && (
+        <RiddleModal
+          activeSpot={activeSpot}
+          solvedRiddles={solvedRiddles}
+          riddleAnswer={riddleAnswer}
+          riddleError={riddleError}
+          riddleHints={riddleHints}
+          hintLoading={hintLoading}
+          purchasedItems={purchasedItems}
+          onAnswer={handleAnswerRiddle}
+          onRequestHint={handleRequestHint}
+          onClose={() => setRiddleModalOpen(false)}
+        />
+      )}
 
       {/* AI GUIDE CHATBOT — Floating Action Button + Panel */}
       <>
