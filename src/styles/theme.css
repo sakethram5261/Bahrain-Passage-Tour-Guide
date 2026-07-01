@@ -3,74 +3,172 @@
    Clean editorial design language. No skeuomorphism.
    ═══════════════════════════════════════════════════════════════════════ */
 
-@theme {
-  /* Core — Bahrain flag-inspired but refined */
-  --color-primary:      #C1122F;
-  --color-primary-dark:  #8B0D22;
-  --color-primary-soft:  #FFF1F3;
-  --color-primary-mid:   rgba(193, 18, 47, 0.12);
+:root {
+  /* Brand colors */
+  --bp-primary:         #A81C2E;
+  --bp-primary-dark:    #7A1421;
+  --bp-primary-soft:    #FFF1F3;
+  --bp-primary-mid:     rgba(168, 28, 46, 0.12);
 
-  /* Neutrals — warm stone tones */
-  --color-surface:      #FAFAF9;
-  --color-surface-2:    #F5F5F4;
-  --color-surface-3:    #E7E5E4;
-  --color-border:       #D6D3D1;
-  --color-border-light: rgba(0, 0, 0, 0.06);
-  --color-text:         #1C1917;
-  --color-text-muted:   #78716C;
-  --color-text-faint:   #A8A29E;
+  /* Neutrals */
+  --bp-surface:         #FAFAF9;
+  --bp-surface-2:       #F5F5F4;
+  --bp-surface-3:       #E7E5E4;
+  --bp-border:          #D6D3D1;
+  --bp-border-light:    rgba(0, 0, 0, 0.06);
+  --bp-border-heavy:    rgba(139, 90, 75, 0.35);
+  --bp-border-warm:       rgba(139, 90, 75, 0.22);
+  --bp-border-warm-light: rgba(139, 90, 75, 0.12);
+  --bp-border-warm-heavy: rgba(139, 90, 75, 0.35);
+  --bp-text:            #1C1917;
+  --bp-text-muted:      #78716C;
+  --bp-text-faint:      #A8A29E;
 
-  /* Accent — restrained gold */
-  --color-accent:       #B8860B;
-  --color-accent-soft:  rgba(184, 134, 11, 0.08);
+  /* Accent */
+  --bp-accent:          #C4A265;
+  --bp-accent-soft:     rgba(196, 162, 101, 0.08);
 
   /* Semantic */
-  --color-success:      #16A34A;
-  --color-success-bg:   #F0FDF4;
-  --color-warning:      #D97706;
-  --color-warning-bg:   #FFFBEB;
-  --color-error:        #DC2626;
+  --bp-success:         #16A34A;
+  --bp-success-bg:      #F0FDF4;
+  --bp-warning:         #D97706;
+  --bp-warning-bg:      #FFFBEB;
+  --bp-error:           #DC2626;
 
   /* Typography */
-  --font-display: 'Clash Display', 'Playfair Display', Georgia, serif;
-  --font-body:    'Satoshi', 'Outfit', system-ui, sans-serif;
-  --font-mono:    'Courier New', monospace;
+  --bp-font-display:    'Fraunces', 'Clash Display', 'Playfair Display', Georgia, serif;
+  --bp-font-body:       'Inter', 'Satoshi', 'Outfit', system-ui, sans-serif;
+  --bp-font-mono:       'JetBrains Mono', 'Courier New', monospace;
 
-  /* Spacing (4px base) */
-  --sp-1: 4px;   --sp-2: 8px;   --sp-3: 12px;
-  --sp-4: 16px;  --sp-5: 20px;  --sp-6: 24px;
-  --sp-8: 32px;  --sp-10: 40px; --sp-12: 48px;
+  /* Spacing */
+  --bp-sp-1: 4px;   --bp-sp-2: 8px;   --bp-sp-3: 12px;
+  --bp-sp-4: 16px;  --bp-sp-5: 20px;  --bp-sp-6: 24px;
+  --bp-sp-8: 32px;  --bp-sp-10: 40px; --bp-sp-12: 48px;
+
+  /* Spacing scale aliases (from journal-notebook.css) */
+  --bp-sp-xs:  4px;
+  --bp-sp-sm:  8px;
+  --bp-sp-md:  16px;
+  --bp-sp-lg:  24px;
+  --bp-sp-xl:  36px;
+  --bp-sp-2xl: 52px;
 
   /* Radius */
-  --radius-sm:   6px;
-  --radius-md:   10px;
-  --radius-lg:   16px;
-  --radius-xl:   24px;
-  --radius-full: 9999px;
+  --bp-radius-sm:       6px;
+  --bp-radius-md:       10px;
+  --bp-radius-lg:       16px;
+  --bp-radius-xl:       24px;
+  --bp-radius-full:     9999px;
 
-  /* Shadows — premium, multi-layered warm charcoal (#1C1917) */
-  --shadow-sm:  0 1px 2px rgba(28, 25, 23, 0.02), 0 1px 3px rgba(28, 25, 23, 0.01);
-  --shadow-md:  0 4px 12px rgba(28, 25, 23, 0.04), 0 2px 4px rgba(28, 25, 23, 0.02), 0 0 1px rgba(28, 25, 23, 0.04);
-  --shadow-lg:  0 12px 28px rgba(28, 25, 23, 0.06), 0 4px 10px rgba(28, 25, 23, 0.03), 0 0 2px rgba(28, 25, 23, 0.04);
-  --shadow-xl:  0 24px 48px rgba(28, 25, 23, 0.08), 0 8px 20px rgba(28, 25, 23, 0.04), 0 0 4px rgba(28, 25, 23, 0.04);
+  /* Radius aliases (from journal-notebook.css) */
+  --bp-r-sm:   8px;
+  --bp-r-md:   14px;
+  --bp-r-lg:   22px;
+  --bp-r-xl:   32px;
+
+  /* Shadows */
+  --bp-shadow-sm:       0 1px 2px rgba(28, 25, 23, 0.02), 0 1px 3px rgba(28, 25, 23, 0.01);
+  --bp-shadow-md:       0 4px 12px rgba(28, 25, 23, 0.04), 0 2px 4px rgba(28, 25, 23, 0.02), 0 0 1px rgba(28, 25, 23, 0.04);
+  --bp-shadow-lg:       0 12px 28px rgba(28, 25, 23, 0.06), 0 4px 10px rgba(28, 25, 23, 0.03), 0 0 2px rgba(28, 25, 23, 0.04);
+  --bp-shadow-xl:       0 24px 48px rgba(28, 25, 23, 0.08), 0 8px 20px rgba(28, 25, 23, 0.04), 0 0 4px rgba(28, 25, 23, 0.04);
+  --bp-shadow-book:     0 32px 80px -12px rgba(28, 25, 23, 0.45),
+                        0 12px 32px -8px rgba(28, 25, 23, 0.25),
+                        inset 0 0 40px rgba(139, 90, 43, 0.03);
 
   /* Easing */
-  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --bp-ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --bp-ease-spring:     cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Transitions */
+  --bp-transition-fast:   all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  --bp-transition-smooth: all 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  --bp-transition-spring: all 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Header / CTA height offsets */
+  --bp-header-h:        54px;
+  --bp-cta-h:           72px;
+
+  /* Book/Parchment specifics */
+  --bp-parchment:       #faf9f6;
+  --bp-parchment-2:     #f4f1e8;
+  --bp-cream:           #fffdf9;
+  --bp-cream-edge:      #ece9df;
+  --bp-paper:           #ffffff;
+  --bp-gold:            #C5A880;
+  --bp-gold-muted:      rgba(197, 168, 128, 0.3);
+  --bp-ink:             #1a1210;
+  --bp-ink-muted:       #3b2f2b;
+  --bp-ink-faint:       rgba(42, 35, 33, 0.65);
+}
+
+@theme {
+  /* Core — Bahrain flag-inspired but refined */
+  --color-primary:      var(--bp-primary);
+  --color-primary-dark:  var(--bp-primary-dark);
+  --color-primary-soft:  var(--bp-primary-soft);
+  --color-primary-mid:   var(--bp-primary-mid);
+
+  /* Neutrals — warm stone tones */
+  --color-surface:      var(--bp-surface);
+  --color-surface-2:    var(--bp-surface-2);
+  --color-surface-3:    var(--bp-surface-3);
+  --color-border:       var(--bp-border);
+  --color-border-light: var(--bp-border-light);
+  --color-text:         var(--bp-text);
+  --color-text-muted:   var(--bp-text-muted);
+  --color-text-faint:   var(--bp-text-faint);
+
+  /* Accent — restrained gold */
+  --color-accent:       var(--bp-accent);
+  --color-accent-soft:  var(--bp-accent-soft);
+
+  /* Semantic */
+  --color-success:      var(--bp-success);
+  --color-success-bg:   var(--bp-success-bg);
+  --color-warning:      var(--bp-warning);
+  --color-warning-bg:   var(--bp-warning-bg);
+  --color-error:        var(--bp-error);
+
+  /* Typography */
+  --font-display:       var(--bp-font-display);
+  --font-body:          var(--bp-font-body);
+  --font-mono:          var(--bp-font-mono);
+
+  /* Spacing (4px base) */
+  --sp-1: var(--bp-sp-1);   --sp-2: var(--bp-sp-2);   --sp-3: var(--bp-sp-3);
+  --sp-4: var(--bp-sp-4);  --sp-5: var(--bp-sp-5);  --sp-6: var(--bp-sp-6);
+  --sp-8: var(--bp-sp-8);  --sp-10: var(--bp-sp-10); --sp-12: var(--bp-sp-12);
+
+  /* Radius */
+  --radius-sm:   var(--bp-radius-sm);
+  --radius-md:   var(--bp-radius-md);
+  --radius-lg:   var(--bp-radius-lg);
+  --radius-xl:   var(--bp-radius-xl);
+  --radius-full: var(--bp-radius-full);
+
+  /* Shadows — premium, multi-layered warm charcoal (#1C1917) */
+  --shadow-sm:  var(--bp-shadow-sm);
+  --shadow-md:  var(--bp-shadow-md);
+  --shadow-lg:  var(--bp-shadow-lg);
+  --shadow-xl:  var(--bp-shadow-xl);
+
+  /* Easing */
+  --ease-out:    var(--bp-ease-out);
+  --ease-spring: var(--bp-ease-spring);
 
   /* Legacy aliases (prevents breaking existing Tailwind classes) */
-  --color-pearl-white:    #FAFAF9;
-  --color-pearl-bg:       #FAFAF9;
-  --color-pearl-100:      #FAFAF9;
+  --color-pearl-white:    var(--bp-surface);
+  --color-pearl-bg:       var(--bp-surface);
+  --color-pearl-100:      var(--bp-surface);
   --color-pearl-border:   #E7E5E4;
-  --color-bahrain-red:    #C1122F;
-  --color-bahrain-dark:   #8B0D22;
-  --color-bahrain-light:  #FFF1F3;
-  --color-bahrain-accent: #DC2626;
-  --color-bronze-charcoal:#1C1917;
-  --color-bronze-muted:   #78716C;
-  --font-serif: 'Playfair Display', Georgia, serif;
-  --font-sans:  'Outfit', system-ui, sans-serif;
+  --color-bahrain-red:    var(--bp-primary);
+  --color-bahrain-dark:   var(--bp-primary-dark);
+  --color-bahrain-light:  var(--bp-primary-soft);
+  --color-bahrain-accent: var(--bp-primary);
+  --color-bronze-charcoal:var(--bp-text);
+  --color-bronze-muted:   var(--bp-text-muted);
+  --font-serif:           var(--bp-font-display);
+  --font-sans:            var(--bp-font-body);
 }
 
 

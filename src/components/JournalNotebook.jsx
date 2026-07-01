@@ -27,7 +27,11 @@ import {
   Volume2,
   VolumeX,
   Search,
-  Lock
+  Lock,
+  Compass,
+  Printer,
+  Coins,
+  MoreHorizontal
 } from 'lucide-react'
 import { useVibe } from '../hooks/useVibe'
 import { useItinerary, spotsCatalog } from '../hooks/useItinerary'
@@ -38,9 +42,16 @@ import WaxSealCeremony from './WaxSealCeremony'
 import MapSkeleton from './skeletons/MapSkeleton'
 import JournalSkeleton from './skeletons/JournalSkeleton'
 import { hasVirtualTour, getTourIndexForSpot } from './VirtualTour'
-import AIHotelPanel, { HOTELS_DB } from './AIHotelPanel'
 import LangToggle from './LangToggle'
 import { useLang } from '../context/LangContext'
+import { RIDDLES } from '../data/riddles'
+import RiddleModal from './journal/RiddleModal'
+import RankUpModal from './journal/RankUpModal'
+import ShopPanel from './journal/ShopPanel'
+import BaseCampPrompt from './journal/BaseCampPrompt'
+import KeepsakeDetailModal from './journal/KeepsakeDetailModal'
+import QuickInfoSheet from './journal/QuickInfoSheet'
+import MoreDrawer from './journal/MoreDrawer'
 import { 
   playTypewriterClick as playTypewriterClickCentral,
   playRiddleCorrect,
@@ -49,23 +60,7 @@ import {
   playCampStampSound
 } from '../services/audioUtils'
 
-// Inlined from DashboardData.js
-const RANKS = [
-  { id: 'wanderer', label: 'Wanderer', arabic: 'مسافر', minXP: 0, color: '#5C5451' },
-  { id: 'nomad', label: 'Nomad', arabic: 'بدوي', minXP: 75, color: '#aa7c11' },
-  { id: 'merchant', label: 'Merchant', arabic: 'تاجر', minXP: 250, color: '#c07b2a' },
-  { id: 'chronicler', label: 'Chronicler', arabic: 'مؤرخ', minXP: 600, color: '#D11A38' },
-  { id: 'pearldiver', label: 'Pearl Diver', arabic: 'غواص لؤلؤ', minXP: 1200, color: '#2563eb' },
-  { id: 'dilmun', label: 'Dilmun Pearl', arabic: 'لؤلؤة دلمون', minXP: 2200, color: '#7c3aed' },
-]
-
-function getRank(xp) {
-  let rank = RANKS[0]
-  for (const r of RANKS) {
-    if (xp >= r.minXP) rank = r
-  }
-  return rank
-}
+import { RANKS, getRank } from '../data/ranks'
 
 const shopItems = [
   { id: 'riddle-hint', name: 'Riddle Scroll Clue', desc: 'A hand-written parchment scroll providing poetic guidance to help decipher coordinate riddles.', cost: 150, emoji: '📜', xpReward: 10 },
@@ -139,200 +134,6 @@ function getAlmanac(dayTab) {
   return ALMANAC_DATA[dayTab] ?? ALMANAC_DEFAULT
 }
 
-const RIDDLES = {
-  'qal-at-al-bahrain': {
-    question: "Which empire's legendary seals were discovered in the archaeological strata here?",
-    options: ["Byzantine Empire", "Dilmun Empire", "Roman Empire"],
-    correct: 1,
-    insider: "Dilmun clay seals carved with bulls and celestial marks were used by merchants 4,000 years ago to secure cargo bound for ancient Mesopotamia!"
-  },
-  'muharraq-souq': {
-    question: "What signature botanical spices give Bahraini Halwa its warm, legendary aroma?",
-    options: ["Ginger & Cinnamon", "Clove & Star Anise", "Saffron & Cardamom"],
-    correct: 2,
-    insider: "Generational copper-pot halwa makers cook date syrup and almonds with cardamom and highly precious saffron threads to produce that authentic scarlet glow."
-  },
-  'pearling-path': {
-    question: "How did historical Bahraini pearl divers block their ears/noses during oyster dives?",
-    options: ["Sea-sponges & olive oil", "Beeswax & horn-clips", "Fine linen & clay plugs"],
-    correct: 1,
-    insider: "Divers plugged their ears with natural beeswax and clamped their noses with 'Fattah' noseclips carved from sheep horn to withstand the deep seafloor pressure."
-  },
-  'block-338': {
-    question: "Block 338 is celebrated today as Manama's creative core. What defines its bohemian layout?",
-    options: ["Date palm gardens", "Vibrant street murals & art", "Ancient brick-kilns"],
-    correct: 1,
-    insider: "Walking behind the main lanes reveals hidden alleyways packed with glowing street murals, local printshops, and contemporary art courtyards!"
-  },
-  'jarada-island': {
-    question: "What oceanographic mystery makes a speedboat voyage to Jarada Island unique?",
-    options: ["It features deep sea moats", "It is covered in green palm woods", "It completely vanishes under tide"],
-    correct: 2,
-    insider: "Jarada is an ephemeral sandbar that completely vanishes under the turquoise sea waves twice a day, leaving only marine shells and birds."
-  },
-  'tree-of-life': {
-    question: "How old is this solitary green canopy growing without any apparent water source in the desert?",
-    options: ["Around 50 years old", "Over 400 years old", "Nearly 10,000 years old"],
-    correct: 1,
-    insider: "Botanists believe the tree's roots descend over 50 meters deep to reach subterranean fresh water aquifers, letting it defy the hyper-saline Sakhir sands."
-  },
-  'haji-cafe': {
-    question: "Established in 1950 inside Manama Souq, what legendary policy makes dining at Haji's unique?",
-    options: ["It is inside a military fort", "There is no printed menu", "Servings are done by robots"],
-    correct: 1,
-    insider: "There is no menu! You sit on the rustic wooden benches and the cooks simply serve you whatever local dishes are boiling fresh in the kitchen pots."
-  },
-  'aali-pottery': {
-    question: "What generational method do potting masters in A'ali still use to shape their red clay jars?",
-    options: ["Modern CNC routers", "Liquid silicon molding", "Foot-kick pottery wheels"],
-    correct: 2,
-    insider: "Generational potters spin clay harvested from local Sakhir marshes using kick-wheels that mimic designs seen on ancient Dilmun tablets."
-  },
-  'arad-fort': {
-    question: "Arad Fort stands guard over the Muharraq coast. What is its highly unique structural layout?",
-    options: ["Circular star-pattern moat", "Strictly square military shape", "Octagonal limestone tower"],
-    correct: 1,
-    insider: "Arad was built in a compact square shape in the 15th century, with heavy cylindrical corner towers to defend sea channels from all angles."
-  },
-  'national-museum': {
-    question: "Which ancient Mesopotamian epic inscribed on clay tablets is preserved inside the galleries here?",
-    options: ["The Odyssey", "The Hammurabi Codex", "The Epic of Gilgamesh"],
-    correct: 2,
-    insider: "The Epic of Gilgamesh describes Dilmun (ancient Bahrain) as a paradise land of pure fresh waters where the hero sought the secret to eternal life!"
-  },
-  'al-dar-islands': {
-    question: "Which local marine wildlife are shallow sea-kayak trips around Sitra shores most famous for?",
-    options: ["Hammerhead shark packs", "Starfish & blue swimming crabs", "Sub-tropical sea penguins"],
-    correct: 1,
-    insider: "Kayaking near the seagrass beds reveals millions of small blue swimming crabs, native clams, and orange starfish in crystal warm waters."
-  },
-  'reef-island': {
-    question: "Reef Island promenade sits on Manama's northern shore. What view does it showcase at night?",
-    options: ["Ancient volcanic dunes", "Skyscraper neon lights & marina", "Deep pearl oyster diving fleets"],
-    correct: 1,
-    insider: "The pedestrian sea promenade provides the absolute best breeze point to watch the capital's skyscraper neon lights catch the sea ripples."
-  },
-  'riffa-fort': {
-    question: "Perched on a cliff edge, which valley wind system cools Riffa Fort's winds?",
-    options: ["Euphrates Delta trade winds", "Haniniya Valley breeze", "Nile Basin thermal draft"],
-    correct: 1,
-    insider: "The Haniniya Valley breeze rushes up the limestone cliffs at twilight, creating a natural desert cooling draft across the fort courtyards."
-  },
-  'barbar-temple': {
-    question: "The ancient Barbar Temple ruins are dedicated to Enki. Who was this Dilmun deity?",
-    options: ["God of Sandstorms & War", "God of Wisdom & Fresh Waters", "God of Crimson Fire & Gold"],
-    correct: 1,
-    insider: "Ancient Sumerians believed Bahrain was a sacred sanctuary because freshwater springs bubbled up through the sea, ruled by the god of sweet waters!"
-  },
-  'al-jasra-house': {
-    question: "What organic, traditional building materials were used to construct Al Jasra House in 1907?",
-    options: ["Red kiln bricks & concrete", "Volcanic limestone & slate", "Sea coral stones & palm trunks"],
-    correct: 2,
-    insider: "Traditional craftsmen stacked sea coral chunks bound by mud, using palm leaf fibers and robust palm trunks to construct naturally ventilated walls."
-  },
-  'khalaf-house': {
-    question: "Khalaf House stands as a monument in Muharraq. What trade fortunes were historically weighed here?",
-    options: ["Aromatic spice shipments", "Natural sea oyster pearls", "Red clay pottery cargoes"],
-    correct: 1,
-    insider: "This grand merchant home served as the royal salon where pearl divers brought rare Basra pearls to be weighed against brass weights for fortunes."
-  },
-  'manama-souq': {
-    question: "What does the name of the iconic stone archway 'Bab Al Bahrain' translate to?",
-    options: ["Citadel of Bahrain", "Gateway of Bahrain", "Springs of Bahrain"],
-    correct: 1,
-    insider: "Built in 1949, Bab Al Bahrain ('Gateway of Bahrain') marked the exact point where sea waters originally met the historic customs square."
-  },
-  'al-areen': {
-    question: "Which majestic, long-horned white desert animal is Al Areen Park famous for preserving?",
-    options: ["Sahara Cheetah", "Arabian Oryx", "Persian Antelope"],
-    correct: 1,
-    insider: "The beautiful white Arabian Oryx was saved from extinction in the 1970s through local Sakhir desert breeding programs, now numbering in the hundreds."
-  },
-  'beit-al-quran': {
-    question: "Which century do the oldest manuscripts in this collection date back to?",
-    options: ["5th Century", "7th Century", "10th Century"],
-    correct: 1,
-    insider: "The 7th-century manuscripts are part of a rare collection that highlights the early spread of Islamic literacy in the Arabian Peninsula."
-  },
-  'saar-temple': {
-    question: "Which ancient civilization built the Saar Temple?",
-    options: ["Dilmun", "Sumerian", "Phoenician"],
-    correct: 0,
-    insider: "The Dilmun civilization was a major maritime hub connecting Mesopotamia and the Indus Valley, making Saar a strategic religious center."
-  },
-  'al-khamis-mosque': {
-    question: "What is unique about the Al Khamis Mosque's minarets?",
-    options: ["They are made of gold", "There are two of them", "They are submerged in water"],
-    correct: 1,
-    insider: "The twin minarets are a hallmark of the mosque's reconstruction phases during the medieval period, reflecting its architectural evolution."
-  },
-  'bin-matar-house': {
-    question: "What industry built the wealth of the Bin Matar family?",
-    options: ["Oil", "Pearl diving", "Textiles"],
-    correct: 1,
-    insider: "The Bin Matar family were prominent pearl merchants, and their house stands as a symbol of the prosperity Bahrain enjoyed during the peak of the pearling industry."
-  },
-  'al-jasra-craft-center': {
-    question: "Which natural material is commonly used in the weaving crafts found here?",
-    options: ["Date palm leaves", "Seaweed", "Cotton"],
-    correct: 0,
-    insider: "Palm weaving is a fundamental craft in Bahrain, traditionally used for everything from food storage to home insulation."
-  },
-  'durrat-al-bahrain-coast': {
-    question: "Where in Bahrain is this archipelago located?",
-    options: ["Northern tip", "Eastern coast", "Southern tip"],
-    correct: 2,
-    insider: "Durrat Al Bahrain is one of the largest man-made island projects in the region, designed to resemble a string of pearls."
-  },
-  'royal-camel-farm': {
-    question: "Camels are often referred to as what?",
-    options: ["Ships of the desert", "Kings of the plains", "Guardians of the sand"],
-    correct: 0,
-    insider: "Camels were the primary mode of transportation and the main source of sustenance for nomadic tribes in the Arabian Desert for thousands of years."
-  },
-  'bahrain-international-circuit': {
-    question: "Which major international racing event is held here annually?",
-    options: ["MotoGP", "Formula 1", "Le Mans"],
-    correct: 1,
-    insider: "The Bahrain International Circuit was the first Formula 1 track to be built in the Middle East, setting the standard for future tracks in the region."
-  },
-  'al-fateh-grand-mosque': {
-    question: "What is unique about the dome of the Al Fateh Mosque?",
-    options: ["It is made of gold", "It is the world's largest fiberglass dome", "It is made of recycled glass"],
-    correct: 1,
-    insider: "The dome was constructed using fiberglass, a modern engineering choice that allowed for its immense size and intricate lighting effects."
-  },
-  'manama-reef-walk': {
-    question: "What is the name of the popular spiced milk tea found along the corniche?",
-    options: ["Karak", "Matcha", "Earl Grey"],
-    correct: 0,
-    insider: "Karak tea, a blend of black tea, milk, sugar, and cardamom, is the definitive drink of the region and a cultural staple for socializing."
-  },
-  'bahrain-world-trade-center': {
-    question: "What is integrated into the design of these towers to provide renewable energy?",
-    options: ["Solar panels", "Wind turbines", "Hydro generators"],
-    correct: 1,
-    insider: "These were the first skyscrapers in the world to integrate large-scale wind turbines into their design."
-  },
-  'muharraq-cultural-center': {
-    question: "In which historic city is this center located?",
-    options: ["Manama", "Muharraq", "Riffa"],
-    correct: 1,
-    insider: "Muharraq is the former capital of Bahrain and is famed for its dense collection of traditional architecture and pearling history."
-  },
-  'al-ghous-house': {
-    question: "What was the main purpose of the pearl divers?",
-    options: ["Fishing", "Finding pearls", "Searching for shipwrecks"],
-    correct: 1,
-    insider: "Pearl diving was the backbone of Bahrain's economy for centuries before the discovery of oil in 1932."
-  },
-  'ad-dair-village': {
-    question: "What is the primary activity in Ad Dair village?",
-    options: ["Agriculture", "Fishing", "Jewelry making"],
-    correct: 1,
-    insider: "Fishing villages like Ad Dair are the guardians of Bahrain's maritime heritage, maintaining traditional methods that have been passed down for generations."
-  }
-}
 
 function getRandomKeepsakeSpot(uncollected) {
   return uncollected[Math.floor(Math.random() * uncollected.length)]
@@ -349,10 +150,7 @@ const TABS = [
   { id: 'info',       label: 'Today' },
   { id: 'itinerary',  label: 'Route' },
   { id: 'map',        label: 'Map' },
-  { id: 'hotels',     label: 'Hotels' },
-  { id: 'search',     label: 'Search' },
-  { id: 'souvenirs',  label: 'Artifacts' },
-  { id: 'phrasebook', label: 'Phrases' },
+  { id: 'more',       label: 'More' },
 ]
 
 
@@ -530,9 +328,22 @@ export default function JournalNotebook({ onBack }) {
   const activeSpot = !isSealStep && hasSpots ? activeSpots[safeSpotIndex] : null
 
   /* ── Local UI state ──────────────────────────────────────────────────────── */
+  const [scrolled,     setScrolled]     = useState(false)
   const [activeTab,    setActiveTab]    = useState('info')
   const [tabKey,       setTabKey]       = useState(0)       // bumped on every switch → remount → fresh anim
   const [menuOpen,     setMenuOpen]     = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setScrolled(true)
+      } else {
+        setScrolled(false)
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
   const [chatOpen,     setChatOpen]     = useState(false)   // AI chatbot panel
   const [phraseSearch, setPhraseSearch] = useState('')      // phrasebook search query
   
@@ -542,6 +353,7 @@ export default function JournalNotebook({ onBack }) {
   const [tourOpen,        setTourOpen]        = useState(false)
   const [lensOpenSpot,    setLensOpenSpot]    = useState(null)
   const [shopOpen,        setShopOpen]        = useState(false)
+  const [moreOpen,        setMoreOpen]        = useState(false)
   const [riddleModalOpen, setRiddleModalOpen] = useState(false)
   const [imageErrors,     setImageErrors]     = useState({})
   const [riddleHints,     setRiddleHints]     = useState({})
@@ -561,14 +373,7 @@ export default function JournalNotebook({ onBack }) {
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchError, setSearchError] = useState(null)
 
-  useEffect(() => {
-    if (!selectedHotel) {
-      const timer = setTimeout(() => {
-        setBaseCampPromptOpen(true)
-      }, 800)
-      return () => clearTimeout(timer)
-    }
-  }, [selectedHotel])
+
 
   // Stamping and rank-up states
   const [stamping] = useState(false)
@@ -578,6 +383,26 @@ export default function JournalNotebook({ onBack }) {
   
   const prevRankIdRef = useRef(null)
   const rank = getRank(xp)
+
+  const indicatorRef = useRef(null)
+  useEffect(() => {
+    const activeEl = document.getElementById(`tab-${activeTab}`)
+    const indicator = indicatorRef.current
+    if (!activeEl || !indicator) return
+
+    const updateIndicator = () => {
+      gsap.to(indicator, {
+        x: activeEl.offsetLeft,
+        width: activeEl.offsetWidth,
+        duration: 0.35,
+        ease: 'power3.out'
+      })
+    }
+
+    updateIndicator()
+    window.addEventListener('resize', updateIndicator)
+    return () => window.removeEventListener('resize', updateIndicator)
+  }, [activeTab])
 
   const stampRef = useRef(null)
   const inkRef = useRef(null)
@@ -733,6 +558,13 @@ export default function JournalNotebook({ onBack }) {
     if (e) {
       e.stopPropagation()
       e.preventDefault()
+    }
+    if (tab === 'more') {
+      if (playOrganicPageSwish) {
+        playOrganicPageSwish()
+      }
+      setMoreOpen(true)
+      return
     }
     if (tab === activeTab) return
 
@@ -1266,7 +1098,7 @@ export default function JournalNotebook({ onBack }) {
         </div>
 
         {/* Estimated Cost / Budget */}
-        <div className="jn-insider-box" style={{ background: 'var(--jn-input-bg, #fffdf9)', border: '1px solid var(--jn-gold-muted)', padding: '15px' }} role="complementary" aria-label="Estimated Cost / Budget">
+        <div className="jn-insider-box" style={{ background: 'var(--bp-input-bg, #fffdf9)', border: '1px solid var(--bp-gold-muted)', padding: '15px' }} role="complementary" aria-label="Estimated Cost / Budget">
           <span className="jn-tag jn-tag--green">Estimated Cost</span>
           <p className="jn-insider-text" style={{ fontWeight: 'bold', marginTop: '5px' }}>
             {activeSpot.pathCost || activeSpot.budgetCost || 'Free Entry'}
@@ -1430,17 +1262,17 @@ export default function JournalNotebook({ onBack }) {
         </div>
 
         {/* Journal reflections textarea */}
-        <div style={{ marginBottom: 'var(--jn-sp-lg)' }}>
+        <div style={{ marginBottom: 'var(--bp-sp-lg)' }}>
           <label
             htmlFor={`reflection-${activeSpot.id}`}
             style={{
               display: 'block',
-              fontFamily: 'var(--jn-font-sans)',
+              fontFamily: 'var(--bp-font-body)',
               fontSize: '10px',
               fontWeight: '800',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              color: 'var(--jn-crimson)',
+              color: 'var(--bp-primary)',
               marginBottom: '6px',
             }}
           >
@@ -1448,7 +1280,7 @@ export default function JournalNotebook({ onBack }) {
           </label>
           {/* Writing Prompt Chips */}
           <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--jn-ink-faint)', alignSelf: 'center', marginRight: '4px' }}>Prompts:</span>
+            <span style={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--bp-ink-faint)', alignSelf: 'center', marginRight: '4px' }}>Prompts:</span>
             <button
               type="button"
               onClick={() => {
@@ -1464,14 +1296,14 @@ export default function JournalNotebook({ onBack }) {
                 fontWeight: 'bold',
                 padding: '4px 8px',
                 borderRadius: '9999px',
-                border: '1px solid var(--jn-border-color)',
-                background: 'var(--jn-paper)',
-                color: 'var(--jn-ink)',
+                border: '1px solid var(--bp-border-warm)',
+                background: 'var(--bp-paper)',
+                color: 'var(--bp-ink)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--jn-crimson)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--jn-border-color)'; e.currentTarget.style.background = 'var(--jn-paper)' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--bp-primary)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bp-border-warm)'; e.currentTarget.style.background = 'var(--bp-paper)' }}
             >
               Food & Aromas 🍯
             </button>
@@ -1490,14 +1322,14 @@ export default function JournalNotebook({ onBack }) {
                 fontWeight: 'bold',
                 padding: '4px 8px',
                 borderRadius: '9999px',
-                border: '1px solid var(--jn-border-color)',
-                background: 'var(--jn-paper)',
-                color: 'var(--jn-ink)',
+                border: '1px solid var(--bp-border-warm)',
+                background: 'var(--bp-paper)',
+                color: 'var(--bp-ink)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--jn-crimson)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--jn-border-color)'; e.currentTarget.style.background = 'var(--jn-paper)' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--bp-primary)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bp-border-warm)'; e.currentTarget.style.background = 'var(--bp-paper)' }}
             >
               Architecture 🏺
             </button>
@@ -1516,14 +1348,14 @@ export default function JournalNotebook({ onBack }) {
                 fontWeight: 'bold',
                 padding: '4px 8px',
                 borderRadius: '9999px',
-                border: '1px solid var(--jn-border-color)',
-                background: 'var(--jn-paper)',
-                color: 'var(--jn-ink)',
+                border: '1px solid var(--bp-border-warm)',
+                background: 'var(--bp-paper)',
+                color: 'var(--bp-ink)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--jn-crimson)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--jn-border-color)'; e.currentTarget.style.background = 'var(--jn-paper)' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--bp-primary)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bp-border-warm)'; e.currentTarget.style.background = 'var(--bp-paper)' }}
             >
               Local Vibe 📝
             </button>
@@ -1536,27 +1368,40 @@ export default function JournalNotebook({ onBack }) {
             rows={3}
             style={{
               width: '100%',
-              fontFamily: 'var(--jn-font-serif)',
+              fontFamily: 'var(--bp-font-display)',
               fontSize: '13px',
               lineHeight: 1.6,
-              color: 'var(--jn-ink)',
-              background: 'var(--jn-input-bg, #fffdf9)',
-              border: '1px solid rgba(193,18,47,0.15)',
-              borderRadius: 'var(--jn-r-md)',
+              color: 'var(--bp-ink)',
+              background: 'var(--bp-input-bg, #fffdf9)',
+              border: '1px solid rgba(197, 168, 128, 0.35)',
+              borderRadius: 'var(--bp-r-md)',
               padding: '10px 14px',
               resize: 'none',
               outline: 'none',
-              boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.04)',
-              transition: 'border-color 0.2s ease',
+              boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.02)',
+              transition: 'border-color 0.25s ease, box-shadow 0.25s ease',
             }}
-            onFocus={e => e.target.style.borderColor = 'var(--jn-crimson)'}
-            onBlur={e => e.target.style.borderColor = 'rgba(193,18,47,0.15)'}
+            onFocus={e => {
+              e.target.style.borderColor = 'var(--bp-accent)'
+              e.target.style.boxShadow = '0 0 0 3px rgba(196, 162, 101, 0.15), inset 0 2px 6px rgba(0,0,0,0.02)'
+            }}
+            onBlur={e => {
+              e.target.style.borderColor = 'rgba(197, 168, 128, 0.35)'
+              e.target.style.boxShadow = 'inset 0 2px 6px rgba(0,0,0,0.02)'
+            }}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '10px', color: '#888', fontFamily: 'var(--jn-font-sans)', fontWeight: 'bold' }}>
-            <span style={{ color: saveState === 'saved' ? 'var(--jn-green, #1C6B3A)' : 'var(--jn-crimson, #BA0C2F)' }}>
-              {saveState === 'typing' && '✍️ Typing...'}
-              {saveState === 'saving' && '⚡ Saving...'}
-              {saveState === 'saved' && '✓ Saved'}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '10px', color: '#888', fontFamily: 'var(--bp-font-body)', fontWeight: 'bold' }}>
+            <span style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '4px',
+              color: saveState === 'saved' ? 'var(--bp-success, #16A34A)' : 'var(--bp-primary)',
+              transition: 'all 0.3s ease',
+              opacity: saveState === 'saved' ? 0.75 : 1
+            }}>
+              {saveState === 'typing' && '✍️ Writing reflection...'}
+              {saveState === 'saving' && '⚡ Securing journal entry...'}
+              {saveState === 'saved' && '✓ Documented'}
             </span>
             <span>{localReflection.length} chars</span>
           </div>
@@ -1617,7 +1462,7 @@ export default function JournalNotebook({ onBack }) {
                       border: '1px solid #FDE68A',
                       color: '#B45309',
                       fontSize: '12px',
-                      fontFamily: 'var(--jn-font-serif)',
+                      fontFamily: 'var(--bp-font-display)',
                       fontStyle: 'italic',
                       lineHeight: '1.4'
                     }}>
@@ -1630,10 +1475,10 @@ export default function JournalNotebook({ onBack }) {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: 'var(--jn-crimson)',
+                        color: 'var(--bp-primary)',
                         fontSize: '11px',
                         fontWeight: 'bold',
-                        fontFamily: 'var(--jn-font-sans)',
+                        fontFamily: 'var(--bp-font-body)',
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
                         cursor: hintLoading ? 'not-allowed' : 'pointer',
@@ -1668,7 +1513,7 @@ export default function JournalNotebook({ onBack }) {
 
 
       {/* ── Fixed minimal header ────────────────────────────────────────────── */}
-      <header className="jn-header" role="banner">
+      <header className={`jn-header ${scrolled ? 'scrolled' : ''}`} role="banner">
         {/* Slim Utility Bar */}
         <div className="jn-header-inner">
           <div className="jn-brand" onClick={onBack} style={{ cursor: onBack ? 'pointer' : 'default' }}>
@@ -1712,7 +1557,7 @@ export default function JournalNotebook({ onBack }) {
               className="jn-utility-btn-rank"
               title="View Explorer Passport"
             >
-              <span role="img" aria-label="Passport">📖</span>
+              <Compass className="w-[18px] h-[18px] shrink-0" />
               <span className="jn-rank-label">{rank.label}</span>
               {passportStamps && passportStamps.length > 0 && (
                 <span className="jn-passport-stamp-badge">
@@ -1730,7 +1575,7 @@ export default function JournalNotebook({ onBack }) {
               className="jn-utility-btn jn-print-btn"
               title="Print / Export Travelogue"
             >
-              <span className="text-[14px]">🖨️</span>
+              <Printer className="w-[18px] h-[18px] shrink-0" />
             </button>
 
             {/* Edit trip / back */}
@@ -1778,6 +1623,7 @@ export default function JournalNotebook({ onBack }) {
         {/* ── INTEGRATED PAGE NAVIGATION (Tabbed System for Book UI) ── */}
         <div className="jn-book-tabs-container">
           <nav className="jn-book-tabs" role="tablist" aria-label="Journal sections">
+            <div className="jn-tab-indicator" ref={indicatorRef} />
             {TABS.map(t => {
               const TabIcon = ({ id }) => {
                 const size = 14;
@@ -1785,10 +1631,7 @@ export default function JournalNotebook({ onBack }) {
                   case 'info': return <Calendar size={size} />;
                   case 'itinerary': return <MapPin size={size} />;
                   case 'map': return <Map size={size} />;
-                  case 'hotels': return <Hotel size={size} />;
-                  case 'search': return <Search size={size} />;
-                  case 'souvenirs': return <Gift size={size} />;
-                  case 'phrasebook': return <BookOpen size={size} />;
+                  case 'more': return <MoreHorizontal size={size} />;
                   default: return null;
                 }
               };
@@ -1806,7 +1649,7 @@ export default function JournalNotebook({ onBack }) {
                     <TabIcon id={t.id} />
                   </span>
                   <span className="jn-tab-label">{t.label}</span>
-                  {t.id === 'souvenirs' && collectedKeepsakes.length > 0 && (
+                  {t.id === 'more' && collectedKeepsakes.length > 0 && (
                     <span className="jn-tab-badge">
                       {collectedKeepsakes.length}
                     </span>
@@ -1861,7 +1704,7 @@ export default function JournalNotebook({ onBack }) {
                     {stamping && (
                       <div style={{ position: 'absolute', inset: 0, background: 'rgba(250,249,246,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
                         {/* Shockwave ring */}
-                        <div ref={shockwaveRef} className="jn-stamp-shockwave" style={{ position: 'absolute', width: '80px', height: '80px', borderRadius: '50%', border: '4px solid var(--jn-gold)', opacity: 0, pointerEvents: 'none', zIndex: 5 }} />
+                        <div ref={shockwaveRef} className="jn-stamp-shockwave" style={{ position: 'absolute', width: '80px', height: '80px', borderRadius: '50%', border: '4px solid var(--bp-gold)', opacity: 0, pointerEvents: 'none', zIndex: 5 }} />
 
                         {/* Dilmun Wax Seal Imprint */}
                         <div 
@@ -1887,7 +1730,7 @@ export default function JournalNotebook({ onBack }) {
 
                     {!isDayCompleted ? (
                       <div style={{ textAlign: 'center', padding: '20px 10px' }} className="space-y-4">
-                        <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '18px', color: 'var(--jn-ink)', fontWeight: 'bold' }}>
+                        <h4 style={{ fontFamily: 'var(--bp-font-display)', fontSize: '18px', color: 'var(--bp-ink)', fontWeight: 'bold' }}>
                           Complete Day {currentDayTab}
                         </h4>
                         <p className="jn-description" style={{ textAlign: 'center', fontSize: '12px' }}>
@@ -1903,11 +1746,11 @@ export default function JournalNotebook({ onBack }) {
                     ) : (
                       <div className={`space-y-4 ${isRTL ? 'text-right' : 'text-left'}`}>
                         <span className="jn-tag jn-tag--green" style={{ display: 'inline-flex' }}>✓ Day {currentDayTab} Verified</span>
-                        <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '16px', color: 'var(--jn-ink)', fontWeight: 'bold' }}>
+                        <h4 style={{ fontFamily: 'var(--bp-font-display)', fontSize: '16px', color: 'var(--bp-ink)', fontWeight: 'bold' }}>
                           Insider Tip:
                         </h4>
-                        <div style={{ background: 'rgba(193,18,47,0.04)', border: '1px dashed var(--jn-crimson-mid)', padding: '15px', paddingRight: '75px', borderRadius: '12px', position: 'relative' }}>
-                          <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '12px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--jn-ink-muted)' }}>
+                        <div style={{ background: 'rgba(193,18,47,0.04)', border: '1px dashed var(--bp-primary-mid)', padding: '15px', paddingRight: '75px', borderRadius: '12px', position: 'relative' }}>
+                          <p style={{ fontFamily: 'var(--bp-font-display)', fontSize: '12px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--bp-ink-muted)' }}>
                             {currentDayTab === 1 && 'Insider Key: Place your right hand over your heart, greet a local merchant, and say "Chay Karak, bil-hail" (translates to "Cardamom Karak tea, please") for traditional warmth and a genuine smile.'}
                             {currentDayTab === 2 && 'Insider Key: At a local potter workshop, ask for fresh "Khubz Tannour" flatbread—it is baked in traditional red clay ovens and gifted with sesame toppings.'}
                             {currentDayTab === 3 && 'Insider Key: Ask the harbor skipper for the "Jarada tidal window"—it is the exact 3-hour low-tide peak when the sand is purest white and wild pearl oysters wash ashore.'}
@@ -1932,7 +1775,7 @@ export default function JournalNotebook({ onBack }) {
                               position: 'absolute',
                               top: '12px',
                               right: '12px',
-                              background: copiedKey ? '#2e7d32' : 'var(--jn-crimson)',
+                              background: copiedKey ? '#2e7d32' : 'var(--bp-primary)',
                               color: '#fff',
                               border: 'none',
                               padding: '6px 10px',
@@ -1967,9 +1810,9 @@ export default function JournalNotebook({ onBack }) {
                             lineHeight: '1.1',
                             userSelect: 'none'
                           }}>
-                            <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '7.5px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em' }}>KINGDOM OF BAHRAIN</span>
+                            <span style={{ fontFamily: 'var(--bp-font-body)', fontSize: '7.5px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em' }}>KINGDOM OF BAHRAIN</span>
                             <span style={{
-                              fontFamily: 'var(--jn-font-sans)',
+                              fontFamily: 'var(--bp-font-body)',
                               fontSize: '9.5px',
                               fontWeight: 900,
                               textTransform: 'uppercase',
@@ -1981,7 +1824,7 @@ export default function JournalNotebook({ onBack }) {
                             }}>
                               ENTRY APPROVED
                             </span>
-                            <span style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '9px', fontWeight: 800 }}>DAY {currentDayTab} SEAL</span>
+                            <span style={{ fontFamily: 'var(--bp-font-display)', fontSize: '9px', fontWeight: 800 }}>DAY {currentDayTab} SEAL</span>
                           </div>
                         </div>
 
@@ -2034,23 +1877,26 @@ export default function JournalNotebook({ onBack }) {
                         <span className="jn-tag jn-tag--red" style={{ fontSize: '12px', textTransform: 'uppercase', marginBottom: '4px' }}>
                           {activeSpot.category || 'Archipelago'}
                         </span>
-                        <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '15px', fontWeight: 'bold', color: 'var(--jn-ink)', margin: '4px 0' }}>
+                        <h4 style={{ fontFamily: 'var(--bp-font-display)', fontSize: '15px', fontWeight: 'bold', color: 'var(--bp-ink)', margin: '4px 0' }}>
                           {activeSpot.name}
                         </h4>
-                        <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '12px', color: 'var(--jn-ink-faint)', textTransform: 'uppercase', fontWeight: '600' }}>
+                        <span style={{ fontFamily: 'var(--bp-font-body)', fontSize: '12px', color: 'var(--bp-ink-faint)', textTransform: 'uppercase', fontWeight: '600' }}>
                           {activeSpot.period}
                         </span>
                       </div>
                     ) : (
-                      <img
-                        src={activeSpot.image}
-                        alt={activeSpot.name}
-                        className="jn-hero-img"
-                        loading="eager"
-                        onError={() => {
-                          setImageErrors(prev => ({ ...prev, [activeSpot.id]: true }))
-                        }}
-                      />
+                      <>
+                        <img
+                          src={activeSpot.image}
+                          alt={activeSpot.name}
+                          className="jn-hero-img"
+                          loading="eager"
+                          onError={() => {
+                            setImageErrors(prev => ({ ...prev, [activeSpot.id]: true }))
+                          }}
+                        />
+                        <div className="jn-hero-image-overlay" />
+                      </>
                     )}
                   </figure>
 
@@ -2068,7 +1914,7 @@ export default function JournalNotebook({ onBack }) {
                           className="jn-maps-link pointer-events-auto"
                           style={{
                             marginLeft: '10px',
-                            color: 'var(--jn-crimson)',
+                            color: 'var(--bp-primary)',
                             textDecoration: 'underline',
                             fontWeight: '800',
                             display: 'inline-flex',
@@ -2158,7 +2004,7 @@ export default function JournalNotebook({ onBack }) {
                         <span className="jn-section-subtitle">Select Day Chapter above to read other pages</span>
                       </div>
                       <hr className="jn-divider" aria-hidden="true" />
-                      <p className="jn-description" style={{ fontStyle: 'italic', color: 'var(--jn-ink-faint)' }}>
+                      <p className="jn-description" style={{ fontStyle: 'italic', color: 'var(--bp-ink-faint)' }}>
                         This daily chapter's travel route has been completed. Use the chapter selector at the top or side tabs to continue.
                       </p>
                     </div>
@@ -2185,12 +2031,12 @@ export default function JournalNotebook({ onBack }) {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '6px',
-                            background: 'var(--jn-crimson)',
+                            background: 'var(--bp-primary)',
                             color: 'white',
                             border: 'none',
                             padding: '6px 12px',
                             borderRadius: '20px',
-                            fontFamily: 'var(--jn-font-sans)',
+                            fontFamily: 'var(--bp-font-body)',
                             fontSize: '11px',
                             fontWeight: 'bold',
                             textTransform: 'uppercase',
@@ -2204,7 +2050,7 @@ export default function JournalNotebook({ onBack }) {
                             e.currentTarget.style.transform = 'translateY(-1px)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'var(--jn-crimson)';
+                            e.currentTarget.style.background = 'var(--bp-primary)';
                             e.currentTarget.style.transform = 'translateY(0)';
                           }}
                           title="Geographically optimize your route for shortest travel time starting from your hotel"
@@ -2221,7 +2067,7 @@ export default function JournalNotebook({ onBack }) {
 
                     {/* Day chapter tabs — using clean day-badge utility classes */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, color: 'var(--jn-ink-faint)', flexShrink: 0 }}>Day:</span>
+                      <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, color: 'var(--bp-ink-faint)', flexShrink: 0 }}>Day:</span>
                       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', flexWrap: 'wrap' }}>
                         {Array.from({ length: duration }, (_, idx) => {
                           const d = idx + 1
@@ -2255,19 +2101,19 @@ export default function JournalNotebook({ onBack }) {
                       return (
                         <div style={{
                           display: 'flex', gap: '10px', padding: '7px 12px',
-                          background: 'var(--jn-crimson-light)', border: '1px solid var(--jn-crimson-mid)',
-                          borderRadius: 'var(--jn-r-md)', marginBottom: '10px', flexWrap: 'wrap',
+                          background: 'var(--bp-primary-soft)', border: '1px solid var(--bp-primary-mid)',
+                          borderRadius: 'var(--bp-r-md)', marginBottom: '10px', flexWrap: 'wrap',
                         }}>
-                          <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-ink-muted)' }}>
+                          <span style={{ fontFamily: 'var(--bp-font-body)', fontSize: '11px', fontWeight: '700', color: 'var(--bp-ink-muted)' }}>
                             {capturedCount}/{activeSpots.length} captured
                           </span>
-                          <span style={{ color: 'var(--jn-ink-faint)' }}>·</span>
-                          <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-ink-muted)' }}>
+                          <span style={{ color: 'var(--bp-ink-faint)' }}>·</span>
+                          <span style={{ fontFamily: 'var(--bp-font-body)', fontSize: '11px', fontWeight: '700', color: 'var(--bp-ink-muted)' }}>
                             {solvedCount} riddle{solvedCount !== 1 ? 's' : ''} solved
                           </span>
                           {isDayCompleted && (
-                            <><span style={{ color: 'var(--jn-ink-faint)' }}>·</span>
-                            <span style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', fontWeight: '700', color: 'var(--jn-green)' }}>✓ Day sealed</span></>
+                            <><span style={{ color: 'var(--bp-ink-faint)' }}>·</span>
+                            <span style={{ fontFamily: 'var(--bp-font-body)', fontSize: '11px', fontWeight: '700', color: 'var(--bp-success)' }}>✓ Day sealed</span></>
                           )}
                         </div>
                       )
@@ -2280,7 +2126,7 @@ export default function JournalNotebook({ onBack }) {
                         <li
                           className="jn-timeline-item"
                           onClick={() => {
-                            setActiveTab('hotels')
+                            setMoreOpen(true)
                             playTypewriterClick(0.9)
                           }}
                           style={{ cursor: 'pointer' }}
@@ -2293,7 +2139,7 @@ export default function JournalNotebook({ onBack }) {
                             <div className="jn-tl-meta">
                               <span className="jn-tl-stop-num">Base Camp Departure</span>
                             </div>
-                            <h3 className="jn-tl-stop-name" style={{ color: 'var(--jn-ink)' }}>
+                            <h3 className="jn-tl-stop-name" style={{ color: 'var(--bp-ink)' }}>
                               Start at {selectedHotel.name}
                             </h3>
                             <p className="jn-tl-note" style={{ fontSize: '11px' }}>{selectedHotel.neighborhood}</p>
@@ -2303,7 +2149,7 @@ export default function JournalNotebook({ onBack }) {
                         <li
                           className="jn-timeline-item"
                           onClick={() => {
-                            setActiveTab('hotels')
+                            setMoreOpen(true)
                             playTypewriterClick(0.9)
                           }}
                           style={{ cursor: 'pointer' }}
@@ -2316,10 +2162,10 @@ export default function JournalNotebook({ onBack }) {
                             <div className="jn-tl-meta">
                               <span className="jn-tl-stop-num" style={{ color: '#BA0C2F', fontWeight: 'bold' }}>Stay Accommodation</span>
                             </div>
-                            <h3 className="jn-tl-stop-name" style={{ color: 'var(--jn-crimson)', textDecoration: 'underline' }}>
+                            <h3 className="jn-tl-stop-name" style={{ color: 'var(--bp-primary)', textDecoration: 'underline' }}>
                               Establish Base Camp stay
                             </h3>
-                            <p className="jn-tl-note" style={{ fontSize: '11px', color: 'var(--jn-ink-faint)' }}>Tap to select an AI recommended hotel</p>
+                            <p className="jn-tl-note" style={{ fontSize: '11px', color: 'var(--bp-ink-faint)' }}>Tap to select an AI recommended hotel</p>
                           </div>
                         </li>
                       )}
@@ -2349,10 +2195,10 @@ export default function JournalNotebook({ onBack }) {
                             <div className="jn-tl-content">
                               <div className="jn-tl-meta">
                                 <span className="jn-tl-stop-num">Stop {idx + 1}</span>
-                                <span style={{ fontSize: '10px', color: 'var(--jn-crimson)', fontWeight: 'bold' }}>{stop.pathCost}</span>
+                                <span style={{ fontSize: '10px', color: 'var(--bp-primary)', fontWeight: 'bold' }}>{stop.pathCost}</span>
                               </div>
                               <h3 className="jn-tl-stop-name" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                {stop.name} {hasPic && <span style={{ color: 'var(--jn-green)', fontSize: '10px' }}>✓ Captured</span>}
+                                {stop.name} {hasPic && <span style={{ color: 'var(--bp-success)', fontSize: '10px' }}>✓ Captured</span>}
                               </h3>
                               <p className="jn-tl-coords">{stop.coords}</p>
                               <p className="jn-tl-note" style={{ fontSize: '11px' }}>{stop.pathGuide}</p>
@@ -2395,7 +2241,7 @@ export default function JournalNotebook({ onBack }) {
                         <li
                           className="jn-timeline-item"
                           onClick={() => {
-                            setActiveTab('hotels')
+                            setMoreOpen(true)
                             playTypewriterClick(1.2)
                           }}
                           style={{ cursor: 'pointer' }}
@@ -2407,7 +2253,7 @@ export default function JournalNotebook({ onBack }) {
                             <div className="jn-tl-meta">
                               <span className="jn-tl-stop-num">Overnight Rest</span>
                             </div>
-                            <h3 className="jn-tl-stop-name" style={{ color: 'var(--jn-ink)' }}>
+                            <h3 className="jn-tl-stop-name" style={{ color: 'var(--bp-ink)' }}>
                               Return to {selectedHotel.name}
                             </h3>
                             <p className="jn-tl-note" style={{ fontSize: '11px' }}>Rest and reflect on your Day {currentDayTab} passage</p>
@@ -2441,7 +2287,7 @@ export default function JournalNotebook({ onBack }) {
                       <p className="jn-map-preview-desc">
                         View your route, find landmarks, and discover hidden treasures.
                       </p>
-                      <ul style={{ fontFamily: 'var(--jn-font-sans)', fontSize: '11px', color: 'var(--jn-ink-muted)', margin: '0 0 14px 0', padding: '0 0 0 16px', lineHeight: 1.9 }}>
+                      <ul style={{ fontFamily: 'var(--bp-font-body)', fontSize: '11px', color: 'var(--bp-ink-muted)', margin: '0 0 14px 0', padding: '0 0 0 16px', lineHeight: 1.9 }}>
                         <li>{locations.length} landmark{locations.length !== 1 ? 's' : ''} pinned to your route</li>
                         <li>Interactive zoom & tap any pin for details</li>
                         <li>Hidden treasure coordinates to discover</li>
@@ -2474,408 +2320,8 @@ export default function JournalNotebook({ onBack }) {
                 </div>
               )}
 
-              {/* ─── SUB-TAB: SOUVENIRS ─── */}
-              {activeTab === 'souvenirs' && (
-                <div className="space-y-4">
-                  <div className="jn-section-heading">
-                    <h2 className="jn-section-title">Artifacts & Keepsakes</h2>
-                    <span className="jn-section-subtitle">Your Curated Collection</span>
-                  </div>
-
-                  <hr className="jn-divider" aria-hidden="true" />
-
-                  {/* Fils balance */}
-                  <div className="jn-fils-bar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span className="jn-fils-label">Fils Balance</span>
-                      <span className="jn-fils-amount">{(goldFils || 0).toLocaleString()} Fils</span>
-                    </div>
-                    <span style={{ fontSize: '9px', color: 'var(--jn-ink-faint)', alignSelf: 'flex-start', marginTop: '2px', fontFamily: 'var(--jn-font-sans)', fontWeight: 'bold' }}>
-                      Note: 1,000 Fils = 1 BHD (Bahraini Dinar)
-                    </span>
-                  </div>
-
-                  {/* Souq shop button */}
-                  <button
-                    className="jn-action-btn jn-action-btn--amber jn-action-btn--full"
-                    onClick={() => { setShopOpen(true) }}
-                    aria-label="Enter Heritage Kiosk"
-                  >
-                    Open Collector Kiosk
-                  </button>
-
-                  {/* Keepsake grid */}
-                  <div className="jn-keepsake-cabinet">
-                    <span className="jn-keepsake-cabinet-label">Cabinet of Heritage Keepsakes</span>
-                    <div className="jn-keepsake-grid">
-                      {spotsCatalog.map((spot, sIdx) => {
-                        const unlocked = (collectedKeepsakes || []).includes(spot.id)
-                        return (
-                          <button
-                            key={spot.id}
-                            disabled={!unlocked}
-                            onClick={() => unlocked && setSelectedKsake(spot)}
-                            title={unlocked ? `${spot.keepsakeName}: ${spot.keepsakeDesc}` : 'Keepsake locked — explore the location or acquire to unlock.'}
-                            className={`jn-keepsake-coin ${unlocked ? 'jn-keepsake-coin--unlocked gold-foil-bg' : 'jn-keepsake-coin--locked'} animate-fade-in-up stagger-${(sIdx % 5) + 1}`}
-                            aria-label={unlocked ? `Keepsake: ${spot.keepsakeName}` : `Locked keepsake from ${spot.name}`}
-                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                          >
-                            {unlocked ? (
-                              <span>{spot.keepsakeEmoji}</span>
-                            ) : (
-                              <Lock size={12} className="text-stone-400" strokeWidth={1.5} />
-                            )}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    {(collectedKeepsakes || []).length === 0 && (
-                      <p className="jn-keepsake-empty">
-                        Your cabinet is empty. Visit heritage spots or solve riddles to unlock keepsakes.
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Travel Gear / Inventory Cabinet */}
-                  <div className="jn-keepsake-cabinet" style={{ marginTop: '20px' }}>
-                    <span className="jn-keepsake-cabinet-label">Traveler Equipment & Acquisitions</span>
-                    <div className="space-y-2 mt-2">
-                      {shopItems.filter(item => item.id !== 'keepsake-bag').map(item => {
-                        const count = purchasedItems[item.id] || 0
-                        return (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between p-2.5 rounded-xl border border-red-500/10 bg-white/50"
-                          >
-                            <div className="flex items-center gap-2.5">
-                                <span className="text-xl shrink-0">{item.emoji}</span>
-                              <div className="text-left">
-                                <h5 className="font-serif text-[11px] font-bold text-bronze-charcoal leading-tight">
-                                  {item.name}
-                                </h5>
-                                <p className="font-sans text-[8.5px] text-bronze-muted leading-tight max-w-[180px] mt-0.5">
-                                  {item.desc}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <span className="font-mono text-[10px] font-bold bg-red-500/5 text-bahrain-red px-2 py-0.5 rounded border border-red-500/10">
-                                x{count}
-                              </span>
-                              {item.id === 'saffron-halwa' && count > 0 && (
-                                <button
-                                  onClick={() => {
-                                    setPurchasedItems(prev => {
-                                      const next = { ...prev }
-                                      if (next['saffron-halwa'] > 0) next['saffron-halwa']--
-                                      return next
-                                    })
-                                    awardXP(25, "Consumed traditional Saffron Halwa")
-                                    toast.success("Mmm! Cardamom, almonds and saffron threads! Delicious sweet halwa tasted. (+25 XP)")
-                                  }}
-                                  className="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white font-sans text-[8px] uppercase tracking-wider font-extrabold cursor-pointer"
-                                >
-                                  Eat
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
 
 
-                </div>
-              )}
-
-              {/* ─── SUB-TAB: HOTELS ─── */}
-              {activeTab === 'hotels' && (
-                <div className="space-y-4">
-                  <div className="jn-section-heading">
-                    <h2 className="jn-section-title">Stay & Hotels</h2>
-                    <span className="jn-section-subtitle">AI-matched to your vibe</span>
-                  </div>
-                  <hr className="jn-divider" aria-hidden="true" />
-                  <AIHotelPanel moods={selectedMoods} tier={tier} duration={duration} autoLoad={true} />
-                </div>
-              )}
-
-
-              {/* ─── SUB-TAB: SEARCH ─── */}
-              {activeTab === 'search' && (
-                <div className="space-y-5 animate-fadeIn">
-                  <div className="jn-section-heading">
-                    <h2 className="jn-section-title">Spot Search</h2>
-                    <span className="jn-section-subtitle">Find & explore any landmark in Bahrain</span>
-                  </div>
-                  
-                  <hr className="jn-divider" aria-hidden="true" />
-
-
-
-                  {/* Search input field */}
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSearchSubmit()
-                      }}
-                      placeholder="e.g. Al Fateh Grand Mosque, King Fahd Causeway..."
-                      style={{
-                        flex: 1,
-                        padding: '10px 14px',
-                        borderRadius: '12px',
-                        border: '1.5px solid var(--jn-border-color, #E7E5E4)',
-                        fontFamily: 'var(--jn-font-sans)',
-                        fontSize: '13px',
-                        background: 'var(--jn-paper, #FCFBF8)',
-                        color: 'var(--jn-ink, #1C1917)',
-                        outline: 'none',
-                      }}
-                    />
-                    <button
-                      onClick={handleSearchSubmit}
-                      disabled={searchLoading}
-                      className="jn-action-btn jn-action-btn--primary"
-                      style={{
-                        padding: '10px 18px',
-                        fontSize: '12px',
-                        fontWeight: '800',
-                        textTransform: 'uppercase',
-                        borderRadius: '12px',
-                        minWidth: '90px'
-                      }}
-                    >
-                      {searchLoading ? 'Searching' : 'Search'}
-                    </button>
-                  </div>
-
-                  {/* Suggestions list */}
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--jn-ink-faint, #A8A29E)' }}>Examples:</span>
-                    {[
-                      { label: '🕌 Al Fateh Mosque', val: 'Al Fateh Grand Mosque' },
-                      { label: '🏎️ BIC Formula 1', val: 'Bahrain International Circuit' },
-                      { label: '🌉 Causeway', val: 'King Fahd Causeway' },
-                      { label: '🪵 Bu Maher Fort', val: 'Bu Maher Fort' }
-                    ].map((item) => (
-                      <button
-                        key={item.val}
-                        onClick={() => {
-                          setSearchQuery(item.val);
-                          // Perform search right after setting state
-                          setTimeout(() => {
-                            const btn = document.querySelector('.jn-action-btn--primary');
-                            if (btn) btn.click();
-                          }, 50);
-                        }}
-                        style={{
-                          fontSize: '10.5px',
-                          fontWeight: 'bold',
-                          padding: '4px 10px',
-                          borderRadius: '9999px',
-                          border: '1px solid var(--jn-border-color, #E7E5E4)',
-                          background: 'var(--jn-paper, #FCFBF8)',
-                          color: 'var(--jn-ink, #1C1917)',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--jn-crimson)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
-                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--jn-border-color)'; e.currentTarget.style.background = 'var(--jn-paper)' }}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Loading State */}
-                  {searchLoading && (
-                    <div style={{ padding: '40px 20px', textAlign: 'center' }} className="space-y-3">
-                      <div className="inline-block w-8 h-8 rounded-full border-2 border-dashed border-[#C1122F] animate-spin" style={{ animation: 'spin 1.5s linear infinite' }} />
-                      <p style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontStyle: 'italic', color: 'var(--jn-ink-muted)' }}>
-                        Consulting cultural archives for details...
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Search Error State */}
-                  {searchError && (
-                    <div className="p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 font-sans text-xs text-center font-bold">
-                      ⚠️ {searchError}
-                    </div>
-                  )}
-
-                  {/* Search Result Display */}
-                  {searchResults && (
-                    <div className="glass-panel rounded-3xl p-5 border border-red-500/10 space-y-4 animate-fadeIn">
-                      <div className="flex justify-between items-start border-b border-red-500/10 pb-2">
-                        <div className="flex flex-col text-left">
-                          <span className="font-sans text-[9px] tracking-wider text-bahrain-red font-mono uppercase">
-                            {searchResults.coords} • {searchResults.period || 'Modern Era'}
-                          </span>
-                          <h3 className="font-serif text-xl font-bold text-stone-900 mt-0.5 leading-tight">
-                            {searchResults.name}
-                          </h3>
-                        </div>
-                        <span className="font-serif text-base text-bahrain-red italic shrink-0">
-                          {searchResults.arabic}
-                        </span>
-                      </div>
-                      
-                      <p className="font-sans text-xs text-stone-700 leading-relaxed text-left">
-                        {searchResults.desc}
-                      </p>
-
-                      <div className="grid grid-cols-2 gap-3 text-left">
-                        <div className="p-3 rounded-xl bg-stone-100/50 border border-stone-200">
-                          <span className="font-sans text-[8px] uppercase tracking-widest text-[#B8860B] font-bold block">Opening Hours</span>
-                          <span className="font-sans text-[11px] text-stone-800 font-semibold block mt-1 leading-snug">{searchResults.hours}</span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-stone-100/50 border border-stone-200">
-                          <span className="font-sans text-[8px] uppercase tracking-widest text-[#B8860B] font-bold block">Estimated Cost</span>
-                          <span className="font-sans text-[11px] text-stone-800 font-semibold block mt-1 leading-snug">{searchResults.cost}</span>
-                        </div>
-                      </div>
-
-                      {/* Modesty or Safety Warning alerts */}
-                      {(searchResults.modestyAlert || searchResults.safetyAlert) && (
-                        <div className="space-y-1.5 text-left">
-                          {searchResults.modestyAlert && (
-                            <div className="flex items-center gap-2.5 p-2.5 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-900 text-[10px] font-sans font-bold select-none">
-                              <span>🕌 Modesty Warning: {searchResults.modestyAlert}</span>
-                            </div>
-                          )}
-                          {searchResults.safetyAlert && (
-                            <div className="flex items-center gap-2.5 p-2.5 rounded-xl border bg-red-500/10 border-red-500/20 text-red-900 text-[10px] font-sans font-bold select-none">
-                              <span>⚠️ Tip: {searchResults.safetyAlert}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Insider Observation */}
-                      <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-left">
-                        <span className="font-sans text-[8px] tracking-widest uppercase text-bahrain-red font-bold block mb-1">Local Observation</span>
-                        <p className="font-serif text-[11.5px] italic text-stone-800 leading-relaxed font-semibold">
-                          "{searchResults.insider}"
-                        </p>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex justify-between items-center pt-2 border-t border-red-500/10">
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchResults.name + ', Bahrain')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 border border-amber-500/20 font-sans text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 text-center cursor-pointer pointer-events-auto"
-                        >
-                          Directions
-                        </a>
-
-                        <button
-                          onClick={() => handleAddSearchedSpot(searchResults)}
-                          className="px-4 py-2 rounded-xl bg-bahrain-red hover:bg-bahrain-dark text-white font-sans text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 cursor-pointer pointer-events-auto"
-                        >
-                          Add to Day {currentDayTab} Route
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-
-              {/* ─── SUB-TAB: PHRASEBOOK ─── */}
-              {activeTab === 'phrasebook' && (
-                <div className="space-y-4">
-                  <div className="jn-section-heading">
-                    <h2 className="jn-section-title">Phrasebook</h2>
-                    <span className="jn-section-subtitle">Bahraini Arabic · Tap to Hear</span>
-                  </div>
-
-                  <hr className="jn-divider" aria-hidden="true" />
-
-                  {/* Dynamic Translation & Phrase Search Bar */}
-                  <div className="relative w-full max-w-md mx-auto mb-6 pointer-events-auto">
-                    <input
-                      type="text"
-                      value={phraseSearch}
-                      onChange={(e) => setPhraseSearch(e.target.value)}
-                      placeholder="Search or translate phrases (e.g. hello, coffee, karak)..."
-                      className="w-full px-4 py-2.5 text-xs font-sans bg-white border border-stone-200 focus:border-red-500 rounded-xl text-stone-900 outline-none placeholder-stone-400 shadow-2xs transition-colors duration-150"
-                      style={{ paddingLeft: '32px' }}
-                    />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none" aria-hidden="true">🔍</span>
-                    {phraseSearch && (
-                      <button
-                        onClick={() => setPhraseSearch('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none text-stone-400 hover:text-stone-600 cursor-pointer text-xs p-1"
-                        aria-label="Clear search"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Filtered phrase cards */}
-                  {(() => {
-                    const query = phraseSearch.toLowerCase().trim()
-                    const filteredPhrases = PHRASES.filter(p => 
-                      !query || 
-                      p.label.toLowerCase().includes(query) ||
-                      p.arabic.toLowerCase().includes(query) ||
-                      p.desc.toLowerCase().includes(query)
-                    )
-
-                    return (
-                      <div className="jn-phrase-list">
-                        {filteredPhrases.length === 0 ? (
-                          <div className="col-span-full text-center py-8 text-stone-400 font-sans text-xs italic">
-                            No matching travel phrases found. Try searching for "hello", "karak", or "thank you".
-                          </div>
-                        ) : (
-                          filteredPhrases.map((p, idx) => (
-                            <button
-                              key={idx}
-                              className={`jn-phrase-card animate-fade-in-up stagger-${(idx % 5) + 1}`}
-                              onClick={() => playPhrase(p.arabic, soundVolume, soundMuted)}
-                              aria-label={`Hear pronunciation of ${p.label}`}
-                            >
-                              <div className="jn-phrase-card-content">
-                                <div>
-                                  <h4 className="jn-phrase-label">{p.label} <span className="jn-phrase-arabic" lang="ar">({p.arabic})</span></h4>
-                                  <p className="jn-phrase-desc">{p.desc}</p>
-                                </div>
-                                <span className="jn-phrase-pluck" aria-hidden="true">🔊</span>
-                              </div>
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    )
-                  })()}
-
-                  {/* Pronunciation guide */}
-                  <div className="jn-pronunciation-guide">
-                    <span className="jn-subsection-title">🗣️ Pronunciation Guide</span>
-                    <div className="jn-pronun-item">
-                      <p className="jn-pronun-rule">The Arabic "Kh" (خ)</p>
-                      <p className="jn-pronun-note">Soft raspy scratch at the back of the throat — like the Scottish "loch". Try: <em>Khubz</em> (bread).</p>
-                    </div>
-                    <div className="jn-pronun-item">
-                      <p className="jn-pronun-rule">The Cardinal G (ق)</p>
-                      <p className="jn-pronun-note">In Gulf dialect, "q" softens to a hard "g". <em>Qal'at</em> → <em>Gal-at</em>.</p>
-                    </div>
-                    <div className="jn-pronun-item">
-                      <p className="jn-pronun-rule">Double Vowels (aa / ee)</p>
-                      <p className="jn-pronun-note">Elongate the sound like drawing out a sigh. <em>Habeebee</em> flows, <em>Hala</em> is quick.</p>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div className="jn-page-footer-spacer" />
             </div>
@@ -2885,238 +2331,21 @@ export default function JournalNotebook({ onBack }) {
       </div>
 
       {/* SOUQ SHOP MODAL */}
-      {shopOpen && (
-        <div
-          className="jn-modal-overlay glass-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Heritage Collector Kiosk"
-          onClick={(e) => { if (e.target === e.currentTarget) setShopOpen(false) }}
-        >
-          <div className="jn-shop-modal glass-card relative overflow-hidden">
-            {/* Tactile Paper Grain Overlay */}
-            <div className="paper-grain" style={{ opacity: 0.038 }} />
-            <div className="jn-shop-header">
-              <div>
-                <span className="jn-shop-eyebrow">Manama Heritage Kiosk</span>
-                <h3 className="jn-shop-title">Collector's Kiosk</h3>
-              </div>
-              <button className="jn-shop-close" onClick={() => setShopOpen(false)} aria-label="Close kiosk">✕ Close</button>
-            </div>
-
-
-
-            <div className="jn-shop-fils-bar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div className="flex justify-between w-full">
-                <span>Your Fils Balance</span>
-                <strong>{(goldFils || 0).toLocaleString()} Fils</strong>
-              </div>
-              <span style={{ fontSize: '9px', opacity: 0.65, fontFamily: 'var(--jn-font-sans)', marginTop: '2px', fontWeight: 'bold' }}>
-                Note: 1,000 Fils = 1 BHD (Bahraini Dinar)
-              </span>
-            </div>
-
-
-            <p className="jn-shop-intro">
-              "Welcome to the Collector's Kiosk. Here you may exchange your earned Fils for traditional keepsakes, archival clue scrolls, or regional equipment."
-            </p>
-
-            <div className="jn-shop-items">
-              {(shopItems || []).map((item, iIdx) => (
-                <div key={item.id} className={`jn-shop-item animate-fade-in-up stagger-${(iIdx % 5) + 1}`}>
-                  <span className="jn-shop-item-emoji">{item.emoji}</span>
-                  <div className="jn-shop-item-info">
-                    <h5 className="jn-shop-item-name">{item.name}</h5>
-                    <p className="jn-shop-item-desc">{item.desc}</p>
-                  </div>
-                  <button
-                    className="jn-shop-buy-btn"
-                    onClick={() => handleBuyItem(item)}
-                  >
-                    {item.cost.toLocaleString()} Fils
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      <ShopPanel
+        shopOpen={shopOpen}
+        goldFils={goldFils}
+        shopItems={shopItems}
+        purchasedItems={purchasedItems}
+        onBuyItem={handleBuyItem}
+        onClose={() => setShopOpen(false)}
+      />
 
       {/* KEEPSAKE DETAIL MODAL */}
-      {selectedKsake && (
-        <div
-          className="jn-modal-overlay glass-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={(e) => { if (e.target === e.currentTarget) setSelectedKsake(null) }}
-        >
-          <div className="jn-ksake-modal glass-card relative" style={{
-            maxWidth: '520px',
-            padding: '24px',
-          }}>
-            {/* Tactile Paper Grain Overlay */}
-            <div className="paper-grain" style={{ opacity: 0.035 }} />
-            {/* Vintage borders inside */}
-            <div style={{
-              position: 'absolute',
-              top: '8px', left: '8px', right: '8px', bottom: '8px',
-              border: '1px dashed #D4C3A3',
-              pointerEvents: 'none'
-            }} />
-            
-            {/* Header: Kingdom of Bahrain visa header */}
-            <div style={{
-              textAlign: 'center',
-              borderBottom: '2px solid #BA0C2F',
-              paddingBottom: '10px',
-              marginBottom: '18px',
-              position: 'relative'
-            }}>
-              <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#BA0C2F', fontWeight: '900', fontFamily: 'var(--jn-font-sans)' }}>
-                Kingdom of Bahrain · Entry Visa
-              </div>
-              <div style={{ fontSize: '15px', fontWeight: 'bold', fontFamily: 'var(--jn-font-serif)', color: '#1C1917', marginTop: '2px' }}>
-                تأشيرة دخول دلمون الأثرية
-              </div>
-              <button 
-                onClick={() => setSelectedKsake(null)} 
-                style={{
-                  position: 'absolute',
-                  top: '-4px',
-                  right: '4px',
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '16px',
-                  color: '#78716C',
-                  cursor: 'pointer'
-                }}
-                aria-label="Close visa document"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'row', gap: '20px', flexWrap: 'wrap' }}>
-              {/* Photo component */}
-              <div style={{
-                flex: '1 1 180px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center'
-              }}>
-                <div style={{
-                  background: '#fff',
-                  padding: '10px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-                  border: '1px solid #E7E5E4',
-                  borderRadius: '4px',
-                  width: '100%',
-                  boxSizing: 'border-box'
-                }}>
-                  <div style={{
-                    width: '100%',
-                    height: '140px',
-                    overflow: 'hidden',
-                    borderRadius: '2px',
-                    background: '#292524',
-                    position: 'relative'
-                  }}>
-                    <img 
-                      src={capturedPhotos[selectedKsake.id] || selectedKsake.image} 
-                      alt={selectedKsake.name} 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      onError={(e) => { e.target.style.display = 'none' }}
-                    />
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0, left: 0, right: 0,
-                      background: 'rgba(0,0,0,0.6)',
-                      color: '#fff',
-                      fontSize: '8px',
-                      fontFamily: 'var(--jn-font-sans)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.1em',
-                      padding: '4px 6px',
-                      textAlign: 'center'
-                    }}>
-                      Wayfarer Photo ID
-                    </div>
-                  </div>
-                  <div style={{ marginTop: '8px', fontSize: '9px', color: '#78716C', fontFamily: 'var(--jn-font-sans)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Serial: #BP-{selectedKsake.id?.slice(0,8).toUpperCase() || 'KSAKE'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Visa details & stamp */}
-              <div style={{
-                flex: '1 2 240px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                position: 'relative'
-              }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderBottom: '1px dashed #E7E5E4', paddingBottom: '4px' }}>
-                    <span style={{ color: '#78716C', fontWeight: 'bold', textTransform: 'uppercase' }}>Souvenir:</span>
-                    <span style={{ fontWeight: 'bold', color: '#1C1917' }}>{selectedKsake.keepsakeEmoji} {selectedKsake.keepsakeName}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderBottom: '1px dashed #E7E5E4', paddingBottom: '4px' }}>
-                    <span style={{ color: '#78716C', fontWeight: 'bold', textTransform: 'uppercase' }}>Site:</span>
-                    <span style={{ fontWeight: 'bold', color: '#1C1917' }}>{selectedKsake.name}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderBottom: '1px dashed #E7E5E4', paddingBottom: '4px' }}>
-                    <span style={{ color: '#78716C', fontWeight: 'bold', textTransform: 'uppercase' }}>Epoch/Period:</span>
-                    <span style={{ fontWeight: 'bold', color: '#BA0C2F' }}>{selectedKsake.period}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderBottom: '1px dashed #E7E5E4', paddingBottom: '4px' }}>
-                    <span style={{ color: '#78716C', fontWeight: 'bold', textTransform: 'uppercase' }}>Coordinates:</span>
-                    <span style={{ fontWeight: 'bold', color: '#78716C', fontFamily: 'monospace' }}>{selectedKsake.coords}</span>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: '12px' }}>
-                  <span style={{ display: 'block', fontSize: '8px', textTransform: 'uppercase', color: '#A8A29E', fontWeight: 'bold', letterSpacing: '0.1em' }}>Cultural Description</span>
-                  <p style={{ margin: '2px 0 0 0', fontFamily: 'var(--jn-font-serif)', fontSize: '11px', lineHeight: '1.4', color: '#44403C', fontStyle: 'italic' }}>
-                    "{selectedKsake.keepsakeDesc}"
-                  </p>
-                </div>
-
-                {/* Circular entry stamp */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: '-10px',
-                  right: '-10px',
-                  width: '74px',
-                  height: '74px',
-                  borderRadius: '50%',
-                  border: '2px double rgba(186, 12, 47, 0.45)',
-                  color: 'rgba(186, 12, 47, 0.55)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transform: 'rotate(-15deg)',
-                  pointerEvents: 'none',
-                  fontFamily: 'var(--jn-font-sans)',
-                  fontSize: '8px',
-                  fontWeight: '950',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                  padding: '4px',
-                  boxSizing: 'border-box',
-                  background: 'rgba(253, 251, 247, 0.85)',
-                  boxShadow: '0 0 8px rgba(0,0,0,0.02)'
-                }}>
-                  <div style={{ fontSize: '6px', borderBottom: '1px solid rgba(186,12,47,0.3)', paddingBottom: '1px', marginBottom: '2px' }}>ENTRY SEAL</div>
-                  <div style={{ fontSize: '7px', fontWeight: 'black' }}>APPROVED</div>
-                  <div style={{ fontSize: '5px', marginTop: '1px', color: 'rgba(186,12,47,0.45)' }}>BP-PASSPORT</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <KeepsakeDetailModal
+        selectedKsake={selectedKsake}
+        capturedPhotos={capturedPhotos}
+        onClose={() => setSelectedKsake(null)}
+      />
 
       {/* WAYFARER MAP (fullscreen, component handles its own close) */}
       {mapOpen && (
@@ -3128,114 +2357,20 @@ export default function JournalNotebook({ onBack }) {
       )}
 
       {/* BASE CAMP PROMPT POPUP */}
-      {baseCampPromptOpen && !selectedHotel && (
-        <div
-          className="jn-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Establish Base Camp Stay"
-          onClick={(e) => { if (e.target === e.currentTarget) setBaseCampPromptOpen(false) }}
-        >
-          <div className="jn-ksake-modal" style={{ maxWidth: '460px' }}>
-            <button 
-              className="jn-ksake-close" 
-              onClick={() => setBaseCampPromptOpen(false)} 
-              aria-label="Close base camp selection"
-              style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', fontSize: '14px', cursor: 'pointer', color: 'var(--jn-ink-muted)' }}
-            >
-              ✕ Skip
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-              <div style={{ fontSize: '32px' }}>🏨</div>
-              <div>
-                <span className="jn-shop-eyebrow" style={{ color: 'var(--jn-crimson)', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Welcome to Bahrain</span>
-                <h4 className="jn-ksake-name" style={{ margin: 0, fontSize: '18px', fontWeight: 800, fontFamily: 'var(--jn-font-serif)', color: 'var(--jn-ink)' }}>Establish your Base Camp</h4>
-              </div>
-            </div>
-            <p className="jn-ksake-desc" style={{ fontSize: '12.5px', color: 'var(--jn-ink-muted)', marginBottom: '16px', lineHeight: 1.55 }}>
-              Before starting your chronicle, select a recommended hotel matching your <strong>{tier}</strong> budget and vibe to serve as your journey's central base.
-            </p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto', paddingRight: '4px' }}>
-              {(HOTELS_DB.filter(h => h.tierFit.includes(tier) || h.moodFit.some(m => selectedMoods.includes(m))).length > 0
-                ? HOTELS_DB.filter(h => h.tierFit.includes(tier) || h.moodFit.some(m => selectedMoods.includes(m)))
-                : HOTELS_DB
-              ).map(hotel => (
-                <button
-                  key={hotel.id}
-                  onClick={() => {
-                    setSelectedHotel(hotel)
-                    awardXP(50, 'Established Base Camp')
-                    setBaseCampPromptOpen(false)
-                    playCampStampSound(soundVolume, soundMuted)
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '10px',
-                    padding: '12px',
-                    borderRadius: '12px',
-                    background: '#fffdf9',
-                    border: '1.5px solid rgba(139,90,43,0.15)',
-                    textAlign: isRTL ? 'right' : 'left',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--jn-crimson)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(139,90,43,0.15)'; e.currentTarget.style.transform = 'translateY(0)' }}
-                >
-                  <span style={{ fontSize: '22px', padding: '6px', borderRadius: '8px', background: '#FAF6EE', border: '1px solid rgba(139,90,75,0.1)', flexShrink: 0 }}>{hotel.emoji}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h5 style={{ margin: 0, fontFamily: 'var(--jn-font-serif)', fontSize: '13px', fontWeight: 700, color: '#2A2321' }}>{hotel.name}</h5>
-                      <span style={{ fontSize: '9px', fontWeight: 700, color: '#059669', background: 'rgba(16,185,129,0.08)', padding: '1px 5px', borderRadius: '999px' }}>{hotel.cost.replace('From ', '')}</span>
-                    </div>
-                    <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#5C5451', lineHeight: 1.4 }}>{hotel.desc}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => {
-                  setBaseCampPromptOpen(false)
-                  setActiveTab('hotels')
-                }}
-                style={{
-                  flex: 1,
-                  padding: '9px 12px',
-                  borderRadius: '10px',
-                  background: 'transparent',
-                  border: '1px solid var(--jn-crimson)',
-                  color: 'var(--jn-crimson)',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                }}
-              >
-                Browse All Hotels
-              </button>
-              <button
-                onClick={() => setBaseCampPromptOpen(false)}
-                style={{
-                  padding: '9px 16px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)',
-                  color: '#fff',
-                  border: 'none',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Decide Later
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <BaseCampPrompt
+        baseCampPromptOpen={baseCampPromptOpen}
+        selectedHotel={selectedHotel}
+        tier={tier}
+        selectedMoods={selectedMoods}
+        setSelectedHotel={setSelectedHotel}
+        awardXP={awardXP}
+        setBaseCampPromptOpen={setBaseCampPromptOpen}
+        playCampStampSound={playCampStampSound}
+        soundVolume={soundVolume}
+        soundMuted={soundMuted}
+        setActiveTab={setActiveTab}
+        isRTL={isRTL}
+      />
 
       {/* VIRTUAL TOUR (component handles its own fullscreen) */}
       {tourOpen && activeSpot && hasVirtualTour(activeSpot.id) && (
@@ -3256,47 +2391,11 @@ export default function JournalNotebook({ onBack }) {
       )}
 
       {/* EXPLORER RANK ADVANCED CELEBRATION MODAL */}
-      {showRankUpModal && unlockedRankInfo && (
-        <div
-          className="jn-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Explorer Rank Advanced"
-          onClick={() => setShowRankUpModal(false)}
-          style={{ zIndex: 3000, background: 'rgba(26,10,12,0.85)', backdropFilter: 'blur(8px)' }}
-        >
-          <div
-            className="jn-ksake-modal"
-            style={{
-              background: 'linear-gradient(135deg, var(--jn-crimson) 0%, var(--jn-crimson-deep) 100%)',
-              border: '4px solid var(--jn-parchment)',
-              boxShadow: '0 30px 80px rgba(193, 18, 47, 0.45)',
-              color: '#ffffff',
-              textAlign: 'center',
-              padding: '30px'
-            }}
-          >
-            <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 'bold', color: 'rgba(255,255,255,0.7)' }}>✦ Explorer Rank Advanced ✦</span>
-            <div style={{ fontSize: '60px', margin: '20px 0' }}>🏆</div>
-            <h4 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '24px', fontWeight: 900, marginBottom: '8px', color: '#ffffff' }}>
-              {unlockedRankInfo.label}
-            </h4>
-            <span className="jn-tag jn-tag--amber" style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#ffffff', padding: '4px 12px' }}>
-              {unlockedRankInfo.arabic}
-            </span>
-            <p style={{ fontSize: '12px', margin: '20px 0 0 0', lineHeight: 1.5, color: 'rgba(255,255,255,0.85)' }}>
-              "Traveler, you have gained sufficient experience to be officially recognized by the guilds of the Archipelago. May the desert winds guide your sails!"
-            </p>
-            <button
-              onClick={() => setShowRankUpModal(false)}
-              className="jn-action-btn jn-action-btn--primary"
-              style={{ background: '#ffffff', color: 'var(--jn-crimson)', fontWeight: 900, width: '100%', marginTop: '20px' }}
-            >
-              Accept Rank Promotion
-            </button>
-          </div>
-        </div>
-      )}
+      <RankUpModal
+        showRankUpModal={showRankUpModal}
+        unlockedRankInfo={unlockedRankInfo}
+        onClose={() => setShowRankUpModal(false)}
+      />
 
       {/* Sticky bottom CTA for Local Riddle */}
       {activeTab === 'info' && activeSpot && RIDDLES[activeSpot.id] && (
@@ -3313,111 +2412,18 @@ export default function JournalNotebook({ onBack }) {
       )}
 
       {/* Local Riddle Bottom Sheet Modal */}
-      {riddleModalOpen && activeSpot && RIDDLES[activeSpot.id] && (
-        <>
-          <div className="jn-overlay" onClick={() => setRiddleModalOpen(false)} />
-          <div 
-            className="jn-bottom-sheet" 
-            role="dialog" 
-            aria-modal="true" 
-            aria-label={`Riddle for ${activeSpot.name}`}
-          >
-            <div className="jn-sheet-handle" />
-            <div className="jn-sheet-inner">
-              <div className="jn-sheet-header">
-                <div>
-                  <span className="jn-tag jn-tag--red" style={{ marginBottom: '4px' }}>Riddle</span>
-                  <h3 style={{ fontFamily: 'var(--jn-font-serif)', fontSize: '18px', fontWeight: 'bold', margin: '4px 0 0 0' }}>
-                    {activeSpot.name}
-                  </h3>
-                </div>
-                <button className="jn-icon-btn" onClick={() => setRiddleModalOpen(false)} aria-label="Close sheet">✕</button>
-              </div>
-
-              <blockquote className="jn-riddle-question">
-                "{RIDDLES[activeSpot.id].question}"
-              </blockquote>
-
-              {solvedRiddles[activeSpot.id] ? (
-                <div className="jn-insider-reveal">
-                  <span className="jn-tag jn-tag--green" style={{ marginBottom: '8px' }}>✓ Solved (+35 XP)</span>
-                  <strong style={{ color: 'var(--jn-crimson)', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '4px' }}>Discovery Secret:</strong>
-                  <p>
-                    {RIDDLES[activeSpot.id].insider}
-                  </p>
-                </div>
-              ) : (
-                <div className="jn-choices">
-                  {RIDDLES[activeSpot.id].options.map((opt, idx) => {
-                    const isSelected = riddleAnswer === idx;
-                    const isCorrect = RIDDLES[activeSpot.id].correct === idx;
-                    const isWrong = riddleAnswer !== null && isSelected && !isCorrect;
-                    
-                    let btnClass = 'jn-choice-btn';
-                    if (riddleAnswer !== null) {
-                      if (isCorrect) btnClass += ' jn-choice-btn--correct';
-                      if (isWrong) btnClass += ' jn-choice-btn--wrong';
-                    }
-
-                    return (
-                      <button
-                        key={idx}
-                        className={btnClass}
-                        onClick={() => handleAnswerRiddle(idx)}
-                        disabled={riddleAnswer !== null}
-                      >
-                        <span className="jn-choice-letter">{String.fromCharCode(65 + idx)}</span>
-                        <span>{opt}</span>
-                      </button>
-                    );
-                  })}
-
-                  {riddleError && (
-                    <p className="jn-error-hint">
-                      ❌ {riddleError}
-                    </p>
-                  )}
-
-                  {/* Hint System */}
-                  <div style={{ marginTop: '12px' }}>
-                    {riddleHints[activeSpot.id] ? (
-                      <div className="jn-insider-reveal" style={{ background: '#FFFBEB', border: '1px solid #FDE68A', color: '#B45309', margin: 0, padding: '12px', borderRadius: '8px' }}>
-                        <strong style={{ color: '#D97706', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '4px' }}>💡 Clue:</strong>
-                        <p style={{ margin: 0, fontStyle: 'italic', fontSize: '12px', lineHeight: '1.4' }}>
-                          {riddleHints[activeSpot.id]}
-                        </p>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleRequestHint(activeSpot.id)}
-                        disabled={hintLoading}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--jn-crimson)',
-                          fontSize: '11px',
-                          fontWeight: 'bold',
-                          fontFamily: 'var(--jn-font-sans)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
-                          cursor: hintLoading ? 'not-allowed' : 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          padding: '4px 0',
-                          opacity: hintLoading ? 0.6 : 1
-                        }}
-                      >
-                        {hintLoading ? '🧙‍♂️ Consulting elders...' : (purchasedItems['riddle-hint'] || 0) > 0 ? `📜 Use Clue Scroll (${purchasedItems['riddle-hint']} left)` : '✨ Request Hint (150 Fils)'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
+      <RiddleModal
+        activeSpot={activeSpot}
+        solvedRiddles={solvedRiddles}
+        riddleAnswer={riddleAnswer}
+        riddleError={riddleError}
+        riddleHints={riddleHints}
+        hintLoading={hintLoading}
+        purchasedItems={purchasedItems}
+        onAnswer={handleAnswerRiddle}
+        onRequestHint={handleRequestHint}
+        onClose={() => setRiddleModalOpen(false)}
+      />
 
       {/* AI GUIDE CHATBOT — Floating Action Button + Panel */}
       <>
@@ -3499,125 +2505,14 @@ export default function JournalNotebook({ onBack }) {
       )}
 
       {/* Quick Info Sheet */}
-      {quickInfoOpen && activeSpot && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Quick info: ${activeSpot.name}`}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 900,
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-          }}
-          onClick={e => { if (e.target === e.currentTarget) setQuickInfoOpen(false) }}
-        >
-          {/* Backdrop */}
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,12,11,0.55)', backdropFilter: 'blur(4px)' }} />
-
-          {/* Sheet */}
-          <div style={{
-            position: 'relative',
-            zIndex: 1,
-            width: '100%',
-            maxWidth: 560,
-            background: '#FAF9F6',
-            borderRadius: '24px 24px 0 0',
-            padding: '24px 20px 40px',
-            boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
-            animation: 'slideUpFade 0.35s cubic-bezier(0.16,1,0.3,1) both',
-          }}>
-            {/* Handle */}
-            <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(42,35,33,0.15)', margin: '0 auto 20px' }} />
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-              <div>
-                <p style={{ fontFamily: 'sans-serif', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#BA0C2F', fontWeight: 800, margin: '0 0 4px' }}>
-                  Quick Info · Day {currentDayTab}
-                </p>
-                <h2 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 22, fontWeight: 700, color: '#2A2321', margin: 0, lineHeight: 1.2 }}>
-                  {lang === 'ar' && activeSpot.arabic ? activeSpot.arabic : activeSpot.name}
-                </h2>
-                {lang === 'ar' && activeSpot.arabic && (
-                  <p style={{ fontFamily: 'sans-serif', fontSize: 12, color: 'rgba(92,84,81,0.6)', margin: '2px 0 0' }}>{activeSpot.name}</p>
-                )}
-              </div>
-              <button
-                onClick={() => setQuickInfoOpen(false)}
-                aria-label="Close quick info"
-                style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'rgba(92,84,81,0.4)', padding: '0 0 0 12px', lineHeight: 1 }}
-              >×</button>
-            </div>
-
-            {/* Info pills */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
-              {activeSpot.coords && (
-                <span style={{ padding: '4px 10px', borderRadius: 999, background: '#FAF6EE', border: '1px solid rgba(139,90,75,0.15)', fontSize: 11, fontFamily: 'sans-serif', fontWeight: 700, color: '#8B5A4B' }}>
-                  {activeSpot.coords}
-                </span>
-              )}
-              {(activeSpot.pathCost || activeSpot.budgetCost) && (
-                <span style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', fontSize: 11, fontFamily: 'sans-serif', fontWeight: 700, color: '#059669' }}>
-                  {activeSpot.pathCost || activeSpot.budgetCost}
-                </span>
-              )}
-              {activeSpot.category && (
-                <span style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(209,26,56,0.06)', border: '1px solid rgba(209,26,56,0.15)', fontSize: 11, fontFamily: 'sans-serif', fontWeight: 700, color: '#BA0C2F' }}>
-                  {activeSpot.category}
-                </span>
-              )}
-            </div>
-
-            {/* Description */}
-            {activeSpot.simpleTerms && (
-              <p style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 13, fontStyle: 'italic', color: '#5C5451', lineHeight: 1.65, marginBottom: 20 }}>
-                {activeSpot.simpleTerms}
-              </p>
-            )}
-
-            {/* Insider tip */}
-            {activeSpot.insider && (
-              <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.2)', marginBottom: 20 }}>
-                <p style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 12, fontStyle: 'italic', color: '#2A2321', lineHeight: 1.6, margin: 0 }}>
-                  {activeSpot.insider}
-                </p>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div style={{ display: 'flex', gap: 10 }}>
-              {activeSpot.coords && (
-                <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent(activeSpot.coords + ' Bahrain')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    flex: 1, padding: '12px 16px', borderRadius: 12,
-                    background: 'linear-gradient(135deg, #BA0C2F, #8A0A22)',
-                    color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: 'sans-serif',
-                    textAlign: 'center', textDecoration: 'none', letterSpacing: '0.04em',
-                  }}
-                >
-                  Get Directions
-                </a>
-              )}
-              <button
-                onClick={() => { setMapOpen(true); setQuickInfoOpen(false) }}
-                style={{
-                  flex: 1, padding: '12px 16px', borderRadius: 12,
-                  background: '#FAF6EE', border: '1px solid rgba(212,175,55,0.3)',
-                  color: '#2A2321', fontSize: 12, fontWeight: 700, fontFamily: 'sans-serif',
-                  cursor: 'pointer', letterSpacing: '0.04em',
-                }}
-              >
-                Open Map
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <QuickInfoSheet
+        quickInfoOpen={quickInfoOpen}
+        activeSpot={activeSpot}
+        currentDayTab={currentDayTab}
+        lang={lang}
+        setQuickInfoOpen={setQuickInfoOpen}
+        setMapOpen={setMapOpen}
+      />
 
       {/* ── Print / Export Travelogue Output (Hidden on screen) ── */}
       <div className="jn-print-layout hidden print:block bg-white text-stone-900 p-8 font-sans">
@@ -3699,6 +2594,13 @@ export default function JournalNotebook({ onBack }) {
           }}
         />
       )}
+
+      <MoreDrawer
+        isOpen={moreOpen}
+        onClose={() => setMoreOpen(false)}
+        onOpenKiosk={() => { setMoreOpen(false); setShopOpen(true) }}
+        onOpenKeepsake={(spot) => { setMoreOpen(false); setSelectedKsake(spot) }}
+      />
     </div>
   )
 }

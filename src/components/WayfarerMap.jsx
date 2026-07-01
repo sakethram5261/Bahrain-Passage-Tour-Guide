@@ -143,7 +143,13 @@ export default function WayfarerMap({ locations, onClose }) {
     markersLayerRef.current = L.layerGroup().addTo(map)
 
     return () => {
-      map.remove()
+      try {
+        map.remove()
+      } catch (e) {
+        console.warn('Leaflet cleanup error:', e)
+      }
+      mapRef.current = null
+      markersLayerRef.current = null
     }
   }, [])
 
@@ -241,10 +247,14 @@ export default function WayfarerMap({ locations, onClose }) {
 
     // Clear layers
     markersLayer.clearLayers()
-    if (routeLineRef.current) {
-      routeLineRef.current.remove()
-      routeLineRef.current = null
+    try {
+      if (routeLineRef.current) {
+        routeLineRef.current.remove()
+      }
+    } catch (e) {
+      console.warn('Polyline remove error suppressed:', e)
     }
+    routeLineRef.current = null
 
     // 1. Draw active route polyline
     if (activeSpots.length > 1) {
@@ -364,6 +374,17 @@ export default function WayfarerMap({ locations, onClose }) {
     })
 
     resetZoom()
+
+    return () => {
+      try {
+        if (routeLineRef.current) {
+          routeLineRef.current.remove()
+        }
+      } catch (e) {
+        // suppress
+      }
+      routeLineRef.current = null
+    }
   }, [activeSpots, selectedSpot, collectedKeepsakes, pearlsCollected, selectedHotel, resetZoom, handleMapNodeClick])
 
   // ── AI Narrator ───────────────────────────────────────────────────────────

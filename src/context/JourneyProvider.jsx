@@ -350,6 +350,132 @@ export function JourneyProvider({ children }) {
     setStep(5)
   }, [selectedMoods, duration, tier, setSelectedMoods, setItinerarySpots, setStep, playOrganicPageSwish])
 
+  const generateItinerary = useCallback(async (moods, dur, budgetTier) => {
+    setItineraryLoading(true)
+    let compiledSpots = []
+    let localCatalog = spotsCatalog
+    let localCategoryImages = {
+      fort: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG',
+      souq: 'https://upload.wikimedia.org/wikipedia/commons/4/47/Mosque_and_Bait_Siyadi%2C_Muharraq%2C_Bahrain.jpg',
+      coast: 'https://upload.wikimedia.org/wikipedia/commons/5/54/Bahrain%27s_Pearling_Pathway_%2818640000885%29.jpg',
+      modern: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+      desert: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80',
+      culture: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=80',
+      default: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'
+    }
+
+    let aiFetched = false
+    try {
+      if (moods && moods.length > 0) {
+        const systemPrompt = `You are a highly knowledgeable Bahraini travel planner.
+Generate a list of interesting, culturally rich, and fun spots in Bahrain tailored to the traveler's selected vibes/moods, budget tier, and duration.
+You must return a valid JSON array of spot objects.
+Each spot object must contain the following keys exactly:
+- id: unique string in kebab-case
+- name: English name
+- arabic: Arabic script of the name (e.g. "موقع قلعة البحرين")
+- mood: one of: empires, spice, sea, lights, desert, culture
+- coords: approx coordinates, e.g. "26.2339° N, 50.5198° E"
+- period: historical period or "Modern Era"
+- desc: brief description (1-2 sentences)
+- simpleTerms: What this offers: description of what a visitor actually does there (1-2 sentences)
+- insider: an insider secret, unique tip, or personal observation (1 sentence)
+- budgetGuide: how a budget-conscious traveler can enjoy it (1 sentence)
+- premiumGuide: a curated, luxury or premium experience there (1 sentence)
+- budgetCost: estimate cost (e.g., "Free Entry" or "Under 1 BHD")
+- premiumCost: estimate cost (e.g., "15 BHD" or "40 BHD")
+- category: one of: fort, souq, coast, modern, desert, culture
+- keepsakeId: unique stamp identifier, e.g. "custom-X"
+- keepsakeName: name of custom keepsake
+- keepsakeEmoji: single emoji representing the keepsake
+- keepsakeDesc: description of the keepsake
+
+Please generate exactly ${dur * 2} spots (excluding airport arrival/departure) spread across the ${dur} days, or a minimum of 4 spots if the duration is 1 day.
+Assign a "day" field (integer from 1 to ${dur}) to each spot to distribute them evenly across the days.
+Do NOT wrap the JSON inside markdown code blocks (e.g. no \`\`\`json). Return ONLY valid JSON array.`;
+
+        const userPrompt = `Generate a customized itinerary for a ${dur}-day trip to Bahrain.
+Traveler Vibes/Moods: ${moods.join(', ')}
+Budget Tier: ${budgetTier}
+Generate exactly ${dur * 2} spots distributed evenly across the ${dur} days.
+Make the spots highly engaging and authentic to Bahrain. Do not include airport arrival or departure in the generated spots, as those will be appended automatically.`;
+
+        const { callLocalAI } = await import('../services/aiService')
+        const responseText = await callLocalAI(systemPrompt, userPrompt, '', { maxTokens: 1800, useJson: true })
+        if (responseText && !responseText.includes('error')) {
+          let cleaned = responseText.trim()
+          if (cleaned.startsWith('```')) {
+            cleaned = cleaned.replace(/^```json\s*/, '').replace(/```$/, '').trim()
+          }
+          try {
+            const parsed = JSON.parse(cleaned)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              compiledSpots = parsed.map(item => ({
+                ...item,
+                pathGuide: budgetTier === 'Wandering' ? (item.budgetGuide || item.desc) : (item.premiumGuide || item.desc),
+                pathCost: budgetTier === 'Wandering' ? (item.budgetCost || 'Free Entry') : (item.premiumCost || 'Free Entry'),
+                image: localCategoryImages[item.category?.toLowerCase()] || localCategoryImages.default
+              }))
+              aiFetched = true
+            }
+          } catch (jsonErr) {
+            console.warn("AI itinerary JSON parsing failed, using catalog:", jsonErr)
+          }
+        }
+      }
+    } catch (aiErr) {
+      console.error("AI itinerary compilation failed:", aiErr)
+    }
+
+    if (!aiFetched && localCatalog) {
+      const filtered = localCatalog.filter(s => moods.includes(s.mood) && s.id !== 'airport-arrival' && s.id !== 'airport-departure')
+      compiledSpots = filtered.map((item, idx) => {
+        const targetDay = (idx % dur) + 1
+        return {
+          ...item,
+          day: targetDay,
+          pathGuide: budgetTier === 'Wandering' ? item.budgetGuide : item.premiumGuide,
+          pathCost: budgetTier === 'Wandering' ? item.budgetCost : item.premiumCost
+        }
+      })
+    }
+
+    // Append Airport arrival & departures automatically
+    if (localCatalog) {
+      const arrivalSpot = localCatalog.find(s => s.id === 'airport-arrival')
+      const departureSpot = localCatalog.find(s => s.id === 'airport-departure')
+      
+      if (arrivalSpot) {
+        compiledSpots.push({
+          ...arrivalSpot,
+          day: 1,
+          pathGuide: budgetTier === 'Wandering' ? arrivalSpot.budgetGuide : arrivalSpot.premiumGuide,
+          pathCost: budgetTier === 'Wandering' ? arrivalSpot.budgetCost : arrivalSpot.premiumCost
+        })
+      }
+      if (departureSpot) {
+        compiledSpots.push({
+          ...departureSpot,
+          day: dur,
+          pathGuide: budgetTier === 'Wandering' ? departureSpot.budgetGuide : departureSpot.premiumGuide,
+          pathCost: budgetTier === 'Wandering' ? departureSpot.budgetCost : departureSpot.premiumCost
+        })
+      }
+    }
+
+    // Sort spots by day
+    const sorted = compiledSpots.sort((a, b) => {
+      if (a.day !== b.day) return a.day - b.day
+      if (a.id === 'airport-arrival') return -1
+      if (b.id === 'airport-arrival') return 1
+      if (a.id === 'airport-departure') return 1
+      if (b.id === 'airport-departure') return -1
+      return 0
+    })
+
+    setItinerarySpots(sorted)
+    setItineraryLoading(false)
+  }, [])
 
   return (
     <JourneyContext.Provider value={{
@@ -362,6 +488,7 @@ export function JourneyProvider({ children }) {
       setTier,
       duration,
       setDuration,
+      generateItinerary,
 
       // Progress
       aligned,

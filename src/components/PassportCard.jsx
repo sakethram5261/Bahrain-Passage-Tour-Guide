@@ -9,38 +9,7 @@ import { Compass, Map, Anchor, BookOpen, Waves, Gem, X } from 'lucide-react'
 
 const MOOD_LABELS = { empires: 'Empires', sea: 'Sea', spice: 'Spice', lights: 'Lights' }
 
-const RANKS = [
-  { id: 'wanderer', label: 'Wanderer', arabic: 'مسافر', minXP: 0, color: '#78716C' },
-  { id: 'nomad', label: 'Nomad', arabic: 'بدوي', minXP: 75, color: '#B8860B' },
-  { id: 'merchant', label: 'Merchant', arabic: 'تاجر', minXP: 250, color: '#C27D38' },
-  { id: 'chronicler', label: 'Chronicler', arabic: 'مؤرخ', minXP: 600, color: '#C1122F' },
-  { id: 'pearldiver', label: 'Pearl Diver', arabic: 'غواص لؤلؤ', minXP: 1200, color: '#1E40AF' },
-  { id: 'dilmun', label: 'Dilmun Pearl', arabic: 'لؤلؤة دلمون', minXP: 2200, color: '#6D28D9' },
-]
-
-const RANK_ICONS = {
-  wanderer: Compass,
-  nomad: Map,
-  merchant: Anchor,
-  chronicler: BookOpen,
-  pearldiver: Waves,
-  dilmun: Gem,
-}
-
-function getRank(xp) {
-  let rank = RANKS[0]
-  for (const r of RANKS) {
-    if (xp >= r.minXP) rank = r
-  }
-  return rank
-}
-
-function getNextRank(xp) {
-  for (const r of RANKS) {
-    if (xp < r.minXP) return r
-  }
-  return null
-}
+import { RANKS, getRank, getNextRank } from '../data/ranks'
 
 export default function PassportCard({ onClose }) {
   const {
@@ -135,7 +104,7 @@ export default function PassportCard({ onClose }) {
   const keepsakesCollected = collectedKeepsakes.length
   const totalKeepsakes = spotsCatalog.length
 
-  const RankIcon = RANK_ICONS[rank.id] || Compass
+  const RankIcon = rank.icon || Compass
 
   const handleShare = async () => {
     const text = `My Bahrain Passage Journey | Status: ${rank.label} (${rank.arabic})\n\nRecord: ${xp.toLocaleString()} Prestige · ${goldFils} Fils · ${completedDays.length}/${duration} Chapters Completed\nVibe Profile: ${selectedMoods.map(m => MOOD_LABELS[m]).join(' · ')}\n\nExplore Bahrain: bahrain-passage-tour-guide.vercel.app #BahrainPassage #CuratedTravel`
@@ -154,7 +123,7 @@ export default function PassportCard({ onClose }) {
 
   const handleExportChronicle = async () => {
     try {
-      const W = 720, H = 1040
+      const W = 1080, H = 720
       const canvas = document.createElement('canvas')
       canvas.width = W
       canvas.height = H
@@ -176,235 +145,236 @@ export default function PassportCard({ onClose }) {
         loadedSig = await loadImage(signature)
       }
 
-      // ── Background: warm aged parchment ──
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
-      bgGrad.addColorStop(0, '#FAF6EE')
-      bgGrad.addColorStop(1, '#F5EFE0')
-      ctx.fillStyle = bgGrad
-      ctx.fillRect(0, 0, W, H)
+      // Draw Left Panel Cover (Crimson: #C41E3A)
+      ctx.fillStyle = '#C41E3A'
+      ctx.fillRect(0, 0, 380, H - 54)
 
-      // Paper grain (noise effect via random rects)
-      ctx.globalAlpha = 0.025
-      for (let i = 0; i < 2000; i++) {
-        ctx.fillStyle = Math.random() > 0.5 ? '#1C1917' : '#B8860B'
-        ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1)
-      }
-      ctx.globalAlpha = 1
+      // Draw Right Panel Content Page (Cream: #F9F7F4)
+      ctx.fillStyle = '#F9F7F4'
+      ctx.fillRect(380, 0, W - 380, H - 54)
 
-      // ── Red header band ──
-      const hdrGrad = ctx.createLinearGradient(0, 0, W, 0)
-      hdrGrad.addColorStop(0, '#C1122F')
-      hdrGrad.addColorStop(1, '#8B0D22')
-      ctx.fillStyle = hdrGrad
-      ctx.fillRect(0, 0, W, 160)
+      // Draw Bottom Slim Footer (Crimson: #C41E3A)
+      ctx.fillStyle = '#C41E3A'
+      ctx.fillRect(0, H - 54, W, 54)
 
-      // Gold decorative lines in header
-      ctx.strokeStyle = 'rgba(212,175,55,0.45)'
-      ctx.lineWidth = 1
-      ctx.beginPath(); ctx.moveTo(0, 155); ctx.lineTo(W, 155); ctx.stroke()
-      ctx.beginPath(); ctx.moveTo(0, 158); ctx.lineTo(W, 158); ctx.stroke()
-
-      // Header text: Kingdom label
-      ctx.font = 'bold 10px "Outfit", system-ui, sans-serif'
-      ctx.fillStyle = 'rgba(255,255,255,0.65)'
-      ctx.letterSpacing = '0.3em'
+      // ─── LEFT PANEL DRAWING ───
+      // Kingdom Text
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
+      ctx.font = 'bold 11px system-ui, -apple-system, sans-serif'
+      ctx.letterSpacing = '0.22em'
       ctx.textAlign = 'center'
-      ctx.fillText('KINGDOM OF BAHRAIN · مملكة البحرين', W / 2, 36)
-
-      // Header text: main title
-      ctx.font = 'bold 36px Georgia, serif'
-      ctx.fillStyle = '#FAF6EE'
-      ctx.fillText('BAHRAIN PASSAGE', W / 2, 82)
-
-      // Header text: subtitle
+      ctx.fillText('KINGDOM OF BAHRAIN', 190, 48)
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
       ctx.font = 'italic 13px Georgia, serif'
-      ctx.fillStyle = 'rgba(255,255,255,0.7)'
-      ctx.fillText('Explorer Chronicle · Travel Passport', W / 2, 108)
+      ctx.letterSpacing = '0.08em'
+      ctx.fillText('مملكة البحرين', 190, 72)
 
-      // Gold rule under header
-      ctx.strokeStyle = 'rgba(212,175,55,0.6)'
-      ctx.lineWidth = 2
-      ctx.beginPath(); ctx.moveTo(60, 130); ctx.lineTo(W - 60, 130); ctx.stroke()
+      // Divider
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)'
+      ctx.lineWidth = 1
+      ctx.beginPath(); ctx.moveTo(40, 95); ctx.lineTo(340, 95); ctx.stroke()
 
-      // Rank badge line
-      ctx.font = 'bold 13px "Outfit", system-ui, sans-serif'
-      ctx.fillStyle = 'rgba(255,255,255,0.85)'
-      ctx.fillText(`${rank.label.toUpperCase()}  ·  ${xp.toLocaleString()} XP  ·  ${goldFils} Fils`, W / 2, 150)
+      // Title stacked
+      ctx.fillStyle = '#FFFFFF'
+      ctx.font = 'bold 44px Georgia, serif'
+      ctx.letterSpacing = '0.18em'
+      ctx.fillText('BAHRAIN', 190, 160)
+      ctx.fillText('PASSAGE', 190, 215)
 
-      // ── Calligraphy seal circle ──
-      const cxSeal = W / 2, cySeal = 260, rSeal = 70
+      // Subtitle
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+      ctx.font = 'bold 9px system-ui, -apple-system, sans-serif'
+      ctx.letterSpacing = '0.15em'
+      ctx.fillText('EXPLORER CHRONICLE · TRAVEL PASSPORT', 190, 255)
+
+      // Divider
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)'
+      ctx.beginPath(); ctx.moveTo(40, 280); ctx.lineTo(340, 280); ctx.stroke()
+
+      // Stats row
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+      ctx.font = 'bold 10.5px system-ui, -apple-system, sans-serif'
+      ctx.letterSpacing = '0.12em'
+      ctx.fillText(`${rank.label.toUpperCase()}   ${xp.toLocaleString()} XP   ${goldFils} FILS`, 190, 312)
+
+      // Circular Traveler Seal
+      const cxSeal = 190, cySeal = 465, rSeal = 75
       ctx.beginPath()
       ctx.arc(cxSeal, cySeal, rSeal, 0, Math.PI * 2)
-      ctx.fillStyle = '#fff'
-      ctx.shadowColor = 'rgba(193,18,47,0.15)'
-      ctx.shadowBlur = 16
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'
       ctx.fill()
-      ctx.shadowBlur = 0
-      ctx.strokeStyle = 'rgba(193,18,47,0.3)'
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)'
       ctx.lineWidth = 2
       ctx.stroke()
 
       if (loadedSig) {
-        const sw = rSeal * 1.3
-        const sh = rSeal * 1.3
+        const sw = rSeal * 1.5
+        const sh = rSeal * 1.5
         ctx.drawImage(loadedSig, cxSeal - sw / 2, cySeal - sh / 2, sw, sh)
       } else {
-        ctx.strokeStyle = 'rgba(193,18,47,0.18)'
-        ctx.lineWidth = 1
-        ctx.setLineDash([4, 4])
+        // Draw Curved 4-point star in star path
+        ctx.fillStyle = '#FFFFFF'
         ctx.beginPath()
-        ctx.arc(cxSeal, cySeal, rSeal - 10, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.setLineDash([])
-
-        ctx.font = '20px serif'
-        ctx.fillStyle = 'rgba(193,18,47,0.35)'
-        ctx.fillText('🖋️', cxSeal, cySeal - 4)
-
-        ctx.font = 'bold 8px "Outfit", sans-serif'
-        ctx.fillStyle = 'rgba(193,18,47,0.45)'
-        ctx.fillText('TAP TO CARVE', cxSeal, cySeal + 18)
+        ctx.moveTo(cxSeal, cySeal - 30)
+        ctx.quadraticCurveTo(cxSeal, cySeal, cxSeal + 30, cySeal)
+        ctx.quadraticCurveTo(cxSeal, cySeal, cxSeal, cySeal + 30)
+        ctx.quadraticCurveTo(cxSeal, cySeal, cxSeal - 30, cySeal)
+        ctx.quadraticCurveTo(cxSeal, cySeal, cxSeal, cySeal - 30)
+        ctx.fill()
       }
 
-      // Seal label
-      ctx.font = 'italic bold 11px Georgia, serif'
-      ctx.fillStyle = '#C1122F'
-      ctx.fillText('Traveler Seal', W / 2, 355)
+      // Traveler Seal label text
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)'
+      ctx.font = 'bold 9.5px system-ui, -apple-system, sans-serif'
+      ctx.letterSpacing = '0.28em'
+      ctx.fillText('TRAVELER SEAL', 190, 582)
 
-      // ── Stats section ──
-      const statsY = 400
-      ctx.font = 'bold 10px "Outfit", sans-serif'
-      ctx.fillStyle = 'rgba(120,113,108,0.7)'
-      ctx.fillText('JOURNEY RECORD', W / 2, statsY)
+      // ─── RIGHT PANEL DRAWING ───
+      const rOffset = 380
+      ctx.textAlign = 'left'
+      ctx.letterSpacing = '0.15em'
 
-      ctx.strokeStyle = 'rgba(193,18,47,0.25)'
+      // JOURNEY RECORD
+      ctx.fillStyle = '#8C8A87'
+      ctx.font = 'bold 11px system-ui, -apple-system, sans-serif'
+      ctx.fillText('JOURNEY RECORD', rOffset + 40, 55)
+
+      // Record Box 1
+      const boxW = 285, boxH = 92
+      ctx.fillStyle = '#FFFFFF'
+      ctx.beginPath()
+      if (ctx.roundRect) ctx.roundRect(rOffset + 40, 75, boxW, boxH, 12); else ctx.rect(rOffset + 40, 75, boxW, boxH)
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(196, 162, 101, 0.15)'
       ctx.lineWidth = 1
-      ctx.beginPath(); ctx.moveTo(80, statsY + 10); ctx.lineTo(W - 80, statsY + 10); ctx.stroke()
+      ctx.stroke()
+      
+      ctx.textAlign = 'center'
+      ctx.letterSpacing = '0'
+      ctx.fillStyle = '#C41E3A'
+      ctx.font = 'bold 32px Georgia, serif'
+      ctx.fillText(`${completedDays.length}/${duration}`, rOffset + 40 + boxW / 2, 122)
+      ctx.fillStyle = '#8C8A87'
+      ctx.font = 'bold 9.5px system-ui, -apple-system, sans-serif'
+      ctx.letterSpacing = '0.12em'
+      ctx.fillText('DAYS SEALED', rOffset + 40 + boxW / 2, 146)
 
-      const stats = [
-        { label: 'Days Sealed', val: `${completedDays.length}/${duration}` },
-        { label: 'Keepsakes', val: `${keepsakesCollected}/${totalKeepsakes}` },
-        { label: 'Photos Taken', val: spotsVisited },
-        { label: 'Notes Written', val: reflectionsWritten },
+      // Record Box 2
+      ctx.fillStyle = '#FFFFFF'
+      ctx.beginPath()
+      if (ctx.roundRect) ctx.roundRect(rOffset + 375, 75, boxW, boxH, 12); else ctx.rect(rOffset + 375, 75, boxW, boxH)
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(196, 162, 101, 0.15)'
+      ctx.stroke()
+      
+      ctx.fillStyle = '#C41E3A'
+      ctx.font = 'bold 32px Georgia, serif'
+      ctx.letterSpacing = '0'
+      ctx.fillText(String(keepsakesCollected), rOffset + 375 + boxW / 2, 122)
+      ctx.fillStyle = '#8C8A87'
+      ctx.font = 'bold 9.5px system-ui, -apple-system, sans-serif'
+      ctx.letterSpacing = '0.12em'
+      ctx.fillText('KEEPSAKES', rOffset + 375 + boxW / 2, 146)
+
+      // VIBE PROFILE
+      ctx.textAlign = 'left'
+      ctx.letterSpacing = '0.15em'
+      ctx.fillStyle = '#8C8A87'
+      ctx.font = 'bold 11px system-ui, -apple-system, sans-serif'
+      ctx.fillText('VIBE PROFILE', rOffset + 40, 212)
+
+      const moodsList = [
+        { id: 'empires', label: 'EMPIRES' },
+        { id: 'spice', label: 'SPICE' },
+        { id: 'lights', label: 'LIGHTS' },
+        { id: 'sea', label: 'SEA' }
       ]
-      const boxW = (W - 120) / 4
-      stats.forEach((s, i) => {
-        const bx = 60 + i * (boxW + 12)
-        const by = statsY + 22
-        ctx.fillStyle = '#fff'
+      moodsList.forEach((m, idx) => {
+        const mx = rOffset + 40 + idx * 155
+        const my = 230
+        const isActive = selectedMoods.includes(m.id) || selectedMoods.length === 0
+        
+        ctx.fillStyle = isActive ? 'rgba(196, 30, 58, 0.05)' : 'rgba(140, 138, 135, 0.04)'
         ctx.beginPath()
-        ctx.roundRect(bx, by, boxW, 60, 8)
+        if (ctx.roundRect) ctx.roundRect(mx, my, 135, 32, 16); else ctx.rect(mx, my, 135, 32)
         ctx.fill()
-        ctx.strokeStyle = 'rgba(139,90,43,0.15)'
+        ctx.strokeStyle = isActive ? 'rgba(196, 30, 58, 0.18)' : 'rgba(140, 138, 135, 0.12)'
         ctx.lineWidth = 1
         ctx.stroke()
-
-        ctx.font = 'bold 20px Georgia, serif'
-        ctx.fillStyle = '#C1122F'
+        
+        ctx.font = 'bold 10px system-ui, -apple-system, sans-serif'
+        ctx.fillStyle = isActive ? '#C41E3A' : '#8C8A87'
         ctx.textAlign = 'center'
-        ctx.fillText(String(s.val), bx + boxW / 2, by + 32)
-
-        ctx.font = '9px "Outfit", sans-serif'
-        ctx.fillStyle = '#78716C'
-        ctx.fillText(s.label.toUpperCase(), bx + boxW / 2, by + 50)
+        ctx.letterSpacing = '0.08em'
+        ctx.fillText(m.label, mx + 67.5, my + 20)
       })
 
-      // ── Mood tags ──
-      if (selectedMoods.length > 0) {
-        const tagsY = statsY + 110
-        ctx.font = 'bold 9px "Outfit", sans-serif'
-        ctx.fillStyle = 'rgba(120,113,108,0.6)'
+      // COLLECTED KEEPSAKES
+      ctx.textAlign = 'left'
+      ctx.letterSpacing = '0.15em'
+      ctx.fillStyle = '#8C8A87'
+      ctx.font = 'bold 11px system-ui, -apple-system, sans-serif'
+      ctx.fillText('COLLECTED KEEPSAKES', rOffset + 40, 302)
+
+      const keepsakeStamps = [
+        { id: 'dilmun-bull-stamp', emoji: '🏺', name: 'Dilmun Bull' },
+        { id: 'saffron-karak-pot', emoji: '🍯', name: 'Saffron Karak' },
+        { id: 'desert-bark-charm', emoji: '🌿', name: 'Desert Leaf' },
+        { id: 'coral-reef-sprig', emoji: '🪸', name: 'Coral Shell' }
+      ]
+      keepsakeStamps.forEach((k, idx) => {
+        const col = idx % 2
+        const row = Math.floor(idx / 2)
+        const kx = rOffset + 40 + col * 335
+        const ky = 322 + row * 142
+        const kw = 285, kh = 120
+        
+        const isCollected = collectedKeepsakes.includes(k.id)
+        
+        ctx.fillStyle = '#FFFFFF'
+        ctx.beginPath()
+        if (ctx.roundRect) ctx.roundRect(kx, ky, kw, kh, 14); else ctx.rect(kx, ky, kw, kh)
+        ctx.fill()
+        ctx.strokeStyle = isCollected ? 'rgba(196, 30, 58, 0.15)' : 'rgba(140, 138, 135, 0.08)'
+        ctx.lineWidth = 1
+        ctx.stroke()
+        
+        // Draw emoji
+        ctx.font = '40px system-ui, -apple-system, sans-serif'
         ctx.textAlign = 'center'
-        ctx.fillText('VIBE PROFILE', W / 2, tagsY)
-        ctx.textAlign = 'left'
-        const totalTagW = selectedMoods.length * 110 + (selectedMoods.length - 1) * 8
-        let tx = (W - totalTagW) / 2
-        selectedMoods.forEach(m => {
-          const label = (MOOD_LABELS[m] || m).toUpperCase()
-          ctx.fillStyle = '#FFF1F3'
-          ctx.beginPath(); ctx.roundRect(tx, tagsY + 8, 106, 24, 12); ctx.fill()
-          ctx.strokeStyle = 'rgba(193,18,47,0.2)'; ctx.lineWidth = 1; ctx.stroke()
-          ctx.font = 'bold 9px "Outfit", sans-serif'
-          ctx.fillStyle = '#C1122F'
-          ctx.textAlign = 'center'
-          ctx.fillText(label, tx + 53, tagsY + 24)
-          tx += 118
-        })
-      }
-
-      // ── Keepsake stamps grid (centered mathematically) ──
-      const stampsToShow = spotsCatalog.filter(s => collectedKeepsakes.includes(s.id)).slice(0, 8)
-      if (stampsToShow.length > 0) {
-        const gridY = 600
-        ctx.textAlign = 'center'
-        ctx.font = 'bold 9px "Outfit", sans-serif'
-        ctx.fillStyle = 'rgba(120,113,108,0.6)'
-        ctx.fillText('COLLECTED KEEPSAKES', W / 2, gridY)
-
-        const cols = 4
-        const cellW = 130, cellH = 70
-        const gap = 14
-        const startX = (W - (cols * cellW + (cols - 1) * gap)) / 2 // Centers the cells exactly at 79px margin
-        stampsToShow.forEach((spot, i) => {
-          const col = i % cols, row = Math.floor(i / cols)
-          const sx = startX + col * (cellW + gap)
-          const sy = gridY + 22 + row * (cellH + 10)
-
-          ctx.fillStyle = '#fff'
-          ctx.beginPath(); ctx.roundRect(sx, sy, cellW, cellH, 8); ctx.fill()
-          ctx.strokeStyle = 'rgba(184,134,11,0.25)'; ctx.lineWidth = 1; ctx.stroke()
-
-          ctx.font = '24px serif'
-          ctx.textAlign = 'center'
-          ctx.fillText(spot.keepsakeEmoji || '🏺', sx + cellW / 2, sy + 32)
+        ctx.letterSpacing = '0'
+        if (isCollected) {
+          ctx.globalAlpha = 1.0
+          ctx.fillText(k.emoji, kx + kw / 2, ky + 52)
+        } else {
+          ctx.globalAlpha = 0.25
+          ctx.fillText(k.emoji, kx + kw / 2, ky + 52)
+          ctx.globalAlpha = 1.0
           
-          ctx.font = 'bold 8px "Outfit", sans-serif'
-          ctx.fillStyle = '#1C1917'
-          
-          let nameText = spot.keepsakeName || spot.name || ''
-          if (nameText.length > 20) {
-            // Split into two lines for cleaner wrapping inside 130px cell
-            const words = nameText.split(' ')
-            let line1 = '', line2 = ''
-            for (const word of words) {
-              if ((line1 + ' ' + word).trim().length <= 15) {
-                line1 += (line1 ? ' ' : '') + word
-              } else if ((line2 + ' ' + word).trim().length <= 15) {
-                line2 += (line2 ? ' ' : '') + word
-              } else {
-                if (line2.length < 13) {
-                  line2 += (line2 ? ' ' : '') + word
-                }
-              }
-            }
-            if (line2.length > 15) {
-              line2 = line2.slice(0, 12) + '...'
-            }
-            ctx.fillText(line1, sx + cellW / 2, sy + 50)
-            if (line2) {
-              ctx.fillText(line2, sx + cellW / 2, sy + 60)
-            }
-          } else {
-            ctx.fillText(nameText, sx + cellW / 2, sy + 55)
-          }
-        })
-      }
+          ctx.font = '10px system-ui, -apple-system, sans-serif'
+          ctx.fillStyle = '#8C8A87'
+          ctx.fillText('🔒 LOCKED', kx + kw / 2, ky + 74)
+        }
+        
+        // Draw label
+        ctx.font = 'bold 10px system-ui, -apple-system, sans-serif'
+        ctx.fillStyle = isCollected ? '#1C1917' : '#8C8A87'
+        ctx.letterSpacing = '0.04em'
+        ctx.fillText(k.name.toUpperCase(), kx + kw / 2, ky + (isCollected ? 86 : 94))
+      })
 
-      // ── Footer ──
-      const ftY = H - 48
-      const ftGrad = ctx.createLinearGradient(0, ftY - 12, W, ftY - 12)
-      ftGrad.addColorStop(0, '#C1122F'); ftGrad.addColorStop(1, '#8B0D22')
-      ctx.fillStyle = ftGrad
-      ctx.fillRect(0, ftY - 12, W, 60)
-
-      ctx.font = 'bold 10px "Outfit", sans-serif'
-      ctx.fillStyle = 'rgba(255,255,255,0.65)'
-      ctx.letterSpacing = '0.2em'
+      // ─── BOTTOM SLIM FOOTER DRAWING ───
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+      ctx.font = 'bold 11px system-ui, -apple-system, sans-serif'
+      ctx.letterSpacing = '0.15em'
       ctx.textAlign = 'center'
-      ctx.fillText('bahrain-passage-tour-guide.vercel.app  ·  #BahrainPassage', W / 2, ftY + 8)
-      ctx.font = 'italic 10px Georgia, serif'
-      ctx.fillStyle = 'rgba(255,255,255,0.45)'
-      ctx.fillText('Kingdom of Bahrain · 2026 Chronicle', W / 2, ftY + 26)
+      ctx.fillText('bahrain-passage-tour-guide.vercel.app', W / 2, H - 28)
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+      ctx.font = 'bold 11px system-ui, -apple-system, sans-serif'
+      ctx.letterSpacing = '0.15em'
+      ctx.fillText('#BahrainPassage · Kingdom of Bahrain 2026', W / 2, H - 12)
 
       // ── Export ──
       canvas.toBlob(async (blob) => {
@@ -426,7 +396,7 @@ export default function PassportCard({ onClose }) {
         setTimeout(() => URL.revokeObjectURL(url), 2000)
       }, 'image/png')
 
-      confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 }, colors: ['#C1122F', '#D4AF37', '#FAF6EE'] })
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 }, colors: ['#C41E3A', '#D4AF37', '#F9F7F4'] })
       toast.success('Chronicle exported!')
     } catch (err) {
       console.error('Export failed:', err)
@@ -436,335 +406,312 @@ export default function PassportCard({ onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[2000] flex items-center justify-center px-4 glass-overlay"
+      className="fixed inset-0 z-[2000] flex items-center justify-center px-4 glass-overlay overflow-y-auto py-10"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       data-lenis-prevent
     >
-      {/* Premium Leather/Gold Foiled Archivist Card Container with Motion entry */}
+      {/* Premium Split-Screen Card Container with Motion entry */}
       <motion.div
         ref={cardRef}
         initial={{ scale: 0.93, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-        className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl p-6 space-y-4 glass-card gold-foil-border"
-        style={{ color: 'var(--color-text)' }}
+        className="relative w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col bg-white border border-stone-250/20"
+        onClick={(e) => e.stopPropagation()}
+        style={{ fontFamily: 'var(--bp-font-body)' }}
       >
-        {/* Tactile Paper Grain Overlay */}
-        <div className="paper-grain opacity-[0.03] pointer-events-none" />
+        <div className="flex flex-col md:flex-row min-h-[580px]">
+          {/* Left Panel: Cover Page (Deep Heritage Crimson) */}
+          <div className="w-full md:w-[380px] shrink-0 bg-[#C41E3A] text-white p-6 md:p-8 flex flex-col justify-between relative select-none">
+            {/* Subtle background patterns */}
+            <div className="absolute inset-0 opacity-5 pointer-events-none mix-blend-overlay" style={{ backgroundImage: 'radial-gradient(circle, #fff 10%, transparent 11%)', backgroundSize: '12px 12px' }} />
+            
+            <div className="space-y-4 relative z-10">
+              <div className="text-center font-sans tracking-[0.25em] text-[10px] text-white/80 uppercase font-bold">
+                KINGDOM OF BAHRAIN
+                <div className="mt-1 font-serif text-[13px] tracking-[0.1em] lowercase font-normal italic text-white/70">مملكة البحرين</div>
+              </div>
+              <hr className="border-white/20" />
+              
+              <div className="py-6 text-center space-y-2">
+                <h1 className="font-serif text-5xl font-extrabold tracking-[0.18em] text-white uppercase leading-none block">
+                  BAHRAIN
+                </h1>
+                <h1 className="font-serif text-5xl font-extrabold tracking-[0.18em] text-white uppercase leading-none block mt-1">
+                  PASSAGE
+                </h1>
+                <p className="font-sans text-[9px] tracking-[0.15em] uppercase text-white/60 pt-4 font-bold">
+                  Explorer Chronicle · Travel Passport
+                </p>
+              </div>
+              <hr className="border-white/20" />
+              
+              <div className="flex justify-between items-center text-[10px] tracking-wider font-sans font-bold text-white/90 uppercase px-1">
+                <span>{rank.label}</span>
+                <span>{xp} XP</span>
+                <span>{goldFils} FILS</span>
+              </div>
+            </div>
 
-        {/* Header Title */}
-        <div className="flex items-start justify-between border-b border-stone-200/40 pb-2.5 relative z-10">
-          <div>
-            <p className="text-[9px] tracking-widest font-sans font-bold text-[var(--color-primary)] uppercase">
-              Kingdom of Bahrain · مملكة البحرين
-            </p>
-            <h2 className="font-serif text-xl font-semibold mt-0.5">Explorer Passport</h2>
+            {/* Traveler Seal at the bottom */}
+            <div className="flex flex-col items-center mt-8 relative z-10">
+              <div className="w-40 h-40 rounded-full border-2 border-white/40 flex items-center justify-center relative bg-white/5 shadow-inner">
+                {signature ? (
+                  <img src={signature} alt="Traveler Seal" className="max-h-[85%] max-w-[85%] object-contain" />
+                ) : (
+                  <svg viewBox="0 0 100 100" className="w-14 h-14 text-white fill-current">
+                    <path d="M50 5 Q50 50 95 50 Q50 50 50 95 Q50 50 5 50 Q50 50 50 5 Z" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-[9px] tracking-[0.3em] font-sans font-bold text-white/70 uppercase mt-3">
+                TRAVELER SEAL
+              </span>
+            </div>
           </div>
-          <button 
-            onClick={onClose} 
-            className="text-stone-400 hover:text-stone-600 transition-colors p-1 flex items-center justify-center cursor-pointer"
-            aria-label="Close"
-          >
-            <X size={16} />
-          </button>
-        </div>
 
-        {/* Subtab Toggle */}
-        <div className="flex bg-stone-100 border border-stone-200/60 rounded-xl p-1 relative z-10">
-          <button
-            onClick={() => setSubTab('details')}
-            className={`flex-1 py-1.5 text-[9px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-              subTab === 'details'
-                ? 'bg-white border border-stone-250/30 text-[var(--color-primary)] shadow-sm'
-                : 'text-stone-500 hover:text-stone-750'
-            }`}
-          >
-            Passport
-          </button>
-          <button
-            onClick={() => setSubTab('challenges')}
-            className={`flex-1 py-1.5 text-[9px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-              subTab === 'challenges'
-                ? 'bg-white border border-stone-250/30 text-[var(--color-primary)] shadow-sm'
-                : 'text-stone-500 hover:text-stone-750'
-            }`}
-          >
-            Challenges
-          </button>
-          <button
-            onClick={() => setSubTab('seal')}
-            className={`flex-1 py-1.5 text-[9px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-              subTab === 'seal'
-                ? 'bg-white border border-stone-250/30 text-[var(--color-primary)] shadow-sm'
-                : 'text-stone-500 hover:text-stone-750'
-            }`}
-          >
-            Carve Seal
-          </button>
-        </div>
+          {/* Right Panel: Content Page (Soft Off-White/Cream) */}
+          <div className="flex-1 bg-[#F9F7F4] text-[#1C1917] p-6 md:p-8 flex flex-col justify-between relative">
+            {/* Close Button */}
+            <button 
+              onClick={onClose}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 transition-colors p-1.5 flex items-center justify-center cursor-pointer z-20"
+              aria-label="Close"
+            >
+              <X size={20} />
+            </button>
 
-        {/* Animated Subtab Content Switcher */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={subTab}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.16 }}
-            className="space-y-4"
-          >
-            {subTab === 'details' ? (
-              <div className="space-y-4">
-                {/* User Rank Block */}
-                <div className="bg-white/85 backdrop-blur-md p-3.5 rounded-xl border border-stone-200/50 shadow-xs space-y-2.5 relative z-10">
-                  <div className="flex items-center gap-3">
-                    {/* Minimalist Rank Badge */}
-                    <motion.div 
-                      whileHover={{ scale: 1.06 }}
-                      className="w-11 h-11 rounded-full flex items-center justify-center shadow-md shrink-0 gold-foil-bg thin-icon-heavy rank-badge-pulse"
-                      role="img"
-                      aria-label={`${rank.label} rank badge`}
-                    >
-                      <RankIcon size={20} strokeWidth={1.35} />
-                    </motion.div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-1.5 justify-between">
-                        <div className="flex items-baseline gap-1">
-                          <span className="font-serif text-sm font-bold gold-foil-text">{rank.label}</span>
-                          <span className="text-[9.5px] text-[var(--color-primary)] font-semibold">({rank.arabic})</span>
+            <div className="space-y-6">
+              {/* Subtab Toggle Buttons */}
+              <div className="flex bg-stone-200/40 border border-stone-300/45 rounded-xl p-1 relative z-10 max-w-sm mr-6">
+                <button
+                  onClick={() => setSubTab('details')}
+                  className={`flex-1 py-1.5 text-[9.5px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer border-none ${
+                    subTab === 'details' ? 'bg-white text-[#C41E3A] shadow-sm' : 'text-stone-500 hover:text-stone-700 bg-transparent'
+                  }`}
+                >
+                  Passport
+                </button>
+                <button
+                  onClick={() => setSubTab('challenges')}
+                  className={`flex-1 py-1.5 text-[9.5px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer border-none ${
+                    subTab === 'challenges' ? 'bg-white text-[#C41E3A] shadow-sm' : 'text-stone-500 hover:text-stone-700 bg-transparent'
+                  }`}
+                >
+                  Challenges
+                </button>
+                <button
+                  onClick={() => setSubTab('seal')}
+                  className={`flex-1 py-1.5 text-[9.5px] font-sans font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer border-none ${
+                    subTab === 'seal' ? 'bg-white text-[#C41E3A] shadow-sm' : 'text-stone-500 hover:text-stone-700 bg-transparent'
+                  }`}
+                >
+                  Carve Seal
+                </button>
+              </div>
+
+              {/* Subtab Content Panels */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={subTab}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="space-y-6"
+                >
+                  {subTab === 'details' ? (
+                    <div className="space-y-6">
+                      {/* Journey Record Cards */}
+                      <div>
+                        <h3 className="text-[10px] tracking-[0.2em] font-sans font-bold text-stone-400 uppercase mb-2">
+                          JOURNEY RECORD
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-white p-4 rounded-xl border border-stone-200/50 shadow-sm text-center flex flex-col justify-center min-h-[90px]">
+                            <span className="font-serif text-3xl font-extrabold text-[#C41E3A]">
+                              {completedDays.length}/{duration}
+                            </span>
+                            <span className="text-[8.5px] uppercase tracking-widest text-stone-400 font-sans font-extrabold mt-1">
+                              DAYS SEALED
+                            </span>
+                          </div>
+                          <div className="bg-white p-4 rounded-xl border border-stone-200/50 shadow-sm text-center flex flex-col justify-center min-h-[90px]">
+                            <span className="font-serif text-3xl font-extrabold text-[#C41E3A]">
+                              {keepsakesCollected}
+                            </span>
+                            <span className="text-[8.5px] uppercase tracking-widest text-stone-400 font-sans font-extrabold mt-1">
+                              KEEPSAKES
+                            </span>
+                          </div>
                         </div>
-                        <span className="font-mono text-xs font-bold text-stone-700">
-                          {goldFils} Fils
-                        </span>
                       </div>
-                      <p className="font-mono text-[9px] text-stone-500 font-bold mt-0.5">
-                        {xp.toLocaleString()} PRESTIGE
-                      </p>
-                    </div>
-                  </div>
 
-                  {nextRank && (
-                    <div className="space-y-1 pt-0.5">
-                      <div className="flex justify-between items-center text-[9px] font-bold text-stone-500 uppercase tracking-wide">
-                        <span>Next rank: {nextRank.label}</span>
-                        <span className="text-[var(--color-primary)] font-mono">{progress}%</span>
+                      {/* Vibe Profile Pills */}
+                      <div>
+                        <h3 className="text-[10px] tracking-[0.2em] font-sans font-bold text-stone-400 uppercase mb-2">
+                          VIBE PROFILE
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {['empires', 'spice', 'lights', 'sea'].map(m => {
+                            const isActive = selectedMoods.includes(m) || selectedMoods.length === 0
+                            return (
+                              <span
+                                key={m}
+                                className={`text-[9.5px] px-3.5 py-1.5 rounded-full font-bold border uppercase tracking-wider transition-all duration-300 ${
+                                  isActive 
+                                    ? 'bg-[#C41E3A]/5 border-[#C41E3A]/20 text-[#C41E3A] shadow-sm' 
+                                    : 'bg-stone-200/20 border-stone-250/10 text-stone-400'
+                                }`}
+                              >
+                                {MOOD_LABELS[m] || m}
+                              </span>
+                            )
+                          })}
+                        </div>
                       </div>
-                      <div className="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${progress}%` }}
-                          className="h-full rounded-full bg-[var(--color-primary)]"
-                          transition={{ duration: 0.8, ease: 'easeOut' }}
-                        />
+
+                      {/* Collected Keepsakes 2x2 Grid */}
+                      <div>
+                        <h3 className="text-[10px] tracking-[0.2em] font-sans font-bold text-stone-400 uppercase mb-2">
+                          COLLECTED KEEPSAKES
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { id: 'dilmun-bull-stamp', emoji: '🏺', name: 'Dilmun Bull' },
+                            { id: 'saffron-karak-pot', emoji: '🍯', name: 'Saffron Karak' },
+                            { id: 'desert-bark-charm', emoji: '🌿', name: 'Desert Leaf' },
+                            { id: 'coral-reef-sprig', emoji: '🪸', name: 'Coral Shell' }
+                          ].map(k => {
+                            const isCollected = collectedKeepsakes.includes(k.id)
+                            return (
+                              <div 
+                                key={k.id} 
+                                className={`bg-white p-3 rounded-xl border flex flex-col items-center justify-center text-center shadow-sm min-h-[92px] transition-all duration-300 ${
+                                  isCollected ? 'border-stone-200/80' : 'border-stone-200/30'
+                                }`}
+                              >
+                                <div className={`text-3xl transition-all duration-300 ${isCollected ? 'opacity-100 scale-100' : 'opacity-25 scale-90 filter saturate-50'}`}>
+                                  {k.emoji}
+                                </div>
+                                <span className={`text-[9px] font-sans font-bold mt-2 uppercase tracking-wide ${isCollected ? 'text-stone-850' : 'text-stone-400'}`}>
+                                  {k.name}
+                                </span>
+                                {!isCollected && (
+                                  <span className="text-[7px] text-stone-400 font-mono tracking-tighter mt-0.5">🔒 LOCKED</span>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-4 gap-2 relative z-10">
-                  {[
-                    { label: 'Chapters', value: `${completedDays.length}/${duration}` },
-                    { label: 'Keepsakes', value: `${keepsakesCollected}/${totalKeepsakes}` },
-                    { label: 'Snaps', value: spotsVisited },
-                    { label: 'Reflections', value: reflectionsWritten },
-                  ].map(stat => (
-                    <div key={stat.label} className="text-center bg-white/75 backdrop-blur-md p-2 rounded-lg border border-stone-200/40 shadow-2xs">
-                      <div className="font-mono font-bold text-xs text-stone-950">{stat.value}</div>
-                      <div className="text-[8px] uppercase tracking-widest text-stone-400 mt-0.5 font-sans font-bold">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Visa Stamps list */}
-                {passportStamps && passportStamps.length > 0 && (
-                  <div className="bg-white/85 backdrop-blur-md p-3 rounded-xl border border-stone-200/50 space-y-2 relative z-10">
-                    <p className="text-[8px] uppercase tracking-widest text-stone-400 font-bold">Visa Endorsements</p>
-                    <div className="flex flex-wrap gap-1.5 max-h-[80px] overflow-y-auto pr-1">
-                      {passportStamps.map(spotId => {
-                        const spot = spotsCatalog.find(s => s.id === spotId)
-                        if (!spot) return null
-                        return (
-                          <span 
-                            key={spotId} 
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-stone-200 bg-stone-50/80 backdrop-blur-xs text-[9px] font-mono font-bold text-stone-700 shadow-3xs"
-                          >
-                            <span role="img" aria-label={spot.keepsakeName} className="text-xs shrink-0">{spot.keepsakeEmoji}</span>
-                            <span className="truncate">{spot.name.split(' ')[0].toUpperCase()}</span>
-                          </span>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Active vibes */}
-                {selectedMoods.length > 0 && (
-                  <div className="flex flex-wrap gap-2 items-center relative z-10 px-1">
-                    <span className="text-[8px] uppercase tracking-widest text-stone-400 font-bold">Active Layers:</span>
-                    {selectedMoods.map(m => (
-                      <span
-                        key={m}
-                        className="text-[8px] px-2 py-0.5 rounded-full font-bold border uppercase tracking-wider"
-                        style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)', borderColor: 'rgba(193, 18, 47, 0.08)' }}
-                      >
-                        {MOOD_LABELS[m]}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Signature Seal Section */}
-                <div className="border-t border-dashed border-stone-200/40 pt-3.5 relative z-10 flex flex-col items-center">
-                  <span className="text-[8px] uppercase tracking-widest text-stone-400 font-bold mb-1.5">Traveler Signature Seal</span>
-                  {signature ? (
-                    <div className="relative w-full h-16 flex items-center justify-center bg-stone-50/20 border border-stone-250/30 rounded-xl shadow-inner overflow-hidden">
-                      <div className="paper-grain opacity-[0.02] pointer-events-none" />
-                      <img
-                        src={signature}
-                        alt="Traveler Signature Seal"
-                        className="max-h-full max-w-full object-contain filter drop-shadow(0 2px 4px rgba(0,0,0,0.06)) animate-fade-in"
-                      />
+                  ) : subTab === 'challenges' ? (
+                    <div className="space-y-4">
+                      <div className="text-left w-full select-none">
+                        <span className="text-[8px] uppercase tracking-widest text-stone-400 font-bold">Explorer Milestones</span>
+                        <h3 className="font-serif text-sm font-bold text-stone-800 mt-0.5">Personalized AI Challenges</h3>
+                      </div>
+                      
+                      <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
+                        {challengesList.map(ch => {
+                          const isComplete = ch.progress >= ch.target
+                          return (
+                            <div 
+                              key={ch.id}
+                              className="bg-white p-3 rounded-xl border border-stone-200 shadow-sm space-y-2 relative text-left select-none"
+                            >
+                              <div className="flex justify-between items-start gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-serif text-[11px] font-bold text-stone-850 truncate">{ch.title}</h4>
+                                  <p className="text-[8.5px] text-stone-500 mt-0.5 leading-relaxed">{ch.desc}</p>
+                                </div>
+                                {ch.claimed ? (
+                                  <span className="text-[8px] font-bold uppercase tracking-wider text-stone-450 bg-stone-100 px-2 py-0.5 rounded shrink-0">Claimed</span>
+                                ) : isComplete ? (
+                                  <button
+                                    onClick={() => handleClaimReward(ch)}
+                                    className="text-[8px] font-bold uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 px-2.5 py-1 rounded-lg transition-all cursor-pointer border-none shrink-0"
+                                  >
+                                    Claim
+                                  </button>
+                                ) : (
+                                  <span className="text-[8px] font-bold uppercase tracking-wider text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded shrink-0">Active</span>
+                                )}
+                              </div>
+                              
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-[8px] font-bold text-stone-500 font-mono">
+                                  <span>Progress</span>
+                                  <span>{ch.progress} / {ch.target}</span>
+                                </div>
+                                <div className="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-500 ${isComplete ? 'bg-emerald-500' : 'bg-[#C41E3A]'}`}
+                                    style={{ width: `${Math.min(100, (ch.progress / ch.target) * 105)}%` }}
+                                  />
+                                </div>
+                              </div>
+                              
+                              <div className="text-[7.5px] font-mono font-bold text-stone-400 uppercase tracking-wide flex justify-between pt-1 border-t border-stone-100/60">
+                                <span>Reward:</span>
+                                <span className="text-emerald-700 font-extrabold">+{ch.rewardXP} XP · +{ch.rewardFils} Fils</span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => setSubTab('seal')}
-                      className="py-2 px-4 w-full rounded-xl border border-dashed border-stone-300 bg-white/40 hover:bg-white/60 text-[9px] font-sans font-bold text-stone-500 uppercase tracking-wider transition-all cursor-pointer text-center"
-                    >
-                      🖋️ Tap to carve your seal signature
-                    </button>
-                  )}
-                </div>
-              </div>
-            ) : subTab === 'challenges' ? (
-              <div className="space-y-3.5 relative z-10">
-                <div className="text-center w-full pb-0.5 select-none">
-                  <span className="text-[7.5px] uppercase tracking-widest text-stone-400 font-bold">Explorer Milestones</span>
-                  <h3 className="font-serif text-sm font-bold text-stone-800 mt-0.5">Personalized AI Challenges</h3>
-                </div>
-                
-                {/* Framer Motion Staggered entrance animation for challenge list */}
-                <motion.div 
-                  initial="hidden"
-                  animate="show"
-                  variants={{
-                    hidden: { opacity: 0 },
-                    show: {
-                      opacity: 1,
-                      transition: {
-                        staggerChildren: 0.08
-                      }
-                    }
-                  }}
-                  className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin"
-                >
-                  {challengesList.map(ch => {
-                    const isComplete = ch.progress >= ch.target
-                    return (
-                      <motion.div 
-                        key={ch.id}
-                        variants={{
-                          hidden: { opacity: 0, y: 10 },
-                          show: { opacity: 1, y: 0 }
+                    <div className="relative z-10">
+                      <CalligraphyStamp 
+                        onSaveSignature={(sig) => {
+                          setSignature(sig)
+                          setSubTab('details')
                         }}
-                        transition={{ type: 'spring', damping: 20 }}
-                        whileHover={{ scale: 1.015, translateY: -1 }}
-                        className="bg-white/80 p-3 rounded-xl border border-stone-200/50 shadow-2xs space-y-2 relative text-left select-none"
-                      >
-                        <div className="flex justify-between items-start gap-3">
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-serif text-[11.5px] font-bold text-stone-850 truncate">{ch.title}</h4>
-                            <p className="text-[8.5px] text-stone-500 mt-0.5 leading-relaxed">{ch.desc}</p>
-                          </div>
-                          {ch.claimed ? (
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-stone-400 bg-stone-100 px-2 py-0.5 rounded shrink-0">Claimed</span>
-                          ) : isComplete ? (
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handleClaimReward(ch)}
-                              className="text-[8px] font-bold uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 px-2.5 py-1 rounded-lg transition-all cursor-pointer shadow-xs border-none shrink-0"
-                            >
-                              Claim
-                            </motion.button>
-                          ) : (
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded shrink-0">Active</span>
-                          )}
-                        </div>
-                        
-                        {/* Progress bar */}
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-[8px] font-bold text-stone-500 font-mono">
-                            <span>Progress</span>
-                            <span>{ch.progress} / {ch.target}</span>
-                          </div>
-                          <div className="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${Math.min(100, (ch.progress / ch.target) * 100)}%` }}
-                              className={`h-full rounded-full transition-all duration-500 ${isComplete ? 'bg-emerald-500' : 'bg-[#C1122F]'}`}
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Reward badge */}
-                        <div className="text-[7.5px] font-mono font-bold text-stone-400 uppercase tracking-wide flex justify-between pt-1 border-t border-stone-100/60">
-                          <span>Reward:</span>
-                          <span className="text-emerald-700 font-extrabold">+{ch.rewardXP} XP · +{ch.rewardFils} Fils</span>
-                        </div>
-                      </motion.div>
-                    )
-                  })}
+                      />
+                    </div>
+                  )}
                 </motion.div>
-              </div>
-            ) : (
-              <div className="relative z-10">
-                <CalligraphyStamp 
-                  onSaveSignature={(sig) => {
-                    setSignature(sig)
-                    setSubTab('details')
-                  }}
-                />
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+              </AnimatePresence>
+            </div>
 
-        {/* Footer Actions */}
-        <div className="flex gap-2 pt-1 relative z-10">
-          {subTab === 'details' && (
-            <>
+            {/* Footer Action Buttons */}
+            <div className="flex gap-2 pt-4 border-t border-stone-200/50 mt-6 relative z-10">
+              {subTab === 'details' && (
+                <>
+                  <button
+                    onClick={handleExportChronicle}
+                    className="flex-1 py-2.5 rounded-xl font-sans font-bold text-[9.5px] tracking-widest uppercase transition-all cursor-pointer shadow-sm active:scale-95 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-stone-950 border-none"
+                  >
+                    📜 Export Passport Image
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="py-2.5 px-4 rounded-xl bg-[#C41E3A] hover:bg-[#A3162C] text-white font-sans font-bold text-[9.5px] tracking-widest uppercase transition-all cursor-pointer shadow-sm active:scale-95 border-none"
+                  >
+                    Share
+                  </button>
+                </>
+              )}
               <button
-                onClick={handleExportChronicle}
-                className="flex-1 py-2.5 rounded-xl font-sans font-bold text-[10px] tracking-widest uppercase transition-all cursor-pointer shadow-sm active:scale-98"
-                style={{
-                  background: 'linear-gradient(135deg, #B8860B, #D4AF37)',
-                  color: '#1a1210',
-                  border: '1px solid rgba(184,134,11,0.4)',
-                }}
+                onClick={onClose}
+                className={`py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 font-sans font-bold text-[9.5px] tracking-widest uppercase transition-all cursor-pointer active:scale-95 ${
+                  subTab === 'seal' ? 'w-full' : 'px-4'
+                }`}
               >
-                📜 Export Chronicle
+                {subTab === 'seal' ? 'Cancel' : 'Close'}
               </button>
-              <button
-                onClick={handleShare}
-                className="py-2.5 px-4 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-sans font-bold text-[10px] tracking-widest uppercase transition-all cursor-pointer shadow-sm active:scale-98"
-              >
-                Share
-              </button>
-            </>
-          )}
-          <button
-            onClick={onClose}
-            className={`py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 font-sans font-bold text-[10px] tracking-widest uppercase transition-all cursor-pointer active:scale-98 ${
-              subTab === 'seal' ? 'w-full' : 'px-4'
-            }`}
-          >
-            {subTab === 'seal' ? 'Cancel' : 'Close'}
-          </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Slim Crimson Footer */}
+        <div className="bg-[#C41E3A] py-3 px-6 flex flex-col md:flex-row items-center justify-between text-[8px] md:text-[9.5px] font-sans font-bold tracking-[0.1em] text-white/90 border-t border-white/10 uppercase select-none w-full">
+          <span className="hover:text-white transition-colors">bahrain-passage-tour-guide.vercel.app</span>
+          <span className="opacity-90">#BahrainPassage · Kingdom of Bahrain 2026</span>
         </div>
       </motion.div>
     </div>
   )
 }
-

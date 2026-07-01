@@ -6,50 +6,21 @@ import { useVibe } from './hooks/useVibe'
 import { LangProvider } from './context/LangContext'
 import { ToastProvider } from './context/ToastContext'
 import ErrorBoundary from './components/ErrorBoundary'
-import SensoryHero from './components/SensoryHero'
-import MoodSelector from './components/MoodSelector'
-import WelcomeIntro from './components/WelcomeIntro'
+import Onboarding from './components/Onboarding'
 import JournalSkeleton from './components/skeletons/JournalSkeleton'
 import LangToggle from './components/LangToggle'
 import PassportCard from './components/PassportCard'
-
-const RANKS = [
-  { id: 'wanderer', label: 'Wanderer', arabic: 'مسافر', minXP: 0, color: '#5C5451' },
-  { id: 'nomad', label: 'Nomad', arabic: 'بدوي', minXP: 75, color: '#aa7c11' },
-  { id: 'merchant', label: 'Merchant', arabic: 'تاجر', minXP: 250, color: '#c07b2a' },
-  { id: 'chronicler', label: 'Chronicler', arabic: 'مؤرخ', minXP: 600, color: '#D11A38' },
-  { id: 'pearldiver', label: 'Pearl Diver', arabic: 'غواص لؤلؤ', minXP: 1200, color: '#2563eb' },
-  { id: 'dilmun', label: 'Dilmun Pearl', arabic: 'لؤلؤة دلمون', minXP: 2200, color: '#7c3aed' },
-]
-
-function getRank(xp) {
-  let rank = RANKS[0]
-  for (const r of RANKS) {
-    if (xp >= r.minXP) rank = r
-  }
-  return rank
-}
+import { getRank } from './data/ranks'
 
 const JournalNotebook = lazy(() => import('./components/JournalNotebook'))
 
 function MainContent() {
   const { step, setStep, selectedMoods, xp, showPassportCard, setShowPassportCard } = useVibe()
-  const [introComplete, setIntroComplete] = useState(false)
-  const [sensoryKey, setSensoryKey] = useState(0)
-
-  const handleMoodConfirm = useCallback(() => {
-    setSensoryKey(k => k + 1)
-    setStep(4)
-  }, [setStep])
 
   let childView
 
-  if (!introComplete) {
-    childView = <WelcomeIntro onComplete={() => setIntroComplete(true)} />
-  } else if (step < 4 || selectedMoods.length === 0) {
-    childView = <MoodSelector onConfirm={handleMoodConfirm} onBack={() => { setStep(1); setIntroComplete(false) }} />
-  } else if (step === 4) {
-    childView = <SensoryHero key={sensoryKey} onBack={() => setStep(1)} />
+  if (step < 5) {
+    childView = <Onboarding />
   } else {
     childView = (
       <Suspense fallback={<JournalSkeleton />}>
@@ -62,7 +33,8 @@ function MainContent() {
     )
   }
 
-  const showFloatingHeader = introComplete && step < 5
+  // Only show floating header during onboarding hero step (step === 1 only), not during setup or loading
+  const showFloatingHeader = false
 
   return (
     <div className="relative min-h-screen">
@@ -85,7 +57,10 @@ function MainContent() {
         <PassportCard onClose={() => setShowPassportCard(false)} />
       )}
       <ErrorBoundary>
-        {childView}
+        {/* data-lenis-prevent stops Lenis hijacking scroll inside Onboarding's own snap container */}
+        <div data-lenis-prevent={step < 5 ? true : undefined}>
+          {childView}
+        </div>
       </ErrorBoundary>
     </div>
   )

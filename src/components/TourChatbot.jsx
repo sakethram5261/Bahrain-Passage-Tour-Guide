@@ -338,7 +338,7 @@ function Bubble({ msg }) {
             display: 'flex',
             flexDirection: 'column',
             gap: 4,
-            borderTop: isUser ? '1px solid rgba(255,255,255,0.2)' : '1px solid var(--jn-divider-light, rgba(0,0,0,0.06))',
+            borderTop: isUser ? '1px solid rgba(255,255,255,0.2)' : '1px solid var(--bp-divider-light, rgba(0,0,0,0.06))',
             paddingTop: 6,
           }}>
             {msg.actionsApplied.map((act, i) => (
