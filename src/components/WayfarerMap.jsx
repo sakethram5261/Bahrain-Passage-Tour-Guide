@@ -132,6 +132,7 @@ export default function WayfarerMap({ locations, onClose }) {
       zoomSnap: 0.5,
       zoomDelta: 0.5
     })
+    map.setView([26.2185, 50.5912], 11)
     mapRef.current = map
 
     // CartoDB Voyager tiles (clean baseline for sepia parchment maps)
@@ -142,7 +143,12 @@ export default function WayfarerMap({ locations, onClose }) {
 
     markersLayerRef.current = L.layerGroup().addTo(map)
 
+    const timer = setTimeout(() => {
+      map.invalidateSize()
+    }, 100)
+
     return () => {
+      clearTimeout(timer)
       try {
         map.remove()
       } catch (e) {
@@ -152,6 +158,8 @@ export default function WayfarerMap({ locations, onClose }) {
       markersLayerRef.current = null
     }
   }, [])
+
+
 
   // ── Zoom handlers ──────────────────────────────────────────────────────────
   const resetZoom = useCallback((e) => {
@@ -245,137 +253,140 @@ export default function WayfarerMap({ locations, onClose }) {
     const markersLayer = markersLayerRef.current
     if (!map || !markersLayer) return
 
-    // Clear layers
-    markersLayer.clearLayers()
-    try {
-      if (routeLineRef.current) {
-        routeLineRef.current.remove()
+    const timer = setTimeout(() => {
+      // Clear layers
+      markersLayer.clearLayers()
+      try {
+        if (routeLineRef.current) {
+          routeLineRef.current.remove()
+        }
+      } catch (e) {
+        // suppress
       }
-    } catch (e) {
-      console.warn('Polyline remove error suppressed:', e)
-    }
-    routeLineRef.current = null
+      routeLineRef.current = null
 
-    // 1. Draw active route polyline
-    if (activeSpots.length > 1) {
-      const latLons = activeSpots.map(s => {
-        const { lat, lon } = parseCoordsStr(s.coords)
-        return [lat, lon]
-      })
-      routeLineRef.current = L.polyline(latLons, {
-        color: '#C1122F',
-        weight: 3.5,
-        dashArray: '8, 8',
-        opacity: 0.85
-      }).addTo(map)
-    }
+      // Force size update
+      map.invalidateSize()
 
-    // 2. Draw Hotel Base Camp Marker
-    if (selectedHotel) {
-      const hotelCoords = parseCoordsStr(selectedHotel.coords)
-      const hotelIcon = L.divIcon({
-        className: 'custom-leaflet-icon',
-        html: `
-          <div class="flex flex-col items-center justify-center relative" style="width: 40px; height: 40px;">
-            <div class="absolute inset-2 rounded-full bg-yellow-500/10 border border-yellow-500/30 animate-ping"></div>
-            <div class="w-7 h-7 rounded-full bg-white border-2 border-[#B8860B] shadow-md flex items-center justify-center text-xs">🔑</div>
-            <div class="text-[6.5px] font-black uppercase text-[var(--color-primary)] tracking-wider mt-0.5" style="background: rgba(255,255,255,0.7); padding: 0 3px; border-radius: 4px; white-space: nowrap;">BASE CAMP</div>
-          </div>
-        `,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
-      })
-      
-      const hotelMarker = L.marker([hotelCoords.lat, hotelCoords.lon], { icon: hotelIcon })
-      hotelMarker.on('mouseover', () => {
-        setHoveredSpot({
-          ...selectedHotel,
-          category: 'hotel',
-          arabic: 'المقر الرئيسي (الفندق)',
-          period: selectedHotel.neighborhood
+      // 1. Draw active route polyline
+      if (activeSpots.length > 1) {
+        const latLons = activeSpots.map(s => {
+          const { lat, lon } = parseCoordsStr(s.coords)
+          return [lat, lon]
         })
-      })
-      hotelMarker.on('mouseout', () => setHoveredSpot(null))
-      hotelMarker.addTo(markersLayer)
-
-      if (activeSpots.length > 0) {
-        const firstSpot = parseCoordsStr(activeSpots[0].coords)
-        const lastSpot = parseCoordsStr(activeSpots[activeSpots.length - 1].coords)
-        
-        L.polyline([[hotelCoords.lat, hotelCoords.lon], [firstSpot.lat, firstSpot.lon]], {
-          color: '#b38600',
-          weight: 2.2,
-          dashArray: '5, 5',
-          opacity: 0.75
-        }).addTo(markersLayer)
-
-        L.polyline([[lastSpot.lat, lastSpot.lon], [hotelCoords.lat, hotelCoords.lon]], {
-          color: '#b38600',
-          weight: 1.8,
-          dashArray: '5, 5',
-          opacity: 0.5
-        }).addTo(markersLayer)
+        routeLineRef.current = L.polyline(latLons, {
+          color: '#C1122F',
+          weight: 3.5,
+          dashArray: '8, 8',
+          opacity: 0.85
+        }).addTo(map)
       }
-    }
 
-    // 3. Draw pins for spots
-    spotsCatalog.forEach(spot => {
-      const { lat, lon } = parseCoordsStr(spot.coords)
-      const isActive = activeSpots.some(s => s.id === spot.id)
-      const activeIdx = activeSpots.findIndex(s => s.id === spot.id)
-      const isSelected = selectedSpot?.id === spot.id
-      const scanned = collectedKeepsakes.includes(spot.id)
-      const hasPearl = pearlsCollected.includes(spot.id)
-
-      const iconHtml = `
-        <div class="custom-map-pin flex items-center justify-center relative" style="width: 32px; height: 32px;">
-          <!-- Pulse ring for selected active spot -->
-          ${isSelected && isActive ? '<div class="absolute inset-1 rounded-full bg-red-500/20 border border-red-500/40 animate-ping"></div>' : ''}
-          
-          <!-- Main Pin Circle -->
-          <div class="rounded-full flex items-center justify-center shadow-md font-bold text-[9px] border-2 border-white select-none transition-all"
-            style="
-              width: ${isSelected ? '24px' : '20px'};
-              height: ${isSelected ? '24px' : '20px'};
-              background-color: ${hasPearl ? '#f59e0b' : scanned ? '#10b981' : isSelected ? 'var(--color-primary)' : isActive ? '#E53E3E' : 'rgba(90,70,65,0.45)'};
-              color: white;
-            "
-          >
-            ${hasPearl ? '💎' : scanned ? '★' : isActive ? (activeIdx + 1) : ''}
-          </div>
-
-          <!-- Floating Category Icon -->
-          ${isActive ? `<div class="absolute -top-3.5 text-[9px] drop-shadow-sm">${CAT_ICON[spot.category] || '📍'}</div>` : ''}
-        </div>
-      `
-
-      const marker = L.marker([lat, lon], {
-        icon: L.divIcon({
+      // 2. Draw Hotel Base Camp Marker
+      if (selectedHotel) {
+        const hotelCoords = parseCoordsStr(selectedHotel.coords)
+        const hotelIcon = L.divIcon({
           className: 'custom-leaflet-icon',
-          html: iconHtml,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16]
+          html: `
+            <div class="flex flex-col items-center justify-center relative" style="width: 40px; height: 40px;">
+              <div class="absolute inset-2 rounded-full bg-yellow-500/10 border border-yellow-500/30 animate-ping"></div>
+              <div class="w-7 h-7 rounded-full bg-white border-2 border-[#B8860B] shadow-md flex items-center justify-center text-xs">🔑</div>
+              <div class="text-[6.5px] font-black uppercase text-[var(--color-primary)] tracking-wider mt-0.5" style="background: rgba(255,255,255,0.7); padding: 0 3px; border-radius: 4px; white-space: nowrap;">BASE CAMP</div>
+            </div>
+          `,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20]
         })
+        
+        const hotelMarker = L.marker([hotelCoords.lat, hotelCoords.lon], { icon: hotelIcon })
+        hotelMarker.on('mouseover', () => {
+          setHoveredSpot({
+            ...selectedHotel,
+            category: 'hotel',
+            arabic: 'المقر الرئيسي (الفندق)',
+            period: selectedHotel.neighborhood
+          })
+        })
+        hotelMarker.on('mouseout', () => setHoveredSpot(null))
+        hotelMarker.addTo(markersLayer)
+
+        if (activeSpots.length > 0) {
+          const firstSpot = parseCoordsStr(activeSpots[0].coords)
+          const lastSpot = parseCoordsStr(activeSpots[activeSpots.length - 1].coords)
+          
+          L.polyline([[hotelCoords.lat, hotelCoords.lon], [firstSpot.lat, firstSpot.lon]], {
+            color: '#b38600',
+            weight: 2.2,
+            dashArray: '5, 5',
+            opacity: 0.75
+          }).addTo(markersLayer)
+
+          L.polyline([[lastSpot.lat, lastSpot.lon], [hotelCoords.lat, hotelCoords.lon]], {
+            color: '#b38600',
+            weight: 1.8,
+            dashArray: '5, 5',
+            opacity: 0.5
+          }).addTo(markersLayer)
+        }
+      }
+
+      // 3. Draw pins for spots
+      spotsCatalog.forEach(spot => {
+        const { lat, lon } = parseCoordsStr(spot.coords)
+        const isActive = activeSpots.some(s => s.id === spot.id)
+        const activeIdx = activeSpots.findIndex(s => s.id === spot.id)
+        const isSelected = selectedSpot?.id === spot.id
+        const scanned = collectedKeepsakes.includes(spot.id)
+        const hasPearl = pearlsCollected.includes(spot.id)
+
+        const iconHtml = `
+          <div class="custom-map-pin flex items-center justify-center relative" style="width: 32px; height: 32px;">
+            ${isSelected && isActive ? '<div class="absolute inset-1 rounded-full bg-red-500/20 border border-red-500/40 animate-ping"></div>' : ''}
+            
+            <div class="rounded-full flex items-center justify-center shadow-md font-bold text-[9px] border-2 border-white select-none transition-all"
+              style="
+                width: ${isSelected ? '24px' : '20px'};
+                height: ${isSelected ? '24px' : '20px'};
+                background-color: ${hasPearl ? '#f59e0b' : scanned ? '#10b981' : isSelected ? 'var(--color-primary)' : isActive ? '#E53E3E' : 'rgba(90,70,65,0.45)'};
+                color: white;
+              "
+            >
+              ${hasPearl ? '💎' : scanned ? '★' : isActive ? (activeIdx + 1) : ''}
+            </div>
+
+            ${isActive ? `<div class="absolute -top-3.5 text-[9px] drop-shadow-sm">${CAT_ICON[spot.category] || '📍'}</div>` : ''}
+          </div>
+        `
+
+        const marker = L.marker([lat, lon], {
+          icon: L.divIcon({
+            className: 'custom-leaflet-icon',
+            html: iconHtml,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+          })
+        })
+
+        marker.on('click', () => {
+          handleMapNodeClick(spot)
+        })
+
+        marker.on('mouseover', () => {
+          setHoveredSpot(spot)
+        })
+
+        marker.on('mouseout', () => {
+          setHoveredSpot(null)
+        })
+
+        marker.addTo(markersLayer)
       })
 
-      marker.on('click', () => {
-        handleMapNodeClick(spot)
-      })
-
-      marker.on('mouseover', () => {
-        setHoveredSpot(spot)
-      })
-
-      marker.on('mouseout', () => {
-        setHoveredSpot(null)
-      })
-
-      marker.addTo(markersLayer)
-    })
-
-    resetZoom()
+      resetZoom()
+    }, 60)
 
     return () => {
+      clearTimeout(timer)
       try {
         if (routeLineRef.current) {
           routeLineRef.current.remove()

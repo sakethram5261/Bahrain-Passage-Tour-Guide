@@ -104,7 +104,10 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
     setPurchasedItems, 
     awardXP, 
     soundVolume, 
-    soundMuted 
+    soundMuted,
+    currentDayTab,
+    itinerarySpots,
+    setItinerarySpots
   } = useVibe()
 
   const toast = useToast()
@@ -198,6 +201,50 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
     } finally {
       setSearchLoading(false)
     }
+  }
+
+  const handleAddSearchedSpot = (spot) => {
+    const spotId = spot.id || `spot-${Math.random().toString(36).substr(2, 9)}`
+    
+    const CATEGORY_FALLBACK_IMAGES = {
+      fort: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG',
+      souq: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Manama_Bab_al-Bahrain_Souq_1.jpg',
+      coast: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+      modern: 'https://upload.wikimedia.org/wikipedia/commons/4/4c/Manama_Bahrain_World_Trade_Centre_04.jpg',
+      desert: 'https://upload.wikimedia.org/wikipedia/commons/4/42/2010-03_Tree_of_Life_Bahrain.jpg',
+      culture: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Manama_Bahrain_National_Museum_Exterior_1.jpg',
+      default: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'
+    }
+
+    const newSpot = {
+      id: spotId,
+      name: spot.name,
+      arabic: spot.arabic || 'معلم بحريني',
+      mood: spot.mood || 'culture',
+      coords: spot.coords || '26.2° N, 50.6° E',
+      period: spot.period || 'Modern Era',
+      desc: spot.desc,
+      simpleTerms: spot.simpleTerms || `What this offers: ${spot.desc}`,
+      insider: spot.insider || 'Enjoy exploring this beautiful landmark.',
+      pathGuide: `Directions: ${spot.where || spot.coords || 'Bahrain'}. Opening hours: ${spot.hours || 'Open daily'}`,
+      pathCost: spot.cost || 'Free Entry',
+      image: spot.image || CATEGORY_FALLBACK_IMAGES[spot.category?.toLowerCase()] || CATEGORY_FALLBACK_IMAGES.default,
+      day: currentDayTab,
+      category: spot.category || 'culture'
+    }
+    
+    setItinerarySpots(prev => {
+      const departureIndex = prev.findIndex(s => s.id === 'airport-departure' && s.day === currentDayTab)
+      if (departureIndex !== -1) {
+        const next = [...prev]
+        next.splice(departureIndex, 0, newSpot)
+        return next
+      }
+      return [...prev, newSpot]
+    })
+    
+    awardXP(20, `Added ${spot.name} to Route`)
+    toast.success(`Successfully added ${spot.name} to Day ${currentDayTab} route!`)
   }
 
   // Render sub-view header
@@ -398,14 +445,22 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
                     </div>
                   )}
                   {searchResults.coords && (
-                    <a
-                      href={`https://maps.google.com/?q=${encodeURIComponent(searchResults.name + ' Bahrain')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex w-full py-2.5 rounded-xl bg-gradient-to-r from-[var(--bp-primary)] to-[var(--bp-primary-dark)] text-white text-xs font-bold uppercase tracking-wider justify-center"
-                    >
-                      Get Directions
-                    </a>
+                    <div className="flex flex-col gap-2">
+                      <a
+                        href={`https://maps.google.com/?q=${encodeURIComponent(searchResults.name + ' Bahrain')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex w-full py-2.5 rounded-xl bg-gradient-to-r from-[var(--bp-primary)] to-[var(--bp-primary-dark)] text-white text-xs font-bold uppercase tracking-wider justify-center"
+                      >
+                        Get Directions
+                      </a>
+                      <button
+                        onClick={() => handleAddSearchedSpot(searchResults)}
+                        className="w-full py-2.5 rounded-xl bg-[var(--bp-primary)] hover:bg-[#a3162c] text-white text-xs font-bold uppercase tracking-wider text-center cursor-pointer transition-colors"
+                      >
+                        Add to Day {currentDayTab} Route
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
