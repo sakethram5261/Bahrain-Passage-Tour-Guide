@@ -143,6 +143,8 @@ const WayfarerMap = lazy(() => import('./WayfarerMap'))
 const TourChatbot = lazy(() => import('./TourChatbot'))
 import { useToast } from '../context/ToastContext'
 import { callLocalAI, buildRiddleHintPrompt, buildSpotSearchPrompt } from '../services/aiService'
+import LiveWeatherCard from './LiveWeatherCard'
+
 
 
 /* ─── Tabs definition ──────────────────────────────────────────────────────── */
@@ -1082,7 +1084,7 @@ export default function JournalNotebook({ onBack }) {
   }, [])
 
   /* ── Almanac data ─────────────────────────────────────────────────────────── */
-  const almanac = getAlmanac ? getAlmanac() : { metrics: [] }
+  const almanac = getAlmanac ? getAlmanac(currentDayTab) : { metrics: [] }
 
   /* ── Spot Details Helpers ──────────────────────────────────────────────────── */
   const renderSpotAbout = () => {
@@ -2303,20 +2305,23 @@ export default function JournalNotebook({ onBack }) {
                   </div>
 
                   {/* Almanac weather metrics */}
-                  {almanac.metrics && almanac.metrics.length > 0 && (
-                    <div style={{ marginTop: '20px' }}>
-                      <h3 className="jn-subsection-title">Weather & Conditions</h3>
-                      <div className="jn-almanac-grid">
-                        {almanac.metrics.map((m, i) => (
-                          <div key={i} className="jn-almanac-card">
-                            <span className="jn-almanac-label">{m.label}</span>
-                            <span className="jn-almanac-value">{m.value}</span>
-                            <span className="jn-almanac-desc">{m.desc}</span>
-                          </div>
-                        ))}
-                      </div>
+                  <div style={{ marginTop: '20px' }}>
+                    <h3 className="jn-subsection-title">Weather & Conditions</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <LiveWeatherCard />
+                      {almanac.metrics && almanac.metrics.length > 0 && (
+                        <div className="jn-almanac-grid" style={{ marginTop: 0 }}>
+                          {almanac.metrics.map((m, i) => (
+                            <div key={i} className="jn-almanac-card">
+                              <span className="jn-almanac-label">{m.label}</span>
+                              <span className="jn-almanac-value">{m.value}</span>
+                              <span className="jn-almanac-desc">{m.desc}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
 

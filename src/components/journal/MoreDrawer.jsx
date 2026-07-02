@@ -17,6 +17,8 @@ import { spotsCatalog } from '../../hooks/useItinerary'
 import { callLocalAI, buildSpotSearchPrompt } from '../../services/aiService'
 import AIHotelPanel from '../AIHotelPanel'
 import { playTypewriterClick } from '../../services/audioUtils'
+import { fetchDatasetRecords } from '../../services/openDataService'
+
 
 // Traditional Oud pluck synthesizer
 function playOudPluck(soundVolume = 0.5, soundMuted = false) {
@@ -121,6 +123,128 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
 
   // Phrase search state
   const [phraseSearch, setPhraseSearch] = useState('')
+
+  // Archives states (Bahrain Open Data Portal)
+  const [activeArchive, setActiveArchive] = useState({ id: 'temperature', label: '🌡️ Temperature', dataset: '02-average-minimum-and-maximum-temperature' })
+  const [records, setRecords] = useState([])
+  const [loadingRecords, setLoadingRecords] = useState(false)
+  const [errorRecords, setErrorRecords] = useState(null)
+
+  const loadArchiveRecords = async (datasetId) => {
+    setLoadingRecords(true)
+    setErrorRecords(null)
+    try {
+      let params = { limit: 40 }
+      if (datasetId === '02-average-minimum-and-maximum-temperature') {
+        params.order_by = 'year desc, n asc'
+      } else if (datasetId === '07-rainfall-in-by-month') {
+        params.order_by = 'year desc, n asc'
+      } else if (datasetId === '17-public-postal-mailboxes-by-zone') {
+        params.order_by = 'year desc, zone asc'
+      } else if (datasetId === '06-quantity-of-fish-landing-type-quantity-metric-ton') {
+        params.order_by = 'year desc, quantity desc'
+      }
+      
+      const data = await fetchDatasetRecords(datasetId, params)
+      setRecords(data.results || [])
+    } catch (err) {
+      console.error('[Archives] Failed to load dataset records:', err.message)
+      setErrorRecords(err.message || 'Failed to query open data portal.')
+    } finally {
+      setLoadingRecords(false)
+    }
+  }
+
+  useEffect(() => {
+    if (subView === 'archives' && activeArchive?.dataset) {
+      loadArchiveRecords(activeArchive.dataset)
+    }
+  }, [subView, activeArchive])
+
+  const renderTableHeaders = () => {
+    if (activeArchive.id === 'temperature') {
+      return (
+        <>
+          <th className="p-3 border-b border-stone-200">Year</th>
+          <th className="p-3 border-b border-stone-200">Month</th>
+          <th className="p-3 border-b border-stone-200">Indicator</th>
+          <th className="p-3 border-b border-stone-200">Type</th>
+          <th className="p-3 border-b border-stone-200 text-right">Value</th>
+        </>
+      )
+    }
+    if (activeArchive.id === 'rainfall') {
+      return (
+        <>
+          <th className="p-3 border-b border-stone-200">Year</th>
+          <th className="p-3 border-b border-stone-200">Month</th>
+          <th className="p-3 border-b border-stone-200 text-right">Amount (mm)</th>
+        </>
+      )
+    }
+    if (activeArchive.id === 'postboxes') {
+      return (
+        <>
+          <th className="p-3 border-b border-stone-200">Year</th>
+          <th className="p-3 border-b border-stone-200">Zone</th>
+          <th className="p-3 border-b border-stone-200 text-right">Active Postboxes</th>
+        </>
+      )
+    }
+    if (activeArchive.id === 'fish') {
+      return (
+        <>
+          <th className="p-3 border-b border-stone-200">Year</th>
+          <th className="p-3 border-b border-stone-200">Marine Landing Type</th>
+          <th className="p-3 border-b border-stone-200 text-right">Metric Tons</th>
+        </>
+      )
+    }
+    return null
+  }
+
+  const renderTableCells = (r) => {
+    if (activeArchive.id === 'temperature') {
+      return (
+        <>
+          <td className="p-3 border-b border-stone-100 font-mono">{r.year}</td>
+          <td className="p-3 border-b border-stone-100">{r.month}</td>
+          <td className="p-3 border-b border-stone-100">{r.indicator}</td>
+          <td className="p-3 border-b border-stone-100 text-stone-500">{r.sub_indicator}</td>
+          <td className="p-3 border-b border-stone-100 text-right font-serif font-bold text-[var(--bp-primary)]">{r.value} {r.unit}</td>
+        </>
+      )
+    }
+    if (activeArchive.id === 'rainfall') {
+      return (
+        <>
+          <td className="p-3 border-b border-stone-100 font-mono">{r.year}</td>
+          <td className="p-3 border-b border-stone-100">{r.month}</td>
+          <td className="p-3 border-b border-stone-100 text-right font-serif font-bold text-blue-600">{r.value} {r.unit || 'mm'}</td>
+        </>
+      )
+    }
+    if (activeArchive.id === 'postboxes') {
+      return (
+        <>
+          <td className="p-3 border-b border-stone-100 font-mono">{r.year}</td>
+          <td className="p-3 border-b border-stone-100">{r.zone}</td>
+          <td className="p-3 border-b border-stone-100 text-right font-serif font-bold text-amber-700">{r.number}</td>
+        </>
+      )
+    }
+    if (activeArchive.id === 'fish') {
+      return (
+        <>
+          <td className="p-3 border-b border-stone-100 font-mono">{r.year}</td>
+          <td className="p-3 border-b border-stone-100 capitalize">{r.type?.toLowerCase()}</td>
+          <td className="p-3 border-b border-stone-100 text-right font-serif font-bold text-emerald-700">{Math.round(r.quantity || 0).toLocaleString()} t</td>
+        </>
+      )
+    }
+    return null
+  }
+
 
   if (!isOpen) return null
 
@@ -352,6 +476,19 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
                 </div>
                 <h4 className="font-serif text-sm font-bold text-stone-900 mt-4">Phrasebook</h4>
                 <p className="font-sans text-[10px] text-stone-500 leading-relaxed mt-1">Hear and learn traditional travel Arabic greetings.</p>
+              </button>
+
+              {/* national archives */}
+              <button 
+                onClick={() => { playTypewriterClick(1.0, soundVolume, soundMuted); setSubView('archives') }}
+                className="flex flex-col items-start p-4 bg-white hover:bg-stone-50 border border-stone-200/60 hover:border-stone-300 rounded-2xl text-left cursor-pointer transition-all duration-200 group col-span-2"
+              >
+                <div className="p-3 bg-red-50 text-[var(--bp-primary)] rounded-xl group-hover:scale-105 transition-transform" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <BookOpen size={20} />
+                  <span className="text-[9px] uppercase tracking-wider bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">Open Gateway</span>
+                </div>
+                <h4 className="font-serif text-sm font-bold text-stone-900 mt-4">National Archives</h4>
+                <p className="font-sans text-[10px] text-stone-500 leading-relaxed mt-1">Explore real-time data catalogs (Temperature, Rainfall, Mailboxes, Marine landings) directly from Bahrain's open portal.</p>
               </button>
             </div>
           </div>
@@ -630,6 +767,76 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
                   <p><strong>Double Vowels:</strong> Elongate vowel sounds organically. Example: <em>Habeebee</em> flows.</p>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════ VIEW: NATIONAL ARCHIVES ════════════════════ */}
+        {subView === 'archives' && (
+          <div>
+            {renderHeader('National Archives', 'الأرشيف الوطني والمؤشرات')}
+            
+            <div className="space-y-4">
+              {/* Archive Selector */}
+              <div className="flex gap-2 overflow-x-auto pb-2 border-b border-stone-200/80">
+                {[
+                  { id: 'temperature', label: '🌡️ Temperature', dataset: '02-average-minimum-and-maximum-temperature' },
+                  { id: 'rainfall', label: '🌧️ Rainfall', dataset: '07-rainfall-in-by-month' },
+                  { id: 'postboxes', label: '📮 Postboxes', dataset: '17-public-postal-mailboxes-by-zone' },
+                  { id: 'fish', label: '🐟 Fish Landings', dataset: '06-quantity-of-fish-landing-type-quantity-metric-ton' }
+                ].map(arch => (
+                  <button
+                    key={arch.id}
+                    onClick={() => {
+                      playTypewriterClick(1.0, soundVolume, soundMuted);
+                      setActiveArchive(arch);
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-colors ${
+                      activeArchive.id === arch.id 
+                        ? 'bg-[var(--bp-primary)] text-white' 
+                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    }`}
+                  >
+                    {arch.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Live Record List */}
+              {loadingRecords ? (
+                <div className="py-12 text-center flex flex-col items-center gap-2">
+                  <Loader className="w-6 h-6 animate-spin text-[var(--bp-primary)]" />
+                  <p className="font-serif text-xs italic text-stone-500">Querying data.gov.bh gateway...</p>
+                </div>
+              ) : errorRecords ? (
+                <div className="p-4 bg-red-50 text-red-800 text-xs rounded-2xl text-center font-bold">
+                  Failed to fetch: {errorRecords}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="p-3 bg-stone-100/50 rounded-xl flex justify-between text-[10px] text-stone-500 font-sans border border-stone-200/40">
+                    <span>Source: Open Data Portal (data.gov.bh)</span>
+                    <span>{records.length} Records Loaded</span>
+                  </div>
+
+                  <div className="max-h-[350px] overflow-y-auto border border-stone-200/80 rounded-2xl bg-white shadow-2xs">
+                    <table className="w-full text-left border-collapse text-[11px] font-sans">
+                      <thead>
+                        <tr className="bg-stone-50 text-stone-500 border-b border-stone-200 font-bold uppercase tracking-wider text-[9px]">
+                          {renderTableHeaders()}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-stone-100">
+                        {records.map((r, idx) => (
+                          <tr key={idx} className="hover:bg-stone-50/30 text-stone-700">
+                            {renderTableCells(r)}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

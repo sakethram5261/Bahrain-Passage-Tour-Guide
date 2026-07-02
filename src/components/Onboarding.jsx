@@ -197,7 +197,8 @@ export default function Onboarding() {
       rotation: 360,
       duration: 160,
       repeat: -1,
-      ease: 'none'
+      ease: 'none',
+      transformOrigin: '50% 50%'
     })
     return () => tween.kill()
   }, [])
@@ -403,17 +404,60 @@ export default function Onboarding() {
 
       {/* ════════════════════ SECTION 1: HERO OVERLAY ════════════════════ */}
       <section className="snap-start relative h-screen w-full flex flex-col items-center justify-center text-center p-6 z-10">
-        {/* Watermarked rotating compass behind content */}
-        <div 
-          ref={compassRef}
-          className="absolute w-[240px] md:w-[380px] h-[240px] md:h-[380px] opacity-10 pointer-events-none"
-          style={{
-            backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' stroke='%23C4A265' stroke-width='0.5' fill='none'/><path d='M50,2 L52,40 L98,50 L52,60 L50,98 L48,60 L2,50 L48,40 Z' fill='%23C4A265'/></svg>")`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-        />
+        {/* Authentic rotating inline SVG Compass Rose watermark */}
+        <svg 
+          ref={compassRef} 
+          className="absolute w-[280px] md:w-[480px] h-[280px] md:h-[480px] opacity-[0.08] pointer-events-none select-none z-0" 
+          viewBox="0 0 100 100" 
+          fill="none" 
+          stroke="#C4A265"
+        >
+          <circle cx="50" cy="50" r="48" strokeWidth="0.3" strokeDasharray="1,1.5" />
+          <circle cx="50" cy="50" r="45" strokeWidth="0.5" />
+          <circle cx="50" cy="50" r="42" strokeWidth="0.2" strokeDasharray="0.5,1" />
+          
+          {/* Cardinal Ticks */}
+          <line x1="50" y1="2" x2="50" y2="8" strokeWidth="0.75" />
+          <line x1="50" y1="92" x2="50" y2="98" strokeWidth="0.75" />
+          <line x1="2" y1="50" x2="8" y2="50" strokeWidth="0.75" />
+          <line x1="92" y1="50" x2="98" y2="50" strokeWidth="0.75" />
+          
+          {/* Primary Points (North, South, East, West) with bevel shading */}
+          <polygon points="50,8 50,50 46,46" fill="#C4A265" />
+          <polygon points="50,8 50,50 54,46" strokeWidth="0.5" />
+          
+          <polygon points="50,92 50,50 54,54" fill="#C4A265" />
+          <polygon points="50,92 50,50 46,54" strokeWidth="0.5" />
+          
+          <polygon points="92,50 50,50 86,46" fill="#C4A265" />
+          <polygon points="92,50 50,50 86,54" strokeWidth="0.5" />
+          
+          <polygon points="8,50 50,50 14,54" fill="#C4A265" />
+          <polygon points="8,50 50,50 14,46" strokeWidth="0.5" />
+
+          {/* Secondary Points */}
+          <polygon points="79,21 50,50 75,25" fill="#C4A265" opacity="0.6" />
+          <polygon points="79,21 50,50 79,25" strokeWidth="0.4" opacity="0.6" />
+          
+          <polygon points="21,79 50,50 25,75" fill="#C4A265" opacity="0.6" />
+          <polygon points="21,79 50,50 21,75" strokeWidth="0.4" opacity="0.6" />
+          
+          <polygon points="79,79 50,50 79,75" fill="#C4A265" opacity="0.6" />
+          <polygon points="79,79 50,50 75,79" strokeWidth="0.4" opacity="0.6" />
+          
+          <polygon points="21,21 50,50 21,25" fill="#C4A265" opacity="0.6" />
+          <polygon points="21,21 50,50 25,21" strokeWidth="0.4" opacity="0.6" />
+
+          {/* Center details */}
+          <circle cx="50" cy="50" r="5" strokeWidth="0.5" />
+          <circle cx="50" cy="50" r="1.5" fill="#C4A265" />
+          
+          {/* Texts */}
+          <text x="50" y="16" fontFamily="serif" fontSize="7" fontWeight="bold" fill="#C4A265" textAnchor="middle">N</text>
+          <text x="50" y="88" fontFamily="serif" fontSize="7" fontWeight="bold" fill="#C4A265" textAnchor="middle">S</text>
+          <text x="86" y="52.5" fontFamily="serif" fontSize="7" fontWeight="bold" fill="#C4A265" textAnchor="middle">E</text>
+          <text x="14" y="52.5" fontFamily="serif" fontSize="7" fontWeight="bold" fill="#C4A265" textAnchor="middle">W</text>
+        </svg>
 
         <div className="space-y-6 max-w-xl">
           <div ref={overlineRef} className="text-[10px] md:text-xs tracking-[0.25em] uppercase font-bold text-[#C4A265]">
@@ -490,7 +534,7 @@ export default function Onboarding() {
                 1. Select Traveling Vibes
               </label>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {MOODS.map((m) => {
                   const Icon = m.icon
                   const active = selectedMoods.includes(m.id)
@@ -582,26 +626,36 @@ export default function Onboarding() {
                 3. Budget & Experience Level
               </label>
 
-              <div className="grid grid-cols-2 gap-3 p-1 rounded-xl bg-stone-100 border border-stone-200">
+              <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-stone-100 border border-stone-200">
                 <button
                   onClick={() => setTier('Wandering')}
-                  className={`py-3 rounded-lg font-sans text-xs tracking-wider uppercase font-semibold cursor-pointer transition-all duration-300 border-none ${
+                  className={`py-2.5 rounded-lg font-sans text-[10px] tracking-wider uppercase font-semibold cursor-pointer transition-all duration-300 border-none ${
                     tier === 'Wandering'
                       ? 'bg-white text-[#C41E3A] shadow-sm font-bold'
                       : 'text-stone-500 hover:text-stone-850 bg-transparent'
                   }`}
                 >
-                  Wandering (Budget-Conscious)
+                  Wandering
                 </button>
                 <button
-                  onClick={() => setTier('Elite')}
-                  className={`py-3 rounded-lg font-sans text-xs tracking-wider uppercase font-semibold cursor-pointer transition-all duration-300 border-none ${
-                    tier === 'Elite'
+                  onClick={() => setTier('Curated')}
+                  className={`py-2.5 rounded-lg font-sans text-[10px] tracking-wider uppercase font-semibold cursor-pointer transition-all duration-300 border-none ${
+                    tier === 'Curated'
                       ? 'bg-white text-[#C41E3A] shadow-sm font-bold'
                       : 'text-stone-500 hover:text-stone-850 bg-transparent'
                   }`}
                 >
-                  Elite (Luxury/Premium)
+                  Curated
+                </button>
+                <button
+                  onClick={() => setTier('Luxury')}
+                  className={`py-2.5 rounded-lg font-sans text-[10px] tracking-wider uppercase font-semibold cursor-pointer transition-all duration-300 border-none ${
+                    tier === 'Luxury'
+                      ? 'bg-white text-[#C41E3A] shadow-sm font-bold'
+                      : 'text-stone-500 hover:text-stone-850 bg-transparent'
+                  }`}
+                >
+                  Luxury
                 </button>
               </div>
             </div>
