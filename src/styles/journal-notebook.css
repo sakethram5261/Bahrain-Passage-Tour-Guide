@@ -2757,6 +2757,277 @@
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Spot Glance FAB & Premium Drawer Styling (Redesign Update)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Bobbing animation for the floating button */
+@keyframes jn-fab-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Discovery pulse ring animation */
+@keyframes jn-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(212, 175, 55, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+}
+
+/* Slide in from right for drawer views */
+@keyframes jn-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Fade up for elements in quick info sheet */
+@keyframes jn-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Spot Glance Capsule FAB */
+.spot-glance-fab {
+  position: fixed;
+  right: 16px;
+  background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  font-family: var(--bp-font-body);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 30px;
+  cursor: pointer;
+  z-index: 197;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+  animation: jn-fab-bob 4s ease-in-out infinite, jn-pulse-ring 2s infinite;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spot-glance-fab:hover {
+  background: linear-gradient(135deg, #E5C158 0%, #C9971C 100%);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
+  animation-play-state: paused;
+  transform: translateY(-2px) scale(1.05);
+}
+
+.spot-glance-fab:active {
+  transform: scale(0.98);
+}
+
+/* Category Accent Strip inside Glass Sheet */
+.quick-info-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 24px 24px 0 0;
+}
+
+/* Glassmorphic card adjustments */
+.glass-sheet-content {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Micro-interaction animated elements */
+.animate-fade-up {
+  animation: jn-fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* More Drawer Card styles */
+.more-drawer-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.more-drawer-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.more-drawer-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid transparent;
+  transition: border-color 0.3s;
+}
+
+/* Stay & Hotels card override styling */
+.more-card-stay {
+  background: linear-gradient(135deg, #FFFDF9 0%, #FCF6EC 100%);
+  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+}
+.more-card-stay:hover::after {
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+/* Spot Search card override */
+.more-card-search {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5F9FC 100%);
+  border: 1px solid rgba(14, 116, 144, 0.1) !important;
+}
+.more-card-search:hover::after {
+  border-color: rgba(14, 116, 144, 0.3);
+}
+
+/* Artifacts & Shop card override */
+.more-card-artifacts {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFFBF2 100%);
+  border: 1px solid rgba(217, 119, 6, 0.1) !important;
+}
+.more-card-artifacts:hover::after {
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+/* Phrasebook card override */
+.more-card-phrasebook {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F4FBF9 100%);
+  border: 1px solid rgba(13, 148, 136, 0.1) !important;
+}
+.more-card-phrasebook:hover::after {
+  border-color: rgba(13, 148, 136, 0.3);
+}
+
+/* National Archives Banner override */
+.more-card-archives {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FAF6F0 100%);
+  border: 1px solid rgba(139, 92, 26, 0.1) !important;
+}
+.more-card-archives:hover::after {
+  border-color: rgba(139, 92, 26, 0.3);
+}
+
+/* Live pulse indicator */
+.live-pulse-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #10B981;
+  border-radius: 50%;
+  position: relative;
+}
+
+.live-pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid #10B981;
+  opacity: 0;
+  animation: jn-pulse-ring 1.5s infinite;
+}
+
+/* Subview animation */
+.subview-slide-in {
+  animation: jn-slide-in-right 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* iOS Segmented Control slider background */
+.segmented-control-container {
+  display: flex;
+  position: relative;
+  background: rgba(42, 35, 33, 0.05);
+  padding: 3px;
+  border-radius: 100px;
+}
+
+.segmented-control-slider {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border-radius: 100px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+
+.segmented-control-btn {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 100px;
+  color: #5C5451;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s;
+}
+
+.segmented-control-btn.active {
+  color: #2A2321;
+}
+
+/* Audio wave animation */
+.phrase-wave-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 16px;
+}
+
+.phrase-wave-bar {
+  width: 2px;
+  height: 10px;
+  background-color: var(--bp-primary);
+  border-radius: 1px;
+  animation: phrase-wave 0.8s ease-in-out infinite alternate;
+}
+
+.phrase-wave-bar:nth-child(2) {
+  animation-delay: 0.15s;
+  height: 14px;
+}
+
+.phrase-wave-bar:nth-child(3) {
+  animation-delay: 0.3s;
+  height: 8px;
+}
+
+@keyframes phrase-wave {
+  0% { transform: scaleY(0.4); }
+  100% { transform: scaleY(1.2); }
+}
+
 
 
 

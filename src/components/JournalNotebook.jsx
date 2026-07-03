@@ -2478,36 +2478,22 @@ export default function JournalNotebook({ onBack }) {
       </>
 
 
-      {/* ⚡ Quick Info FAB */}
+      {/* 🧭 Spot Glance FAB */}
       {!chatOpen && (
         <button
           id="quick-info-fab"
           onClick={() => setQuickInfoOpen(true)}
-          aria-label="Quick map & current spot info"
-          title="Quick Info"
+          aria-label={lang === 'ar' ? 'لمحة سريعة على المعلم' : 'Quick map & current spot info'}
+          title={lang === 'ar' ? 'لمحة المعلم' : 'Spot Glance'}
+          className="spot-glance-fab"
           style={{
-            position: 'fixed',
             bottom: quickInfoBottom,
-            right: 16,
-            width: 44,
-            height: 44,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #D4AF37 0%, #a88020 100%)',
-            border: '2px solid rgba(255,255,255,0.3)',
-            color: '#fff',
-            fontSize: 18,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 197,
-            boxShadow: '0 4px 16px rgba(212,175,55,0.4)',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(212,175,55,0.6)' }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,175,55,0.4)' }}
         >
-          <Zap size={18} />
+          <Compass size={13} className="animate-spin-slow" />
+          <span style={{ fontSize: '10px', letterSpacing: '0.05em', fontWeight: 800 }}>
+            {lang === 'ar' ? 'لمحة سريعة' : 'Spot Glance'}
+          </span>
         </button>
       )}
 

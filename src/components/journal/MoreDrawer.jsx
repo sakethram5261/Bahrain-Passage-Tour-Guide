@@ -63,7 +63,7 @@ function playOudPluck(soundVolume = 0.5, soundMuted = false) {
   }
 }
 
-function playPhrase(phraseText, soundVolume = 0.5, soundMuted = false) {
+function playPhrase(phraseText, soundVolume = 0.5, soundMuted = false, onStart, onEnd) {
   playOudPluck(soundVolume, soundMuted)
   setTimeout(() => {
     try {
@@ -78,10 +78,18 @@ function playPhrase(phraseText, soundVolume = 0.5, soundMuted = false) {
           utterance.voice = arabicVoice
         }
         utterance.volume = soundVolume
+        if (onStart) utterance.onstart = onStart
+        if (onEnd) {
+          utterance.onend = onEnd
+          utterance.onerror = onEnd
+        }
         window.speechSynthesis.speak(utterance)
+      } else {
+        if (onEnd) onEnd()
       }
     } catch (e) {
       console.error('Phrase TTS speech synthesis error:', e)
+      if (onEnd) onEnd()
     }
   }, 120)
 }
@@ -123,6 +131,7 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
 
   // Phrase search state
   const [phraseSearch, setPhraseSearch] = useState('')
+  const [playingPhraseIdx, setPlayingPhraseIdx] = useState(null)
 
   // Archives states (Bahrain Open Data Portal)
   const [activeArchive, setActiveArchive] = useState({ id: 'temperature', label: '🌡️ Temperature', dataset: '02-average-minimum-and-maximum-temperature' })
@@ -433,62 +442,73 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
               {/* stays */}
               <button 
                 onClick={() => { playTypewriterClick(1.0, soundVolume, soundMuted); setSubView('hotels') }}
-                className="flex flex-col items-start p-4 bg-white hover:bg-stone-50 border border-stone-200/60 hover:border-stone-300 rounded-2xl text-left cursor-pointer transition-all duration-200 group"
+                className="more-drawer-card more-card-stay w-full flex flex-row items-center gap-4 p-5 rounded-2xl text-left cursor-pointer group col-span-2 shadow-2xs"
               >
-                <div className="p-3 bg-red-50 text-[var(--bp-primary)] rounded-xl group-hover:scale-105 transition-transform">
-                  <Hotel size={20} />
+                <div className="p-3.5 bg-amber-500/10 text-amber-700 rounded-xl group-hover:scale-105 transition-transform flex items-center justify-center">
+                  <Hotel size={22} />
                 </div>
-                <h4 className="font-serif text-sm font-bold text-stone-900 mt-4">Stay & Hotels</h4>
-                <p className="font-sans text-[10px] text-stone-500 leading-relaxed mt-1">Explore custom lodging options fitted to your vibe.</p>
+                <div className="flex-1">
+                  <h4 className="font-serif text-base font-bold text-stone-900 leading-tight">Stay & Hotels</h4>
+                  <p className="font-sans text-[11px] text-stone-500 leading-relaxed mt-1">Explore custom lodging options fitted to your vibe.</p>
+                </div>
               </button>
 
               {/* search */}
               <button 
                 onClick={() => { playTypewriterClick(1.0, soundVolume, soundMuted); setSubView('search') }}
-                className="flex flex-col items-start p-4 bg-white hover:bg-stone-50 border border-stone-200/60 hover:border-stone-300 rounded-2xl text-left cursor-pointer transition-all duration-200 group"
+                className="more-drawer-card more-card-search w-full flex flex-col items-start p-4 bg-white border border-stone-200 rounded-2xl text-left cursor-pointer transition-all group col-span-1 shadow-2xs"
               >
-                <div className="p-3 bg-red-50 text-[var(--bp-primary)] rounded-xl group-hover:scale-105 transition-transform">
-                  <SearchIcon size={20} />
+                <div className="p-3 bg-cyan-500/10 text-cyan-700 rounded-xl group-hover:scale-105 transition-transform flex items-center justify-center">
+                  <SearchIcon size={18} />
                 </div>
-                <h4 className="font-serif text-sm font-bold text-stone-900 mt-4">Spot Search</h4>
+                <h4 className="font-serif text-sm font-bold text-stone-900 mt-3 leading-tight">Spot Search</h4>
                 <p className="font-sans text-[10px] text-stone-500 leading-relaxed mt-1">Search Dilmun's historical archive with custom AI.</p>
               </button>
 
               {/* artifacts */}
               <button 
                 onClick={() => { playTypewriterClick(1.0, soundVolume, soundMuted); setSubView('artifacts') }}
-                className="flex flex-col items-start p-4 bg-white hover:bg-stone-50 border border-stone-200/60 hover:border-stone-300 rounded-2xl text-left cursor-pointer transition-all duration-200 group"
+                className="more-drawer-card more-card-artifacts w-full flex flex-col items-start p-4 bg-white border border-stone-200 rounded-2xl text-left cursor-pointer transition-all group col-span-1 shadow-2xs"
               >
-                <div className="p-3 bg-red-50 text-[var(--bp-primary)] rounded-xl group-hover:scale-105 transition-transform">
-                  <Gift size={20} />
+                <div className="p-3 bg-amber-500/10 text-amber-600 rounded-xl group-hover:scale-105 transition-transform flex items-center justify-center">
+                  <Gift size={18} />
                 </div>
-                <h4 className="font-serif text-sm font-bold text-stone-900 mt-4">Artifacts & Shop</h4>
-                <p className="font-sans text-[10px] text-stone-500 leading-relaxed mt-1">Review keepsakes or exchange earned Fils for equipment.</p>
+                <h4 className="font-serif text-sm font-bold text-stone-900 mt-3 leading-tight">Artifacts & Shop</h4>
+                <p className="font-sans text-[10px] text-stone-500 leading-relaxed mt-1">Review keepsakes or exchange earned Fils for items.</p>
               </button>
 
               {/* phrasebook */}
               <button 
                 onClick={() => { playTypewriterClick(1.0, soundVolume, soundMuted); setSubView('phrases') }}
-                className="flex flex-col items-start p-4 bg-white hover:bg-stone-50 border border-stone-200/60 hover:border-stone-300 rounded-2xl text-left cursor-pointer transition-all duration-200 group"
+                className="more-drawer-card more-card-phrasebook w-full flex flex-row items-center gap-4 p-5 rounded-2xl text-left cursor-pointer group col-span-2 shadow-2xs"
               >
-                <div className="p-3 bg-red-50 text-[var(--bp-primary)] rounded-xl group-hover:scale-105 transition-transform">
-                  <BookOpen size={20} />
+                <div className="p-3.5 bg-teal-500/10 text-teal-700 rounded-xl group-hover:scale-105 transition-transform flex items-center justify-center">
+                  <BookOpen size={22} />
                 </div>
-                <h4 className="font-serif text-sm font-bold text-stone-900 mt-4">Phrasebook</h4>
-                <p className="font-sans text-[10px] text-stone-500 leading-relaxed mt-1">Hear and learn traditional travel Arabic greetings.</p>
+                <div className="flex-1">
+                  <h4 className="font-serif text-base font-bold text-stone-900 leading-tight">Phrasebook</h4>
+                  <p className="font-sans text-[11px] text-stone-500 leading-relaxed mt-1">Hear and learn traditional travel Arabic greetings.</p>
+                </div>
               </button>
 
               {/* national archives */}
               <button 
                 onClick={() => { playTypewriterClick(1.0, soundVolume, soundMuted); setSubView('archives') }}
-                className="flex flex-col items-start p-4 bg-white hover:bg-stone-50 border border-stone-200/60 hover:border-stone-300 rounded-2xl text-left cursor-pointer transition-all duration-200 group col-span-2"
+                className="more-drawer-card more-card-archives w-full flex flex-row items-center gap-4 p-5 rounded-2xl text-left cursor-pointer group col-span-2 shadow-2xs"
               >
-                <div className="p-3 bg-red-50 text-[var(--bp-primary)] rounded-xl group-hover:scale-105 transition-transform" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <BookOpen size={20} />
-                  <span className="text-[9px] uppercase tracking-wider bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">Open Gateway</span>
+                <div className="p-3.5 bg-yellow-500/10 text-amber-800 rounded-xl group-hover:scale-105 transition-transform flex items-center justify-center">
+                  <BookOpen size={22} />
                 </div>
-                <h4 className="font-serif text-sm font-bold text-stone-900 mt-4">National Archives</h4>
-                <p className="font-sans text-[10px] text-stone-500 leading-relaxed mt-1">Explore real-time data catalogs (Temperature, Rainfall, Mailboxes, Marine landings) directly from Bahrain's open portal.</p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-serif text-base font-bold text-stone-900 leading-tight">National Archives</h4>
+                    <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-[8px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full">
+                      <span className="live-pulse-dot" />
+                      Open Gateway
+                    </span>
+                  </div>
+                  <p className="font-sans text-[11px] text-stone-500 leading-relaxed mt-1">Explore real-time data catalogs (Temperature, Rainfall, Mailboxes, Marine landings) directly from Bahrain's open portal.</p>
+                </div>
               </button>
             </div>
           </div>
@@ -496,7 +516,7 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
 
         {/* ════════════════════ VIEW: HOTELS ════════════════════ */}
         {subView === 'hotels' && (
-          <div>
+          <div className="subview-slide-in">
             {renderHeader('Stay & Hotels', 'الإقامة والفنادق')}
             <div className="space-y-4 pt-2">
               <AIHotelPanel moods={selectedMoods} tier={tier} duration={duration} autoLoad={true} />
@@ -506,7 +526,7 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
 
         {/* ════════════════════ VIEW: SEARCH ════════════════════ */}
         {subView === 'search' && (
-          <div>
+          <div className="subview-slide-in">
             {renderHeader('Spot Search', 'البحث عن معالم')}
             
             <div className="space-y-4">
@@ -607,7 +627,7 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
 
         {/* ════════════════════ VIEW: ARTIFACTS ════════════════════ */}
         {subView === 'artifacts' && (
-          <div>
+          <div className="subview-slide-in">
             {renderHeader('Artifacts & Shop', 'التحف والمعرض')}
             
             <div className="space-y-5">
@@ -710,7 +730,7 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
 
         {/* ════════════════════ VIEW: PHRASEBOOK ════════════════════ */}
         {subView === 'phrases' && (
-          <div>
+          <div className="subview-slide-in">
             {renderHeader('Phrasebook', 'المصطلحات والعبارات')}
 
             <div className="space-y-4">
@@ -741,7 +761,12 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
                     {filtered.map((p, idx) => (
                       <button
                         key={idx}
-                        onClick={() => playPhrase(p.arabic, soundVolume, soundMuted)}
+                        onClick={() => {
+                          setPlayingPhraseIdx(idx);
+                          playPhrase(p.arabic, soundVolume, soundMuted, null, () => {
+                            setPlayingPhraseIdx(null);
+                          });
+                        }}
                         className="w-full p-4 bg-white hover:bg-stone-50 border border-stone-200/60 rounded-xl text-left cursor-pointer flex justify-between items-center transition-colors group"
                       >
                         <div>
@@ -750,7 +775,15 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
                           </h4>
                           <p className="font-sans text-[11px] text-stone-500 mt-1">{p.desc}</p>
                         </div>
-                        <Volume2 size={16} className="text-stone-400 group-hover:text-[var(--bp-primary)] transition-colors" />
+                        {playingPhraseIdx === idx ? (
+                          <div className="phrase-wave-container">
+                            <span className="phrase-wave-bar" />
+                            <span className="phrase-wave-bar" />
+                            <span className="phrase-wave-bar" />
+                          </div>
+                        ) : (
+                          <Volume2 size={16} className="text-stone-400 group-hover:text-[var(--bp-primary)] transition-colors" />
+                        )}
                       </button>
                     ))}
                   </div>
@@ -773,34 +806,44 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
 
         {/* ════════════════════ VIEW: NATIONAL ARCHIVES ════════════════════ */}
         {subView === 'archives' && (
-          <div>
+          <div className="subview-slide-in">
             {renderHeader('National Archives', 'الأرشيف الوطني والمؤشرات')}
             
             <div className="space-y-4">
-              {/* Archive Selector */}
-              <div className="flex gap-2 overflow-x-auto pb-2 border-b border-stone-200/80">
-                {[
-                  { id: 'temperature', label: '🌡️ Temperature', dataset: '02-average-minimum-and-maximum-temperature' },
-                  { id: 'rainfall', label: '🌧️ Rainfall', dataset: '07-rainfall-in-by-month' },
-                  { id: 'postboxes', label: '📮 Postboxes', dataset: '17-public-postal-mailboxes-by-zone' },
-                  { id: 'fish', label: '🐟 Fish Landings', dataset: '06-quantity-of-fish-landing-type-quantity-metric-ton' }
-                ].map(arch => (
-                  <button
-                    key={arch.id}
-                    onClick={() => {
-                      playTypewriterClick(1.0, soundVolume, soundMuted);
-                      setActiveArchive(arch);
-                    }}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-colors ${
-                      activeArchive.id === arch.id 
-                        ? 'bg-[var(--bp-primary)] text-white' 
-                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                    }`}
-                  >
-                    {arch.label}
-                  </button>
-                ))}
-              </div>
+              {/* Archive Selector (Segmented Slider Control) */}
+              {(() => {
+                const ARCHIVES_TABS = [
+                  { id: 'temperature', label: '🌡️ Temp', dataset: '02-average-minimum-and-maximum-temperature' },
+                  { id: 'rainfall', label: '🌧️ Rain', dataset: '07-rainfall-in-by-month' },
+                  { id: 'postboxes', label: '📮 Post', dataset: '17-public-postal-mailboxes-by-zone' },
+                  { id: 'fish', label: '🐟 Fish', dataset: '06-quantity-of-fish-landing-type-quantity-metric-ton' }
+                ]
+                const activeIdx = ARCHIVES_TABS.findIndex(t => t.id === activeArchive.id)
+
+                return (
+                  <div className="segmented-control-container mb-4">
+                    <div 
+                      className="segmented-control-slider" 
+                      style={{
+                        left: `calc(3px + ${(activeIdx * 100) / ARCHIVES_TABS.length}%)`,
+                        width: `calc(${100 / ARCHIVES_TABS.length}% - 6px)`
+                      }}
+                    />
+                    {ARCHIVES_TABS.map(arch => (
+                      <button
+                        key={arch.id}
+                        onClick={() => {
+                          playTypewriterClick(1.0, soundVolume, soundMuted);
+                          setActiveArchive(arch);
+                        }}
+                        className={`segmented-control-btn ${activeArchive.id === arch.id ? 'active' : ''}`}
+                      >
+                        {arch.label}
+                      </button>
+                    ))}
+                  </div>
+                )
+              })()}
 
               {/* Live Record List */}
               {loadingRecords ? (
