@@ -135,8 +135,8 @@ export default function WayfarerMap({ locations, onClose }) {
     map.setView([26.2185, 50.5912], 11)
     mapRef.current = map
 
-    // CartoDB Voyager tiles (clean baseline for sepia parchment maps)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+    // CartoDB Voyager tiles (clean baseline with labels for better visibility)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 18,
       minZoom: 9
     }).addTo(map)

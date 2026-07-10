@@ -1630,9 +1630,6 @@
   /* Both pages always visible side-by-side */
   .jn-page--hidden {
     display: block !important;
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
   }
 
   .jn-page--visible {

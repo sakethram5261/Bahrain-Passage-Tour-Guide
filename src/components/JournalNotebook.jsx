@@ -1850,7 +1850,7 @@ export default function JournalNotebook({ onBack }) {
             role="tabpanel"
             data-lenis-prevent
           >
-            <div className="jn-page-anim-wrap">
+            <div key={activeTab} className="jn-page-anim-wrap">
               
               {/* Mobile-only Spot Context Bar */}
               {activeSpot && activeTab !== 'info' && (
