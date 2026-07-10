@@ -1572,7 +1572,7 @@ export default function JournalNotebook({ onBack }) {
             aria-labelledby="tab-info"
             data-lenis-prevent
           >
-            <div key={tabKey} className="jn-page-anim-wrap">
+            <div key={activeSpot?.id} className="jn-page-anim-wrap">
               {loading ? (
                 <JournalSkeleton />
               ) : !hasSpots ? (
@@ -1850,7 +1850,7 @@ export default function JournalNotebook({ onBack }) {
             role="tabpanel"
             data-lenis-prevent
           >
-            <div key={tabKey} className="jn-page-anim-wrap">
+            <div className="jn-page-anim-wrap">
               
               {/* Mobile-only Spot Context Bar */}
               {activeSpot && activeTab !== 'info' && (
