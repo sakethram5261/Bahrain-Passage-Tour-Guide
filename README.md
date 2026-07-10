@@ -1,6 +1,6 @@
 # Bahrain Passage — Interactive Travel Chronicle
 
-A premium, immersive digital travel guide for the Kingdom of Bahrain. Built as a multi-page interactive experience that lets travelers discover authentic local spots, curate personal itineraries, and collect keepsakes from 18 historically rich landmarks.
+A premium, immersive digital travel guide for the Kingdom of Bahrain. Built as a multi-page interactive experience that lets travelers discover authentic local spots, curate personal itineraries, and collect keepsakes from 18 historically rich landmarks. (Updated with unified layout & tab transition fixes)
 
 ## Features
 
