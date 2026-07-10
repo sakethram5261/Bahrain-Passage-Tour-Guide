@@ -749,8 +749,8 @@
 
 /* ── Leaflet Custom Parchment Map Styling ──────────────────────────────── */
 .parchment-map-container {
-  filter: sepia(0.68) hue-rotate(-5deg) contrast(1.18) saturate(0.85) brightness(0.96);
-  background: #f5f2eb;
+  filter: sepia(0.12) contrast(1.02) saturate(0.98);
+  background: #FAF8F5;
 }
 .leaflet-bar {
   border: 1px solid rgba(184, 134, 11, 0.25) !important;
