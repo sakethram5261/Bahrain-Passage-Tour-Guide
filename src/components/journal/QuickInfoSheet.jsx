@@ -3,13 +3,13 @@ import { useVibe } from '../../hooks/useVibe'
 import { useToast } from '../../context/ToastContext'
 
 const CATEGORY_FALLBACK_IMAGES = {
-  fort: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG',
-  souq: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Manama_Bab_al-Bahrain_Souq_1.jpg',
-  coast: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
-  modern: 'https://upload.wikimedia.org/wikipedia/commons/4/4c/Manama_Bahrain_World_Trade_Centre_04.jpg',
-  desert: 'https://upload.wikimedia.org/wikipedia/commons/4/42/2010-03_Tree_of_Life_Bahrain.jpg',
-  culture: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Manama_Bahrain_National_Museum_Exterior_1.jpg',
-  default: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'
+  fort: '/assets/images/fort.jpg',
+  souq: '/assets/images/souq.jpg',
+  coast: '/assets/images/coast.jpg',
+  modern: '/assets/images/modern.jpg',
+  desert: '/assets/images/desert.jpg',
+  culture: '/assets/images/culture.jpg',
+  default: '/assets/images/fort.jpg'
 }
 
 const CATEGORY_ACCENT_COLORS = {
@@ -39,7 +39,7 @@ export default function QuickInfoSheet({
     soundMuted
   } = useVibe()
 
-  const toast = useToast()
+  const { toast } = useToast()
 
   const category = activeSpot.category?.toLowerCase() || 'culture'
   const accentColor = CATEGORY_ACCENT_COLORS[category] || CATEGORY_ACCENT_COLORS.culture
@@ -91,141 +91,179 @@ export default function QuickInfoSheet({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 900,
+        zIndex: 999,
         display: 'flex',
         alignItems: 'flex-end',
         justifyContent: 'center',
       }}
       onClick={e => { if (e.target === e.currentTarget) setQuickInfoOpen(false) }}
+      className="p-0 sm:p-4"
     >
       {/* Backdrop scrim */}
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,12,11,0.65)', backdropFilter: 'blur(5px)' }} />
-
-      {/* Sheet */}
       <div 
-        className="glass-sheet-content relative z-10 w-full max-w-[560px] bg-[#FAF9F6e0] rounded-t-3xl p-6 pb-10 shadow-2xl animate-slideUpFade"
-        style={{
-          boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
-        }}
+        style={{ position: 'absolute', inset: 0, background: 'rgba(15,12,11,0.7)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} 
+        onClick={() => setQuickInfoOpen(false)}
+      />
+
+      {/* Sheet Container */}
+      <div 
+        className="relative z-10 w-full sm:max-w-[480px] bg-[#FAF9F6] sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden border border-stone-200/80 animate-slideUpFade"
         onClick={(e) => e.stopPropagation()}
+        style={{
+          boxShadow: '0 -10px 50px rgba(0,0,0,0.22)',
+          maxHeight: '90vh',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
       >
-        {/* Category top accent line */}
-        <div className="quick-info-accent" style={{ backgroundColor: accentColor }} />
+        {/* Paper Grain Background Texture */}
+        <div className="absolute inset-0 paper-grain pointer-events-none opacity-[0.035] mix-blend-multiply" />
 
-        {/* Drag Handle */}
-        <div className="w-10 h-1 rounded-full bg-stone-300/80 mx-auto mb-5" />
+        {/* Hero Banner Image */}
+        <div className="relative h-[210px] w-full overflow-hidden shrink-0">
+          <img 
+            src={activeSpot.image || CATEGORY_FALLBACK_IMAGES[category] || CATEGORY_FALLBACK_IMAGES.default}
+            alt={activeSpot.name}
+            className="w-full h-full object-cover filter brightness-[0.82] sepia-[0.10]"
+          />
+          {/* Vignette Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+          
+          {/* Accent Line */}
+          <div className="absolute top-0 left-0 right-0 h-1.5" style={{ backgroundColor: accentColor }} />
 
-        {/* Close Button */}
-        <button
-          onClick={() => setQuickInfoOpen(false)}
-          className="absolute top-5 right-5 w-8 h-8 rounded-full flex items-center justify-center bg-stone-200/50 hover:bg-stone-200/80 text-stone-600 cursor-pointer transition-colors border border-stone-300/20"
-          aria-label="Close details"
-        >
-          <X size={15} />
-        </button>
-
-        {/* Header Block */}
-        <div className="animate-fade-up mb-4 text-left" style={{ animationDelay: '0s' }}>
-          <p style={{ fontFamily: 'sans-serif', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: accentColor, fontWeight: 800, margin: '0 0 6px' }}>
-            Quick Info · Day {currentDayTab}
-          </p>
-          <h2 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 24, fontWeight: 800, color: '#2A2321', margin: 0, lineHeight: 1.25 }}>
-            {lang === 'ar' && activeSpot.arabic ? activeSpot.arabic : activeSpot.name}
-          </h2>
-          {lang === 'ar' && activeSpot.arabic && (
-            <p style={{ fontFamily: 'sans-serif', fontSize: 13, color: 'rgba(92,84,81,0.6)', margin: '4px 0 0' }}>
-              {activeSpot.name}
-            </p>
-          )}
-        </div>
-
-        {/* Info pills */}
-        <div className="flex flex-wrap gap-2 mb-5 animate-fade-up text-left" style={{ animationDelay: '0.08s' }}>
-          {activeSpot.coords && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[11px] font-sans font-bold text-stone-700">
-              <Navigation size={10} className="text-stone-500" />
-              {activeSpot.coords}
-            </span>
-          )}
-          {(activeSpot.pathCost || activeSpot.budgetCost) && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-sans font-bold text-emerald-800">
-              {activeSpot.pathCost || activeSpot.budgetCost}
-            </span>
-          )}
-          {activeSpot.category && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-sans font-bold capitalize" style={{ backgroundColor: `${accentColor}12`, border: `1px solid ${accentColor}25`, color: accentColor }}>
-              {activeSpot.category}
-            </span>
-          )}
-        </div>
-
-        {/* Description Text */}
-        {activeSpot.simpleTerms && (
-          <div className="animate-fade-up text-left mb-5" style={{ animationDelay: '0.16s' }}>
-            <p style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 14, fontStyle: 'italic', color: '#5C5451', lineHeight: 1.7, margin: 0 }}>
-              {activeSpot.simpleTerms}
-            </p>
-          </div>
-        )}
-
-        {/* Premium Insider Tip Section */}
-        {activeSpot.insider && (
-          <div 
-            className="p-4 rounded-xl border-l-[4px] bg-amber-500/5 mb-6 text-left flex gap-3 animate-fade-up"
-            style={{ 
-              borderColor: '#D4AF37',
-              animationDelay: '0.24s'
-            }}
+          {/* Close FAB */}
+          <button
+            onClick={() => setQuickInfoOpen(false)}
+            className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center bg-black/40 hover:bg-black/65 text-white transition-colors cursor-pointer border border-white/10 z-20"
+            aria-label="Close details"
           >
-            <div className="mt-0.5 text-amber-600">
-              <Sparkles size={16} />
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-amber-800 block mb-1">
-                Insider Secret
-              </span>
-              <p style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 13, fontStyle: 'italic', color: '#3A3230', lineHeight: 1.6, margin: 0 }}>
-                {activeSpot.insider}
+            <X size={14} />
+          </button>
+
+          {/* Overlaid Title & Eyebrow */}
+          <div className="absolute bottom-4 left-5 right-5 text-left text-white">
+            <span 
+              className="inline-block px-2.5 py-0.5 rounded text-[8px] uppercase tracking-[0.2em] font-extrabold mb-1.5"
+              style={{ backgroundColor: `${accentColor}d0`, color: '#fff' }}
+            >
+              {category}
+            </span>
+            <h2 className="font-serif text-2xl font-black leading-tight tracking-wide drop-shadow-sm">
+              {lang === 'ar' && activeSpot.arabic ? activeSpot.arabic : activeSpot.name}
+            </h2>
+            {lang === 'ar' && activeSpot.arabic && (
+              <p className="text-[10px] text-stone-300 font-sans tracking-wide mt-0.5">
+                {activeSpot.name}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Scrollable Body Content */}
+        <div className="p-6 overflow-y-auto space-y-5 text-left flex-1" style={{ scrollbarWidth: 'thin' }}>
+          
+          {/* Metric Grid Cards */}
+          <div className="grid grid-cols-2 gap-3">
+            {activeSpot.coords && (
+              <div className="p-3 rounded-xl bg-stone-100/60 border border-stone-200/50 flex items-center gap-2.5">
+                <Navigation size={12} className="text-stone-500 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[8px] uppercase tracking-wider text-stone-400 font-bold block">Coordinates</span>
+                  <span className="text-[10px] font-mono font-bold text-stone-700 block truncate">{activeSpot.coords}</span>
+                </div>
+              </div>
+            )}
+
+            {(activeSpot.pathCost || activeSpot.budgetCost) && (
+              <div className="p-3 rounded-xl bg-emerald-50/40 border border-emerald-100/65 flex items-center gap-2.5">
+                <Plus size={12} className="text-emerald-600 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[8px] uppercase tracking-wider text-emerald-600/80 font-bold block">Admission Fee</span>
+                  <span className="text-[10px] font-sans font-bold text-emerald-800 block truncate">
+                    {activeSpot.pathCost || activeSpot.budgetCost}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Simple Glance Description */}
+          {activeSpot.simpleTerms && (
+            <div className="space-y-1">
+              <span className="text-[8px] uppercase tracking-widest text-[#C4A265] font-bold block">Glance Overview</span>
+              <p className="font-serif text-sm leading-relaxed text-stone-850 italic border-l-2 pl-3" style={{ borderColor: accentColor }}>
+                {activeSpot.simpleTerms}
               </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Action Buttons Block */}
-        <div className="flex gap-3 animate-fade-up" style={{ animationDelay: '0.32s' }}>
+          {/* Vintage Insider Secret Note */}
+          {activeSpot.insider && (
+            <div 
+              className="p-4 rounded-xl border border-dashed border-amber-600/30 bg-[#FFFBEB] relative overflow-hidden"
+              style={{
+                boxShadow: '0 4px 15px rgba(217, 119, 6, 0.02)'
+              }}
+            >
+              <div className="absolute -bottom-3 -right-3 text-amber-700/10 pointer-events-none select-none">
+                <Sparkles size={64} />
+              </div>
+
+              <div className="flex gap-3 relative z-10">
+                <div className="mt-0.5 text-amber-700 shrink-0">
+                  <Sparkles size={14} />
+                </div>
+                <div>
+                  <span className="text-[9px] uppercase font-bold tracking-wider text-amber-900 block mb-1">
+                    Heritage Insider Secret
+                  </span>
+                  <p className="font-serif text-xs italic text-amber-950 leading-relaxed">
+                    {activeSpot.insider}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* Action Button Footer */}
+        <div className="p-4 border-t border-stone-200 bg-stone-50/50 flex gap-2.5 shrink-0 rounded-b-3xl">
           {activeSpot.coords && (
             <a
               href={`https://maps.google.com/?q=${encodeURIComponent(activeSpot.name + ' Bahrain')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-[var(--bp-primary)] to-[var(--bp-primary-dark)] text-white text-xs font-bold uppercase tracking-wider text-center no-underline hover:opacity-95 active:scale-98 transition-all shadow-md shadow-red-900/10"
+              className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-[var(--bp-primary)] to-[var(--bp-primary-dark)] text-white text-[10px] font-bold uppercase tracking-wider text-center no-underline hover:opacity-95 active:scale-98 transition-all shadow-md shadow-red-900/10"
             >
-              <Navigation size={13} />
+              <Navigation size={12} />
               Directions
             </a>
           )}
           
           <button
             onClick={() => { setMapOpen(true); setQuickInfoOpen(false) }}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 text-stone-800 text-xs font-bold uppercase tracking-wider text-center cursor-pointer active:scale-98 transition-all"
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 text-stone-800 text-[10px] font-bold uppercase tracking-wider text-center cursor-pointer active:scale-98 transition-all border-solid"
           >
-            <Map size={13} className="text-stone-500" />
+            <Map size={12} className="text-stone-500" />
             Open Map
           </button>
 
           <button
             onClick={handleAddSpotToRoute}
             disabled={isOnRoute}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-center transition-all ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider text-center transition-all ${
               isOnRoute 
                 ? 'bg-stone-100 border border-stone-200 text-stone-400 cursor-not-allowed' 
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer active:scale-98 shadow-md shadow-emerald-900/10'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer active:scale-98 shadow-md shadow-emerald-900/10 border-none'
             }`}
           >
-            {isOnRoute ? <Check size={13} /> : <Plus size={13} />}
+            {isOnRoute ? <Check size={12} /> : <Plus size={12} />}
             {isOnRoute ? 'On Route' : 'Add to Route'}
           </button>
         </div>
+
       </div>
     </div>
   )

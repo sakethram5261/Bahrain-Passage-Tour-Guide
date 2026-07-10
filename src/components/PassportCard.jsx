@@ -11,13 +11,16 @@ const MOOD_LABELS = { empires: 'Empires', sea: 'Sea', spice: 'Spice', lights: 'L
 
 import { RANKS, getRank, getNextRank } from '../data/ranks'
 
+import { playDiscoverySuccess } from '../services/audioUtils'
+
 export default function PassportCard({ onClose }) {
   const {
     xp, selectedMoods, duration,
     completedDays, collectedKeepsakes, capturedPhotos,
     journalReflections, goldFils, passportStamps,
     signature, setSignature,
-    setGoldFils, awardXP
+    setGoldFils, awardXP,
+    soundVolume, soundMuted
   } = useVibe()
 
   const { toast } = useToast()
@@ -76,11 +79,7 @@ export default function PassportCard({ onClose }) {
     challenge.setClaimed(true)
     
     // Play sweet organic chime tone
-    try {
-      const chimeSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav')
-      chimeSfx.volume = 0.2
-      chimeSfx.play().catch(() => {})
-    } catch { /* ignore */ }
+    playDiscoverySuccess(soundVolume, soundMuted)
 
     // Confetti burst
     try {

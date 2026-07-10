@@ -7,8 +7,10 @@ import {
   ArrowLeft, 
   Lock, 
   Volume2, 
+  VolumeX,
   Zap, 
-  Loader 
+  Loader,
+  Settings
 } from 'lucide-react'
 import { useVibe } from '../../hooks/useVibe'
 import { useLang } from '../../context/LangContext'
@@ -16,92 +18,10 @@ import { useToast } from '../../context/ToastContext'
 import { spotsCatalog } from '../../hooks/useItinerary'
 import { callLocalAI, buildSpotSearchPrompt } from '../../services/aiService'
 import AIHotelPanel from '../AIHotelPanel'
-import { playTypewriterClick } from '../../services/audioUtils'
+import { playTypewriterClick, playPhrase } from '../../services/audioUtils'
 import { fetchDatasetRecords } from '../../services/openDataService'
-
-
-// Traditional Oud pluck synthesizer
-function playOudPluck(soundVolume = 0.5, soundMuted = false) {
-  if (soundMuted || soundVolume === 0) return
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext
-    if (!AudioContext) return
-    const ctx = new AudioContext()
-    
-    const osc1 = ctx.createOscillator()
-    const osc2 = ctx.createOscillator()
-    const gainNode = ctx.createGain()
-    const filter = ctx.createBiquadFilter()
-    
-    osc1.type = 'sawtooth'
-    osc2.type = 'triangle'
-    
-    const baseFreq = 146.83 // D3 note, warm Oud string course
-    osc1.frequency.value = baseFreq
-    osc2.frequency.value = baseFreq + 1.5
-    
-    filter.type = 'lowpass'
-    filter.frequency.value = 800
-    filter.Q.value = 2.5
-    
-    const now = ctx.currentTime
-    gainNode.gain.setValueAtTime(0, now)
-    gainNode.gain.linearRampToValueAtTime(soundVolume * 0.38, now + 0.008)
-    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.1)
-    
-    osc1.connect(filter)
-    osc2.connect(filter)
-    filter.connect(gainNode)
-    gainNode.connect(ctx.destination)
-    
-    osc1.start(now)
-    osc2.start(now)
-    osc1.stop(now + 1.2)
-    osc2.stop(now + 1.2)
-  } catch (e) {
-    console.error('Failed to play synthesized Oud pluck:', e)
-  }
-}
-
-function playPhrase(phraseText, soundVolume = 0.5, soundMuted = false, onStart, onEnd) {
-  playOudPluck(soundVolume, soundMuted)
-  setTimeout(() => {
-    try {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel()
-        const utterance = new SpeechSynthesisUtterance(phraseText)
-        utterance.lang = 'ar-BH'
-        
-        const voices = window.speechSynthesis.getVoices()
-        const arabicVoice = voices.find(v => v.lang.startsWith('ar'))
-        if (arabicVoice) {
-          utterance.voice = arabicVoice
-        }
-        utterance.volume = soundVolume
-        if (onStart) utterance.onstart = onStart
-        if (onEnd) {
-          utterance.onend = onEnd
-          utterance.onerror = onEnd
-        }
-        window.speechSynthesis.speak(utterance)
-      } else {
-        if (onEnd) onEnd()
-      }
-    } catch (e) {
-      console.error('Phrase TTS speech synthesis error:', e)
-      if (onEnd) onEnd()
-    }
-  }, 120)
-}
-
-const PHRASES = [
-  { label: 'Karak',  arabic: 'كَرَّكْ',  desc: "Bahrain's signature robust spiced condensed-milk tea." },
-  { label: 'Halwa',  arabic: 'حَلْوَى', desc: 'Saffron sweet jelly cooked in copper vats with almonds.' },
-  { label: 'Souq',   arabic: 'سُوقْ',   desc: 'Ancient maze-like merchant alleyways of Old Manama.' },
-  { label: 'Dallah', arabic: 'دَلَّهْ', desc: 'Long-beaked brass coffee pot used to brew Arabic coffee.' },
-  { label: 'Marhaba',arabic: 'مَرْحَبَاً',desc: 'Welcome / Hello — the warmest Bahraini greeting.' },
-  { label: 'Shukran',arabic: 'شُكْرَاً', desc: 'Thank you — essential courtesy in any market.' },
-]
+import { PHRASES } from '../../data/phrases'
+import LangToggle from '../LangToggle'
 
 export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsake }) {
   const { 
@@ -115,12 +35,13 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
     awardXP, 
     soundVolume, 
     soundMuted,
+    setSoundMuted,
     currentDayTab,
     itinerarySpots,
     setItinerarySpots
   } = useVibe()
 
-  const toast = useToast()
+  const { toast } = useToast()
   const [subView, setSubView] = useState(null) // null | 'hotels' | 'search' | 'artifacts' | 'phrases'
 
   // Search states
@@ -312,23 +233,19 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
             period: matchedSpot.period
           }
         } else {
-          // Dynamic Local Spot Generator
           parsed = {
-            success: true,
-            name: searchQuery.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-            arabic: 'معلم محلي',
-            desc: 'A notable landmark in Bahrain, appreciated for its cultural representation and local interest.',
-            coords: '26.2285° N, 50.5860° E',
-            hours: 'Open daily 9:00 AM - 7:00 PM',
-            cost: 'Free Entry',
-            insider: 'Great site to visit around sunset for beautiful photography.',
-            category: 'culture',
-            period: 'Modern Era'
+            success: false,
+            errorMsg: "We couldn't find this spot in our guidebook!"
           }
         }
       }
 
-      setSearchResults(parsed)
+      if (parsed && parsed.success) {
+        setSearchResults(parsed)
+      } else {
+        setSearchError(parsed.errorMsg || "We couldn't find this spot in our guidebook!")
+        setSearchResults(null)
+      }
     } catch (e) {
       setSearchError("Failed to search. Please check your connection.")
     } finally {
@@ -340,13 +257,13 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
     const spotId = spot.id || `spot-${Math.random().toString(36).substr(2, 9)}`
     
     const CATEGORY_FALLBACK_IMAGES = {
-      fort: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG',
-      souq: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Manama_Bab_al-Bahrain_Souq_1.jpg',
-      coast: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
-      modern: 'https://upload.wikimedia.org/wikipedia/commons/4/4c/Manama_Bahrain_World_Trade_Centre_04.jpg',
-      desert: 'https://upload.wikimedia.org/wikipedia/commons/4/42/2010-03_Tree_of_Life_Bahrain.jpg',
-      culture: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Manama_Bahrain_National_Museum_Exterior_1.jpg',
-      default: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'
+      fort: '/assets/images/fort.jpg',
+      souq: '/assets/images/souq.jpg',
+      coast: '/assets/images/coast.jpg',
+      modern: '/assets/images/modern.jpg',
+      desert: '/assets/images/desert.jpg',
+      culture: '/assets/images/culture.jpg',
+      default: '/assets/images/fort.jpg'
     }
 
     const newSpot = {
@@ -436,6 +353,19 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
               <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-[#C4A265]">المزيد من الخدمات</span>
               <h2 className="font-serif text-2xl font-bold text-stone-900 mt-0.5">Explore More</h2>
               <p className="text-xs text-stone-500 mt-1">Access AI stays, spot search, regional keepsakes and local phrasebook</p>
+            </div>
+
+            <div className="jn-mobile-settings-row gap-2 justify-center items-center bg-stone-100 p-2 rounded-xl border border-stone-200">
+              <button 
+                onClick={() => { playTypewriterClick(1.0, soundVolume, soundMuted); setSoundMuted(!soundMuted) }}
+                className="flex-1 py-1.5 px-3 bg-white hover:bg-stone-50 text-stone-700 font-sans text-[11px] uppercase tracking-wider font-extrabold rounded-lg transition-colors border border-stone-200 flex items-center justify-center gap-1.5 cursor-pointer border-none"
+              >
+                {soundMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                {soundMuted ? 'Unmute' : 'Mute'}
+              </button>
+              <div className="flex-1 flex justify-center py-1 bg-[#C41E3A] rounded-lg border border-[#C41E3A]/10">
+                <LangToggle />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -685,9 +615,12 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
                 <div className="space-y-2">
                   {[
                     { id: 'riddle-hint', name: 'Riddle Scroll Clue', emoji: '📜', desc: 'Exchanges for a cryptic hint on localized challenges.' },
-                    { id: 'saffron-halwa', name: 'Saffron Halwa Platters', emoji: '🍬', desc: 'Edible traditional sweet. Consume to earn XP.' }
+                    { id: 'saffron-halwa', name: 'Saffron Halwa Platters', emoji: '🍯', desc: 'Edible traditional sweet. Consume to earn XP.' },
+                    { id: 'pearl-hook', name: 'Generational Oyster Hook', emoji: '🪝', desc: 'Historic diving tool for harvesting Basra Pearls.' },
+                    { id: 'falcon-glove', name: 'Falconer Leather Glove', emoji: '🧤', desc: 'Premium leather glove for calling desert falcons.' }
                   ].map(item => {
                     const count = purchasedItems[item.id] || 0
+                    if (count === 0) return null // Hide from inventory if not owned
                     return (
                       <div key={item.id} className="flex justify-between items-center p-3 bg-white border border-stone-200/60 rounded-xl shadow-3xs">
                         <div className="flex gap-3">
@@ -883,6 +816,8 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
             </div>
           </div>
         )}
+
+
 
       </div>
     </div>

@@ -33,8 +33,8 @@ function MainContent() {
     )
   }
 
-  // Only show floating header during onboarding hero step (step === 1 only), not during setup or loading
-  const showFloatingHeader = false
+  // Show floating header containing language toggle and passport trigger
+  const showFloatingHeader = true
 
   return (
     <div className="relative min-h-screen">

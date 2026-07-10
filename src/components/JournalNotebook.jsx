@@ -158,15 +158,6 @@ const TABS = [
 
 
 
-const PHRASES = [
-  { label: 'Karak',  arabic: 'كَرَّكْ',  desc: "Bahrain's signature robust spiced condensed-milk tea.", pitchOffset: 0 },
-  { label: 'Halwa',  arabic: 'حَلْوَى', desc: 'Saffron sweet jelly cooked in copper vats with almonds.', pitchOffset: 35 },
-  { label: 'Souq',   arabic: 'سُوقْ',   desc: 'Ancient maze-like merchant alleyways of Old Manama.', pitchOffset: -15 },
-  { label: 'Dallah', arabic: 'دَلَّهْ', desc: 'Long-beaked brass coffee pot used to brew Arabic coffee.', pitchOffset: 60 },
-  { label: 'Marhaba',arabic: 'مَرْحَبَاً',desc: 'Welcome / Hello — the warmest Bahraini greeting.',  pitchOffset: -20 },
-  { label: 'Shukran',arabic: 'شُكْرَاً', desc: 'Thank you — essential courtesy in any market.',       pitchOffset: 10 },
-]
-
 /* ─── Tiny physics spring for XP counter ────────────────────────────────────*/
 function useSpring(target, stiffness = 180, damping = 22) {
   const [value, setValue] = useState(target)
@@ -195,77 +186,6 @@ function useSpring(target, stiffness = 180, damping = 22) {
   }, [animate])
 
   return Math.round(value)
-}
-
-/* ─── Phrase pronunciation (Web Audio API) ───────────────────────────────── */
-function playOudPluck(soundVolume = 0.5, soundMuted = false) {
-  if (soundMuted || soundVolume === 0) return
-  
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext
-    if (!AudioContext) return
-    const ctx = new AudioContext()
-    
-    // Programmatically synthesize a warm, double-strung traditional Oud pluck
-    const osc1 = ctx.createOscillator()
-    const osc2 = ctx.createOscillator()
-    const gainNode = ctx.createGain()
-    const filter = ctx.createBiquadFilter()
-    
-    osc1.type = 'sawtooth'
-    osc2.type = 'triangle'
-    
-    const baseFreq = 146.83 // D3 note, warm Oud string course
-    osc1.frequency.value = baseFreq
-    osc2.frequency.value = baseFreq + 1.5 // detune for organic double-string chorus
-    
-    filter.type = 'lowpass'
-    filter.frequency.value = 800
-    filter.Q.value = 2.5
-    
-    const now = ctx.currentTime
-    gainNode.gain.setValueAtTime(0, now)
-    gainNode.gain.linearRampToValueAtTime(soundVolume * 0.38, now + 0.008) // quick attack strike
-    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.1) // natural decay
-    
-    osc1.connect(filter)
-    osc2.connect(filter)
-    filter.connect(gainNode)
-    gainNode.connect(ctx.destination)
-    
-    osc1.start(now)
-    osc2.start(now)
-    osc1.stop(now + 1.2)
-    osc2.stop(now + 1.2)
-  } catch (e) {
-    console.error('Failed to play synthesized Oud pluck:', e)
-  }
-}
-
-function playPhrase(phraseText, soundVolume = 0.5, soundMuted = false) {
-  // 1. Play programmatically synthesized traditional Oud course string pluck
-  playOudPluck(soundVolume, soundMuted)
-
-  // 2. Perform high-fidelity browser speech synthesis in Arabic after a short delay for the pluck
-  setTimeout(() => {
-    try {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel() // Stop any current utterance
-        const utterance = new SpeechSynthesisUtterance(phraseText)
-        utterance.lang = 'ar-BH' // Bahraini Arabic locale
-        
-        const voices = window.speechSynthesis.getVoices()
-        const arabicVoice = voices.find(v => v.lang.startsWith('ar'))
-        if (arabicVoice) {
-          utterance.voice = arabicVoice
-        }
-        utterance.rate = 0.82 // Slightly slower rate for clear tourist learning
-        window.speechSynthesis.speak(utterance)
-      }
-    } catch (e) {
-      console.error('SpeechSynthesis error:', e)
-    }
-  }, 240)
 }
 
 export default function JournalNotebook({ onBack }) {
@@ -316,7 +236,7 @@ export default function JournalNotebook({ onBack }) {
 
 
   /* ── Language + Toast context ──────────────────────────────────────────── */
-  const { lang, isRTL } = useLang()
+  const { lang, isRTL, t } = useLang()
   const { toast } = useToast()
 
   /* ── Dynamic itinerary loading ──────────────────────────────────────────── */
@@ -674,6 +594,11 @@ export default function JournalNotebook({ onBack }) {
       toast.error(`Not enough Fils! You have ${goldFils.toLocaleString()} Fils.`)
       return
     }
+    const isPermanent = item.id === 'pearl-hook' || item.id === 'falcon-glove'
+    if (isPermanent && (purchasedItems[item.id] || 0) > 0) {
+      toast.error(`You already own the ${item.name}! You only need one.`)
+      return
+    }
     if (spendFils(item.cost)) {
       awardXP(item.xpReward || 20, `Bought ${item.name}`)
       if (item.id === 'keepsake-bag') {
@@ -920,13 +845,13 @@ export default function JournalNotebook({ onBack }) {
     const spotId = spot.id || `spot-${Math.random().toString(36).substr(2, 9)}`
     
     const CATEGORY_FALLBACK_IMAGES = {
-      fort: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG',
-      souq: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Manama_Bab_al-Bahrain_Souq_1.jpg',
-      coast: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
-      modern: 'https://upload.wikimedia.org/wikipedia/commons/4/4c/Manama_Bahrain_World_Trade_Centre_04.jpg',
-      desert: 'https://upload.wikimedia.org/wikipedia/commons/4/42/2010-03_Tree_of_Life_Bahrain.jpg',
-      culture: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Manama_Bahrain_National_Museum_Exterior_1.jpg',
-      default: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'
+      fort: '/assets/images/fort.jpg',
+      souq: '/assets/images/souq.jpg',
+      coast: '/assets/images/coast.jpg',
+      modern: '/assets/images/modern.jpg',
+      desert: '/assets/images/desert.jpg',
+      culture: '/assets/images/culture.jpg',
+      default: '/assets/images/fort.jpg'
     }
 
     const newSpot = {
@@ -1109,25 +1034,25 @@ export default function JournalNotebook({ onBack }) {
 
         {/* Coastal / Island Pearl Searching */}
         {activeSpot.category === 'coast' && (
-          <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/40 relative overflow-hidden select-none">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-sans text-[11px] tracking-widest uppercase text-blue-700 font-bold flex items-center gap-1">
+          <div className="jn-interaction-card jn-interaction-card--ocean">
+            <div className="jn-interaction-card-header">
+              <span className="jn-interaction-card-tag jn-interaction-card-tag--ocean">
                 🌊 Pearl Diving Reef
               </span>
               {(pearlsCollected || []).includes(activeSpot.id) && (
-                <span className="text-[11px] bg-blue-100 text-blue-800 font-extrabold px-2 py-0.5 rounded-full">
+                <span className="jn-interaction-card-status jn-interaction-card-status--success">
                   ✓ Found Pearl (+30 XP)
                 </span>
               )}
             </div>
             {(purchasedItems['pearl-hook'] || 0) > 0 ? (
               (pearlsCollected || []).includes(activeSpot.id) ? (
-                <p className="font-serif text-[12px] text-blue-800 leading-relaxed font-medium italic">
+                <p className="jn-interaction-card-body italic">
                   You already cast your Generational Oyster Hook here and retrieved a rare Basra Pearl!
                 </p>
               ) : (
                 <div className="space-y-2">
-                  <p className="font-serif text-[12px] text-blue-900 leading-relaxed">
+                  <p className="jn-interaction-card-body">
                     The warm Sitra reefs are home to wild pearl oysters. Cast your hook to search for hidden gems.
                   </p>
                   <button
@@ -1139,16 +1064,16 @@ export default function JournalNotebook({ onBack }) {
                       awardXP(30, 'Harvested Basra Pearl')
                       setGoldFils(prev => prev + 100)
                       triggerCoinFlyout(startX, startY)
-                      toast.success("Succesfully dived! Found a natural Basra Pearl! +100 Fils, +30 XP")
+                      toast.success("Successfully dived! Found a natural Basra Pearl! +100 Fils, +30 XP")
                     }}
-                    className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-sans text-[11px] uppercase tracking-wider font-extrabold rounded-lg shadow-sm cursor-pointer transition-all active:scale-98"
+                    className="jn-interaction-card-action-btn jn-interaction-card-action-btn--ocean"
                   >
                     Search for Pearls
                   </button>
                 </div>
               )
             ) : (
-              <div className="p-2.5 rounded-lg bg-blue-100/50 border border-blue-200 text-blue-800 font-sans text-[11px] font-bold flex items-center gap-2">
+              <div className="jn-interaction-card-lock">
                 🔒 Requires Generational Oyster Hook from Souq Shop.
               </div>
             )}
@@ -1157,25 +1082,25 @@ export default function JournalNotebook({ onBack }) {
 
         {/* Falconry Majlis Fort/Desert */}
         {(activeSpot.category === 'fort' || activeSpot.category === 'desert') && (
-          <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/40 relative overflow-hidden select-none">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-sans text-[11px] tracking-widest uppercase text-amber-700 font-bold flex items-center gap-1">
+          <div className="jn-interaction-card jn-interaction-card--desert">
+            <div className="jn-interaction-card-header">
+              <span className="jn-interaction-card-tag jn-interaction-card-tag--desert">
                 🦅 Falconry Training
               </span>
               {(falconsCalled || []).includes(activeSpot.id) && (
-                <span className="text-[11px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full">
+                <span className="jn-interaction-card-status jn-interaction-card-status--success">
                   ✓ Falcon Called (+50 XP)
                 </span>
               )}
             </div>
             {(purchasedItems['falcon-glove'] || 0) > 0 ? (
               (falconsCalled || []).includes(activeSpot.id) ? (
-                <p className="font-serif text-[12px] text-amber-800 leading-relaxed font-medium italic">
+                <p className="jn-interaction-card-body italic">
                   A beautiful wild desert falcon has landed on your Falconer Glove here!
                 </p>
               ) : (
                 <div className="space-y-2">
-                  <p className="font-serif text-[12px] text-amber-900 leading-relaxed">
+                  <p className="jn-interaction-card-body">
                     This location has open winds and thermal drafts. Equip your glove and whistle to call a wild falcon.
                   </p>
                   <button
@@ -1189,14 +1114,14 @@ export default function JournalNotebook({ onBack }) {
                       triggerCoinFlyout(startX, startY)
                       toast.success("A soaring falcon has landed on your glove! +100 Fils, +50 XP")
                     }}
-                    className="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-sans text-[11px] uppercase tracking-wider font-extrabold rounded-lg shadow-sm cursor-pointer transition-all active:scale-98"
+                    className="jn-interaction-card-action-btn jn-interaction-card-action-btn--desert"
                   >
                     Call Falcon
                   </button>
                 </div>
               )
             ) : (
-              <div className="p-2.5 rounded-lg bg-amber-100/50 border border-amber-200 text-amber-800 font-sans text-[11px] font-bold flex items-center gap-2">
+              <div className="jn-interaction-card-lock">
                 🔒 Requires Falconer Glove from Souq Shop.
               </div>
             )}
@@ -1293,19 +1218,7 @@ export default function JournalNotebook({ onBack }) {
                 playTypewriterClick(1.2)
                 toast.success("Appended Food & Aromas template!")
               }}
-              style={{
-                fontSize: '10px',
-                fontWeight: 'bold',
-                padding: '4px 8px',
-                borderRadius: '9999px',
-                border: '1px solid var(--bp-border-warm)',
-                background: 'var(--bp-paper)',
-                color: 'var(--bp-ink)',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--bp-primary)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bp-border-warm)'; e.currentTarget.style.background = 'var(--bp-paper)' }}
+              className="jn-prompt-chip"
             >
               Food & Aromas 🍯
             </button>
@@ -1319,19 +1232,7 @@ export default function JournalNotebook({ onBack }) {
                 playTypewriterClick(1.2)
                 toast.success("Appended Architecture template!")
               }}
-              style={{
-                fontSize: '10px',
-                fontWeight: 'bold',
-                padding: '4px 8px',
-                borderRadius: '9999px',
-                border: '1px solid var(--bp-border-warm)',
-                background: 'var(--bp-paper)',
-                color: 'var(--bp-ink)',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--bp-primary)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bp-border-warm)'; e.currentTarget.style.background = 'var(--bp-paper)' }}
+              className="jn-prompt-chip"
             >
               Architecture 🏺
             </button>
@@ -1345,19 +1246,7 @@ export default function JournalNotebook({ onBack }) {
                 playTypewriterClick(1.2)
                 toast.success("Appended Local Vibe template!")
               }}
-              style={{
-                fontSize: '10px',
-                fontWeight: 'bold',
-                padding: '4px 8px',
-                borderRadius: '9999px',
-                border: '1px solid var(--bp-border-warm)',
-                background: 'var(--bp-paper)',
-                color: 'var(--bp-ink)',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--bp-primary)'; e.currentTarget.style.background = 'rgba(186,12,47,0.05)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bp-border-warm)'; e.currentTarget.style.background = 'var(--bp-paper)' }}
+              className="jn-prompt-chip"
             >
               Local Vibe 📝
             </button>
@@ -1411,30 +1300,30 @@ export default function JournalNotebook({ onBack }) {
 
         {/* Riddle Quest */}
         {RIDDLES[activeSpot.id] && (
-          <div className="p-4 rounded-xl border border-red-500/10 shadow-sm relative overflow-hidden bg-white/70">
-            <div className="flex justify-between items-center mb-2 select-none">
-              <span className="font-sans text-[11px] tracking-widest uppercase text-bahrain-red font-bold flex items-center gap-1">
+          <div className="jn-interaction-card jn-interaction-card--riddle">
+            <div className="jn-interaction-card-header select-none">
+              <span className="jn-interaction-card-tag jn-interaction-card-tag--riddle">
                 Riddle
               </span>
               {solvedRiddles[activeSpot.id] ? (
-                <span className="text-[11px] bg-green-100 text-green-800 font-extrabold px-2 py-0.5 rounded-full">
+                <span className="jn-interaction-card-status jn-interaction-card-status--success">
                   ✓ Solved (+35 XP)
                 </span>
               ) : (
-                <span className="text-[11px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full">
+                <span className="jn-interaction-card-status jn-interaction-card-status--warning">
                   Unsolved (+35 XP)
                 </span>
               )}
             </div>
 
-            <p className="font-serif text-[14px] text-bronze-charcoal leading-relaxed font-bold mb-3">
+            <p className="font-serif text-[14px] text-stone-900 leading-relaxed font-bold mb-3">
               "{RIDDLES[activeSpot.id].question}"
             </p>
 
             {solvedRiddles[activeSpot.id] ? (
-              <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/10 space-y-1">
-                <p className="font-sans text-[11px] uppercase tracking-wider text-green-700 font-extrabold select-none">Insider Discovery Reveal:</p>
-                <p className="font-serif text-[13px] text-bronze-charcoal leading-relaxed italic font-semibold">
+              <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10 space-y-1">
+                <p className="font-sans text-[11px] uppercase tracking-wider text-emerald-700 font-extrabold select-none">Insider Discovery Reveal:</p>
+                <p className="font-serif text-[13px] text-stone-800 leading-relaxed italic font-semibold">
                   {RIDDLES[activeSpot.id].insider}
                 </p>
               </div>
@@ -1444,7 +1333,7 @@ export default function JournalNotebook({ onBack }) {
                   <button
                     key={oIdx}
                     onClick={() => handleAnswerRiddle(oIdx)}
-                    className="w-full p-2.5 text-left rounded-lg border border-red-500/10 hover:border-bahrain-red bg-white hover:bg-red-500/5 text-[13px] font-sans font-bold text-bronze-charcoal transition-all cursor-pointer active:scale-99"
+                    className="w-full p-2.5 text-left rounded-lg border border-red-500/15 hover:border-bahrain-red bg-white hover:bg-red-500/5 text-[13px] font-sans font-bold text-stone-800 transition-all cursor-pointer active:scale-99"
                   >
                     {opt}
                   </button>
@@ -1531,7 +1420,7 @@ export default function JournalNotebook({ onBack }) {
             {/* Audio Toggle */}
             <button
               onClick={() => setSoundMuted(!soundMuted)}
-              className="jn-utility-btn"
+              className="jn-utility-btn jn-header-btn-desktop"
               title={soundMuted ? "Unmute Sounds" : "Mute Sounds"}
             >
               {soundMuted ? (
@@ -1541,7 +1430,9 @@ export default function JournalNotebook({ onBack }) {
               )}
             </button>
 
-            <LangToggle />
+            <div className="jn-header-btn-desktop">
+              <LangToggle />
+            </div>
 
             {/* XP progress pill */}
             <div className="jn-xp-pill" aria-label={`${displayXP} XP earned`}>
@@ -1587,7 +1478,7 @@ export default function JournalNotebook({ onBack }) {
                 className="jn-utility-btn jn-utility-btn--edit"
                 title="Adjust vibe settings"
               >
-                {isRTL ? 'Edit ➜' : '← Edit'}
+                {isRTL ? `${t('edit', 'Edit')} ➜` : `← ${t('edit', 'Edit')}`}
               </button>
             )}
           </div>
@@ -1611,7 +1502,7 @@ export default function JournalNotebook({ onBack }) {
           )}
           {onBack && (
             <button className="jn-mob-nav-btn jn-mob-nav-btn--back" onClick={onBack}>
-              {isRTL ? 'Edit Trip →' : '← Edit Trip'}
+              {isRTL ? `${t('edit_trip', 'Edit Trip')} →` : `← ${t('edit_trip', 'Edit Trip')}`}
             </button>
           )}
         </div>
@@ -1626,7 +1517,7 @@ export default function JournalNotebook({ onBack }) {
         <div className="jn-book-tabs-container">
           <nav className="jn-book-tabs" role="tablist" aria-label="Journal sections">
             <div className="jn-tab-indicator" ref={indicatorRef} />
-            {TABS.map(t => {
+            {TABS.map(tab => {
               const TabIcon = ({ id }) => {
                 const size = 14;
                 switch (id) {
@@ -1639,19 +1530,24 @@ export default function JournalNotebook({ onBack }) {
               };
               return (
                 <button
-                  key={t.id}
-                  id={`tab-${t.id}`}
+                  key={tab.id}
+                  id={`tab-${tab.id}`}
                   role="tab"
-                  aria-selected={activeTab === t.id}
-                  aria-controls={`panel-${t.id}`}
-                  className={`jn-book-tab-pill ${activeTab === t.id ? 'active' : ''}`}
-                  onClick={(e) => switchTab(t.id, e)}
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={`panel-${tab.id}`}
+                  className={`jn-book-tab-pill ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={(e) => switchTab(tab.id, e)}
                 >
                   <span className="jn-tab-emoji" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <TabIcon id={t.id} />
+                    <TabIcon id={tab.id} />
                   </span>
-                  <span className="jn-tab-label">{t.label}</span>
-                  {t.id === 'more' && collectedKeepsakes.length > 0 && (
+                  <span className="jn-tab-label">
+                    {tab.id === 'info' ? t('ledger', tab.label) :
+                     tab.id === 'itinerary' ? t('backpack', tab.label) :
+                     tab.id === 'map' ? t('map', tab.label) :
+                     tab.id === 'more' ? t('more', tab.label) : tab.label}
+                  </span>
+                  {tab.id === 'more' && collectedKeepsakes.length > 0 && (
                     <span className="jn-tab-badge">
                       {collectedKeepsakes.length}
                     </span>
@@ -1751,8 +1647,8 @@ export default function JournalNotebook({ onBack }) {
                         <h4 style={{ fontFamily: 'var(--bp-font-display)', fontSize: '16px', color: 'var(--bp-ink)', fontWeight: 'bold' }}>
                           Insider Tip:
                         </h4>
-                        <div style={{ background: 'rgba(193,18,47,0.04)', border: '1px dashed var(--bp-primary-mid)', padding: '15px', paddingRight: '75px', borderRadius: '12px', position: 'relative' }}>
-                          <p style={{ fontFamily: 'var(--bp-font-display)', fontSize: '12px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--bp-ink-muted)' }}>
+                        <div style={{ background: 'rgba(193,18,47,0.04)', border: '1px dashed var(--bp-primary-mid)', padding: '15px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-start' }}>
+                          <p style={{ fontFamily: 'var(--bp-font-display)', fontSize: '12px', fontStyle: 'italic', lineHeight: 1.6, color: 'var(--bp-ink-muted)', margin: 0 }}>
                             {currentDayTab === 1 && 'Insider Key: Place your right hand over your heart, greet a local merchant, and say "Chay Karak, bil-hail" (translates to "Cardamom Karak tea, please") for traditional warmth and a genuine smile.'}
                             {currentDayTab === 2 && 'Insider Key: At a local potter workshop, ask for fresh "Khubz Tannour" flatbread—it is baked in traditional red clay ovens and gifted with sesame toppings.'}
                             {currentDayTab === 3 && 'Insider Key: Ask the harbor skipper for the "Jarada tidal window"—it is the exact 3-hour low-tide peak when the sand is purest white and wild pearl oysters wash ashore.'}
@@ -1774,18 +1670,15 @@ export default function JournalNotebook({ onBack }) {
                             }}
                             className="pointer-events-auto"
                             style={{
-                              position: 'absolute',
-                              top: '12px',
-                              right: '12px',
+                              alignSelf: isRTL ? 'flex-start' : 'flex-end',
                               background: copiedKey ? '#2e7d32' : 'var(--bp-primary)',
                               color: '#fff',
                               border: 'none',
-                              padding: '6px 10px',
+                              padding: '6px 12px',
                               borderRadius: '6px',
                               fontSize: '11px',
                               fontWeight: 'bold',
                               cursor: 'pointer',
-                              zIndex: 10,
                               transition: 'all 0.2s ease',
                               boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                             }}
@@ -1964,7 +1857,7 @@ export default function JournalNotebook({ onBack }) {
                 <div className="jn-mobile-context-bar block md:hidden">
                   <div className="jn-mobile-context-content">
                     <img 
-                      src={activeSpot.image || 'https://commons.wikimedia.org/wiki/Special:FilePath/Bahrain_Fort_March_2015.JPG'} 
+                      src={activeSpot.image || '/assets/images/fort.jpg'} 
                       alt={activeSpot.name || "Landmark thumbnail"} 
                       className="jn-mobile-context-thumb" 
                     />
@@ -2100,23 +1993,40 @@ export default function JournalNotebook({ onBack }) {
                     {hasSpots && (() => {
                       const capturedCount = activeSpots.filter(s => capturedPhotos[s.id]).length
                       const solvedCount = activeSpots.filter(s => solvedRiddles[s.id]).length
+                      const activeRiddlesCount = activeSpots.filter(s => RIDDLES[s.id]).length
+                      
+                      const photoPct = activeSpots.length > 0 ? (capturedCount / activeSpots.length) * 100 : 0
+                      const riddlePct = activeRiddlesCount > 0 ? (solvedCount / activeRiddlesCount) * 100 : 0
+                      
                       return (
-                        <div style={{
-                          display: 'flex', gap: '10px', padding: '7px 12px',
-                          background: 'var(--bp-primary-soft)', border: '1px solid var(--bp-primary-mid)',
-                          borderRadius: 'var(--bp-r-md)', marginBottom: '10px', flexWrap: 'wrap',
-                        }}>
-                          <span style={{ fontFamily: 'var(--bp-font-body)', fontSize: '11px', fontWeight: '700', color: 'var(--bp-ink-muted)' }}>
-                            {capturedCount}/{activeSpots.length} captured
-                          </span>
-                          <span style={{ color: 'var(--bp-ink-faint)' }}>·</span>
-                          <span style={{ fontFamily: 'var(--bp-font-body)', fontSize: '11px', fontWeight: '700', color: 'var(--bp-ink-muted)' }}>
-                            {solvedCount} riddle{solvedCount !== 1 ? 's' : ''} solved
-                          </span>
-                          {isDayCompleted && (
-                            <><span style={{ color: 'var(--bp-ink-faint)' }}>·</span>
-                            <span style={{ fontFamily: 'var(--bp-font-body)', fontSize: '11px', fontWeight: '700', color: 'var(--bp-success)' }}>✓ Day sealed</span></>
-                          )}
+                        <div className="jn-progress-strip">
+                          {/* Segment 1: Photos */}
+                          <div className="jn-progress-segment">
+                            <div className="jn-progress-header">
+                              <span>Photos</span>
+                              <span>{capturedCount}/{activeSpots.length}</span>
+                            </div>
+                            <div className="jn-progress-bar-bg">
+                              <div 
+                                className="jn-progress-bar-fill jn-progress-bar-fill--ocean" 
+                                style={{ width: `${photoPct}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Segment 2: Riddles */}
+                          <div className="jn-progress-segment">
+                            <div className="jn-progress-header">
+                              <span>Riddles</span>
+                              <span>{solvedCount}/{activeRiddlesCount}</span>
+                            </div>
+                            <div className="jn-progress-bar-bg">
+                              <div 
+                                className="jn-progress-bar-fill jn-progress-bar-fill--success" 
+                                style={{ width: `${riddlePct}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
                       )
                     })()}
@@ -2158,7 +2068,7 @@ export default function JournalNotebook({ onBack }) {
                         >
                           <div className="jn-tl-node" aria-hidden="true">
                             <span className="jn-tl-emoji">🏨</span>
-                            <div className="jn-tl-connector" style={{ borderLeft: '2px dashed rgba(186,12,47,0.25)', background: 'transparent' }} />
+                            <div className="jn-tl-connector jn-tl-connector--dashed" />
                           </div>
                           <div className="jn-tl-content" style={{ opacity: 0.85 }}>
                             <div className="jn-tl-meta">

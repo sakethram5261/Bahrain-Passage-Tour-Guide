@@ -37,27 +37,29 @@ export default function ShopPanel({
           </span>
         </div>
 
-        <div className="jn-shop-grid">
+        <div className="jn-shop-items">
           {shopItems.map((item) => {
             const owned = purchasedItems[item.id] || 0
+            const isPermanent = item.id === 'pearl-hook' || item.id === 'falcon-glove'
+            const alreadyOwned = isPermanent && owned > 0
             return (
-              <div key={item.id} className="jn-shop-card">
-                <div className="jn-shop-emoji" role="img" aria-label={item.name}>
+              <div key={item.id} className="jn-shop-item">
+                <div className="jn-shop-item-emoji" role="img" aria-label={item.name}>
                   {item.emoji}
                 </div>
-                <div className="jn-shop-card-info">
+                <div className="jn-shop-item-info">
                   <div className="flex justify-between items-start gap-1">
-                    <h4 className="jn-shop-card-title">{item.name}</h4>
+                    <h4 className="jn-shop-item-name">{item.name}</h4>
                     {owned > 0 && <span className="jn-shop-owned-tag">Owned: {owned}</span>}
                   </div>
-                  <p className="jn-shop-card-desc">{item.desc}</p>
+                  <p className="jn-shop-item-desc">{item.desc}</p>
                 </div>
                 <button
                   className="jn-shop-buy-btn"
                   onClick={() => onBuyItem(item)}
-                  disabled={goldFils < item.cost}
+                  disabled={alreadyOwned || goldFils < item.cost}
                 >
-                  {item.cost.toLocaleString()} Fils
+                  {alreadyOwned ? 'Owned' : `${item.cost.toLocaleString()} Fils`}
                 </button>
               </div>
             )

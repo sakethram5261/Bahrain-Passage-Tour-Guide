@@ -54,9 +54,7 @@ export default function LiveWeatherCard() {
       <div className="jn-almanac-card p-4" style={{ borderStyle: 'dashed', borderColor: 'var(--bp-gold-muted, #ccc)' }}>
         <span className="jn-almanac-label text-[10px] text-stone-400">Live Weather Status</span>
         <span className="text-xs text-stone-500 mt-1 font-sans leading-normal">
-          {error?.includes('401') 
-            ? 'Key activating on server (returns 401). Falling back to historical average.'
-            : 'Weather API currently offline. Using seasonal averages.'}
+          Weather data is temporarily unavailable. Using seasonal averages.
         </span>
       </div>
     )

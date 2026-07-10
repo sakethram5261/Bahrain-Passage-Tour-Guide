@@ -10,6 +10,7 @@
  *   - document.documentElement.dir  = 'rtl'
  */
 import { createContext, useContext, useState, useEffect } from 'react'
+import { translations } from './translation'
 
 const LangContext = createContext(null)
 
@@ -40,8 +41,14 @@ export function LangProvider({ children }) {
 
   const toggle = () => setLang(lang === 'en' ? 'ar' : 'en')
 
+  // Translation helper function
+  const t = (key, fallback = '') => {
+    const section = translations[lang] || translations.en
+    return section[key] || fallback || key
+  }
+
   return (
-    <LangContext.Provider value={{ lang, setLang, toggle, isRTL }}>
+    <LangContext.Provider value={{ lang, setLang, toggle, isRTL, t }}>
       {children}
     </LangContext.Provider>
   )

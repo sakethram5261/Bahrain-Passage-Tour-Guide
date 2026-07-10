@@ -20,7 +20,7 @@ const OPTIMIZED_ASSET_MAPPING = {
  * @param {object} transforms — { width, quality, sepia, crop }
  */
 export function optimizeImageUrl(url, transforms = {}) {
-  if (!url) return 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'
+  if (!url) return '/assets/images/fort.jpg'
 
   const {
     width = 800,

@@ -84,21 +84,38 @@ export function playOudPluck(soundVolume = 1, soundMuted = false) {
   if (!ctx) return
   try {
     const playString = (frequency, delayTime, gainVolume) => {
-      const osc = ctx.createOscillator()
+      const osc1 = ctx.createOscillator()
+      const osc2 = ctx.createOscillator()
+      const filter = ctx.createBiquadFilter()
       const gainNode = ctx.createGain()
       
-      osc.type = 'triangle'
-      osc.frequency.setValueAtTime(frequency, ctx.currentTime + delayTime)
+      osc1.type = 'triangle'
+      osc2.type = 'sine'
       
-      gainNode.gain.setValueAtTime(0, ctx.currentTime + delayTime)
-      gainNode.gain.linearRampToValueAtTime(gainVolume * soundVolume, ctx.currentTime + delayTime + 0.02)
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delayTime + 1.2)
+      osc1.frequency.setValueAtTime(frequency - 1.2, ctx.currentTime + delayTime)
+      osc2.frequency.setValueAtTime(frequency + 1.2, ctx.currentTime + delayTime)
       
-      osc.connect(gainNode)
+      filter.type = 'lowpass'
+      filter.Q.value = 1.0
+      
+      const startTime = ctx.currentTime + delayTime
+      filter.frequency.setValueAtTime(1200, startTime)
+      filter.frequency.exponentialRampToValueAtTime(120, startTime + 0.6)
+      
+      gainNode.gain.setValueAtTime(0, startTime)
+      gainNode.gain.linearRampToValueAtTime(gainVolume * soundVolume * 0.45, startTime + 0.005)
+      gainNode.gain.exponentialRampToValueAtTime(gainVolume * soundVolume * 0.05, startTime + 0.15)
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + 1.0)
+      
+      osc1.connect(filter)
+      osc2.connect(filter)
+      filter.connect(gainNode)
       gainNode.connect(ctx.destination)
       
-      osc.start(ctx.currentTime + delayTime)
-      osc.stop(ctx.currentTime + delayTime + 1.3)
+      osc1.start(startTime)
+      osc2.start(startTime)
+      osc1.stop(startTime + 1.2)
+      osc2.stop(startTime + 1.2)
     }
     
     playString(146.83, 0.0, 0.22)   // D3
@@ -272,6 +289,38 @@ export function playPhraseFeedbackTone(soundVolume = 1, soundMuted = false) {
     osc.start()
     osc.stop(ctx.currentTime + 0.22)
   } catch { /* ignore */ }
+}
+
+export function playPhrase(phraseText, soundVolume = 0.5, soundMuted = false, onStart, onEnd) {
+  playOudPluck(soundVolume, soundMuted)
+  setTimeout(() => {
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(phraseText)
+        utterance.lang = 'ar-BH'
+        
+        const voices = window.speechSynthesis.getVoices()
+        const arabicVoice = voices.find(v => v.lang.startsWith('ar'))
+        if (arabicVoice) {
+          utterance.voice = arabicVoice
+        }
+        utterance.volume = soundVolume
+        utterance.rate = 0.82
+        if (onStart) utterance.onstart = onStart
+        if (onEnd) {
+          utterance.onend = onEnd
+          utterance.onerror = onEnd
+        }
+        window.speechSynthesis.speak(utterance)
+      } else {
+        if (onEnd) onEnd()
+      }
+    } catch (e) {
+      console.error('Phrase TTS speech synthesis error:', e)
+      if (onEnd) onEnd()
+    }
+  }, 240)
 }
 
 export function resetAudioContext() {

@@ -355,13 +355,13 @@ export function JourneyProvider({ children }) {
     let compiledSpots = []
     let localCatalog = spotsCatalog
     let localCategoryImages = {
-      fort: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG',
-      souq: 'https://upload.wikimedia.org/wikipedia/commons/4/47/Mosque_and_Bait_Siyadi%2C_Muharraq%2C_Bahrain.jpg',
-      coast: 'https://upload.wikimedia.org/wikipedia/commons/5/54/Bahrain%27s_Pearling_Pathway_%2818640000885%29.jpg',
-      modern: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
-      desert: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80',
-      culture: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=80',
-      default: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'
+      fort: '/assets/images/fort.jpg',
+      souq: '/assets/images/souq.jpg',
+      coast: '/assets/images/coast.jpg',
+      modern: '/assets/images/modern.jpg',
+      desert: '/assets/images/desert.jpg',
+      culture: '/assets/images/culture.jpg',
+      default: '/assets/images/fort.jpg'
     }
 
     let aiFetched = false

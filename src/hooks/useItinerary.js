@@ -718,13 +718,13 @@ export const spotsCatalog = [
 ]
 
 export const categoryImages = {
-  fort: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG',
-  souq: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Manama_Bab_al-Bahrain_Souq_1.jpg',
-  coast: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
-  modern: 'https://upload.wikimedia.org/wikipedia/commons/4/4c/Manama_Bahrain_World_Trade_Centre_04.jpg',
-  desert: 'https://upload.wikimedia.org/wikipedia/commons/4/42/2010-03_Tree_of_Life_Bahrain.jpg',
-  culture: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Manama_Bahrain_National_Museum_Exterior_1.jpg',
-  default: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Bahrain_Fort_March_2015.JPG'
+  fort: '/assets/images/fort.jpg',
+  souq: '/assets/images/souq.jpg',
+  coast: '/assets/images/coast.jpg',
+  modern: '/assets/images/modern.jpg',
+  desert: '/assets/images/desert.jpg',
+  culture: '/assets/images/culture.jpg',
+  default: '/assets/images/fort.jpg'
 }
 
 // Fixed Hook: accepts global itinerary spots explicitly to avoid importing useVibe/Context loops entirely

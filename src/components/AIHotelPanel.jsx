@@ -314,38 +314,46 @@ export default function AIHotelPanel({ moods, tier, duration, autoLoad = true })
                   </div>
                 </button>
 
-                {isExpanded && (
-                  <div className="border-t border-dashed border-[#C1122F]/15 mt-3 pt-3 animate-fadeIn">
-                    <p className="font-sans text-xs text-stone-600 leading-relaxed mb-2.5">{hotel.desc}</p>
-                    <div className="flex gap-2 text-[10px] font-sans font-bold text-stone-500 mb-3.5 flex-wrap">
-                      <span>{hotel.neighborhood}</span>
-                      <span>&bull;</span>
-                      <span>🚗 {hotel.dist}</span>
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                      {isBaseCamp ? (
-                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#C1122F] text-white text-xs font-bold tracking-wider font-sans">
-                          ✓ Your Base Camp
-                        </span>
-                      ) : (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setSelectedHotel(hotel); awardXP(50, 'Established Base Camp'); playCampStampSound(soundVolume, soundMuted); toast.success(`Established Base Camp stay at ${hotel.name}! +50 XP`) }}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#C1122F]/5 border border-[#C1122F]/25 text-[#C1122F] hover:bg-[#C1122F]/10 text-xs font-bold cursor-pointer tracking-wider transition-colors focus:outline-none font-sans"
+                <div 
+                  style={{
+                    display: 'grid',
+                    gridTemplateRows: isExpanded ? '1fr' : '0fr',
+                    transition: 'grid-template-rows 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+                  }}
+                >
+                  <div style={{ overflow: 'hidden' }}>
+                    <div className="border-t border-dashed border-[#C1122F]/15 mt-3 pt-3">
+                      <p className="font-sans text-xs text-stone-600 leading-relaxed mb-2.5">{hotel.desc}</p>
+                      <div className="flex gap-2 text-[10px] font-sans font-bold text-stone-500 mb-3.5 flex-wrap">
+                        <span>{hotel.neighborhood}</span>
+                        <span>&bull;</span>
+                        <span>🚗 {hotel.dist}</span>
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        {isBaseCamp ? (
+                          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#C1122F] text-white text-xs font-bold tracking-wider font-sans">
+                            ✓ Your Base Camp
+                          </span>
+                        ) : (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setSelectedHotel(hotel); awardXP(50, 'Established Base Camp'); playCampStampSound(soundVolume, soundMuted); toast.success(`Established Base Camp stay at ${hotel.name}! +50 XP`) }}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#C1122F]/5 border border-[#C1122F]/25 text-[#C1122F] hover:bg-[#C1122F]/10 text-xs font-bold cursor-pointer tracking-wider transition-colors focus:outline-none font-sans"
+                          >
+                            Set as Base Camp
+                          </button>
+                        )}
+                        <a
+                          href={hotel.bookingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-stone-50 border border-stone-300 hover:bg-stone-100 text-stone-800 text-xs font-bold no-underline tracking-wider transition-colors font-sans"
                         >
-                          Set as Base Camp
-                        </button>
-                      )}
-                      <a
-                        href={hotel.bookingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-stone-50 border border-stone-300 hover:bg-stone-100 text-stone-800 text-xs font-bold no-underline tracking-wider transition-colors font-sans"
-                      >
-                        Book on Booking.com
-                      </a>
+                          Book on Booking.com
+                        </a>
+                      </div>
                     </div>
                   </div>
-                )}
+                </div>
                 </div>
               </div>
             )

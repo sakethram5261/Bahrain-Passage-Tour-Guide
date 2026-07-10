@@ -50,9 +50,9 @@ const SLOT_PHRASES = [
   'Ласкаво просимо до Бахрейну', // Ukrainian
   'ברוכים הבאים לבחריין',       // Hebrew
   'ยินดีต้อนรับสู่บาห์เรน',      // Thai
-  'বাহরাইনে আপনাকে स्वागतम',    // Bengali
+  'বাহরাইনে আপনাকে स्वागतম',    // Bengali
   'ਬਹਿਰੀਨ ਵਿੱਚ ਤੁਹਾਡਾ ਸੁਆਗਤ ਹੈ', // Punjabi
-  'બ Gujarati બહેريનમાં તમારું સ્વાગત છે', // Gujarati
+  'બહેરિનમાં તમારું સ્વાગત છે', // Gujarati
   'பஹ்ரைனுக்கு உங்களை வரவேற்கிறோம்', // Tamil
   'బహ్రెయిన్‌కు మీకు స్వాగతం',    // Telugu
   'ಬಹ್ರೇನ್ಗೆ ನಿಮಗೆ స్ವಾಗత',      // Kannada
@@ -148,7 +148,7 @@ export default function Onboarding() {
     quickStart
   } = useVibe()
 
-  const { lang, setLang } = useLang()
+  const { lang, setLang, t } = useLang()
 
   // Refs for welcome intro
   const containerRef   = useRef(null)
@@ -461,11 +461,11 @@ export default function Onboarding() {
 
         <div className="space-y-6 max-w-xl">
           <div ref={overlineRef} className="text-[10px] md:text-xs tracking-[0.25em] uppercase font-bold text-[#C4A265]">
-            Chronicles of the Archipelago
+            {t('welcome_subtitle', 'Chronicles of the Archipelago')}
           </div>
 
           <h1 className="font-serif text-5xl md:text-7xl font-extrabold tracking-tight select-none">
-            Bahrain Passage
+            {t('welcome_title', 'Bahrain Passage')}
           </h1>
 
           {/* Dynamic Language Scramble Segment */}
@@ -478,7 +478,7 @@ export default function Onboarding() {
 
             {/* Phase 2: Render settled letters */}
             <div ref={morphViewRef} className="absolute inset-x-0 hidden justify-center gap-0.5 text-xl md:text-2xl font-bold tracking-wide italic text-white/90">
-              {showMorphLetters && ENGLISH_CHARS.map((char, index) => (
+              {showMorphLetters && (lang === 'ar' ? t('welcome_scramble').split('') : ENGLISH_CHARS).map((char, index) => (
                 <span 
                   key={index}
                   className="inline-block animate-fade-in-up"
@@ -492,7 +492,7 @@ export default function Onboarding() {
 
           <div className="flex flex-col items-center gap-1">
             <p ref={taglineRef} className="font-sans text-xs md:text-sm max-w-md mx-auto text-[#A8A29E] leading-relaxed">
-              An immersive digital companion mapping the archaeology, shoreline, and hidden paths of Dilmun.
+              {t('welcome_tagline', 'An immersive digital companion mapping the archaeology, shoreline, and hidden paths of Dilmun.')}
             </p>
             <div ref={morphLineRef} className="h-[1.5px] bg-[#C4A265] mt-3" style={{ width: 0 }} />
           </div>
@@ -503,7 +503,7 @@ export default function Onboarding() {
           onClick={scrollToSetup}
           className="absolute bottom-10 flex flex-col items-center gap-2 cursor-pointer text-[#C4A265] hover:text-white transition-colors duration-300 animate-bounce"
         >
-          <span className="text-[9px] uppercase tracking-[0.2em] font-semibold">Customize Passage</span>
+          <span className="text-[9px] uppercase tracking-[0.2em] font-semibold">{t('edit_trip', 'Customize Passage')}</span>
           <ArrowDown className="w-4 h-4" />
         </button>
       </section>
@@ -518,10 +518,10 @@ export default function Onboarding() {
           {/* Header */}
           <div className="text-center md:text-left border-b border-stone-200 pb-6">
             <h2 className="font-serif text-3xl font-bold text-[#1C1917] tracking-wide">
-              Customize Your Passage
+              {t('edit_trip', 'Customize Your Passage')}
             </h2>
             <p className="text-xs text-stone-500 mt-1">
-              Select your traveling vibes, trip duration, and budget tier to calibrate your ledger
+              {t('vibes_desc', 'Select your traveling vibes, trip duration, and budget tier to calibrate your ledger')}
             </p>
           </div>
 
@@ -531,7 +531,7 @@ export default function Onboarding() {
             {/* 1. Vibes Selection */}
             <div className="space-y-3">
               <label className="text-[10px] md:text-xs uppercase tracking-widest text-[#C41E3A] font-bold">
-                1. Select Traveling Vibes
+                1. {t('choose_vibes', 'Select Traveling Vibes')}
               </label>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -576,9 +576,9 @@ export default function Onboarding() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className="text-[10px] md:text-xs uppercase tracking-widest text-[#C41E3A] font-bold">
-                  2. Trip Duration
+                  2. {t('select_duration', 'Trip Duration')}
                 </label>
-                <span className="text-xs text-stone-700 font-bold">{duration} {duration === 1 ? 'Day' : 'Days'} Itinerary</span>
+                <span className="text-xs text-stone-700 font-bold">{duration} {duration === 1 ? t('days_label', 'Day') : t('days_label', 'Days')}</span>
               </div>
 
               <div className="relative flex items-center gap-2">
@@ -623,7 +623,7 @@ export default function Onboarding() {
             {/* 3. Budget Tier Segmented Picker */}
             <div className="space-y-3">
               <label className="text-[10px] md:text-xs uppercase tracking-widest text-[#C41E3A] font-bold block">
-                3. Budget & Experience Level
+                3. {t('select_budget', 'Budget & Experience Level')}
               </label>
 
               <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-stone-100 border border-stone-200">
@@ -635,7 +635,7 @@ export default function Onboarding() {
                       : 'text-stone-500 hover:text-stone-850 bg-transparent'
                   }`}
                 >
-                  Wandering
+                  {t('budget_wandering', 'Wandering')}
                 </button>
                 <button
                   onClick={() => setTier('Curated')}
@@ -645,7 +645,7 @@ export default function Onboarding() {
                       : 'text-stone-500 hover:text-stone-850 bg-transparent'
                   }`}
                 >
-                  Curated
+                  {t('budget_curated', 'Curated')}
                 </button>
                 <button
                   onClick={() => setTier('Luxury')}
@@ -655,7 +655,7 @@ export default function Onboarding() {
                       : 'text-stone-500 hover:text-stone-850 bg-transparent'
                   }`}
                 >
-                  Luxury
+                  {t('budget_luxury', 'Luxury')}
                 </button>
               </div>
             </div>
@@ -672,15 +672,15 @@ export default function Onboarding() {
                 }`}
               >
                 {noneSelected
-                  ? 'Select at least one vibe'
-                  : 'Begin Passage →'}
+                  ? t('choose_vibes', 'Select at least one vibe')
+                  : `${t('embark_btn', 'Begin Passage')} →`}
               </button>
 
               <button
                 onClick={handleQuickStart}
                 className="w-full py-3.5 rounded-xl font-sans font-bold text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer border border-[#C41E3A]/30 bg-[#C41E3A]/5 hover:bg-[#C41E3A]/10 text-[#C41E3A] hover:scale-[1.005] active:scale-[0.995] h-[48px] flex items-center justify-center gap-1 shadow-sm"
               >
-                Standard Route (Quick Start)
+                {t('quick_start', 'Standard Route (Quick Start)')}
               </button>
             </div>
 
