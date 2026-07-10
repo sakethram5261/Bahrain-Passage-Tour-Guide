@@ -34,7 +34,7 @@ function MainContent() {
   }
 
   // Show floating header containing language toggle and passport trigger
-  const showFloatingHeader = true
+  const showFloatingHeader = step < 5
 
   return (
     <div className="relative min-h-screen">
