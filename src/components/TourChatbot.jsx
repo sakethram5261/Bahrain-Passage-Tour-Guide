@@ -862,6 +862,7 @@ Always make sure the response is a valid JSON object. Do not include markdown co
       {/* Chat panel — shown always in embedded mode, or when open in standalone mode */}
       {(embedded || open) && (
         <div
+          data-lenis-prevent
           className={`flex flex-col overflow-hidden bg-stone-50 ${
             embedded
               ? 'relative w-full h-[min(480px,calc(100vh-220px))] rounded-2xl border border-stone-200'
