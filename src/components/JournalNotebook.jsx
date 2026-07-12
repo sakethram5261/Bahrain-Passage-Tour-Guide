@@ -231,6 +231,7 @@ export default function JournalNotebook({ onBack }) {
     unlockKeepsake = () => {},
     setGoldFils = () => {},
     passportStamps = [],
+    jaradaTide = { isSubmerged: false },
   } = useVibe() || {}
 
 
@@ -686,7 +687,8 @@ export default function JournalNotebook({ onBack }) {
             hours: 'Open daily 9:00 AM - 6:00 PM',
             cost: matchedSpot.budgetCost || matchedSpot.premiumCost || 'Free Entry',
             modestyAlert: matchedSpot.id === 'barbar-temple' ? 'Dress respectfully' : '',
-            safetyAlert: matchedSpot.id === 'jarada-island' ? 'Monitor tide timings closely' : '',
+            safetyAlert: matchedSpot.id === 'jarada-island' ? (jaradaTide?.isSubmerged ? 'CURRENTLY SUBMERGED BY TIDE' : 'Monitor tide timings closely') : '',
+            isSubmerged: matchedSpot.id === 'jarada-island' && jaradaTide?.isSubmerged,
             insider: matchedSpot.insider,
             category: matchedSpot.category,
             period: matchedSpot.period
@@ -1016,6 +1018,12 @@ export default function JournalNotebook({ onBack }) {
     if (!activeSpot) return null
     return (
       <div className="space-y-5">
+        {activeSpot.isSubmerged && (
+          <div className="p-3 bg-blue-900/10 border border-blue-800/30 rounded-lg text-blue-900 text-[13px] font-sans font-medium flex items-start gap-2 animate-fade-in-up">
+            <span className="text-lg leading-none">🌊</span>
+            <p><strong>Submerged by High Tide:</strong> Jarada Island is currently beneath the waves of the Gulf. It will reappear at low tide.</p>
+          </div>
+        )}
         <p className="jn-description">{activeSpot.desc}</p>
 
         {/* What You Can Find Here */}

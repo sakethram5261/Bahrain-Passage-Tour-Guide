@@ -83,12 +83,24 @@ export default function KeepsakeDetailModal({
                 background: '#292524',
                 position: 'relative'
               }}>
-                <img 
-                  src={capturedPhotos[selectedKsake.id] || selectedKsake.image} 
-                  alt={selectedKsake.name} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={(e) => { e.target.style.display = 'none' }}
-                />
+                {selectedKsake.glbUrl ? (
+                  <model-viewer
+                    src={selectedKsake.glbUrl}
+                    alt={selectedKsake.name}
+                    auto-rotate
+                    camera-controls
+                    ar
+                    shadow-intensity="1"
+                    style={{ width: '100%', height: '100%', backgroundColor: '#FAF8F5' }}
+                  ></model-viewer>
+                ) : (
+                  <img 
+                    src={capturedPhotos[selectedKsake.id] || selectedKsake.image} 
+                    alt={selectedKsake.name} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => { e.target.style.display = 'none' }}
+                  />
+                )}
                 <div style={{
                   position: 'absolute',
                   bottom: 0, left: 0, right: 0,

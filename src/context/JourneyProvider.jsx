@@ -3,6 +3,7 @@ import { JourneyContext } from './JourneyContext'
 import { playPageSwish } from '../services/audioUtils'
 import { spotsCatalog } from '../hooks/useItinerary'
 import { savePhoto, clearAllPhotos, getAllPhotos } from '../services/db'
+import { getLiveTideStatus } from '../services/tideService'
 
 const savedState = (() => {
   try {
@@ -80,6 +81,9 @@ export function JourneyProvider({ children }) {
   const [chatHistory, setChatHistory] = useState(() => getSavedValue('chatHistory', 'bp_chatHistory', [], 'json'))
   const [signature, setSignature] = useState(() => getSavedValue('signature', 'bp_signature', '', 'str'))
 
+  // ── Tide / Weather ──────────────────────────────────────────────────────
+  const [jaradaTide, setJaradaTide] = useState({ isSubmerged: false, seaLevel: 0 })
+
   const aligned = step === 5
 
   // ── Asynchronous load of photos from IndexedDB with legacy migration ────
@@ -114,6 +118,13 @@ export function JourneyProvider({ children }) {
         legacyKeys.forEach(k => localStorage.removeItem(k))
       }, 2000)
     })
+
+    // Fetch tide status on mount
+    getLiveTideStatus().then(tideData => {
+      if (!active) return
+      setJaradaTide(tideData)
+    })
+
     return () => { active = false }
   }, [])
 
@@ -562,6 +573,9 @@ Make the spots highly engaging and authentic to Bahrain. Do not include airport 
       // Signature
       signature,
       setSignature,
+
+      // Live Tide
+      jaradaTide,
     }}>
       {children}
     </JourneyContext.Provider>

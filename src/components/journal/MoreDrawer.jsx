@@ -22,6 +22,7 @@ import { playTypewriterClick, playPhrase } from '../../services/audioUtils'
 import { fetchDatasetRecords } from '../../services/openDataService'
 import { PHRASES } from '../../data/phrases'
 import LangToggle from '../LangToggle'
+import TravelScrollRenderer from './TravelScrollRenderer'
 
 export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsake }) {
   const { 
@@ -655,6 +656,12 @@ export default function MoreDrawer({ isOpen, onClose, onOpenKiosk, onOpenKeepsak
                     )
                   })}
                 </div>
+              </div>
+
+              {/* Travel Scroll Export */}
+              <div className="mt-8">
+                <span className="text-[10px] uppercase tracking-widest text-[#C4A265] font-bold block mb-3">Infographic</span>
+                <TravelScrollRenderer />
               </div>
 
             </div>

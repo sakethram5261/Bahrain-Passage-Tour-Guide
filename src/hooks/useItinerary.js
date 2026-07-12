@@ -20,7 +20,8 @@ export const spotsCatalog = [
     keepsakeId: 'dilmun-bull-stamp',
     keepsakeName: 'Dilmun Terracotta Bull Stamp',
     keepsakeEmoji: '🐂',
-    keepsakeDesc: 'An authentic clay stamp carving recovered from the Dilmun archaeological layer, used by ancient merchants to seal shipments bound for Mesopotamia.'
+    keepsakeDesc: 'An authentic clay stamp carving recovered from the Dilmun archaeological layer, used by ancient merchants to seal shipments bound for Mesopotamia.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'muharraq-souq',
@@ -41,7 +42,8 @@ export const spotsCatalog = [
     keepsakeId: 'saffron-karak-pot',
     keepsakeName: 'Saffron Karak Dallah',
     keepsakeEmoji: '☕',
-    keepsakeDesc: 'A miniature brass teapot stained with years of brewing sweet cardamom tea and hot local saffron infusions.'
+    keepsakeDesc: 'A miniature brass teapot stained with years of brewing sweet cardamom tea and hot local saffron infusions.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'pearling-path',
@@ -62,7 +64,8 @@ export const spotsCatalog = [
     keepsakeId: 'pink-basra-pearl',
     keepsakeName: 'Natural Pink Basra Pearl',
     keepsakeEmoji: '🦪',
-    keepsakeDesc: 'A flawless, highly rare natural pink oyster pearl retrieved from the deep reefs of the Bahrain northern seas by generational divers.'
+    keepsakeDesc: 'A flawless, highly rare natural pink oyster pearl retrieved from the deep reefs of the Bahrain northern seas by generational divers.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'block-338',
@@ -83,7 +86,8 @@ export const spotsCatalog = [
     keepsakeId: 'neon-art-palette',
     keepsakeName: 'Bohemian Neon Glass Tile',
     keepsakeEmoji: '🎨',
-    keepsakeDesc: 'A small piece of hand-fused neon stained glass recovered from the artistic installations of Block 338.'
+    keepsakeDesc: 'A small piece of hand-fused neon stained glass recovered from the artistic installations of Block 338.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'jarada-island',
@@ -104,7 +108,8 @@ export const spotsCatalog = [
     keepsakeId: 'vanishing-sand-vial',
     keepsakeName: 'Vial of Ephemeral White Sand',
     keepsakeEmoji: '⏳',
-    keepsakeDesc: 'A sealed glass keepsake containing the pure, tide-swept white sands gathered from Jarada Island before it vanished under the waves.'
+    keepsakeDesc: 'A sealed glass keepsake containing the pure, tide-swept white sands gathered from Jarada Island before it vanished under the waves.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'tree-of-life',
@@ -125,7 +130,8 @@ export const spotsCatalog = [
     keepsakeId: 'desert-bark-charm',
     keepsakeName: 'Mystical Green Desert Leaf',
     keepsakeEmoji: '🍃',
-    keepsakeDesc: 'A petrified green leaf harvested from the lone ancient tree that defies the barren, hyper-saline sands of the Sakhir desert.'
+    keepsakeDesc: 'A petrified green leaf harvested from the lone ancient tree that defies the barren, hyper-saline sands of the Sakhir desert.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'haji-cafe',
@@ -146,7 +152,8 @@ export const spotsCatalog = [
     keepsakeId: 'haji-bench-token',
     keepsakeName: 'Engraved Haji Wooden Token',
     keepsakeEmoji: '🪙',
-    keepsakeDesc: 'A hand-carved wooden token stamped with the year 1950, commemorating breakfast served on Haji\'s famous rustic benches.'
+    keepsakeDesc: 'A hand-carved wooden token stamped with the year 1950, commemorating breakfast served on Haji\'s famous rustic benches.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'aali-pottery',
@@ -167,7 +174,8 @@ export const spotsCatalog = [
     keepsakeId: 'red-clay-chalice',
     keepsakeName: 'Terracotta Red Clay Amulet',
     keepsakeEmoji: '🏺',
-    keepsakeDesc: 'A tiny, circular amulet shaped from wet Sakhir red clay and baked inside a generational wood-fired brick kiln.'
+    keepsakeDesc: 'A tiny, circular amulet shaped from wet Sakhir red clay and baked inside a generational wood-fired brick kiln.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'arad-fort',
@@ -188,7 +196,8 @@ export const spotsCatalog = [
     keepsakeId: 'moat-guard-key',
     keepsakeName: 'Arad Moat Iron Lock-Key',
     keepsakeEmoji: '🔑',
-    keepsakeDesc: 'A heavy, oxidized iron skeleton key replicating the ancient locks used to secure the sea-gates of Arad Fort.'
+    keepsakeDesc: 'A heavy, oxidized iron skeleton key replicating the ancient locks used to secure the sea-gates of Arad Fort.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'national-museum',
@@ -209,7 +218,8 @@ export const spotsCatalog = [
     keepsakeId: 'gold-dilmun-leaf',
     keepsakeName: 'Gold-Foil Dilmun Crown Leaf',
     keepsakeEmoji: '👑',
-    keepsakeDesc: 'A delicate, leaf-shaped replica crafted from razor-thin gold foil, modeled after the burial headpieces of ancient Dilmun royalty.'
+    keepsakeDesc: 'A delicate, leaf-shaped replica crafted from razor-thin gold foil, modeled after the burial headpieces of ancient Dilmun royalty.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'al-dar-islands',
@@ -230,7 +240,8 @@ export const spotsCatalog = [
     keepsakeId: 'coral-reef-sprig',
     keepsakeName: 'Turquoise Coral Shell',
     keepsakeEmoji: '🪸',
-    keepsakeDesc: 'A small fossilized branch of sea coral, showing the rich, warm marine reef ecosystems surrounding Sitra coastlines.'
+    keepsakeDesc: 'A small fossilized branch of sea coral, showing the rich, warm marine reef ecosystems surrounding Sitra coastlines.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'reef-island',
@@ -251,7 +262,8 @@ export const spotsCatalog = [
     keepsakeId: 'palm-neon-fan',
     keepsakeName: 'Woven Silver Palm Fan',
     keepsakeEmoji: '🪭',
-    keepsakeDesc: 'An elegant hand-held fan woven from local palm fibers and lined with silver-painted details, reflecting Reef Island\'s modern luxury.'
+    keepsakeDesc: 'An elegant hand-held fan woven from local palm fibers and lined with silver-painted details, reflecting Reef Island\'s modern luxury.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'riffa-fort',
@@ -272,7 +284,8 @@ export const spotsCatalog = [
     keepsakeId: 'valley-dagger',
     keepsakeName: 'Wood-Carved Riffa Dagger',
     keepsakeEmoji: '🗡️',
-    keepsakeDesc: 'A miniature wooden dagger featuring intricate Arabic geometric engravings, honoring the historic defense lineage of Riffa Fort.'
+    keepsakeDesc: 'A miniature wooden dagger featuring intricate Arabic geometric engravings, honoring the historic defense lineage of Riffa Fort.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'barbar-temple',
@@ -293,7 +306,8 @@ export const spotsCatalog = [
     keepsakeId: 'sacred-chalice',
     keepsakeName: 'Dilmun Sacred Stone Chalice',
     keepsakeEmoji: '🍷',
-    keepsakeDesc: 'A hand-ground limestone water cup modeled after the sacrificial offering chalices found near the sacred Barbar temple spring.'
+    keepsakeDesc: 'A hand-ground limestone water cup modeled after the sacrificial offering chalices found near the sacred Barbar temple spring.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'al-jasra-house',
@@ -314,7 +328,8 @@ export const spotsCatalog = [
     keepsakeId: 'palm-basket-box',
     keepsakeName: 'Woven Al Jasra Palm Box',
     keepsakeEmoji: '🧺',
-    keepsakeDesc: 'A tiny, aromatic container hand-woven from green Sakhir palm fronds inside the heritage workshops of Al Jasra.'
+    keepsakeDesc: 'A tiny, aromatic container hand-woven from green Sakhir palm fronds inside the heritage workshops of Al Jasra.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'khalaf-house',
@@ -335,7 +350,8 @@ export const spotsCatalog = [
     keepsakeId: 'oyster-weight-scale',
     keepsakeName: 'Pearl Merchant Brass Scale',
     keepsakeEmoji: '⚖️',
-    keepsakeDesc: 'A small, polished brass pocket balance-scale historically used by pearl merchants to weigh rare sea pearls against carats.'
+    keepsakeDesc: 'A small, polished brass pocket balance-scale historically used by pearl merchants to weigh rare sea pearls against carats.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'manama-souq',
@@ -356,7 +372,8 @@ export const spotsCatalog = [
     keepsakeId: 'dallah-spice-pot',
     keepsakeName: 'Miniature Brass Dallah Pot',
     keepsakeEmoji: '🫖',
-    keepsakeDesc: 'A traditional, long-beaked brass Dallah pot used to brew coffee, representing the legendary hospitality of Manama Souq.'
+    keepsakeDesc: 'A traditional, long-beaked brass Dallah pot used to brew coffee, representing the legendary hospitality of Manama Souq.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'al-areen',
@@ -377,7 +394,8 @@ export const spotsCatalog = [
     keepsakeId: 'oryx-bone-ring',
     keepsakeName: 'Carved Oryx Gazelle Ring',
     keepsakeEmoji: '💍',
-    keepsakeDesc: 'A bone-carved finger ring decorated with traditional engravings, honoring the majestic Arabian Oryx of Al Areen.'
+    keepsakeDesc: 'A bone-carved finger ring decorated with traditional engravings, honoring the majestic Arabian Oryx of Al Areen.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'airport-arrival',
@@ -398,7 +416,8 @@ export const spotsCatalog = [
     keepsakeId: 'passport-seal-arrival',
     keepsakeName: 'Arrival Passport Ink Stamp',
     keepsakeEmoji: '✈️',
-    keepsakeDesc: 'A crisp red ink stamp in your traveler journal, sealing your official entry into the Kingdom of Bahrain.'
+    keepsakeDesc: 'A crisp red ink stamp in your traveler journal, sealing your official entry into the Kingdom of Bahrain.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'airport-departure',
@@ -419,7 +438,8 @@ export const spotsCatalog = [
     keepsakeId: 'passport-seal-departure',
     keepsakeName: 'Departure Passport Ink Stamp',
     keepsakeEmoji: '🇧🇭',
-    keepsakeDesc: 'A beautiful gold-pressed departure seal signifying the completion of your Bahrain Passage journal.'
+    keepsakeDesc: 'A beautiful gold-pressed departure seal signifying the completion of your Bahrain Passage journal.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'beit-al-quran',
@@ -440,7 +460,8 @@ export const spotsCatalog = [
     keepsakeId: 'calligraphy-scroll',
     keepsakeName: 'Custom Calligraphy Scroll',
     keepsakeEmoji: '📜',
-    keepsakeDesc: 'A personalized piece of Arabic calligraphy crafted by local artisans.'
+    keepsakeDesc: 'A personalized piece of Arabic calligraphy crafted by local artisans.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'saar-temple',
@@ -461,7 +482,8 @@ export const spotsCatalog = [
     keepsakeId: 'reproduction-pottery-shard',
     keepsakeName: 'Terracotta Replica Shard',
     keepsakeEmoji: '🏺',
-    keepsakeDesc: 'A handcrafted clay replica reflecting the style of Dilmun pottery.'
+    keepsakeDesc: 'A handcrafted clay replica reflecting the style of Dilmun pottery.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'al-khamis-mosque',
@@ -482,7 +504,8 @@ export const spotsCatalog = [
     keepsakeId: 'miniature-minaret-statue',
     keepsakeName: 'Minaret Stone Statue',
     keepsakeEmoji: '🕌',
-    keepsakeDesc: 'A small carved stone representation of the mosque\'s iconic twin towers.'
+    keepsakeDesc: 'A small carved stone representation of the mosque\'s iconic twin towers.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'bin-matar-house',
@@ -503,7 +526,8 @@ export const spotsCatalog = [
     keepsakeId: 'pearl-merchant-box',
     keepsakeName: 'Wooden Pearl Box',
     keepsakeEmoji: '📦',
-    keepsakeDesc: 'A handcrafted wooden box inspired by the storage chests used by pearl merchants.'
+    keepsakeDesc: 'A handcrafted wooden box inspired by the storage chests used by pearl merchants.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'al-jasra-craft-center',
@@ -524,7 +548,8 @@ export const spotsCatalog = [
     keepsakeId: 'palm-leaf-basket',
     keepsakeName: 'Hand-Woven Palm Basket',
     keepsakeEmoji: '🧺',
-    keepsakeDesc: 'A durable, traditionally woven basket made from local date palm leaves.'
+    keepsakeDesc: 'A durable, traditionally woven basket made from local date palm leaves.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'durrat-al-bahrain-coast',
@@ -545,7 +570,8 @@ export const spotsCatalog = [
     keepsakeId: 'seashell-trinket',
     keepsakeName: 'Polished Seashell Souvenir',
     keepsakeEmoji: '🐚',
-    keepsakeDesc: 'A beautiful seashell found on the pristine shores of the southern islands.'
+    keepsakeDesc: 'A beautiful seashell found on the pristine shores of the southern islands.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'royal-camel-farm',
@@ -566,7 +592,8 @@ export const spotsCatalog = [
     keepsakeId: 'camel-plush',
     keepsakeName: 'Hand-Stitched Camel Toy',
     keepsakeEmoji: '🐪',
-    keepsakeDesc: 'A soft, handcrafted camel toy reflecting the desert culture.'
+    keepsakeDesc: 'A soft, handcrafted camel toy reflecting the desert culture.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'bahrain-international-circuit',
@@ -587,7 +614,8 @@ export const spotsCatalog = [
     keepsakeId: 'racing-flag-keychain',
     keepsakeName: 'Chequered Flag Keychain',
     keepsakeEmoji: '🏁',
-    keepsakeDesc: 'A high-quality metallic keychain representing the thrill of the race.'
+    keepsakeDesc: 'A high-quality metallic keychain representing the thrill of the race.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'al-fateh-grand-mosque',
@@ -608,7 +636,8 @@ export const spotsCatalog = [
     keepsakeId: 'mosque-bookmark',
     keepsakeName: 'Calligraphy Bookmark',
     keepsakeEmoji: '📖',
-    keepsakeDesc: 'A bookmark featuring elegant Arabic script, perfect for any reader.'
+    keepsakeDesc: 'A bookmark featuring elegant Arabic script, perfect for any reader.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'manama-reef-walk',
@@ -629,7 +658,8 @@ export const spotsCatalog = [
     keepsakeId: 'karak-cup',
     keepsakeName: 'Traditional Karak Cup',
     keepsakeEmoji: '☕',
-    keepsakeDesc: 'A small glass cup used to enjoy the classic spiced Bahraini tea.'
+    keepsakeDesc: 'A small glass cup used to enjoy the classic spiced Bahraini tea.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'bahrain-world-trade-center',
@@ -650,7 +680,8 @@ export const spotsCatalog = [
     keepsakeId: 'turbine-model',
     keepsakeName: 'Wind Turbine Paperweight',
     keepsakeEmoji: '🌬️',
-    keepsakeDesc: 'A metallic paperweight modeled after the center\'s famous wind turbines.'
+    keepsakeDesc: 'A metallic paperweight modeled after the center\'s famous wind turbines.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'muharraq-cultural-center',
@@ -671,7 +702,8 @@ export const spotsCatalog = [
     keepsakeId: 'heritage-notebook',
     keepsakeName: 'Hand-Bound Journal',
     keepsakeEmoji: '📓',
-    keepsakeDesc: 'A notebook bound in traditional fabric, inspired by the center\'s scholars.'
+    keepsakeDesc: 'A notebook bound in traditional fabric, inspired by the center\'s scholars.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'al-ghous-house',
@@ -692,7 +724,8 @@ export const spotsCatalog = [
     keepsakeId: 'diver-weight',
     keepsakeName: 'Diver\'s Stone Replica',
     keepsakeEmoji: '🪨',
-    keepsakeDesc: 'A stone replica representing the weights used by pearl divers to descend.'
+    keepsakeDesc: 'A stone replica representing the weights used by pearl divers to descend.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   },
   {
     id: 'ad-dair-village',
@@ -713,7 +746,8 @@ export const spotsCatalog = [
     keepsakeId: 'dried-fish-pouch',
     keepsakeName: 'Traditional Spice Pouch',
     keepsakeEmoji: '🌶️',
-    keepsakeDesc: 'A small bag of local spices commonly used in Bahraini fish recipes.'
+    keepsakeDesc: 'A small bag of local spices commonly used in Bahraini fish recipes.',
+    glbUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
   }
 ]
 

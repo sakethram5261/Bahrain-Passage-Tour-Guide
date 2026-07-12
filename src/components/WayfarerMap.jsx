@@ -72,6 +72,7 @@ export default function WayfarerMap({ locations, onClose }) {
     selectedHotel,
     soundVolume = 0.5,
     soundMuted = false,
+    jaradaTide = { isSubmerged: false },
   } = useVibe()
 
   // ── Local state ───────────────────────────────────────────────────────────
@@ -338,6 +339,7 @@ export default function WayfarerMap({ locations, onClose }) {
         const isSelected = selectedSpot?.id === spot.id
         const scanned = collectedKeepsakes.includes(spot.id)
         const hasPearl = pearlsCollected.includes(spot.id)
+        const isSubmerged = spot.id === 'jarada-island' && jaradaTide?.isSubmerged
 
         const iconHtml = `
           <div class="custom-map-pin flex items-center justify-center relative" style="width: 32px; height: 32px;">
@@ -347,11 +349,11 @@ export default function WayfarerMap({ locations, onClose }) {
               style="
                 width: ${isSelected ? '24px' : '20px'};
                 height: ${isSelected ? '24px' : '20px'};
-                background-color: ${hasPearl ? '#f59e0b' : scanned ? '#10b981' : isSelected ? 'var(--color-primary)' : isActive ? '#E53E3E' : 'rgba(90,70,65,0.45)'};
+                background-color: ${isSubmerged ? '#1e40af' : hasPearl ? '#f59e0b' : scanned ? '#10b981' : isSelected ? 'var(--color-primary)' : isActive ? '#E53E3E' : 'rgba(90,70,65,0.45)'};
                 color: white;
               "
             >
-              ${hasPearl ? '💎' : scanned ? '★' : isActive ? (activeIdx + 1) : ''}
+              ${isSubmerged ? '🌊' : hasPearl ? '💎' : scanned ? '★' : isActive ? (activeIdx + 1) : ''}
             </div>
 
             ${isActive ? `<div class="absolute -top-3.5 text-[9px] drop-shadow-sm">${CAT_ICON[spot.category] || '📍'}</div>` : ''}
